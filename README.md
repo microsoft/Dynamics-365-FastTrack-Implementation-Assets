@@ -36,7 +36,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 
 ### Commerce guides
 
-- [Negative inventory check](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-guides/blob/master/Commerce/NegativeInventoryCheck/readme.MD)
+- [Negative inventory check](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-guides/tree/master/Commerce/NegativeInventoryCheck)
 
 ## Contributing
 
