@@ -40,7 +40,7 @@ As an example, POS view shows this for item 0001 (normal product):
 
 A variant product works the same:
 
-![](RackMultipart20200627-4-1wfmkjl_html_ad877526695dc7e0.png)
+![alt text](images/POSUIInventoryAvailVariant.png "Variant availability")
 
 ## Implementing negative Inventory check on Save cart and Checkout
 
@@ -103,7 +103,7 @@ For details see the source code in ExtInventoryAvailabilityService.cs
 
 If the ExtInventoryAvailabilityService.cs returns information that the on-hand is not enough for the current item sale, the same must be prevented. For this purpose, we throw CommerceException that is automatically used in POS to show a dialog:
 
-![](RackMultipart20200627-4-1wfmkjl_html_658be4e7041e9910.png)
+![alt text](images/POSNegativeInventoryMessage.png "Not enough on-hand")
 
 Note:
 
@@ -120,7 +120,7 @@ Instead of the prevention of a sale, other possible implementations can be envis
 1. CRT extension 1: A new CRT handler was written in class Extensions.Crt.InventoryAvailability. ExtInventoryAvailabilityService. It carries out the calculation as mentioned above.
 2. CRT extension 2: 4 triggers are added to add or prevent the inventory check.
 
-![](RackMultipart20200627-4-1wfmkjl_html_f1c1fa2bf68ada8e.png)
+![alt text](images/CRTconfig.png "crt.extension.config")
 
 ## Variations of implementation
 
