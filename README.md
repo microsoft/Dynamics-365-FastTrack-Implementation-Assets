@@ -34,6 +34,10 @@ Outline the file contents of the repository. It helps users navigate the codebas
 | `README.md`       | This README file.                          |
 | `LICENSE`         | The license for the sample.                |
 
+### Commerce guides
+
+- [Negative inventory check](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-guides/blob/master/Commerce/NegativeInventoryCheck/readme.MD)
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
