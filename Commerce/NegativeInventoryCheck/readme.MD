@@ -36,7 +36,7 @@ _unpostedQuantity is calculated on the fly in the channel_
 
 As an example, POS view shows this for item 0001 (normal product):
 
-![](RackMultipart20200627-4-1wfmkjl_html_55c15811589bd64.png)
+![alt text](images/POSUIInventoryAvailItem.png "Item availability")
 
 A variant product works the same:
 
