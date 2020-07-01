@@ -1,5 +1,12 @@
 # SQLToLake full export datafactory pipeline overview
-SQLToLake is a generic Azure data factory solution to enable exporting SQLServer tables data to Azure data lake gen 2 storage account. Pipleline can be used to export any tables available in the source database to Azure storage account in csv or Parquet data format. Pipeline also generates model.json file to define table schema so that can be further utilized in Azure Synapse Analytics or Power BI using Dataflow. 
+SQLToLake is a generic Azure data factory solution to enable exporting SQLServer tables data to Azure data lake gen 2 storage account. Pipleline can be used to export any tables available in the source database to Azure storage account in csv or Parquet data format. Pipeline also generates model.json file that describe the table schema in CDM format so that it can be further utilized in Azure Synapse Analytics or Power BI using Dataflow.
+
+## Use cases 
+You can use this Data factory solution template for following use cases 
+1. Ingest your on-premise Dynamics AX data to Azure data lake in CDM format
+2. Ingest other on-premise SQL Database or Azure SQL database to Azure data lake in CDM format
+3. As an workaround to Tables in Data Lake feature (Only available in Tier 2+ ), ingest Finance and Operations app data from Tier 1 boxes to Azure data lake and try out SQL-On-Demand with your Finance and Operations data. 
+
 
 # Pre-requisites 
 To deploy data factory pipeline solution, you need to provision and collect following pre-requisites
