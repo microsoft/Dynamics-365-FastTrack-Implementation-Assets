@@ -1,543 +1,547 @@
 {
-    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-        "factoryName": {
-            "type": "string",
-            "metadata": "Data Factory name",
-            "defaultValue": "SQLToLakeFullExport"
-        },
-        "DataLakeGen2Storage_accountKey": {
-            "type": "secureString",
-            "metadata": "Secure string for 'accountKey' of 'DataLakeGen2Storage'"
-        },
-        "SqlServerDB_connectionString": {
-            "type": "secureString",
-            "metadata": "Secure string for 'connectionString' of 'SqlServerDB'"
-        },
-        "DataLakeGen2Storage_properties_typeProperties_url": {
-            "type": "string",
-            "defaultValue": "https://d365fofttableslake.dfs.core.windows.net/"
-        }
-    },
-    "variables": {
-        "factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
-    },
-    "resources": [
-        {
-            "name": "[concat(parameters('factoryName'), '/SQLTablesToADLS')]",
-            "type": "Microsoft.DataFactory/factories/pipelines",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "activities": [
-                    {
-                        "name": "ForEachTable",
-                        "type": "ForEach",
-                        "dependsOn": [],
-                        "userProperties": [],
-                        "typeProperties": {
-                            "items": {
-                                "value": "@split(pipeline().parameters.TableNames, ',')",
-                                "type": "Expression"
-                            },
-                            "activities": [
-                                {
-                                    "name": "LookupColumns",
-                                    "type": "Lookup",
-                                    "dependsOn": [],
-                                    "policy": {
-                                        "timeout": "7.00:00:00",
-                                        "retry": 0,
-                                        "retryIntervalInSeconds": 30,
-                                        "secureOutput": false,
-                                        "secureInput": false
-                                    },
-                                    "userProperties": [],
-                                    "typeProperties": {
-                                        "source": {
-                                            "type": "SqlServerSource",
-                                            "sqlReaderQuery": {
-                                                "value": "select c.COLUMN_NAME as name,      c.COLUMN_NAME as description,     \n\tcase  DATA_TYPE       WHEN 'bigint' THEN 'int64'      WHEN 'bit' THEN 'int64'   \n\t  WHEN 'datetime' THEN 'dateTime'      WHEN 'decimal' THEN 'double'      WHEN 'int' THEN 'int64'      WHEN 'money' THEN 'double'      WHEN 'numeric' THEN 'double'      \n\t  WHEN 'smallint' THEN 'int64'      WHEN 'tinyint' THEN 'int64'      else 'string'       END as dataType    \n\t   FROM INFORMATION_SCHEMA.COLUMNS c     \n\t   where c.TABLE_NAME = '@{item()}'    \n\t\torder by C.ORDINAL_POSITION ASC  ",
-                                                "type": "Expression"
-                                            },
-                                            "queryTimeout": "02:00:00"
-                                        },
-                                        "dataset": {
-                                            "referenceName": "SqlTable",
-                                            "type": "DatasetReference",
-                                            "parameters": {}
-                                        },
-                                        "firstRowOnly": false
-                                    }
-                                },
-                                {
-                                    "name": "ModelJson",
-                                    "type": "Copy",
-                                    "dependsOn": [
-                                        {
-                                            "activity": "LookupColumns",
-                                            "dependencyConditions": [
-                                                "Succeeded"
-                                            ]
-                                        }
-                                    ],
-                                    "policy": {
-                                        "timeout": "7.00:00:00",
-                                        "retry": 0,
-                                        "retryIntervalInSeconds": 30,
-                                        "secureOutput": false,
-                                        "secureInput": false
-                                    },
-                                    "userProperties": [],
-                                    "typeProperties": {
-                                        "source": {
-                                            "type": "SqlServerSource",
-                                            "sqlReaderQuery": {
-                                                "value": "Select replace('{\"application\": \"Dynamics\",\n  \"name\": \"@{item()}\",\n  \"description\": \"@{item()}\",\n\"entities\": [\n    {\"$type\": \"LocalEntity\",\n      \"name\": \"@{item()}\",\n      \"description\": \"@{item()}\",\n      \"attributes\":@{activity('LookupColumns').output.value},\n \"partitions\": [\n        {\n          \"name\": \"@{item()}\",\n          \"location\": \"@{variables('StorageURI')}@{pipeline().parameters.Container}/@{pipeline().parameters.Folder}/@{item()}/@{item()}.@{pipeline().parameters.FileFormat}\"\n        }\n      ]\n}\n]\n}', '\\', ' ')",
-                                                "type": "Expression"
-                                            },
-                                            "queryTimeout": "02:00:00"
-                                        },
-                                        "sink": {
-                                            "type": "DelimitedTextSink",
-                                            "storeSettings": {
-                                                "type": "AzureBlobFSWriteSettings"
-                                            },
-                                            "formatSettings": {
-                                                "type": "DelimitedTextWriteSettings",
-                                                "quoteAllText": true,
-                                                "fileExtension": ".txt"
-                                            }
-                                        },
-                                        "enableStaging": false,
-                                        "translator": {
-                                            "type": "TabularTranslator",
-                                            "typeConversion": true,
-                                            "typeConversionSettings": {
-                                                "allowDataTruncation": true,
-                                                "treatBooleanAsNumber": false
-                                            }
-                                        }
-                                    },
-                                    "inputs": [
-                                        {
-                                            "referenceName": "SqlTable",
-                                            "type": "DatasetReference",
-                                            "parameters": {}
-                                        }
-                                    ],
-                                    "outputs": [
-                                        {
-                                            "referenceName": "modeljson",
-                                            "type": "DatasetReference",
-                                            "parameters": {
-                                                "Container": {
-                                                    "value": "@pipeline().parameters.Container",
-                                                    "type": "Expression"
-                                                },
-                                                "Folder": {
-                                                    "value": "@{pipeline().parameters.Folder}\\@{item()}",
-                                                    "type": "Expression"
-                                                }
-                                            }
-                                        }
-                                    ]
-                                },
-                                {
-                                    "name": "CSVORParquet",
-                                    "type": "Switch",
-                                    "dependsOn": [
-                                        {
-                                            "activity": "LookupColumns",
-                                            "dependencyConditions": [
-                                                "Succeeded"
-                                            ]
-                                        }
-                                    ],
-                                    "userProperties": [],
-                                    "typeProperties": {
-                                        "on": {
-                                            "value": "@pipeline().parameters.FileFormat",
-                                            "type": "Expression"
-                                        },
-                                        "cases": [
-                                            {
-                                                "value": "parquet",
-                                                "activities": [
-                                                    {
-                                                        "name": "CopyTablesToParquet",
-                                                        "type": "Copy",
-                                                        "dependsOn": [],
-                                                        "policy": {
-                                                            "timeout": "7.00:00:00",
-                                                            "retry": 0,
-                                                            "retryIntervalInSeconds": 30,
-                                                            "secureOutput": false,
-                                                            "secureInput": false
-                                                        },
-                                                        "userProperties": [],
-                                                        "typeProperties": {
-                                                            "source": {
-                                                                "type": "SqlServerSource",
-                                                                "sqlReaderQuery": {
-                                                                    "value": "select * from dbo.@{item()}",
-                                                                    "type": "Expression"
-                                                                },
-                                                                "queryTimeout": "02:00:00"
-                                                            },
-                                                            "sink": {
-                                                                "type": "ParquetSink",
-                                                                "storeSettings": {
-                                                                    "type": "AzureBlobFSWriteSettings"
-                                                                }
-                                                            },
-                                                            "enableStaging": false,
-                                                            "translator": {
-                                                                "type": "TabularTranslator",
-                                                                "typeConversion": true,
-                                                                "typeConversionSettings": {
-                                                                    "allowDataTruncation": true,
-                                                                    "treatBooleanAsNumber": false
-                                                                }
-                                                            }
-                                                        },
-                                                        "inputs": [
-                                                            {
-                                                                "referenceName": "SqlTable",
-                                                                "type": "DatasetReference",
-                                                                "parameters": {}
-                                                            }
-                                                        ],
-                                                        "outputs": [
-                                                            {
-                                                                "referenceName": "Parquet",
-                                                                "type": "DatasetReference",
-                                                                "parameters": {
-                                                                    "Container": {
-                                                                        "value": "@pipeline().parameters.Container",
-                                                                        "type": "Expression"
-                                                                    },
-                                                                    "Folder": {
-                                                                        "value": "@{pipeline().parameters.Folder}\\@{item()}",
-                                                                        "type": "Expression"
-                                                                    },
-                                                                    "FileName": {
-                                                                        "value": "@{item()}.@{pipeline().parameters.FileFormat}",
-                                                                        "type": "Expression"
-                                                                    }
-                                                                }
-                                                            }
-                                                        ]
-                                                    }
-                                                ]
-                                            }
-                                        ],
-                                        "defaultActivities": [
-                                            {
-                                                "name": "CopyTablesToCSV",
-                                                "type": "Copy",
-                                                "dependsOn": [],
-                                                "policy": {
-                                                    "timeout": "7.00:00:00",
-                                                    "retry": 0,
-                                                    "retryIntervalInSeconds": 30,
-                                                    "secureOutput": false,
-                                                    "secureInput": false
-                                                },
-                                                "userProperties": [],
-                                                "typeProperties": {
-                                                    "source": {
-                                                        "type": "SqlServerSource",
-                                                        "sqlReaderQuery": {
-                                                            "value": "select * from dbo.@{item()}",
-                                                            "type": "Expression"
-                                                        },
-                                                        "queryTimeout": "02:00:00"
-                                                    },
-                                                    "sink": {
-                                                        "type": "DelimitedTextSink",
-                                                        "storeSettings": {
-                                                            "type": "AzureBlobFSWriteSettings"
-                                                        },
-                                                        "formatSettings": {
-                                                            "type": "DelimitedTextWriteSettings",
-                                                            "quoteAllText": true,
-                                                            "fileExtension": ".txt"
-                                                        }
-                                                    },
-                                                    "enableStaging": false,
-                                                    "translator": {
-                                                        "type": "TabularTranslator",
-                                                        "typeConversion": true,
-                                                        "typeConversionSettings": {
-                                                            "allowDataTruncation": true,
-                                                            "treatBooleanAsNumber": false
-                                                        }
-                                                    }
-                                                },
-                                                "inputs": [
-                                                    {
-                                                        "referenceName": "SqlTable",
-                                                        "type": "DatasetReference",
-                                                        "parameters": {}
-                                                    }
-                                                ],
-                                                "outputs": [
-                                                    {
-                                                        "referenceName": "CSVFile",
-                                                        "type": "DatasetReference",
-                                                        "parameters": {
-                                                            "Container": {
-                                                                "value": "@pipeline().parameters.Container",
-                                                                "type": "Expression"
-                                                            },
-                                                            "Folder": {
-                                                                "value": "@{pipeline().parameters.Folder}\\@{item()}",
-                                                                "type": "Expression"
-                                                            },
-                                                            "FileName": {
-                                                                "value": "@{item()}.@{pipeline().parameters.FileFormat}",
-                                                                "type": "Expression"
-                                                            }
-                                                        }
-                                                    }
-                                                ]
-                                            }
-                                        ]
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                ],
-                "parameters": {
-                    "TableNames": {
-                        "type": "string",
-                        "defaultValue": "CustTable,CustGroup"
-                    },
-                    "Container": {
-                        "type": "string",
-                        "defaultValue": "dynamicsax"
-                    },
-                    "Folder": {
-                        "type": "string",
-                        "defaultValue": "DynamicsAX/Tables"
-                    },
-                    "FileFormat": {
-                        "type": "string",
-                        "defaultValue": "csv"
-                    }
-                },
-                "variables": {
-                    "StorageURI": {
-                        "type": "String",
-                        "defaultValue":  "[parameters('DataLakeGen2Storage_properties_typeProperties_url')]"
-                    }
-                },
-                "annotations": []
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/datasets/SqlTable')]",
-                "[concat(variables('factoryId'), '/datasets/modeljson')]",
-                "[concat(variables('factoryId'), '/datasets/CSVFile')]",
-                "[concat(variables('factoryId'), '/datasets/Parquet')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/CSVFile')]",
-            "type": "Microsoft.DataFactory/factories/datasets",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "linkedServiceName": {
-                    "referenceName": "DataLakeGen2Storage",
-                    "type": "LinkedServiceReference"
-                },
-                "parameters": {
-                    "Container": {
-                        "type": "string"
-                    },
-                    "Folder": {
-                        "type": "string"
-                    },
-                    "FileName": {
-                        "type": "string"
-                    }
-                },
-                "folder": {
-                    "name": "ADLS"
-                },
-                "annotations": [],
-                "type": "DelimitedText",
-                "typeProperties": {
-                    "location": {
-                        "type": "AzureBlobFSLocation",
-                        "fileName": {
-                            "value": "@dataset().FileName",
-                            "type": "Expression"
-                        },
-                        "folderPath": {
-                            "value": "@dataset().Folder",
-                            "type": "Expression"
-                        },
-                        "fileSystem": {
-                            "value": "@dataset().Container",
-                            "type": "Expression"
-                        }
-                    },
-                    "columnDelimiter": ",",
-                    "escapeChar": "\\",
-                    "quoteChar": "\""
-                },
-                "schema": []
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/Parquet')]",
-            "type": "Microsoft.DataFactory/factories/datasets",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "linkedServiceName": {
-                    "referenceName": "DataLakeGen2Storage",
-                    "type": "LinkedServiceReference"
-                },
-                "parameters": {
-                    "Container": {
-                        "type": "string"
-                    },
-                    "Folder": {
-                        "type": "string"
-                    },
-                    "FileName": {
-                        "type": "string"
-                    }
-                },
-                "folder": {
-                    "name": "ADLS"
-                },
-                "annotations": [],
-                "type": "Parquet",
-                "typeProperties": {
-                    "location": {
-                        "type": "AzureBlobFSLocation",
-                        "fileName": {
-                            "value": "@dataset().FileName",
-                            "type": "Expression"
-                        },
-                        "folderPath": {
-                            "value": "@dataset().Folder",
-                            "type": "Expression"
-                        },
-                        "fileSystem": {
-                            "value": "@dataset().Container",
-                            "type": "Expression"
-                        }
-                    },
-                    "compressionCodec": "snappy"
-                },
-                "schema": []
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/SqlTable')]",
-            "type": "Microsoft.DataFactory/factories/datasets",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "linkedServiceName": {
-                    "referenceName": "SqlServerDB",
-                    "type": "LinkedServiceReference"
-                },
-                "folder": {
-                    "name": "SQL"
-                },
-                "annotations": [],
-                "type": "SqlServerTable",
-                "schema": [],
-                "typeProperties": {}
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/SqlServerDB')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/modeljson')]",
-            "type": "Microsoft.DataFactory/factories/datasets",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "linkedServiceName": {
-                    "referenceName": "DataLakeGen2Storage",
-                    "type": "LinkedServiceReference"
-                },
-                "parameters": {
-                    "Container": {
-                        "type": "string"
-                    },
-                    "Folder": {
-                        "type": "string"
-                    }
-                },
-                "folder": {
-                    "name": "ADLS"
-                },
-                "annotations": [],
-                "type": "DelimitedText",
-                "typeProperties": {
-                    "location": {
-                        "type": "AzureBlobFSLocation",
-                        "fileName": "model.json",
-                        "folderPath": {
-                            "value": "@dataset().Folder",
-                            "type": "Expression"
-                        },
-                        "fileSystem": {
-                            "value": "@dataset().Container",
-                            "type": "Expression"
-                        }
-                    },
-                    "columnDelimiter": "\t",
-                    "escapeChar": "\\",
-                    "quoteChar": ""
-                },
-                "schema": []
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/DataLakeGen2Storage')]",
-            "type": "Microsoft.DataFactory/factories/linkedServices",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "annotations": [],
-                "type": "AzureBlobFS",
-                "typeProperties": {
-                    "url": "[parameters('DataLakeGen2Storage_properties_typeProperties_url')]",
-                    "accountKey": {
-                        "type": "SecureString",
-                        "value": "[parameters('DataLakeGen2Storage_accountKey')]"
-                    }
-                }
-            },
-            "dependsOn": []
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/SqlServerDB')]",
-            "type": "Microsoft.DataFactory/factories/linkedServices",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "annotations": [],
-                "type": "SqlServer",
-                "typeProperties": {
-                    "connectionString": "[parameters('SqlServerDB_connectionString')]"
-                }
-            },
-            "dependsOn": []
-        }
-    ]
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "SQLToLakeFullExport"
+		},
+		"DataLakeGen2Storage_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'DataLakeGen2Storage'"
+		},
+		"SqlServerDB_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SqlServerDB'"
+		},
+		"DataLakeGen2Storage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://d365fofttableslake.dfs.core.windows.net/"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/SQLTablesToADLS')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ForEachTable",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@split(pipeline().parameters.TableNames, ',')",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "LookupColumns",
+									"type": "Lookup",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SqlServerSource",
+											"sqlReaderQuery": {
+												"value": "select c.COLUMN_NAME as name,      c.COLUMN_NAME as description,     \n\tcase  DATA_TYPE       WHEN 'bigint' THEN 'int64'      WHEN 'bit' THEN 'int64'   \n\t  WHEN 'datetime' THEN 'dateTime'      WHEN 'decimal' THEN 'double'      WHEN 'int' THEN 'int64'      WHEN 'money' THEN 'double'      WHEN 'numeric' THEN 'double'      \n\t  WHEN 'smallint' THEN 'int64'      WHEN 'tinyint' THEN 'int64'      else 'string'       END as dataType    \n\t   FROM INFORMATION_SCHEMA.COLUMNS c     \n\t   where c.TABLE_NAME = '@{item()}'    \n and c.TABLE_SCHEMA = '@{pipeline().parameters.Schema}'\n\t\torder by C.ORDINAL_POSITION ASC  ",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00"
+										},
+										"dataset": {
+											"referenceName": "SqlTable",
+											"type": "DatasetReference",
+											"parameters": {}
+										},
+										"firstRowOnly": false
+									}
+								},
+								{
+									"name": "ModelJson",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "LookupColumns",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SqlServerSource",
+											"sqlReaderQuery": {
+												"value": "Select replace('{\"application\": \"Dynamics\",\n  \"name\": \"@{item()}\",\n  \"description\": \"@{item()}\",\n\"entities\": [\n    {\"$type\": \"LocalEntity\",\n      \"name\": \"@{item()}\",\n      \"description\": \"@{item()}\",\n      \"attributes\":@{activity('LookupColumns').output.value},\n \"partitions\": [\n        {\n          \"name\": \"@{item()}\",\n          \"location\": \"@{variables('StorageURI')}@{pipeline().parameters.Container}/@{pipeline().parameters.Folder}/@{item()}/@{item()}.@{pipeline().parameters.FileFormat}\"\n        }\n      ]\n}\n]\n}', '\\', ' ')",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00"
+										},
+										"sink": {
+											"type": "DelimitedTextSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "DelimitedTextWriteSettings",
+												"quoteAllText": true,
+												"fileExtension": ".txt"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "SqlTable",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "modeljson",
+											"type": "DatasetReference",
+											"parameters": {
+												"Container": {
+													"value": "@pipeline().parameters.Container",
+													"type": "Expression"
+												},
+												"Folder": {
+													"value": "@{pipeline().parameters.Folder}\\@{item()}",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "CSVORParquet",
+									"type": "Switch",
+									"dependsOn": [
+										{
+											"activity": "LookupColumns",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"on": {
+											"value": "@pipeline().parameters.FileFormat",
+											"type": "Expression"
+										},
+										"cases": [
+											{
+												"value": "parquet",
+												"activities": [
+													{
+														"name": "CopyTablesToParquet",
+														"type": "Copy",
+														"dependsOn": [],
+														"policy": {
+															"timeout": "7.00:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"source": {
+																"type": "SqlServerSource",
+																"sqlReaderQuery": {
+																	"value": "select * from @{pipeline().parameters.Schema}.@{item()}",
+																	"type": "Expression"
+																},
+																"queryTimeout": "02:00:00"
+															},
+															"sink": {
+																"type": "ParquetSink",
+																"storeSettings": {
+																	"type": "AzureBlobFSWriteSettings"
+																}
+															},
+															"enableStaging": false,
+															"translator": {
+																"type": "TabularTranslator",
+																"typeConversion": true,
+																"typeConversionSettings": {
+																	"allowDataTruncation": true,
+																	"treatBooleanAsNumber": false
+																}
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "SqlTable",
+																"type": "DatasetReference",
+																"parameters": {}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "Parquet",
+																"type": "DatasetReference",
+																"parameters": {
+																	"Container": {
+																		"value": "@pipeline().parameters.Container",
+																		"type": "Expression"
+																	},
+																	"Folder": {
+																		"value": "@{pipeline().parameters.Folder}\\@{item()}",
+																		"type": "Expression"
+																	},
+																	"FileName": {
+																		"value": "@{item()}.@{pipeline().parameters.FileFormat}",
+																		"type": "Expression"
+																	}
+																}
+															}
+														]
+													}
+												]
+											}
+										],
+										"defaultActivities": [
+											{
+												"name": "CopyTablesToCSV",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "7.00:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "SqlServerSource",
+														"sqlReaderQuery": {
+															"value": "select * from @{pipeline().parameters.Schema}.@{item()}",
+															"type": "Expression"
+														},
+														"queryTimeout": "02:00:00"
+													},
+													"sink": {
+														"type": "DelimitedTextSink",
+														"storeSettings": {
+															"type": "AzureBlobFSWriteSettings"
+														},
+														"formatSettings": {
+															"type": "DelimitedTextWriteSettings",
+															"quoteAllText": true,
+															"fileExtension": ".txt"
+														}
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "SqlTable",
+														"type": "DatasetReference",
+														"parameters": {}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "CSVFile",
+														"type": "DatasetReference",
+														"parameters": {
+															"Container": {
+																"value": "@pipeline().parameters.Container",
+																"type": "Expression"
+															},
+															"Folder": {
+																"value": "@{pipeline().parameters.Folder}\\@{item()}",
+																"type": "Expression"
+															},
+															"FileName": {
+																"value": "@{item()}.@{pipeline().parameters.FileFormat}",
+																"type": "Expression"
+															}
+														}
+													}
+												]
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"parameters": {
+					"TableNames": {
+						"type": "string",
+						"defaultValue": "CustTable,CustGroup"
+					},
+					"Container": {
+						"type": "string",
+						"defaultValue": "dynamicsax"
+					},
+					"Folder": {
+						"type": "string",
+						"defaultValue": "DynamicsAX/Tables"
+					},
+					"FileFormat": {
+						"type": "string",
+						"defaultValue": "csv"
+					},
+					"Schema": {
+						"type": "string",
+						"defaultValue": "dbo"
+					}
+				},
+				"variables": {
+					"StorageURI": {
+						"type": "String",
+						"defaultValue": "[parameters('DataLakeGen2Storage_properties_typeProperties_url')]"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SqlTable')]",
+				"[concat(variables('factoryId'), '/datasets/modeljson')]",
+				"[concat(variables('factoryId'), '/datasets/CSVFile')]",
+				"[concat(variables('factoryId'), '/datasets/Parquet')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CSVFile')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "DataLakeGen2Storage",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"Container": {
+						"type": "string"
+					},
+					"Folder": {
+						"type": "string"
+					},
+					"FileName": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "ADLS"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().FileName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().Folder",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().Container",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Parquet')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "DataLakeGen2Storage",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"Container": {
+						"type": "string"
+					},
+					"Folder": {
+						"type": "string"
+					},
+					"FileName": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "ADLS"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().FileName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().Folder",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().Container",
+							"type": "Expression"
+						}
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SqlTable')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SqlServerDB",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "SQL"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SqlServerDB')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/modeljson')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "DataLakeGen2Storage",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"Container": {
+						"type": "string"
+					},
+					"Folder": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "ADLS"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "model.json",
+						"folderPath": {
+							"value": "@dataset().Folder",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().Container",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": "\t",
+					"escapeChar": "\\",
+					"quoteChar": ""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DataLakeGen2Storage')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('DataLakeGen2Storage_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('DataLakeGen2Storage_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SqlServerDB')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "SqlServer",
+				"typeProperties": {
+					"connectionString": "[parameters('SqlServerDB_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		}
+	]
 }
