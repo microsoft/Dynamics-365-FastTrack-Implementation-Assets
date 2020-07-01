@@ -24,6 +24,7 @@ To deploy the data factory solution you can follow bellow steps
 4. Click  Build your own template in the editor option
 5. Click load file and locate the ARM template file you downloaded ealrier and click Save.
 6. Provide required parameters and Review + create. 
+![Custom deployment](/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/CustomDeployment_LI.jpg)
 
 Following table describes parameters required to deploy the data factory ARM template
 
@@ -39,7 +40,9 @@ Following table describes parameters required to deploy the data factory ARM tem
 To connect Azure data factory to your on-premise environment, you need to create Self-Hosted integration runtime for your Azure data factory.Follow the documentation link to install and configure Self-Hosted Integration runtime [ Create a Self-hosted integration runtime](https://docs.microsoft.com/en-us/azure/data-factory/create-self-hosted-integration-runtime#create-a-self-hosted-ir-via-azure-data-factory-ui) and then change the integration runtime for your SQLServerDB link services, validate connection and deploy changes to your data factory.
 
 # Pipeline execution and monitoring 
-Once data factory pipeline is deployed and connection to SQL Database and Datalake is validated, you can use Data factory pipeline __SQLTablesToADLS__ to export SQL table data to Azure data lake. 
+Once data factory pipeline is deployed and connection to SQL Database and Datalake is validated, you can use Data factory pipeline __SQLTablesToADLS__ to export SQL table data to Azure data lake as shown in the following screenshot. 
+
+![Running pipeline](/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/ExecutePipeline.png)
 
 Following table describes the pipeline parameters 
 
@@ -52,5 +55,7 @@ Following table describes the pipeline parameters
 
 To periodically export the tables data you can utilize Azure data factory triggers to export your table data to Azure data lake periodically. To lean more about the [Azure data factory documentation page](https://docs.microsoft.com/en-us/azure/data-factory/)
 
+# Query data files stored in Azure data lake using Synapse Analytics SQL-On-Demand
+Once you have Tables data in Azure data lake, you can use Synapse Analytics to create view or external table in Synapse Analytics and query the data using familier TSQL query langauage. To learn more about SQL-On-Demand use the document link [Synapse Analytics documentation] (https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/on-demand-workspace-overview)
 
 
