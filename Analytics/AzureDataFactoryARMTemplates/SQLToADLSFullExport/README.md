@@ -19,7 +19,7 @@ To deploy data factory pipeline solution, you need to provision and collect foll
 # Deploying azure data factory ARM template  
 To deploy the data factory solution you can follow bellow steps 
 1. Complete the pre-requisites
-2. Download the [ARM template file](/arm_template.json) to your local directory.
+2. Download the [ARM template file](/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/arm_template.json) to your local directory.
 3. Click [Temmplate deployment] https://ms.portal.azure.com/#create/Microsoft.Template
 4. Click  Build your own template in the editor option
 5. Click load file and locate the ARM template file you downloaded ealrier and click Save.
