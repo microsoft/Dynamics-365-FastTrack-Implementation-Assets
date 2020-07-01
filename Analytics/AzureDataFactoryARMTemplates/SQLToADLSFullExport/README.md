@@ -56,6 +56,6 @@ Following table describes the pipeline parameters
 To periodically export the tables data you can utilize Azure data factory triggers to export your table data to Azure data lake periodically. To lean more about the [Azure data factory documentation page](https://docs.microsoft.com/en-us/azure/data-factory/)
 
 # Query data files stored in Azure data lake using Synapse Analytics SQL-On-Demand
-Once you have Tables data in Azure data lake, you can use Synapse Analytics to create view or external table in Synapse Analytics and query the data using familier TSQL query langauage. To learn more about SQL-On-Demand use the document link [Synapse Analytics documentation] (https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/on-demand-workspace-overview)
+Once you have Tables data in Azure data lake, you can use Synapse Analytics to create view or external table in Synapse Analytics and query the data using familier TSQL query langauage. To learn more about SQL-On-Demand use the document link [Synapse Analytics documentation](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/on-demand-workspace-overview)
 
 
