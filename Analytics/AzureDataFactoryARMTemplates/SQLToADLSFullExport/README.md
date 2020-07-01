@@ -11,13 +11,19 @@ You can use this Data factory solution template for following use cases
 # Pre-requisites 
 To deploy data factory pipeline solution, you need to provision and collect following pre-requisites
 1. If you do not have an existing Azure data lake storage account, create a new Azure Storage Account and note down
-  a. Storage account URI - example https://yourdatalakestoraheURU.dfs.core.windows.net/
-  b. Storage account access keys
+  - Storage account URI - example https://yourdatalakestoraheURU.dfs.core.windows.net/
+  - Storage account access keys
 2. Note down your source SQL server database connection string - ex data source=dbserver;initial catalog=axdb;user id=sqladmin;password=PassWord           
 3. Create Azure DataFactory in Azure portal and note down the data factory name
 
 # Deploying azure data factory ARM template  
-To deploy the data factory solution you can use Azure portal template deployment https://ms.portal.azure.com/#create/Microsoft.Template, load the ARM template, provide required parameters and deploy. 
+To deploy the data factory solution you can follow bellow steps 
+1. Complete the pre-requisites
+2. Download the [ARM template file](/arm_template.json) to your local directory.
+3. Click [Temmplate deployment] https://ms.portal.azure.com/#create/Microsoft.Template
+4. Click  Build your own template in the editor option
+5. Click load file and locate the ARM template file you downloaded ealrier and click Save.
+6. Provide required parameters and Review + create. 
 
 Following table describes parameters required to deploy the data factory ARM template
 
@@ -25,20 +31,15 @@ Following table describes parameters required to deploy the data factory ARM tem
 | :--------------------                                | :---------------------:           | --------------------:  |
 |factoryName                                           | Name of your data factory         |SQLToDataLake    |
 |SQLDB_connectionString                                | SourceSQL DB connection string    |data source=dbserver.database.windows.net;initial catalog=axdb;user id=sqladmin;password=PassWord             |
-|AzureDataLakeStorage_properties_typeProperties_url    | Storage account uri | https://yourdatalakestoraheURU.dfs.core.windows.net|
+|AzureDataLakeStorage_properties_typeProperties_url    | Storage account uri | https://yourdatalakestorage.dfs.core.windows.net|
 |Data Lake Gen2Storage_account Key    | Storage account access key | Access key of your storage account|
 
 
 # Connecting data factory to On-Premise SQL DB
-To connect Azure data factory to your on-premise environment, you can install Self hosted integration runtime and use th  
-https://docs.microsoft.com/en-us/azure/data-factory/concepts-integration-runtime#self-hosted-integration-runtime
-1. Create a Self-Hosted Integration runtime 
-2. Install and configure integration run time on on-prem environment 
-3. Change dataset SQLServerDB to on-prem integration runtime 
-
+To connect Azure data factory to your on-premise environment, you need to create Self-Hosted integration runtime for your Azure data factory.Follow the documentation link to install and configure Self-Hosted Integration runtime [ Create a Self-hosted integration runtime](https://docs.microsoft.com/en-us/azure/data-factory/create-self-hosted-integration-runtime#create-a-self-hosted-ir-via-azure-data-factory-ui) and then change the integration runtime for your SQLServerDB link services, validate connection and deploy changes to your data factory.
 
 # Pipeline execution and monitoring 
-Once data factory pipeline is deployed and connection is validated, you can use Data factory pipeline __SQLTablesToADLS__ to export SQL table data to Azure data lake. 
+Once data factory pipeline is deployed and connection to SQL Database and Datalake is validated, you can use Data factory pipeline __SQLTablesToADLS__ to export SQL table data to Azure data lake. 
 
 Following table describes the pipeline parameters 
 
@@ -49,6 +50,7 @@ Following table describes the pipeline parameters
 |Folder                                    | Folder path                                | DynamicsAX/Tables      |
 |FileFormat                                | csv or parquet                             |                        |
 
+To periodically export the tables data you can utilize Azure data factory triggers to export your table data to Azure data lake periodically. To lean more about the [Azure data factory documentation page](https://docs.microsoft.com/en-us/azure/data-factory/)
 
 
 
