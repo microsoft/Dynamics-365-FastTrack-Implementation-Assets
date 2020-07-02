@@ -28,6 +28,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 | File/folder       | Description                                |
 |-------------------|--------------------------------------------|
 | `Commerce`        | Dymamics 365 Commerce guides               |
+| `Analytics`       | Dymamics 365 Analytics guides              |
 | `.gitignore`      | Define what to ignore at commit time.      |
 | `CHANGELOG.md`    | List of changes to the sample.             |
 | `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
@@ -37,6 +38,9 @@ Outline the file contents of the repository. It helps users navigate the codebas
 ### Commerce guides
 
 - [Negative inventory check](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-guides/tree/master/Commerce/NegativeInventoryCheck)
+
+### Analytics guides 
+- [SQL to data lake export](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-guides/blob/master/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/README.md)
 
 ## Contributing
 
