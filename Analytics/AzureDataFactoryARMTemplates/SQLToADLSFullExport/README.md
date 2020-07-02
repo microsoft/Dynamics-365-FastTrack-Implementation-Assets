@@ -7,6 +7,8 @@ You can use this Data factory solution template for following use cases
 2. Ingest other on-premise SQL Database or Azure SQL database to Azure data lake in CDM format
 3. As an workaround to Tables in Data Lake feature (Only available in Tier 2+ ), ingest Finance and Operations app data from Tier 1 boxes to Azure data lake and try out SQL-On-Demand with your Finance and Operations data. 
 
+To get more details about end to end use case and scenarios refert to Business application summit session [OND2055: Modernize your F&O Data warehouse with ADLS and Azure Synapse](https://mymbas.microsoft.com/sessions/a18e62c9-d74b-4dd3-88bd-308d6c26f469?source=sessions)
+
 
 # Pre-requisites 
 To deploy data factory pipeline solution, you need to provision and collect following pre-requisites
