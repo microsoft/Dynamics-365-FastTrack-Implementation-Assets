@@ -23,10 +23,11 @@ To deploy the data factory solution you can follow bellow steps
    - **Storage account> Access keys > Key1> Key** - example XXXXXXXXXXXXXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXXXXX== 
 3. Note down Azure data factory name that you created earlier
 4. Note down your source SQL server database connection string - ex data source=dbserver;initial catalog=axdb;user id=sqladmin;password=PassWord. 
----
-**Notes**
-If your source system is Dynamics 365 for Finance and Operations Tier 1 or Tier 2 environment. You can get the database connection details from Life Cycle Services Environment details page. You would need Environment Manager or Project Owner access in LCS to see the database connection details. To Connect Azure data factory to Dynamics 365 for Finance and Operations Tier 1 and Tier 2 boxes, You may also need to RDP access to VM and install Self-hosted integration runtime. For details steps check out next section **Connecting data factory to On-Premise SQL DB or Firewall enabled Azure SQL DB**     
----
+
+| **Note** 
+| :--------------------   
+|If your source system is Dynamics 365 for Finance and Operations Tier 1 or Tier 2 environment. You can get the database connection details from Life Cycle Services Environment details page. You would need Environment Manager or Project Owner access in LCS to see the database connection details. To Connect Azure data factory to Dynamics 365 for Finance and Operations Tier 1 and Tier 2 boxes, You may also need to RDP access to VM and install Self-hosted integration runtime. For details steps check out next section **Connecting data factory to On-Premise SQL DB or Firewall enabled Azure SQL DB**     
+
 
 5. Download the [ARM template file](/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/arm_template.json) to your local directory.
 6. Click [Temmplate deployment] https://ms.portal.azure.com/#create/Microsoft.Template
@@ -46,7 +47,10 @@ Following table describes parameters required to deploy the data factory ARM tem
 
 
 # Connecting data factory to On-Premise SQL DB or Firewall enabled Azure SQL DB 
-To connect Azure data factory to your on-premise environment or firewall enabled Azure SQL DB, you need to create Self-Hosted integration runtime for your Azure data factory.Follow the documentation link to install and configure Self-Hosted Integration runtime [ Create a Self-hosted integration runtime](https://docs.microsoft.com/en-us/azure/data-factory/create-self-hosted-integration-runtime#create-a-self-hosted-ir-via-azure-data-factory-ui) and then change the integration runtime for your SQLServerDB link services, validate connection and deploy changes to your data factory.
+To connect Azure data factory to your on-premise environment or firewall enabled Azure SQL DB, you need to create Self-Hosted integration runtime for your Azure data
+factory.Follow the documentation link to install and configure Self-Hosted Integration runtime [ Create a Self-hosted integration runtime](https://docs.microsoft.com/en
+us/azure/data-factory/create-self-hosted-integration-runtime#create-a-self-hosted-ir-via-azure-data-factory-ui) 
+and then change the integration runtime for your SQLServerDB link services, validate connection and deploy changes to your data factory.
 
 # Pipeline execution and monitoring 
 Once data factory pipeline is deployed and connection to SQL Database and Datalake is validated, you can use Data factory pipeline __SQLTablesToADLS__ to export SQL table data to Azure data lake as shown in the following screenshot. 
