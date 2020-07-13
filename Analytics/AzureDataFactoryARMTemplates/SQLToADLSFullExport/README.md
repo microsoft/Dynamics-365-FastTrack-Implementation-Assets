@@ -48,8 +48,7 @@ Following table describes parameters required to deploy the data factory ARM tem
 
 # Connecting data factory to On-Premise SQL DB or Firewall enabled Azure SQL DB 
 To connect Azure data factory to your on-premise environment or firewall enabled Azure SQL DB, you need to create Self-Hosted integration runtime for your Azure data
-factory.Follow the documentation link to install and configure Self-Hosted Integration runtime [ Create a Self-hosted integration runtime](https://docs.microsoft.com/en
-us/azure/data-factory/create-self-hosted-integration-runtime#create-a-self-hosted-ir-via-azure-data-factory-ui) 
+factory.Follow the documentation link to install and configure Self-Hosted Integration runtime [Create a Self-hosted integration runtime](https://docs.microsoft.com/enus/azure/data-factory/create-self-hosted-integration-runtime#create-a-self-hosted-ir-via-azure-data-factory-ui) 
 and then change the integration runtime for your SQLServerDB link services, validate connection and deploy changes to your data factory.
 
 # Pipeline execution and monitoring 
