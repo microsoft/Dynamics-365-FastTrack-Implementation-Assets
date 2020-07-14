@@ -75,7 +75,7 @@ Following are high level steps to use Synapse Analytics **SQL-On-Demand** to que
 2. **Connect to SQL-On-Demand endpoint:** Once you provisioned Synapse workspace, you can use [Synapse Studio](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-synapse-studio) or SQL Server Management Studio (SSMS 18.5 or higher) or [Azure Data Studio](https://docs.microsoft.com/en-us/sql/azure-data-studio/download-azure-data-studio?toc=/azure/synapse-analytics/toc.json&bc=/azure/synapse-analytics/breadcrumb/toc.json&view=azure-sqldw-latest). For details check [supported tools](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/connect-overview#supported-tools-for-sql-on-demand-preview)
 3. **First time setup:** Before you can query data using TSQL, you need to create Database and datasource to read your storage account. Follow the documentation [First time setup](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-sql-on-demand#first-time-setup)
    
-4. **Create views** Once database and credentials are created, you can [query files](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-sql-on-demand#query-csv-files) using TSQL.As next step you can [create view](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/create-use-views.) in the database to reuse the queries.  
+4. **Create views** Once database and credentials are created, you can [query files](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-sql-on-demand#query-csv-files) using TSQL.As next step you can [create view](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/create-use-views) in the database to reuse the queries.  
 
 | **Note** 
 | :--------------------   
