@@ -30,7 +30,7 @@ To deploy the data factory solution you can follow bellow steps
 
 
 5. Download the [ARM template file](/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/arm_template.json) to your local directory.
-6. Click [Temmplate deployment] https://ms.portal.azure.com/#create/Microsoft.Template
+6. Click [Template deployment] https://ms.portal.azure.com/#create/Microsoft.Template
 7. Click  Build your own template in the editor option
 8. Click load file and locate the ARM template file you downloaded ealrier and click Save.
 9. Provide required parameters and Review + create. 
@@ -41,7 +41,7 @@ Following table describes parameters required to deploy the data factory ARM tem
 | Parameter name                                       | Description                       | Example                |
 | :--------------------                                | :---------------------:           | --------------------:  |
 |factoryName                                           | Name of your data factory         |SQLToDataLake    |
-|SQLDB_connectionString                                | SourceSQL DB connection string    |data source=dbserver.database.windows.net;initial catalog=axdb;user id=sqladmin;password=PassWord             |
+|SQLDB_connectionString                                | SourceSQL DB connection string    |data source=dbservername.database.windows.net;initial catalog=databasename;user id=userid;password=PassWord             |
 |AzureDataLakeStorage_properties_typeProperties_url    | Storage account uri | https://yourdatalakestorage.dfs.core.windows.net|
 |Data Lake Gen2Storage_account Key    | Storage account access key | Access key of your storage account|
 
@@ -68,6 +68,19 @@ Following table describes the pipeline parameters
 To periodically export the tables data you can utilize Azure data factory triggers to export your table data to Azure data lake periodically. To lean more about the [Azure data factory documentation page](https://docs.microsoft.com/en-us/azure/data-factory/)
 
 # Query data files stored in Azure data lake using Synapse Analytics SQL-On-Demand
-Once you have Tables data in Azure data lake, you can use Synapse Analytics to create view or external table in Synapse Analytics and query the data using familier TSQL query langauage. To learn more about SQL-On-Demand use the document link [Synapse Analytics documentation](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/on-demand-workspace-overview)
+Once you have Tables data in Azure data lake, you can use Synapse Analytics to create view or external table in Synapse Analytics and query the data using familiar  TSQL query language. 
+
+Following are high level steps to use Synapse Analytics **SQL-On-Demand** to query data stored in ADLS
+1. **Create Synapse Workspace:** Follow the documentation to [create synapse workspace](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-create-workspace)
+2. **Connect to SQL-On-Demand endpoint:** Once you provisioned Synapse workspace, you can use [Synapse Studio](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-synapse-studio) or SQL Server Management Studio (SSMS 18.5 or higher) or [Azure Data Studio](https://docs.microsoft.com/en-us/sql/azure-data-studio/download-azure-data-studio?toc=/azure/synapse-analytics/toc.json&bc=/azure/synapse-analytics/breadcrumb/toc.json&view=azure-sqldw-latest). For details check [supported tools](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/connect-overview#supported-tools-for-sql-on-demand-preview)
+3. **First time setup:** Before you can query data using TSQL, you need to create Database and datasource to read your storage account. Follow the documentation [First time setup](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-sql-on-demand#first-time-setup)
+   
+4. **Create views** Once database and credentials are created, you can [query files](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-sql-on-demand#query-csv-files) using TSQL.As next step you can [create view](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/create-use-views.) in the database to reuse the queries.  
+
+| **Note** 
+| :--------------------   
+|Since the SQL table data generated in Azure data lake follow Common data model standard (ie contains model.json file or menifest.json file to describe the schema) you can use the following script [ModelJsonToViewDefinition](/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/ModelJsonToViewDefinition.sql) to read model.json and generate view definition. You can then execute the view definition SQL-On-Demand database to create the view. In future, you can expect Synapse Analytics to understand the Common data model natively.         
+
+To learn more about SQL-On-Demand use the document link [Synapse Analytics documentation](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/on-demand-workspace-overview)
 
 
