@@ -81,6 +81,8 @@ Following are high level steps to use Synapse Analytics **SQL-On-Demand** to que
 | :--------------------   
 |Since the SQL table data generated in Azure data lake follow Common data model standard (ie contains model.json file or menifest.json file to describe the schema) you can use the following script [ModelJsonToViewDefinition](/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/ModelJsonToViewDefinition.sql) to read model.json and generate view definition. You can then execute the view definition SQL-On-Demand database to create the view. In future, you can expect Synapse Analytics to understand the Common data model natively.         
 
-To learn more about SQL-On-Demand use the document link [Synapse Analytics documentation](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/on-demand-workspace-overview)
+To learn SQL-On-Demand concepts in details follow the [blog post](https://techcommunity.microsoft.com/t5/azure-synapse-analytics/how-azure-synapse-analytics-enables-you-to-run-t-sql-queries/ba-p/1449171) or use the documentation page [Synapse Analytics documentation](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/on-demand-workspace-overview)
 
+# Build report in Power BI
+Once you created views on SQL-On-Demand to read your tables data stored in data lake, you can use any reporting and BI tool such as Excel, SQL Server Reporting services or Power BI to connect to SQL-On_Demand endpoint just like any other Azure SQL database and build reports. Documentation showing connecting Power BI with SQL-On-Demand endpoint https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/tutorial-connect-power-bi-desktop
 
