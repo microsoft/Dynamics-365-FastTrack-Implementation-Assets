@@ -1,6 +1,26 @@
 DECLARE @json NVARCHAR(MAX);
 Declare @DataSource nvarchar(50);
-SET @json = N'Replace this with model.json data';
+SET @json = N'{
+  "application": "Dynamics 365 for Finance and Operations",
+  "name": "CUSTGROUP",
+  "entities": [
+    {
+      "$type": "LocalEntity",
+	   "name": "CUSTGROUP",
+      "description": "CUSTGROUP",
+      "attributes": [
+        {
+          "name": "RECID",
+          "description": "RECID",
+          "dataType": "int64"
+        }],
+		 "partitions": [
+        {
+          "name": "CUSTGROUP",
+          "location": "https://adls.dfs.core.windows.net/DynamicsAX/TABLEs/CUSTGROUP.csv"
+        }]
+	  }]
+	  }';
 set @DataSource  = N'SqlOnDemandDemo'; -- replace this with the name of datasource to connect storage account 
 
 declare @ViewDefinition varchar(max)
@@ -32,7 +52,7 @@ FROM OPENJSON(@json)
  
 select 
 @ViewDefinition = 'CREATE or ALTER VIEW ' + entityName 
-+' AS SELECT * FROM OPENROWSET(BULK '''+ location + ''',  DATA_SOURCE = '+ @SqlOnDemandDemo + ', FORMAT = ''CSV'', Parser_Version= ''2.0'') 
++' AS SELECT * FROM OPENROWSET(BULK '''+ location + ''',  DATA_SOURCE = '''+ @DataSource + ''', FORMAT = ''CSV'', Parser_Version= ''2.0'') 
 WITH (' + @ViewDefinition + ') as r'
 FROM OPENJSON(@json)
   WITH (
