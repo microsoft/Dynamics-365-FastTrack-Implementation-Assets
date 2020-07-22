@@ -389,7 +389,7 @@
 						}
 					},
 					"columnDelimiter": ",",
-					"escapeChar": "\\",
+					"escapeChar": "\"",
 					"quoteChar": "\""
 				},
 				"schema": []
