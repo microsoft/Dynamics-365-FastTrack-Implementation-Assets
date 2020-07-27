@@ -67,6 +67,7 @@ Following table describes the pipeline parameters
 
 To periodically export the tables data you can utilize Azure data factory triggers to export your table data to Azure data lake periodically. To lean more about the [Azure data factory documentation page](https://docs.microsoft.com/en-us/azure/data-factory/)
 
+
 # Query data files stored in Azure data lake using Synapse Analytics SQL-On-Demand
 Once you have Tables data in Azure data lake, you can use Synapse Analytics to create view or external table in Synapse Analytics and query the data using familiar  TSQL query language. 
 
@@ -82,6 +83,8 @@ Following are high level steps to use Synapse Analytics **SQL-On-Demand** to que
 |Since the SQL table data generated in Azure data lake follow Common data model standard (ie contains model.json file or menifest.json file to describe the schema) you can use the following script [ModelJsonToViewDefinition](/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/ModelJsonToViewDefinition.sql) to read model.json and generate view definition. You can then execute the view definition SQL-On-Demand database to create the view. In future, you can expect Synapse Analytics to understand the Common data model natively.         
 
 To learn SQL-On-Demand concepts in details follow the [blog post](https://techcommunity.microsoft.com/t5/azure-synapse-analytics/how-azure-synapse-analytics-enables-you-to-run-t-sql-queries/ba-p/1449171) or use the documentation page [Synapse Analytics documentation](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/on-demand-workspace-overview)
+
+To get optimal performance when querying data files using Synapse SQL-On-Demand, you get optimal performance if the data file size are ~ < 200 MB size. For you have large tables (data files >1 GB)  then you should plan to partition the files. For simplicity, we have not implemented partioning of data files in this solution, However if you large dataset, you can use bellow pipeline to [partition the large files](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-guides/blob/master/Analytics/AzureDataFactoryARMTemplates/PartitionFile/readme.md)
 
 # Build and serve report
 Once you created views on SQL-On-Demand to read your tables data stored in data lake, you can use any reporting and BI tool such as Excel, SQL Server Reporting services or Power BI to connect to SQL-On_Demand endpoint just like any other Azure SQL database and build reports. Documentation shows how to [connect Power BI with SQL-On-Demand endpoint](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/tutorial-connect-power-bi-desktop)
