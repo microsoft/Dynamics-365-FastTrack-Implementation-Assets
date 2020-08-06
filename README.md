@@ -9,7 +9,7 @@ description: "Add 150 character max description"
 urlFragment: "update-this-to-unique-url-stub"
 ---
 -->
-# Dynamics 365 FastTrack Implementation guides
+# Dynamics 365 FastTrack Implementation Assets
 
 <!-- 
 Guidelines on README format: https://review.docs.microsoft.com/help/onboard/admin/samples/concepts/readme-template?branch=master
@@ -37,10 +37,10 @@ Outline the file contents of the repository. It helps users navigate the codebas
 
 ### Commerce guides
 
-- [Negative inventory check](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-guides/tree/master/Commerce/NegativeInventoryCheck)
+- [Negative inventory check](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Commerce/NegativeInventoryCheck)
 
 ### Analytics guides 
-- [SQL to data lake export](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-guides/blob/master/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/README.md)
+- [SQL to data lake export](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/README.md)
 
 ## Contributing
 
