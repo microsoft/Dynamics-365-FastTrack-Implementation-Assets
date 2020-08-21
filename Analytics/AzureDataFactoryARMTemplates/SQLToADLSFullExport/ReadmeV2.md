@@ -35,6 +35,9 @@ Following are some highlights of this updated version of data factory solution
 
 ## Execute pipelines 
 1. Execute pipeline SQLTablesToADLS to exort data and create CDM schema 
-2. Execute pipeline CreateView to create the views 
+2. Execute pipeline CreateView to create the views
 
+# Troubleshooting 
+1. If your pipleline fails on the Azure function calls, validate your Azure function configuration.
+2. you can also debug C# code by running the CDMUtil_AzureFunctions locally and PostMan - Postman template can be found under /SQLToADLSFullExport/CDMUtil.postman_collection you can find input parameters for Azure function in Azure data factory pipeline execution history. 
 
