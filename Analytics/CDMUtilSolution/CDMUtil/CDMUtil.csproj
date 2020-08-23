@@ -8,8 +8,8 @@
     <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.CommonDataModel.ObjectModel.Adapter.Adls\Microsoft.CommonDataModel.ObjectModel.Adapter.Adls.csproj" />
-    <ProjectReference Include="..\Microsoft.CommonDataModel.ObjectModel\Microsoft.CommonDataModel.ObjectModel.csproj" />
+    <ProjectReference Include="..\CDM.ObjectModel.Adapter.Adls\Microsoft.CommonDataModel.ObjectModel.Adapter.Adls.csproj" />
+    <ProjectReference Include="..\CDM.ObjectModel\Microsoft.CommonDataModel.ObjectModel.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="local.settings.json">
