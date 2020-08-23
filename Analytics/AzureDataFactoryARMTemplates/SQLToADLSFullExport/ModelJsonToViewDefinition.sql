@@ -67,4 +67,13 @@ FROM OPENJSON(@json)
   OUTER APPLY OPENJSON(partitions)
   WITH (location nvarchar(1000) '$.location') ;
 
-   select @ViewDefinition as ViewDefinition
+-- Remove teh initial part of the location definition: https://mydatasource.dfs.core.windows.net/
+declare @FinalViewDefinition varchar(max)
+declare @InitialLocationPosition BIGINT
+declare @FinalLocationPosition BIGINT
+SELECT @InitialLocationPosition = CHARINDEX(N'BULK ''https://', @ViewDefinition) +5 ;
+SELECT @FinalLocationPosition = CHARINDEX(N'core.windows.net', @ViewDefinition) + 17;
+SELECT @FinalViewDefinition = SUBSTRING(@ViewDefinition, 1 , @InitialLocationPosition  ) + SUBSTRING(@ViewDefinition, @FinalLocationPosition  , LEN(@ViewDefinition) - @FinalLocationPosition +1  )
+
+
+select @FinalViewDefinition as ViewDefinition

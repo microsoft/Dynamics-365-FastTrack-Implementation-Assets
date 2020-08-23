@@ -93,7 +93,7 @@
 										"source": {
 											"type": "SqlServerSource",
 											"sqlReaderQuery": {
-												"value": "Select replace('{\"application\": \"Dynamics\",\n  \"name\": \"@{item()}\",\n  \"description\": \"@{item()}\",\n\"entities\": [\n    {\"$type\": \"LocalEntity\",\n      \"name\": \"@{item()}\",\n      \"description\": \"@{item()}\",\n      \"attributes\":@{activity('LookupColumns').output.value},\n \"partitions\": [\n        {\n          \"name\": \"@{item()}\",\n          \"location\": \"@{variables('StorageURI')}@{pipeline().parameters.Container}/@{pipeline().parameters.Folder}/@{item()}/@{item()}.@{pipeline().parameters.FileFormat}\"\n        }\n      ]\n}\n]\n}', '\\', ' ')",
+												"value": "Select replace('{\"application\": \"Dynamics\",\n  \"version\": \"1.0\",\n  \"name\": \"@{item()}\",\n  \"description\": \"@{item()}\",\n\"entities\": [\n    {\"$type\": \"LocalEntity\",\n      \"name\": \"@{item()}\",\n      \"description\": \"@{item()}\",\n      \"attributes\":@{activity('LookupColumns').output.value},\n \"partitions\": [\n        {\n          \"name\": \"@{item()}\",\n          \"location\": \"@{variables('StorageURI')}@{pipeline().parameters.Container}/@{pipeline().parameters.Folder}/@{item()}/@{item()}.@{pipeline().parameters.FileFormat}\"\n        }\n      ]\n}\n]\n}', '\\', ' ')",
 												"type": "Expression"
 											},
 											"queryTimeout": "02:00:00"
