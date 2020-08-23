@@ -1,0 +1,6 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/Analytics/CDMUtilSolution/CDMUtil_AzureFunctions/Properties/ServiceDependencies/CDMUtil - Zip Deploy
+/Analytics/CDMUtilSolution/CDMUtil_ConsoleApp/app.config
