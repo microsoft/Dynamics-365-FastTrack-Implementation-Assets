@@ -465,8 +465,7 @@ namespace CDMUtil.Manifest
                 case "datetime":
                 case "date":
                 case "datetimeoffset":
-                case "datetime2":
-                    cdmDataType = "date";
+                    cdmDataType = "datetime2";
                     break;
                 case "decimal":
                 case "numeric":

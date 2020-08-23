@@ -1,0 +1,11 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\Analytics",
+    "\\Analytics\\AzureDataFactoryARMTemplates",
+    "\\Analytics\\AzureDataFactoryARMTemplates\\SQLToADLSFullExport",
+    "\\Analytics\\CDMUtilSolution"
+  ],
+  "SelectedNode": "\\Analytics\\CDMUtilSolution\\Microsoft.CommonDataModel.sln",
+  "PreviewInSolutionExplorer": false
+}

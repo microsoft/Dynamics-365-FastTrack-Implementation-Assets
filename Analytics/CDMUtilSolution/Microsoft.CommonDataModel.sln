@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29306.81
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonDataModel.ObjectModel", "Microsoft.CommonDataModel.ObjectModel\Microsoft.CommonDataModel.ObjectModel.csproj", "{A8E623D4-3958-43D7-A5BE-3222C351F40E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonDataModel.ObjectModel", "CDM.ObjectModel\Microsoft.CommonDataModel.ObjectModel.csproj", "{A8E623D4-3958-43D7-A5BE-3222C351F40E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonDataModel.ObjectModel.Adapter.Adls", "Microsoft.CommonDataModel.ObjectModel.Adapter.Adls\Microsoft.CommonDataModel.ObjectModel.Adapter.Adls.csproj", "{EA3C7947-97C3-4076-A559-B7A24F8D9E9D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonDataModel.ObjectModel.Adapter.Adls", "CDM.ObjectModel.Adapter.Adls\Microsoft.CommonDataModel.ObjectModel.Adapter.Adls.csproj", "{EA3C7947-97C3-4076-A559-B7A24F8D9E9D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CDMUtil", "CDMUtil\CDMUtil.csproj", "{87642509-1043-4A55-97C4-64871F066587}"
 EndProject
