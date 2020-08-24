@@ -18,16 +18,17 @@ Following are some highlights of this updated version of data factory solution
 1. In Azure portal go to storage account and create a container dynamics365-financeandoperations
 2. Create a folder under container to represent your environment name ie - analyticsPerf87dd1496856e213a.cloudax.dynamics.com
 3. Download /SQLToADLSFullExport/example-public-standards.zip
-4. Extract and upload all files to root folder  IE environment folder 
+4. Extract and upload all files to root folder ie. environment folder 
 
 ## Deploy Azure function 
-1.	Download /SQLToADLSFullExport/CDMUtilSolution.zip
-2.  Extract CDMUtilSolution.zip folder and open solution in VS 2019  
+1.	Clone the repository and open C# solution  in Visual Studio 2019 [Visual Studio Solution](/Analytics/CDMUtilSolution)
 3.	Install dependencies and Build the solution to make sure all compiles 
-4.	Change value CDMUtil_AzureFunctions\local.setting.json as per your environment configuration 
+4.  update local.setting.json under CDMUtil_AzureFunctions to as per your environment configurations   
 5.	Publish the CDMUtil_AzureFunctions Project as Azure function (Ensure that local.Settings.json values are copied during deployment) 
+    ![Publish Azure Function](/Analytics/Publish.PNG)
 6.	Get your Azure function URL and Key
 7.  Ensure that all configuration from local.settings.json in the Azure function app configuration tab.
+  ![Azure Function Configurations](/Analytics/AzureFunctionConfiguration.PNG)
 
 ## Deploy Azure Data Factory Template 
 1. Collect all parameters values 
