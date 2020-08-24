@@ -397,8 +397,13 @@
                                         },
                                         "waitOnCompletion": true,
                                         "parameters": {
-                                            "Tables": {
-                                                "value": "@item().Tables",
+                                          "Tables": {
+                                            "value": "@item().Tables",
+                                            "type": "Expression"
+                                          },
+
+                                          "StorageAccunt": {
+                                                "value": "@{pipeline().parameters.StorageAccount}",
                                                 "type": "Expression"
                                             },
                                             "CDMRootFolder": {

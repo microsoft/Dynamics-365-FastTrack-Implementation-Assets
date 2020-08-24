@@ -1,0 +1,12 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "TenantId": "YourTenantId", // Your Azure Tenant ID
+    "AppId": "YourAppId", // Your Azure AppId, App must have contributor access to ADLS
+    "AppSecret": "AppSecret", // App Secret
+    "createDS": "false", // create DS while creating view on Synapse
+    "SAS": "Secure Access Signature of your data lake", // only needed when createDS = true, used for created DataSet on Synapse 
+    "Password": "979fd422-22c4", // Strong password only needed when createDS = true used for creting a master key on Synapse 
+    "SQL-On-Demand": "Server=YourSQLOnDemandDB-ondemand.sql.azuresynapse.net;Database=DBName;User Id=UserId;Password=Password" // Synapsse SQLOn-Demand details 
+  }
+}
