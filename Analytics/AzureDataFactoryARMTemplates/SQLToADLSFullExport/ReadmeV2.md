@@ -51,6 +51,7 @@ Following are some highlights of this updated version of data factory solution
 
 ## Deploy Azure Data Factory Template 
 1. Collect all parameters values 
+
 | Parameter name                                       | Description                       | Example                |
 | :--------------------                                | :---------------------:           | --------------------:  |
 |factoryName                                           | Name of your data factory         |SQLToDataLake           |
