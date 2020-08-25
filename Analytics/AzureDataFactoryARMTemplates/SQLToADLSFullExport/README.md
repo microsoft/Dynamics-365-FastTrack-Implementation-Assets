@@ -89,3 +89,10 @@ To get optimal performance when querying data files using Synapse SQL-On-Demand,
 # Build and serve report
 Once you created views on SQL-On-Demand to read your tables data stored in data lake, you can use any reporting and BI tool such as Excel, SQL Server Reporting services or Power BI to connect to SQL-On_Demand endpoint just like any other Azure SQL database and build reports. Documentation shows how to [connect Power BI with SQL-On-Demand endpoint](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/tutorial-connect-power-bi-desktop)
 
+# Try out Updated version of the Data factory solution
+We have created a new version of the Data factory solution accompnied with C# code based on the CDM SDK. This updated version of data factory solution have following advantages
+1. Creates the folder structure in data lake similar to what F&O Data feed service is going to create
+2. Automatically create partition for large tables  
+3. Produce schema as Manifest.json format that is the new format of CDM and Data feed service is going to produce this format 
+4. With Manifest.json CDM format  and Azure function
+5. Pipeline to read metadata and create views in SQLOn-Demand in one step 

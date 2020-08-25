@@ -411,6 +411,7 @@ namespace CDMUtil.Manifest
                 case "int32":
                     sqlDataType = "bigInt";
                     break;
+                case "date":
                 case "datetime":
                 case "datetime2":
 
@@ -465,7 +466,7 @@ namespace CDMUtil.Manifest
                 case "datetime":
                 case "date":
                 case "datetimeoffset":
-                    cdmDataType = "datetime2";
+                    cdmDataType = "date";
                     break;
                 case "decimal":
                 case "numeric":
