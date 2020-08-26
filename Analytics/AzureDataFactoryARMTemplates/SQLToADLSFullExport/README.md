@@ -27,7 +27,7 @@ To deploy the data factory solution you can follow bellow steps
 | **Note** 
 | :--------------------   
 |If your source system is Dynamics 365 for Finance and Operations Tier 1 or Tier 2 environment. You can get the database connection details from Life Cycle Services Environment details page. You would need **Environment Manager or Project Owner access** in LCS to see the database connection details. To Connect Azure data factory to Dynamics 365 for Finance and Operations Tier 1 and Tier 2 boxes, You may also need to RDP access to VM and install Self-hosted integration runtime. For details steps check out next section **Connecting data factory to On-Premise SQL DB or Firewall enabled Azure SQL DB**     
-
+|To connect Finance and Operations Self-Service Tier2 environments, you can follow the documentation [Connecting to Self-Service Tier 2](/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/Connecting AFD to Self-Service Deployment v2.docx). Note that Self-Service database connections are only valid for 8 hours. So you have to updated the database crededential in the database before excuting the data factory.
 
 5. Download the [ARM template file](/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/arm_template.json) to your local directory.
 6. Click [Template deployment] https://ms.portal.azure.com/#create/Microsoft.Template
@@ -89,10 +89,3 @@ To get optimal performance when querying data files using Synapse SQL-On-Demand,
 # Build and serve report
 Once you created views on SQL-On-Demand to read your tables data stored in data lake, you can use any reporting and BI tool such as Excel, SQL Server Reporting services or Power BI to connect to SQL-On_Demand endpoint just like any other Azure SQL database and build reports. Documentation shows how to [connect Power BI with SQL-On-Demand endpoint](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/tutorial-connect-power-bi-desktop)
 
-# Try out Updated version of the Data factory solution
-We have created a new version of the Data factory solution accompnied with C# code based on the CDM SDK. This updated version of data factory solution have following advantages
-1. Creates the folder structure in data lake similar to what F&O Data feed service is going to create
-2. Automatically create partition for large tables  
-3. Produce schema as Manifest.json format that is the new format of CDM and Data feed service is going to produce this format 
-4. With Manifest.json CDM format  and Azure function
-5. Pipeline to read metadata and create views in SQLOn-Demand in one step 
