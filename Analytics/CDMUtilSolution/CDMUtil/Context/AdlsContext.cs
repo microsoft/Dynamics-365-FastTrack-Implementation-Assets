@@ -4,6 +4,7 @@
 
 namespace CDMUtil.Context.ADLS
 {
+    using System;
     using System.Security;
 
     /// <summary>
@@ -18,6 +19,10 @@ namespace CDMUtil.Context.ADLS
         public string TenantId { get; set; }
 
         public string ClientSecret { get; set; }
+
+        public bool MSIAuth { get; set; }
+
+        public string SharedKey { get; set; }
 
         public string FileSytemName { get; set; }
     }

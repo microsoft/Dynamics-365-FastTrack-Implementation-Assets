@@ -11,7 +11,6 @@ using CDMUtil.Context.ADLS;
 using CDMUtil.Context.ObjectDefinitions;
 using CDMUtil.SQL;
 
-
 namespace CDMUtil.Manifest
 {
     public class ManifestHandler
@@ -20,7 +19,7 @@ namespace CDMUtil.Manifest
         private const string FoundationJsonPath = "cdm:/foundations.cdm.json";
         private const int DefaultMaxLength = 1000;
         private const int DefaultPrecison = 32;
-        private const int DefaultScale  = 6;
+        private const int DefaultScale = 6;
         private const bool DateTimeAsString = true;
         private const bool UseCollat = false;
         private const string DefaultCollation = "Latin1_General_100_BIN2_UTF8";
@@ -65,7 +64,7 @@ namespace CDMUtil.Manifest
         }
         private void mountStorage(AdlsContext adlsContext, string localFolder)
         {
-                       
+
             string firstChar;
 
             string rootFolder = adlsContext.FileSytemName;
@@ -91,20 +90,42 @@ namespace CDMUtil.Manifest
                 localFolder = localFolder.Remove(localFolder.Length - 1, 1);
             }
 
-            cdmCorpus.Storage.Mount("adls", new ADLSAdapter(
-            adlsContext.StorageAccount, // Hostname.
-            rootFolder + localFolder, // Root.
-            adlsContext.TenantId,  // Tenant ID.
-            adlsContext.ClientAppId,  // Client ID.
-            adlsContext.ClientSecret // Client secret.
-          ));
+            if (adlsContext.MSIAuth == true)
+            {
+                MSITokenProvider MSITokenProvider = new MSITokenProvider($"https://{adlsContext.StorageAccount}/");
 
-          cdmCorpus.Storage.DefaultNamespace = "adls"; // local is our default. so any paths that start out navigating without a device tag will assume local
+                cdmCorpus.Storage.Mount("adls", new ADLSAdapter(
+                  adlsContext.StorageAccount, // Hostname.
+                  rootFolder + localFolder, // Root.
+                  MSITokenProvider
+                ));
+            }
+
+            else if (adlsContext.ClientAppId != null && adlsContext.ClientSecret != null)
+            {
+                cdmCorpus.Storage.Mount("adls", new ADLSAdapter(
+                adlsContext.StorageAccount, // Hostname.
+                rootFolder + localFolder, // Root.
+                adlsContext.TenantId,  // Tenant ID.
+                adlsContext.ClientAppId,  // Client ID.
+                adlsContext.ClientSecret // Client secret.
+              ));
+            }
+            else if (adlsContext.SharedKey != null)
+            {
+                cdmCorpus.Storage.Mount("adls", new ADLSAdapter(
+              adlsContext.StorageAccount, // Hostname.
+              rootFolder + localFolder, // Root.
+              adlsContext.SharedKey
+                ));
+            }
+
+            cdmCorpus.Storage.DefaultNamespace = "adls"; // local is our default. so any paths that start out navigating without a device tag will assume local
         }
 
         public async Task<bool> createManifest(EntityList entityList, bool resolveRef = true)
         {
-            bool manifestCreated = false;          
+            bool manifestCreated = false;
             string manifestName = entityList.manifestName;
 
             Console.WriteLine("Make placeholder manifest");
@@ -289,8 +310,8 @@ namespace CDMUtil.Manifest
                     manifestName = manifestLocation.Substring(manifestLocation.LastIndexOf('/') + 1);
 
                     ManifestDefinition md = new ManifestDefinition();
-                    
-                    md.TableName = value.Substring(value.LastIndexOf("/")+1);
+
+                    md.TableName = value.Substring(value.LastIndexOf("/") + 1);
                     md.DataLocation = value;
                     md.ManifestLocation = manifestLocation;
                     md.ManifestName = manifestName;
@@ -311,7 +332,7 @@ namespace CDMUtil.Manifest
             }
         }
 
-        public async static Task<SQLStatements> CDMToSQL(AdlsContext adlsContext, string storageAccount, string rootFolder, string localFolder, string manifestName, string SAS,string pass, bool createDS)
+        public async static Task<SQLStatements> CDMToSQL(AdlsContext adlsContext, string storageAccount, string rootFolder, string localFolder, string manifestName, string SAS, string pass, bool createDS)
         {
             SQLStatements statements = new SQLStatements();
             List<SQLStatement> statementsList = new List<SQLStatement>();
@@ -334,7 +355,7 @@ namespace CDMUtil.Manifest
 
             return statements;
         }
-        public async static Task<bool> manifestToSQL(AdlsContext adlsContext, string manifestName, string localRoot,  List<SQLStatement> statemensList, string datasourceName ="")
+        public async static Task<bool> manifestToSQL(AdlsContext adlsContext, string manifestName, string localRoot, List<SQLStatement> statemensList, string datasourceName = "")
         {
             ManifestHandler manifestHandler = new ManifestHandler(adlsContext, localRoot);
             CdmManifestDefinition manifest = await manifestHandler.cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(manifestName + ".manifest.cdm.json");
@@ -349,16 +370,16 @@ namespace CDMUtil.Manifest
             {
                 string subManifestName = submanifest.ManifestName;
 
-                await manifestToSQL(adlsContext, subManifestName, localRoot + '/' + subManifestName,  statemensList, datasourceName);
-                
+                await manifestToSQL(adlsContext, subManifestName, localRoot + '/' + subManifestName, statemensList, datasourceName);
+
             }
-            
+
             foreach (CdmEntityDeclarationDefinition eDef in manifest.Entities)
             {
                 string entityName = eDef.EntityName;
 
                 string dataLocation;
-                
+
                 if (eDef.DataPartitions.Count > 0)
                 {
                     dataLocation = eDef.DataPartitions[0].Location;
@@ -371,7 +392,7 @@ namespace CDMUtil.Manifest
                 string fileName = dataLocation.Substring(dataLocation.LastIndexOf("/") + 1);
                 string ext = fileName.Substring(fileName.LastIndexOf("."));
                 dataLocation = dataLocation.Replace(fileName, "*" + ext);
-                string dataSource ="";
+                string dataSource = "";
                 if (datasourceName == "")
                 {
                     localRoot = $"https://{adlsContext.StorageAccount}{adlsContext.FileSytemName}{localRoot}";
@@ -389,10 +410,10 @@ namespace CDMUtil.Manifest
 
                 var sql = $"CREATE OR ALTER VIEW {entityName} AS SELECT * FROM OPENROWSET(BULK '{dataLocation}', FORMAT = 'CSV', Parser_Version = '2.0' {dataSource}) WITH({columnDef}) as r ";
                 statemensList.Add(new SQLStatement() { Statement = sql });
-                
+
             }
             return true;
-                    
+
         }
 
         static string cdmToSQLDataType(string dataType)
@@ -443,7 +464,7 @@ namespace CDMUtil.Manifest
                     sqlDataType = "varchar(1000)";
                     break;
             }
-            
+
             return sqlDataType;
 
         }
@@ -454,12 +475,14 @@ namespace CDMUtil.Manifest
             switch (sqlDataType.ToLower())
             {
                 case "bigint":
+                case "biginteger":
                     cdmDataType = "bigInteger";
                     break;
 
                 case "int":
                 case "tinyint":
                 case "smallint":
+                case "smallinteger":
                     cdmDataType = "smallInteger";
                     break;
 
@@ -504,8 +527,8 @@ namespace CDMUtil.Manifest
             CdmTypeAttributeDefinition entityAttribute;
             string name = System.Convert.ToString(columnAttribute.name);
             string dataType = System.Convert.ToString(columnAttribute.dataType);
-                    
-            
+
+
             if (System.Convert.ToInt32(columnAttribute.IsPrimaryKey) == 1)
             {
                 entityAttribute = CreateEntityAttributeWithPurpose(cdmCorpus, name, "identifiedBy");
@@ -514,11 +537,11 @@ namespace CDMUtil.Manifest
             {
                 entityAttribute = CreateEntityAttributeWithPurpose(cdmCorpus, name, "hasA");
             }
-            
-            string cdmType = sqlToCDMDataType(dataType);
-            entityAttribute.DataType = cdmCorpus.MakeRef<CdmDataTypeReference>(CdmObjectType.DataTypeRef, cdmType , true);
 
-            if(cdmType.ToLower().Equals("string"))
+            string cdmType = sqlToCDMDataType(dataType);
+            entityAttribute.DataType = cdmCorpus.MakeRef<CdmDataTypeReference>(CdmObjectType.DataTypeRef, cdmType, true);
+
+            if (cdmType.ToLower().Equals("string"))
             {
                 if (UseCollat)
                 {
@@ -538,7 +561,7 @@ namespace CDMUtil.Manifest
                     maximumLenght = System.Convert.ToInt32(columnAttribute.maximumLength);
                 }
                 entityAttribute.MaximumLength = maximumLenght;
-                
+
             }
             if (cdmType.ToLower().Equals("decimal"))
             {
@@ -566,18 +589,18 @@ namespace CDMUtil.Manifest
                 dataType = typeAttributeDefinition.DataFormat.ToString().ToLower();
             }
             else
-                {
-                dataType =  typeAttributeDefinition.DataType.ToString().ToLower();
+            {
+                dataType = typeAttributeDefinition.DataType.ToString().ToLower();
             }
-            
-            int maximumLenght   = DefaultMaxLength;
-            
+
+            int maximumLenght = DefaultMaxLength;
+
             string decimalPrecisionScale = $"({DefaultPrecison}, {DefaultScale})";
-            
+
             switch (dataType)
-                {
-                    case "string":
-                    
+            {
+                case "string":
+
                     if (typeAttributeDefinition.MaximumLength != null)
                     {
                         maximumLenght = (int)typeAttributeDefinition.MaximumLength;
@@ -600,15 +623,15 @@ namespace CDMUtil.Manifest
                         }
                         sqlColumnDef = $" {sqlColumnDef}  {collation}";
                     }
-                                        
+
                     break;
                 case "decimal":
-                    
+
                     if (typeAttributeDefinition.Explanation != null)
                     {
                         decimalPrecisionScale = typeAttributeDefinition.Explanation;
                     }
-                    
+
                     sqlColumnDef = $"{typeAttributeDefinition.Name} decimal {decimalPrecisionScale}";
                     break;
                 default:
@@ -616,7 +639,7 @@ namespace CDMUtil.Manifest
                     break;
             }
 
-            
+
             return sqlColumnDef;
         }
     }

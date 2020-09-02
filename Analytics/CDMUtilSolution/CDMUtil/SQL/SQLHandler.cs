@@ -15,17 +15,20 @@ namespace CDMUtil.SQL
         }
         public  void executeStatements(SQLStatements sqlStatements)
         {
-            SqlConnection conn = new SqlConnection(SQLConnectionStr);
-            conn.Open();
+           
 
             foreach (var s in sqlStatements.Statements)
             {
+                SqlConnection conn = new SqlConnection(SQLConnectionStr);
+                conn.Open();
                 using (var command = new SqlCommand(s.Statement, conn))
                 {
+                    
                     try
-                    {
+                    { 
                         command.ExecuteNonQuery();
                         s.Created = true;
+                      
                     }
                     catch (SqlException ex)
                     {
@@ -33,9 +36,10 @@ namespace CDMUtil.SQL
                         s.Detail = ex.Message;
                     }
                 }
+                conn.Close();
             }
 
-            conn.Close();
+          
         }
         public bool createDataSource(string location, string dataSourceName, string SAS, string pass)
         {

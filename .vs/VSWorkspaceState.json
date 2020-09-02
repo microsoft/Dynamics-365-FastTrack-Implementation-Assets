@@ -3,8 +3,11 @@
     "",
     "\\Analytics",
     "\\Analytics\\AzureDataFactoryARMTemplates",
-    "\\Analytics\\AzureDataFactoryARMTemplates\\SQLToADLSFullExport",
-    "\\Analytics\\CDMUtilSolution"
+    "\\Analytics\\CDMUtilSolution",
+    "\\Analytics\\CDMUtilSolution\\CDMUtil",
+    "\\Analytics\\CDMUtilSolution\\CDMUtil\\Manifest",
+    "\\Analytics\\CDMUtilSolution\\CDMUtil_AzureFunctions",
+    "\\Analytics\\CDMUtilSolution\\CDMUtil_AzureFunctions\\Properties"
   ],
   "SelectedNode": "\\Analytics\\CDMUtilSolution\\Microsoft.CommonDataModel.sln",
   "PreviewInSolutionExplorer": false

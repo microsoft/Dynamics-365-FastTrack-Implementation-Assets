@@ -44,9 +44,11 @@ namespace CDMUtil
             string localFolder = req.Headers["ManifestLocation"];
             string manifestName = req.Headers["ManifestName"];
 
+            var MSIAuth = System.Convert.ToBoolean(System.Environment.GetEnvironmentVariable("MSIAuth"));
             var TenantId = System.Environment.GetEnvironmentVariable("TenantId");
             var AppId = System.Environment.GetEnvironmentVariable("AppId"); ;
             var AppSecret = System.Environment.GetEnvironmentVariable("AppSecret");
+            var SharedKey = System.Environment.GetEnvironmentVariable("SharedKey");
             bool createDS = System.Convert.ToBoolean(System.Environment.GetEnvironmentVariable("CreateDS"));
             var SAS = System.Environment.GetEnvironmentVariable("SAS");
             var pass = System.Environment.GetEnvironmentVariable("Password");
@@ -54,10 +56,14 @@ namespace CDMUtil
             AdlsContext adlsContext = new AdlsContext() {
                 StorageAccount = storageAccount,
                 FileSytemName = rootFolder,
+                MSIAuth = MSIAuth,
                 TenantId = TenantId,
                 ClientAppId = AppId,
-                ClientSecret = AppSecret
+                ClientSecret = AppSecret,
+                SharedKey = SharedKey
             };
+            
+            log.Log(LogLevel.Information, "adlsContext");
 
             var statements = await ManifestHandler.CDMToSQL(adlsContext, storageAccount, rootFolder, localFolder, manifestName, SAS, pass, createDS);
                      
@@ -83,14 +89,19 @@ namespace CDMUtil
             var TenantId = System.Environment.GetEnvironmentVariable("TenantId");
             var AppId = System.Environment.GetEnvironmentVariable("AppId"); ;
             var AppSecret = System.Environment.GetEnvironmentVariable("AppSecret");
-            AdlsContext adlsContext = new AdlsContext() 
-                                                        { 
-                                                            StorageAccount = storageAccount, 
-                                                            FileSytemName = rootFolder, 
-                                                            TenantId=TenantId, 
-                                                            ClientAppId= AppId, 
-                                                            ClientSecret=AppSecret
+            var MSIAuth = System.Convert.ToBoolean(System.Environment.GetEnvironmentVariable("MSIAuth"));
+            var SharedKey = System.Environment.GetEnvironmentVariable("SharedKey");
+
+            AdlsContext adlsContext = new AdlsContext() {
+                                                            StorageAccount = storageAccount,
+                                                            FileSytemName = rootFolder,
+                                                            MSIAuth = MSIAuth,
+                                                            TenantId = TenantId,
+                                                            ClientAppId = AppId,
+                                                            ClientSecret = AppSecret,
+                                                            SharedKey = SharedKey
                                                         };
+
             ManifestHandler manifestHandler = new ManifestHandler(adlsContext, localFolder);
 
             bool resolveRef = false;
