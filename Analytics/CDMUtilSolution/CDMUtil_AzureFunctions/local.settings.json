@@ -2,13 +2,13 @@
   "IsEncrypted": false,
   "Values": {
     "MSIAuth": "false",
-    "TenantId": "979fd422-22c4-4a36-bea6-1cf87b6502dd", // Your Azure Tenant ID
-    "AppId": "8936e905-197b-485a-b076-785e5bbb9604", // Your Azure AppId, App must have contributor access to ADLS
-    "AppSecret": "NaeIN8P043Kr~aQ9Qo-OuuG~j7ei.J~1g-", // App Secret
-    "SharedKey": "FMgANExZjEE6KMpty7QuZylGyHDT6Gmg+ihzfAGr2ovpDn5I3KOhx1Q+ZSe5tevPm2Hiwfey4uMB4a54vE/mNA==",
+    "TenantId": "TenantID", // Your Azure Tenant ID
+    "AppId": "AppId", // Your Azure AppId, App must have contributor access to ADLS
+    "AppSecret": "AppSecret", // App Secret
+    "SharedKey": "Key",
     "createDS": "false", // create DS while creating view on Synapse
-    "SAS": "?sv=2019-12-12&ss=bfqt&srt=sc&sp=rwdlacupx&se=2022-08-29T04:10:44Z&st=2020-08-28T20:10:44Z&spr=https&sig=VH0gdCIij0xYvjzEIa%2FmafLaZc6DeihDbTjtqGr6PgY%3D", // only needed when createDS = true, used for created DataSet on Synapse 
+    "SAS": "", // only needed when createDS = true, used for created DataSet on Synapse 
     "Password": "979fd422-22c4", // Strong password only needed when createDS = true used for creting a master key on Synapse 
-    "SQL-On-Demand": "Server=ftsasynapseworkspace-ondemand.sql.azuresynapse.net;Database=AnalyticsAXDB;User Id=sqladminuser;Password=Pass1Word" // Synapsse SQLOn-Demand details 
+    "SQL-On-Demand": "Server=YOUDDBNAME-ondemand.sql.azuresynapse.net;Database=YourDBName;User Id=user;Password=Password" // Synapsse SQLOn-Demand details 
   }
 }
