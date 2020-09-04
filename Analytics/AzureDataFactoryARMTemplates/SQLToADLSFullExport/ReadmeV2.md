@@ -21,7 +21,7 @@ Following are some highlights of this updated version of data factory solution
 2.[Create Application Secret](https://docs.microsoft.com/en-us/azure/healthcare-apis/register-confidential-azure-ad-client-app#application-secret) and record Application Secret
 3. Get your Azure Tenant ID  Azure Portal > Azure Active Directory > Tenant information > Tenant ID
 ## Setup Storage Account 
-1. In Azure portal, go to Storage account and grant contributor access to applicated created in previous step
+1. In Azure portal, go to Storage account and grant Blob Data Contributor and Blob Data Reader access to applicated created in previous step
 2. Create a container dynamics365-financeandoperations
 3. Create a folder under container to represent your environment name ie - analyticsPerf87dd1496856e213a.cloudax.dynamics.com
 4. Download /SQLToADLSFullExport/example-public-standards.zip
