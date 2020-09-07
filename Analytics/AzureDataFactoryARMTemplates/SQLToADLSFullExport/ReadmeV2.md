@@ -29,10 +29,6 @@ Following are some highlights of this updated version of data factory solution
 
 ## Deploy C# Solution as Azure function 
 1.	Clone the repository and open C# solution  in Visual Studio 2019 [Visual Studio Solution](/Analytics/CDMUtilSolution)
-2.  In visual studio 2019, Click Tools > Nuget Package Manager > Package manager setting and add NugetSource
-           Name = CDM
-           Source = https://commondatamodel.pkgs.visualstudio.com/_packaging/CDM/nuget/v3/index.json
-
 3.	Install dependencies and Build the solution to make sure all compiles 
 4.  update local.setting.json under CDMUtil_AzureFunctions to as per your environment configurations   
 '''{
