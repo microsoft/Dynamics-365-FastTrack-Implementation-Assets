@@ -1,19 +1,28 @@
+# Overview 
+
+SQLToLake V2 is a generic solution to export SQLServer (on-premise or Azure SQL) tables data to Azure Data lake Gen 2 account in [Common data model](https://docs.microsoft.com/en-us/common-data-model/) format. Solution utilize Azure data factory pipelines and Azure function based on [CDM SDK](https://github.com/microsoft/CDM/tree/master/objectModel/CSharp) to copy SQL tables data and generate CDM metadata to Azure storage account. Solution can also read the CDM manifest recursively and create view on Synapse Analytics SQL-On-Demand database. 
+
+# Use cases
+You can use this Data factory solution  for following use cases
+1. Ingest on-premise SQL Database or Azure SQL database to Azure data lake in CDM format
+2. Ingest your on-premise Dynamics AX data to Azure data lake in CDM format
+3. Ingest Finance and Operations app data from Tier 1 or Tier 2 environment to Azure data lake in CDM format (A workaround to [Tables in Data Lake](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/finance-data-azure-data-lake) feature to build POC)
+
 # SQLToADLS Full Export V2 Highlights  
-Following are some highlights of this updated version of data factory solution
-1. Creates the folder structure in data lake similar to what F&O Data feed service is going to create
-2. Automatically create partition for large tables  
-3. Produce schema as Manifest.json format that is the new format of CDM and Data feed service is going to produce this format 
-4. With Manifest.json CDM format  and Azure function
-5. Pipeline to read metadata and create views in SQLOn-Demand 
+If you are new to Azure Data Factory, Azure functions and Synapse Analytics, we recomend to try [Version 1](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/README.md) first to get familier with some of the basic concepts. Version 2 of Data factory solution, primarly utilize C# solution that is based on CDM SDK deployed as Azure function to automate some of the manual steps to create views in Synapse analytics. This version also generate folder structure and metadata similar to F&O Tables in Lake feature. Following are some highlights of this updated version of data factory solution
+1. Generate Finance and Operations [CDM folder structure](https://github.com/microsoft/CDM/tree/master/schemaDocuments/core/operationsCommon/Tables) in data lake
+2. Automatically partition data for large tables  
+3. Geneate metadata in [Manifest](https://docs.microsoft.com/en-us/common-data-model/cdm-manifest) format.  
+5. Read metadata (manifest) and create views in SQLOn-Demand 
 
 # Prerequisites 
 - **Azure subscription**. You will require **contributor access** to an existing Azure subscription. If you don't have an Azure subscription, create a [free Azure account](https://azure.microsoft.com/en-us/free/) before you begin. 
 - **Azure storage account**. If you don't have a storage account, see [Create an Azure storage account](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-create?tabs=azure-portal#create-a-storage-account) for steps to create one.
 - **Azure data factory** - Create an Azure Data Factory resource follow the steps to [create a Data factory](https://docs.microsoft.com/en-us/azure/data-factory/tutorial-copy-data-portal#create-a-data-factory)
-- ** Synapse workspace and SQL-on-Demand endpoint [create synapse workspace](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-create-workspace) 
+- **Synapse Analytics Workspace** [create synapse workspace](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-create-workspace) 
 - **Connect to SQL-On-Demand endpoint:** Once you provisioned Synapse workspace, you can use [Synapse Studio](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-synapse-studio) or SQL Server Management Studio (SSMS 18.5 or higher) or [Azure Data Studio](https://docs.microsoft.com/en-us/sql/azure-data-studio/download-azure-data-studio?toc=/azure/synapse-analytics/toc.json&bc=/azure/synapse-analytics/breadcrumb/toc.json&view=azure-sqldw-latest). For details check [supported tools](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/connect-overview#supported-tools-for-sql-on-demand-preview)
-- **First time setup:** Before you can query data using TSQL, you need to create Database and datasource to read your storage account. Follow the documentation [First time setup](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-sql-on-demand#first-time-setup)   
-- ** Visual Studio 2019 to build C# CDMUtilSolution Solution and deploy as Azure Function
+- **First time setup:** Before you can query data using TSQL, you need to create Database. Follow the documentation [First time setup](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-sql-on-demand#first-time-setup)   
+- **Visual Studio 2019 to build C# CDMUtilSolution Solution and deploy as Azure Function
 
 # High level deployment steps
 ## Create Azure Application and Secret 
