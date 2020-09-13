@@ -117,7 +117,8 @@ Once Azure data factory template deployed successfully, navigate to Azure Data F
 3. Execute pipeline CreateView to create the views.
 ![CreateView](/Analytics/ExecuteCreateView.PNG)
 4. Validate view created on Synapse SQL-On-Demand
-5. To learn SQL-On-Demand concepts in details follow the blog post or use the documentation page Synapse Analytics documentation
+
+To learn SQL-On-Demand concepts in details follow the [blog post](https://techcommunity.microsoft.com/t5/azure-synapse-analytics/how-azure-synapse-analytics-enables-you-to-run-t-sql-queries/ba-p/1449171) or use the documentation page [Synapse Analytics documentation](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/on-demand-workspace-overview)
 
 
 # Build and serve report
