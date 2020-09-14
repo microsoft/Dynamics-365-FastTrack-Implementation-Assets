@@ -1,0 +1,2919 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "factoryName": {
+            "type": "string",
+            "metadata": "Data Factory name",
+            "defaultValue": ""
+        },
+        "Bootstrap blob stroage account Linked Service_connectionString": {
+            "type": "secureString",
+            "metadata": "Secure string for 'connectionString' of 'Bootstrap blob stroage account Linked Service'"
+        },
+	"Bootstrap Dynamics 365 Linked Service_serviceUri": {
+            "type": "string",
+            "metadata": "Dynamics 365 for 'serviceUri' of 'Bootstrap Dynamics 365 Linked Service'"
+        },
+        "Bootstrap Dynamics 365 Linked Service_properties_typeProperties_username": {
+            "type": "string",
+            "defaultValue": ""
+	},	
+	"Bootstrap Dynamics 365 Linked Service_password": {
+            "type": "secureString",
+            "metadata": "Secure string for 'password' of 'Bootstrap Dynamics 365 Linked Service'"
+        }
+    },
+    "variables": {
+        "factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+    },
+    "resources": [
+        {
+            "name": "[concat(parameters('factoryName'), '/FOCDSAccountBootstrapDataFlow')]",
+            "type": "Microsoft.DataFactory/factories/dataflows",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "AccountsCDS02",
+                "type": "MappingDataFlow",
+                "typeProperties": {
+                    "sources": [
+                        {
+                            "dataset": {
+                                "referenceName": "FOCustomers01",
+                                "type": "DatasetReference"
+                            },
+                            "name": "FinOpsCustomers"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "CompaniesCSVInput_01_02",
+                                "type": "DatasetReference"
+                            },
+                            "name": "CDSCompanies"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "CustomerGroupsCSV_02_02",
+                                "type": "DatasetReference"
+                            },
+                            "name": "CDSCustomerGroups"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "AccountsCSVWithSchema04",
+                                "type": "DatasetReference"
+                            },
+                            "name": "CDSAccountsExport01"
+                        }
+                    ],
+                    "sinks": [
+                        {
+                            "dataset": {
+                                "referenceName": "CombinedFOCDSAccounts",
+                                "type": "DatasetReference"
+                            },
+                            "name": "AccountsReadyForCDSImport"
+                        }
+                    ],
+                    "transformations": [
+                        {
+                            "name": "CustomerGroupLookup"
+                        },
+                        {
+                            "name": "CustAccountLeftOuterJoin"
+                        },
+                        {
+                            "name": "CDSCompaniesLookupFO"
+                        },
+                        {
+                            "name": "CEAccountId"
+                        }
+                    ],
+                    "script": "source(output(\n\t\tCUSTOMERACCOUNT as string,\n\t\tACCOUNTSTATEMENT as string,\n\t\tADDRESSBOOKS as string,\n\t\tADDRESSBUILDINGCOMPLEMENT as string,\n\t\tADDRESSCITY as string,\n\t\tADDRESSCOUNTRYREGIONID as string,\n\t\tADDRESSCOUNTRYREGIONISOCODE as string,\n\t\tADDRESSCOUNTY as string,\n\t\tADDRESSDESCRIPTION as string,\n\t\tADDRESSDISTRICTNAME as string,\n\t\tADDRESSLATITUDE as string,\n\t\tADDRESSLOCATIONID as string,\n\t\tADDRESSLOCATIONROLES as string,\n\t\tADDRESSLONGITUDE as string,\n\t\tADDRESSPOSTBOX as string,\n\t\tADDRESSRECORDID as string,\n\t\tADDRESSSTATE as string,\n\t\tADDRESSSTREET as string,\n\t\tADDRESSSTREETNUMBER as string,\n\t\tADDRESSTIMEZONE as string,\n\t\tADDRESSVALIDFROM as string,\n\t\tADDRESSVALIDTO as string,\n\t\tADDRESSZIPCODE as string,\n\t\tCENTRALBANKPURPOSECODE as string,\n\t\tCENTRALBANKPURPOSENOTES as string,\n\t\tCHARGESGROUPID as string,\n\t\tCOLLECTIONLETTERCODE as string,\n\t\tCOLLECTIONSCONTACTPERSONID as string,\n\t\tCOMMISSIONCUSTOMERGROUPID as string,\n\t\tCOMMISSIONSALESGROUPID as string,\n\t\tCOMPANYCHAIN as string,\n\t\tCONTACTPERSONID as string,\n\t\tCREDITCARDADDRESSVERIFICATION as string,\n\t\tCREDITCARDADDRESSVERIFICATIONISAUTHORIZATIONVOIDEDONFAILURE as string,\n\t\tCREDITCARDADDRESSVERIFICATIONLEVEL as string,\n\t\tCREDITCARDCVC as string,\n\t\tCREDITLIMIT as string,\n\t\tCREDITLIMITISMANDATORY as string,\n\t\tCREDITRATING as string,\n\t\tCUSTCLASSIFICATIONID as string,\n\t\tCUSTOMERGROUPID as string,\n\t\tCUSTOMERREBATEGROUPID as string,\n\t\tCUSTOMERTMAGROUPID as string,\n\t\tDEFAULTDIMENSIONDISPLAYVALUE as string,\n\t\tDEFAULTECOMMERCEOPERATOR as string,\n\t\tDEFAULTINVENTORYSTATUSID as string,\n\t\tDELIVERYADDRESSBUILDINGCOMPLEMENT as string,\n\t\tDELIVERYADDRESSCITY as string,\n\t\tDELIVERYADDRESSCOUNTRYREGIONID as string,\n\t\tDELIVERYADDRESSCOUNTRYREGIONISOCODE as string,\n\t\tDELIVERYADDRESSCOUNTY as string,\n\t\tDELIVERYADDRESSDESCRIPTION as string,\n\t\tDELIVERYADDRESSDISTRICTNAME as string,\n\t\tDELIVERYADDRESSLATITUDE as string,\n\t\tDELIVERYADDRESSLOCATIONID as string,\n\t\tDELIVERYADDRESSLONGITUDE as string,\n\t\tDELIVERYADDRESSSTATE as string,\n\t\tDELIVERYADDRESSSTREET as string,\n\t\tDELIVERYADDRESSSTREETNUMBER as string,\n\t\tDELIVERYADDRESSTIMEZONE as string,\n\t\tDELIVERYADDRESSVALIDFROM as string,\n\t\tDELIVERYADDRESSVALIDTO as string,\n\t\tDELIVERYADDRESSZIPCODE as string,\n\t\tDELIVERYFREIGHTZONE as string,\n\t\tDELIVERYMODE as string,\n\t\tDELIVERYREASON as string,\n\t\tDELIVERYTERMS as string,\n\t\tDESTINATIONCODE as string,\n\t\tDISCOUNTPRICEGROUPID as string,\n\t\tEINVOICEATTACHMENT as string,\n\t\tELECTRONICLOCATIONID as string,\n\t\tEMPLOYEERESPONSIBLENUMBER as string,\n\t\tFEDERALAGENCYLOCATIONCODE as string,\n\t\tFEDERALCOMMENTS as string,\n\t\tFEDERALINDICATOR as string,\n\t\tFULFILLMENTPOLICYNAME as string,\n\t\tFULLPRIMARYADDRESS as string,\n\t\tIDENTIFICATIONNUMBER as string,\n\t\tINVOICEACCOUNT as string,\n\t\tINVOICEADDRESS as string,\n\t\tINVOICEADDRESSBUILDINGCOMPLEMENT as string,\n\t\tINVOICEADDRESSCITY as string,\n\t\tINVOICEADDRESSCOUNTRYREGIONID as string,\n\t\tINVOICEADDRESSCOUNTRYREGIONISOCODE as string,\n\t\tINVOICEADDRESSCOUNTY as string,\n\t\tINVOICEADDRESSDESCRIPTION as string,\n\t\tINVOICEADDRESSDISTRICTNAME as string,\n\t\tINVOICEADDRESSLATITUDE as string,\n\t\tINVOICEADDRESSLOCATIONID as string,\n\t\tINVOICEADDRESSLONGITUDE as string,\n\t\tINVOICEADDRESSSTATE as string,\n\t\tINVOICEADDRESSSTREET as string,\n\t\tINVOICEADDRESSSTREETNUMBER as string,\n\t\tINVOICEADDRESSTIMEZONE as string,\n\t\tINVOICEADDRESSVALIDFROM as string,\n\t\tINVOICEADDRESSVALIDTO as string,\n\t\tINVOICEADDRESSZIPCODE as string,\n\t\tIRS1099CINDICATOR as string,\n\t\tISALLOWCREATEINDIRECTORDERLINES as string,\n\t\tISELECTRONICINVOICE as string,\n\t\tISEXCLUDEDFROMCOLLECTIONFEECALCULATION as string,\n\t\tISEXCLUDEDFROMINTERESTCHARGECALCULATION as string,\n\t\tISEXPRESSBILLOFLADINGACCEPTED as string,\n\t\tISEXTERNALLYMAINTAINED as string,\n\t\tISFREIGHTACCRUED as string,\n\t\tISONETIMECUSTOMER as string,\n\t\tISORDERNUMBERREFERENCEUSED as string,\n\t\tISPURCHREQUESTUSED as string,\n\t\tISSALESTAXINCLUDEDINPRICES as string,\n\t\tISTRANSACTIONPOSTEDASSHIPMENT as string,\n\t\tITEMCUSTOMERGROUPID as string,\n\t\tKNOWNAS as string,\n\t\tLANGUAGEID as string,\n\t\tLINEDISCOUNTCODE as string,\n\t\tLINEOFBUSINESSID as string,\n\t\tMULTILINEDISCOUNTCODE as string,\n\t\tNAMEALIAS as string,\n\t\tNUMBERSEQUENCEGROUP as string,\n\t\tONHOLDSTATUS as string,\n\t\tORDERENTRYDEADLINE as string,\n\t\tORGANIZATIONABCCODE as string,\n\t\tORGANIZATIONNAME as string,\n\t\tORGANIZATIONNUMBER as string,\n\t\tORGANIZATIONNUMBEROFEMPLOYEES as string,\n\t\tORGANIZATIONPHONETICNAME as string,\n\t\tPACKINGDUTYLICENSE as string,\n\t\tPACKINGMATERIALFEELICENSENUMBER as string,\n\t\tPARTYCOUNTRY as string,\n\t\tPARTYNUMBER as string,\n\t\tPARTYSTATE as string,\n\t\tPARTYTYPE as string,\n\t\tPAYMENTBANKACCOUNT as string,\n\t\tPAYMENTCASHDISCOUNT as string,\n\t\tPAYMENTDAY as string,\n\t\tPAYMENTIDTYPE as string,\n\t\tPAYMENTMETHOD as string,\n\t\tPAYMENTSCHEDULE as string,\n\t\tPAYMENTSPECIFICATION as string,\n\t\tPAYMENTTERMS as string,\n\t\tPAYMENTTERMSBASEDAYS as string,\n\t\tPAYMENTUSECASHDISCOUNT as string,\n\t\tPERSONANNIVERSARYDAY as string,\n\t\tPERSONANNIVERSARYMONTH as string,\n\t\tPERSONANNIVERSARYYEAR as string,\n\t\tPERSONCHILDRENNAMES as string,\n\t\tPERSONFIRSTNAME as string,\n\t\tPERSONGENDER as string,\n\t\tPERSONHOBBIES as string,\n\t\tPERSONINITIALS as string,\n\t\tPERSONLASTNAME as string,\n\t\tPERSONLASTNAMEPREFIX as string,\n\t\tPERSONMARITALSTATUS as string,\n\t\tPERSONMIDDLENAME as string,\n\t\tPERSONPHONETICFIRSTNAME as string,\n\t\tPERSONPHONETICLASTNAME as string,\n\t\tPERSONPHONETICMIDDLENAME as string,\n\t\tPERSONPROFESSIONALSUFFIX as string,\n\t\tPERSONPROFESSIONALTITLE as string,\n\t\tPRIMARYCONTACTEMAIL as string,\n\t\tPRIMARYCONTACTEMAILDESCRIPTION as string,\n\t\tPRIMARYCONTACTEMAILISIM as string,\n\t\tPRIMARYCONTACTEMAILPURPOSE as string,\n\t\tPRIMARYCONTACTEMAILRECORDID as string,\n\t\tPRIMARYCONTACTFACEBOOK as string,\n\t\tPRIMARYCONTACTFACEBOOKDESCRIPTION as string,\n\t\tPRIMARYCONTACTFACEBOOKPURPOSE as string,\n\t\tPRIMARYCONTACTFAX as string,\n\t\tPRIMARYCONTACTFAXDESCRIPTION as string,\n\t\tPRIMARYCONTACTFAXEXTENSION as string,\n\t\tPRIMARYCONTACTFAXPURPOSE as string,\n\t\tPRIMARYCONTACTFAXRECORDID as string,\n\t\tPRIMARYCONTACTLINKEDIN as string,\n\t\tPRIMARYCONTACTLINKEDINDESCRIPTION as string,\n\t\tPRIMARYCONTACTLINKEDINPURPOSE as string,\n\t\tPRIMARYCONTACTPHONE as string,\n\t\tPRIMARYCONTACTPHONEDESCRIPTION as string,\n\t\tPRIMARYCONTACTPHONEEXTENSION as string,\n\t\tPRIMARYCONTACTPHONEISMOBILE as string,\n\t\tPRIMARYCONTACTPHONEPURPOSE as string,\n\t\tPRIMARYCONTACTPHONERECORDID as string,\n\t\tPRIMARYCONTACTTELEX as string,\n\t\tPRIMARYCONTACTTELEXDESCRIPTION as string,\n\t\tPRIMARYCONTACTTELEXPURPOSE as string,\n\t\tPRIMARYCONTACTTWITTER as string,\n\t\tPRIMARYCONTACTTWITTERDESCRIPTION as string,\n\t\tPRIMARYCONTACTTWITTERPURPOSE as string,\n\t\tPRIMARYCONTACTURL as string,\n\t\tPRIMARYCONTACTURLDESCRIPTION as string,\n\t\tPRIMARYCONTACTURLPURPOSE as string,\n\t\tPRIMARYCONTACTURLRECORDID as string,\n\t\tPRIORITY as string,\n\t\tRECEIPTCALENDAR as string,\n\t\tRECEIPTEMAIL as string,\n\t\tRECEIPTOPTION as string,\n\t\tSALESACCOUNTNUMBER as string,\n\t\tSALESCURRENCYCODE as string,\n\t\tSALESDISTRICT as string,\n\t\tSALESMEMO as string,\n\t\tSALESORDERPOOLID as string,\n\t\tSALESSEGMENTID as string,\n\t\tSALESSUBSEGMENTID as string,\n\t\tSALESTAXGROUP as string,\n\t\tSITEID as string,\n\t\tSTATISTICSGROUPID as string,\n\t\tSUPPLEMENTARYITEMGROUPID as string,\n\t\tTAXEXEMPTNUMBER as string,\n\t\tTOTALDISCOUNTCODE as string,\n\t\tVENDORACCOUNT as string,\n\t\tWAREHOUSEID as string,\n\t\tWAREHOUSEISASNGENERATED as string,\n\t\tWAREHOUSEISENTIRESHIPMENTFILLED as string,\n\t\tWRITEOFFREASON as string,\n\t\tDataAreaId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\twildcardPaths:['01-CustomersV3Export-Customers V3.csv'],\n\tpartitionBy('hash', 1)) ~> FinOpsCustomers\nsource(output(\n\t\tcdm_companycode as string,\n\t\tcdm_companyid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\twildcardPaths:['CDSCompanies.csv']) ~> CDSCompanies\nsource(output(\n\t\tmsdyn_groupid as string,\n\t\tmsdyn_customergroupidCE as string,\n\t\tmsdyn_companyCE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\twildcardPaths:['02_02_CDSCustomerGroups.csv'],\n\tpartitionBy('hash', 1)) ~> CDSCustomerGroups\nsource(output(\n\t\tcustomertypecode as string,\n\t\taddress2_addresstypecode as string,\n\t\tmerged as string,\n\t\taccountnumber as string,\n\t\tmodifiedby as string,\n\t\tstatecode as string,\n\t\tcreditlimit as string,\n\t\taddress1_latitude as string,\n\t\texchangerate as string,\n\t\topenrevenue_state as string,\n\t\tname as string,\n\t\taddress2_city as string,\n\t\topendeals as string,\n\t\taddress1_county as string,\n\t\tmodifiedon as string,\n\t\taddress2_line1 as string,\n\t\tmsdyn_language as string,\n\t\taddress1_longitude as string,\n\t\tdonotpostalmail as string,\n\t\taccountratingcode as string,\n\t\tnumberofemployees as string,\n\t\tmarketingonly as string,\n\t\tmsdyn_vendorcreatedbyworkflow as string,\n\t\tdonotphone as string,\n\t\tpreferredcontactmethodcode as string,\n\t\townerid as string,\n\t\tcustomersizecode as string,\n\t\tmsdyn_onholdstatus as string,\n\t\topenrevenue_base as string,\n\t\tmsdyn_paymentterm as string,\n\t\tbusinesstypecode as string,\n\t\tdonotemail as string,\n\t\taddress2_shippingmethodcode as string,\n\t\tmsdyn_onetimecustomer as string,\n\t\taddress1_addressid as string,\n\t\taddress2_freighttermscode as string,\n\t\tstatuscode as string,\n\t\tcreatedon as string,\n\t\tmsdyn_travelchargetype as string,\n\t\topendeals_state as string,\n\t\taddress1_stateorprovince as string,\n\t\tmsdyn_creditlimitismandatory as string,\n\t\topenrevenue as string,\n\t\tmsdyn_partynumber as string,\n\t\tdonotsendmm as string,\n\t\tdonotfax as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_paymenttermsbasedays as string,\n\t\tdonotbulkpostalmail as string,\n\t\taddress1_country as string,\n\t\tmsdyn_invoiceaddress as string,\n\t\taddress1_line1 as string,\n\t\tmsdyn_creditrating as string,\n\t\tcreditonhold as string,\n\t\ttelephone1 as string,\n\t\tmsdyn_customerpaymentmethod as string,\n\t\ttransactioncurrencyid as string,\n\t\taccountid as string,\n\t\taddress2_postalcode as string,\n\t\taddress1_addresstypecode as string,\n\t\tdonotbulkemail as string,\n\t\tmsdyn_customergroupid as string,\n\t\tcreditlimit_base as string,\n\t\taddress2_county as string,\n\t\tfollowemail as string,\n\t\tshippingmethodcode as string,\n\t\taddress2_stateorprovince as string,\n\t\tcreatedby as string,\n\t\taddress2_latitude as string,\n\t\taddress1_city as string,\n\t\tterritorycode as string,\n\t\taddress2_longitude as string,\n\t\topenrevenue_date as string,\n\t\tmsdyn_taxexempt as string,\n\t\towningteam as string,\n\t\tparticipatesinworkflow as string,\n\t\taccountclassificationcode as string,\n\t\towningbusinessunit as string,\n\t\taddress2_addressid as string,\n\t\taddress1_postalcode as string,\n\t\taddress2_country as string,\n\t\tmsdyn_company as string,\n\t\topendeals_date as string,\n\t\temailaddress1 as string,\n\t\tmsdyn_emailaddress1description as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionBy('hash', 1)) ~> CDSAccountsExport01\nCustAccountLeftOuterJoin, CDSCustomerGroups lookup(cdm_companyid == msdyn_companyCE\n\t&& CUSTOMERGROUPID == msdyn_groupid,\n\tmultiple: false,\n\tpickup: 'any',\n\tpartitionBy('hash', 1),\n\tbroadcast: 'auto')~> CustomerGroupLookup\nCDSCompaniesLookupFO, CDSAccountsExport01 join(CUSTOMERACCOUNT == accountnumber,\n\tjoinType:'left',\n\tpartitionBy('hash', 1),\n\tbroadcast: 'auto')~> CustAccountLeftOuterJoin\nFinOpsCustomers, CDSCompanies lookup(DataAreaId == cdm_companycode,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'auto')~> CDSCompaniesLookupFO\nCustomerGroupLookup derive(CEAccountId = iifNull(accountid, '00000000-0000-0000-0000-000000000000')) ~> CEAccountId\nCEAccountId sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['00CombinedFile.csv'],\n\tpartitionBy('hash', 1)) ~> AccountsReadyForCDSImport"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/FOCustomers01')]",
+                "[concat(variables('factoryId'), '/datasets/CompaniesCSVInput_01_02')]",
+                "[concat(variables('factoryId'), '/datasets/CustomerGroupsCSV_02_02')]",
+                "[concat(variables('factoryId'), '/datasets/AccountsCSVWithSchema04')]",
+                "[concat(variables('factoryId'), '/datasets/CombinedFOCDSAccounts')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/CompaniesCDSOutput_01_01')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "CompaniesCDSOutput_01_01",
+                "linkedServiceName": {
+                    "referenceName": "Bootstrap Dynamics 365 Linked Service",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DynamicsEntity",
+                "schema": [],
+                "typeProperties": {
+                    "entityName": "cdm_company"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/Bootstrap Dynamics 365 Linked Service')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/AccountsCDS02')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "AccountsCDS02",
+                "linkedServiceName": {
+                    "referenceName": "Bootstrap Dynamics 365 Linked Service",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DynamicsEntity",
+                "schema": [],
+                "typeProperties": {
+                    "entityName": "account"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/Bootstrap Dynamics 365 Linked Service')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/CustomerGroupsCDSOutput_02_01')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "CustomerGroupsCDSOutput_02_01",
+                "linkedServiceName": {
+                    "referenceName": "Bootstrap Dynamics 365 Linked Service",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DynamicsEntity",
+                "schema": [],
+                "typeProperties": {
+                    "entityName": "msdyn_customergroup"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/Bootstrap Dynamics 365 Linked Service')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/AccountsDynamicsOutput')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "Bootstrap Dynamics 365 Linked Service",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DynamicsEntity",
+                "schema": [],
+                "typeProperties": {
+                    "entityName": "account"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/Bootstrap Dynamics 365 Linked Service')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/CompaniesCSVInput_01_02')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "CompaniesCSVInput_01_02",
+                "linkedServiceName": {
+                    "referenceName": "Bootstrap blob stroage account Linked Service",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "filename": {
+                        "type": "string",
+                        "defaultValue": "CDSCompanies.csv"
+                    }
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "fileName": {
+                            "value": "@dataset().filename",
+                            "type": "Expression"
+                        },
+                        "container": "ce-data"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "name": "cdm_companycode",
+                        "type": "String"
+                    },
+                    {
+                        "name": "cdm_companyid",
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/Bootstrap blob stroage account Linked Service')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/CombinedFOCDSAccounts')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "CombinedFOCDSAccounts",
+                "linkedServiceName": {
+                    "referenceName": "Bootstrap blob stroage account Linked Service",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "container": "ce-data"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/Bootstrap blob stroage account Linked Service')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/CustomerGroupsCSV_02_02')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "CustomerGroupsCSV_02_02",
+                "linkedServiceName": {
+                    "referenceName": "Bootstrap blob stroage account Linked Service",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "filename": {
+                        "type": "string",
+                        "defaultValue": "02_02_CDSCustomerGroups.csv"
+                    }
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "fileName": {
+                            "value": "@dataset().filename",
+                            "type": "Expression"
+                        },
+                        "container": "ce-data"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "name": "msdyn_groupid",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_customergroupidCE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_companyCE",
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/Bootstrap blob stroage account Linked Service')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/FOCustomers01')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "Bootstrap blob stroage account Linked Service",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "filename": {
+                        "type": "string",
+                        "defaultValue": "01-CustomersV3Export-Customers V3.csv"
+                    }
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "fileName": {
+                            "value": "@dataset().filename",
+                            "type": "Expression"
+                        },
+                        "container": "ce-data"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "name": "CUSTOMERACCOUNT",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ACCOUNTSTATEMENT",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSBOOKS",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSBUILDINGCOMPLEMENT",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSCITY",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSCOUNTRYREGIONID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSCOUNTRYREGIONISOCODE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSCOUNTY",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSDESCRIPTION",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSDISTRICTNAME",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSLATITUDE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSLOCATIONID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSLOCATIONROLES",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSLONGITUDE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSPOSTBOX",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSRECORDID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSSTATE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSSTREET",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSSTREETNUMBER",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSTIMEZONE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSVALIDFROM",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSVALIDTO",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ADDRESSZIPCODE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "CENTRALBANKPURPOSECODE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "CENTRALBANKPURPOSENOTES",
+                        "type": "String"
+                    },
+                    {
+                        "name": "CHARGESGROUPID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "COLLECTIONLETTERCODE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "COLLECTIONSCONTACTPERSONID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "COMMISSIONCUSTOMERGROUPID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "COMMISSIONSALESGROUPID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "COMPANYCHAIN",
+                        "type": "String"
+                    },
+                    {
+                        "name": "CONTACTPERSONID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "CREDITCARDADDRESSVERIFICATION",
+                        "type": "String"
+                    },
+                    {
+                        "name": "CREDITCARDADDRESSVERIFICATIONISAUTHORIZATIONVOIDEDONFAILURE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "CREDITCARDADDRESSVERIFICATIONLEVEL",
+                        "type": "String"
+                    },
+                    {
+                        "name": "CREDITCARDCVC",
+                        "type": "String"
+                    },
+                    {
+                        "name": "CREDITLIMIT",
+                        "type": "String"
+                    },
+                    {
+                        "name": "CREDITLIMITISMANDATORY",
+                        "type": "String"
+                    },
+                    {
+                        "name": "CREDITRATING",
+                        "type": "String"
+                    },
+                    {
+                        "name": "CUSTCLASSIFICATIONID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "CUSTOMERGROUPID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "CUSTOMERREBATEGROUPID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "CUSTOMERTMAGROUPID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DEFAULTDIMENSIONDISPLAYVALUE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DEFAULTECOMMERCEOPERATOR",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DEFAULTINVENTORYSTATUSID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYADDRESSBUILDINGCOMPLEMENT",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYADDRESSCITY",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYADDRESSCOUNTRYREGIONID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYADDRESSCOUNTRYREGIONISOCODE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYADDRESSCOUNTY",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYADDRESSDESCRIPTION",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYADDRESSDISTRICTNAME",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYADDRESSLATITUDE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYADDRESSLOCATIONID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYADDRESSLONGITUDE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYADDRESSSTATE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYADDRESSSTREET",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYADDRESSSTREETNUMBER",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYADDRESSTIMEZONE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYADDRESSVALIDFROM",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYADDRESSVALIDTO",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYADDRESSZIPCODE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYFREIGHTZONE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYMODE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYREASON",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DELIVERYTERMS",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DESTINATIONCODE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DISCOUNTPRICEGROUPID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "EINVOICEATTACHMENT",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ELECTRONICLOCATIONID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "EMPLOYEERESPONSIBLENUMBER",
+                        "type": "String"
+                    },
+                    {
+                        "name": "FEDERALAGENCYLOCATIONCODE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "FEDERALCOMMENTS",
+                        "type": "String"
+                    },
+                    {
+                        "name": "FEDERALINDICATOR",
+                        "type": "String"
+                    },
+                    {
+                        "name": "FULFILLMENTPOLICYNAME",
+                        "type": "String"
+                    },
+                    {
+                        "name": "FULLPRIMARYADDRESS",
+                        "type": "String"
+                    },
+                    {
+                        "name": "IDENTIFICATIONNUMBER",
+                        "type": "String"
+                    },
+                    {
+                        "name": "INVOICEACCOUNT",
+                        "type": "String"
+                    },
+                    {
+                        "name": "INVOICEADDRESS",
+                        "type": "String"
+                    },
+                    {
+                        "name": "INVOICEADDRESSBUILDINGCOMPLEMENT",
+                        "type": "String"
+                    },
+                    {
+                        "name": "INVOICEADDRESSCITY",
+                        "type": "String"
+                    },
+                    {
+                        "name": "INVOICEADDRESSCOUNTRYREGIONID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "INVOICEADDRESSCOUNTRYREGIONISOCODE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "INVOICEADDRESSCOUNTY",
+                        "type": "String"
+                    },
+                    {
+                        "name": "INVOICEADDRESSDESCRIPTION",
+                        "type": "String"
+                    },
+                    {
+                        "name": "INVOICEADDRESSDISTRICTNAME",
+                        "type": "String"
+                    },
+                    {
+                        "name": "INVOICEADDRESSLATITUDE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "INVOICEADDRESSLOCATIONID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "INVOICEADDRESSLONGITUDE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "INVOICEADDRESSSTATE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "INVOICEADDRESSSTREET",
+                        "type": "String"
+                    },
+                    {
+                        "name": "INVOICEADDRESSSTREETNUMBER",
+                        "type": "String"
+                    },
+                    {
+                        "name": "INVOICEADDRESSTIMEZONE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "INVOICEADDRESSVALIDFROM",
+                        "type": "String"
+                    },
+                    {
+                        "name": "INVOICEADDRESSVALIDTO",
+                        "type": "String"
+                    },
+                    {
+                        "name": "INVOICEADDRESSZIPCODE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "IRS1099CINDICATOR",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ISALLOWCREATEINDIRECTORDERLINES",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ISELECTRONICINVOICE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ISEXCLUDEDFROMCOLLECTIONFEECALCULATION",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ISEXCLUDEDFROMINTERESTCHARGECALCULATION",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ISEXPRESSBILLOFLADINGACCEPTED",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ISEXTERNALLYMAINTAINED",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ISFREIGHTACCRUED",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ISONETIMECUSTOMER",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ISORDERNUMBERREFERENCEUSED",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ISPURCHREQUESTUSED",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ISSALESTAXINCLUDEDINPRICES",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ISTRANSACTIONPOSTEDASSHIPMENT",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ITEMCUSTOMERGROUPID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "KNOWNAS",
+                        "type": "String"
+                    },
+                    {
+                        "name": "LANGUAGEID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "LINEDISCOUNTCODE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "LINEOFBUSINESSID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "MULTILINEDISCOUNTCODE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "NAMEALIAS",
+                        "type": "String"
+                    },
+                    {
+                        "name": "NUMBERSEQUENCEGROUP",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ONHOLDSTATUS",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ORDERENTRYDEADLINE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ORGANIZATIONABCCODE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ORGANIZATIONNAME",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ORGANIZATIONNUMBER",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ORGANIZATIONNUMBEROFEMPLOYEES",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ORGANIZATIONPHONETICNAME",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PACKINGDUTYLICENSE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PACKINGMATERIALFEELICENSENUMBER",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PARTYCOUNTRY",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PARTYNUMBER",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PARTYSTATE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PARTYTYPE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PAYMENTBANKACCOUNT",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PAYMENTCASHDISCOUNT",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PAYMENTDAY",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PAYMENTIDTYPE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PAYMENTMETHOD",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PAYMENTSCHEDULE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PAYMENTSPECIFICATION",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PAYMENTTERMS",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PAYMENTTERMSBASEDAYS",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PAYMENTUSECASHDISCOUNT",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PERSONANNIVERSARYDAY",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PERSONANNIVERSARYMONTH",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PERSONANNIVERSARYYEAR",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PERSONCHILDRENNAMES",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PERSONFIRSTNAME",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PERSONGENDER",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PERSONHOBBIES",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PERSONINITIALS",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PERSONLASTNAME",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PERSONLASTNAMEPREFIX",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PERSONMARITALSTATUS",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PERSONMIDDLENAME",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PERSONPHONETICFIRSTNAME",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PERSONPHONETICLASTNAME",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PERSONPHONETICMIDDLENAME",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PERSONPROFESSIONALSUFFIX",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PERSONPROFESSIONALTITLE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTEMAIL",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTEMAILDESCRIPTION",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTEMAILISIM",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTEMAILPURPOSE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTEMAILRECORDID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTFACEBOOK",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTFACEBOOKDESCRIPTION",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTFACEBOOKPURPOSE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTFAX",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTFAXDESCRIPTION",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTFAXEXTENSION",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTFAXPURPOSE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTFAXRECORDID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTLINKEDIN",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTLINKEDINDESCRIPTION",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTLINKEDINPURPOSE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTPHONE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTPHONEDESCRIPTION",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTPHONEEXTENSION",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTPHONEISMOBILE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTPHONEPURPOSE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTPHONERECORDID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTTELEX",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTTELEXDESCRIPTION",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTTELEXPURPOSE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTTWITTER",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTTWITTERDESCRIPTION",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTTWITTERPURPOSE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTURL",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTURLDESCRIPTION",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTURLPURPOSE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIMARYCONTACTURLRECORDID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PRIORITY",
+                        "type": "String"
+                    },
+                    {
+                        "name": "RECEIPTCALENDAR",
+                        "type": "String"
+                    },
+                    {
+                        "name": "RECEIPTEMAIL",
+                        "type": "String"
+                    },
+                    {
+                        "name": "RECEIPTOPTION",
+                        "type": "String"
+                    },
+                    {
+                        "name": "SALESACCOUNTNUMBER",
+                        "type": "String"
+                    },
+                    {
+                        "name": "SALESCURRENCYCODE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "SALESDISTRICT",
+                        "type": "String"
+                    },
+                    {
+                        "name": "SALESMEMO",
+                        "type": "String"
+                    },
+                    {
+                        "name": "SALESORDERPOOLID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "SALESSEGMENTID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "SALESSUBSEGMENTID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "SALESTAXGROUP",
+                        "type": "String"
+                    },
+                    {
+                        "name": "SITEID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "STATISTICSGROUPID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "SUPPLEMENTARYITEMGROUPID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "TAXEXEMPTNUMBER",
+                        "type": "String"
+                    },
+                    {
+                        "name": "TOTALDISCOUNTCODE",
+                        "type": "String"
+                    },
+                    {
+                        "name": "VENDORACCOUNT",
+                        "type": "String"
+                    },
+                    {
+                        "name": "WAREHOUSEID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "WAREHOUSEISASNGENERATED",
+                        "type": "String"
+                    },
+                    {
+                        "name": "WAREHOUSEISENTIRESHIPMENTFILLED",
+                        "type": "String"
+                    },
+                    {
+                        "name": "WRITEOFFREASON",
+                        "type": "String"
+                    },
+                    {
+                        "name": "DataAreaId",
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/Bootstrap blob stroage account Linked Service')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/AccountsCSVWithSchema04')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "Bootstrap blob stroage account Linked Service",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "filename": {
+                        "type": "string",
+                        "defaultValue": "00CDSAccounts.csv"
+                    }
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "fileName": {
+                            "value": "@dataset().filename",
+                            "type": "Expression"
+                        },
+                        "container": "ce-data"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "name": "customertypecode",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address2_addresstypecode",
+                        "type": "String"
+                    },
+                    {
+                        "name": "merged",
+                        "type": "String"
+                    },
+                    {
+                        "name": "accountnumber",
+                        "type": "String"
+                    },
+                    {
+                        "name": "modifiedby",
+                        "type": "String"
+                    },
+                    {
+                        "name": "statecode",
+                        "type": "String"
+                    },
+                    {
+                        "name": "creditlimit",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address1_latitude",
+                        "type": "String"
+                    },
+                    {
+                        "name": "exchangerate",
+                        "type": "String"
+                    },
+                    {
+                        "name": "openrevenue_state",
+                        "type": "String"
+                    },
+                    {
+                        "name": "name",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address2_city",
+                        "type": "String"
+                    },
+                    {
+                        "name": "opendeals",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address1_county",
+                        "type": "String"
+                    },
+                    {
+                        "name": "modifiedon",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address2_line1",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_language",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address1_longitude",
+                        "type": "String"
+                    },
+                    {
+                        "name": "donotpostalmail",
+                        "type": "String"
+                    },
+                    {
+                        "name": "accountratingcode",
+                        "type": "String"
+                    },
+                    {
+                        "name": "numberofemployees",
+                        "type": "String"
+                    },
+                    {
+                        "name": "marketingonly",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_vendorcreatedbyworkflow",
+                        "type": "String"
+                    },
+                    {
+                        "name": "donotphone",
+                        "type": "String"
+                    },
+                    {
+                        "name": "preferredcontactmethodcode",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ownerid",
+                        "type": "String"
+                    },
+                    {
+                        "name": "customersizecode",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_onholdstatus",
+                        "type": "String"
+                    },
+                    {
+                        "name": "openrevenue_base",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_paymentterm",
+                        "type": "String"
+                    },
+                    {
+                        "name": "businesstypecode",
+                        "type": "String"
+                    },
+                    {
+                        "name": "donotemail",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address2_shippingmethodcode",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_onetimecustomer",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address1_addressid",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address2_freighttermscode",
+                        "type": "String"
+                    },
+                    {
+                        "name": "statuscode",
+                        "type": "String"
+                    },
+                    {
+                        "name": "createdon",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_travelchargetype",
+                        "type": "String"
+                    },
+                    {
+                        "name": "opendeals_state",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address1_stateorprovince",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_creditlimitismandatory",
+                        "type": "String"
+                    },
+                    {
+                        "name": "openrevenue",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_partynumber",
+                        "type": "String"
+                    },
+                    {
+                        "name": "donotsendmm",
+                        "type": "String"
+                    },
+                    {
+                        "name": "donotfax",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_telephone1description",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_paymenttermsbasedays",
+                        "type": "String"
+                    },
+                    {
+                        "name": "donotbulkpostalmail",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address1_country",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_invoiceaddress",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address1_line1",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_creditrating",
+                        "type": "String"
+                    },
+                    {
+                        "name": "creditonhold",
+                        "type": "String"
+                    },
+                    {
+                        "name": "telephone1",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_customerpaymentmethod",
+                        "type": "String"
+                    },
+                    {
+                        "name": "transactioncurrencyid",
+                        "type": "String"
+                    },
+                    {
+                        "name": "accountid",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address2_postalcode",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address1_addresstypecode",
+                        "type": "String"
+                    },
+                    {
+                        "name": "donotbulkemail",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_customergroupid",
+                        "type": "String"
+                    },
+                    {
+                        "name": "creditlimit_base",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address2_county",
+                        "type": "String"
+                    },
+                    {
+                        "name": "followemail",
+                        "type": "String"
+                    },
+                    {
+                        "name": "shippingmethodcode",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address2_stateorprovince",
+                        "type": "String"
+                    },
+                    {
+                        "name": "createdby",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address2_latitude",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address1_city",
+                        "type": "String"
+                    },
+                    {
+                        "name": "territorycode",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address2_longitude",
+                        "type": "String"
+                    },
+                    {
+                        "name": "openrevenue_date",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_taxexempt",
+                        "type": "String"
+                    },
+                    {
+                        "name": "owningteam",
+                        "type": "String"
+                    },
+                    {
+                        "name": "participatesinworkflow",
+                        "type": "String"
+                    },
+                    {
+                        "name": "accountclassificationcode",
+                        "type": "String"
+                    },
+                    {
+                        "name": "owningbusinessunit",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address2_addressid",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address1_postalcode",
+                        "type": "String"
+                    },
+                    {
+                        "name": "address2_country",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_company",
+                        "type": "String"
+                    },
+                    {
+                        "name": "opendeals_date",
+                        "type": "String"
+                    },
+                    {
+                        "name": "emailaddress1",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_emailaddress1description",
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/Bootstrap blob stroage account Linked Service')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/Bootstrap Dynamics 365 Linked Service')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "Bootstrap Dynamics 365 Linked Service",
+                "annotations": [],
+                "type": "Dynamics",
+                "typeProperties": {
+                    "deploymentType": "Online",
+                    "serviceUri": "[parameters('Bootstrap Dynamics 365 Linked Service_serviceUri')]",
+                    "authenticationType": "Office365",
+                    "username": "[parameters('Bootstrap Dynamics 365 Linked Service_properties_typeProperties_username')]",
+                    "password": {
+                        "type": "SecureString",
+                        "value": "[parameters('Bootstrap Dynamics 365 Linked Service_password')]"
+                    }
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/Bootstrap blob stroage account Linked Service')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "Bootstrap blob stroage account Linked Service",
+                "annotations": [],
+                "type": "AzureBlobStorage",
+                "typeProperties": {
+                    "connectionString": "[parameters('Bootstrap blob stroage account Linked Service_connectionString')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/BoostrapAccountsPipeline')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "BoostrapAccountsPipeline",
+                "activities": [
+                    {
+                        "name": "CDSAccountsExportToCSV",
+                        "type": "Copy",
+                        "dependsOn": [
+                            {
+                                "activity": "CDSCustomerGroupsExportToCSV",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "DynamicsSource"
+                            },
+                            "sink": {
+                                "type": "DelimitedTextSink",
+                                "storeSettings": {
+                                    "type": "AzureBlobStorageWriteSettings"
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextWriteSettings",
+                                    "quoteAllText": true,
+                                    "fileExtension": ".txt"
+                                }
+                            },
+                            "enableStaging": false,
+                            "translator": {
+                                "type": "TabularTranslator",
+                                "mappings": [
+                                    {
+                                        "source": {
+                                            "name": "customertypecode",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "customertypecode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address2_addresstypecode",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "address2_addresstypecode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "merged",
+                                            "type": "Boolean"
+                                        },
+                                        "sink": {
+                                            "name": "merged",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "accountnumber",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "accountnumber",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "modifiedby",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "modifiedby",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "statecode",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "statecode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "creditlimit",
+                                            "type": "Decimal"
+                                        },
+                                        "sink": {
+                                            "name": "creditlimit",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address1_latitude",
+                                            "type": "Double"
+                                        },
+                                        "sink": {
+                                            "name": "address1_latitude",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "exchangerate",
+                                            "type": "Decimal"
+                                        },
+                                        "sink": {
+                                            "name": "exchangerate",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "openrevenue_state",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "openrevenue_state",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "name",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "name",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address2_city",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "address2_city",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "opendeals",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "opendeals",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address1_county",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "address1_county",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "modifiedon",
+                                            "type": "DateTime"
+                                        },
+                                        "sink": {
+                                            "name": "modifiedon",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address2_line1",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "address2_line1",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_language",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_language",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address1_longitude",
+                                            "type": "Double"
+                                        },
+                                        "sink": {
+                                            "name": "address1_longitude",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "donotpostalmail",
+                                            "type": "Boolean"
+                                        },
+                                        "sink": {
+                                            "name": "donotpostalmail",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "accountratingcode",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "accountratingcode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "numberofemployees",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "numberofemployees",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "marketingonly",
+                                            "type": "Boolean"
+                                        },
+                                        "sink": {
+                                            "name": "marketingonly",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_vendorcreatedbyworkflow",
+                                            "type": "Boolean"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_vendorcreatedbyworkflow",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "donotphone",
+                                            "type": "Boolean"
+                                        },
+                                        "sink": {
+                                            "name": "donotphone",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "preferredcontactmethodcode",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "preferredcontactmethodcode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ownerid",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "ownerid",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "customersizecode",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "customersizecode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_onholdstatus",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_onholdstatus",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "openrevenue_base",
+                                            "type": "Decimal"
+                                        },
+                                        "sink": {
+                                            "name": "openrevenue_base",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_paymentterm",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_paymentterm",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "businesstypecode",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "businesstypecode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "donotemail",
+                                            "type": "Boolean"
+                                        },
+                                        "sink": {
+                                            "name": "donotemail",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address2_shippingmethodcode",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "address2_shippingmethodcode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_onetimecustomer",
+                                            "type": "Boolean"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_onetimecustomer",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address1_addressid",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "address1_addressid",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address2_freighttermscode",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "address2_freighttermscode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "statuscode",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "statuscode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "createdon",
+                                            "type": "DateTime"
+                                        },
+                                        "sink": {
+                                            "name": "createdon",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_travelchargetype",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_travelchargetype",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "opendeals_state",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "opendeals_state",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address1_stateorprovince",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "address1_stateorprovince",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_creditlimitismandatory",
+                                            "type": "Boolean"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_creditlimitismandatory",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "openrevenue",
+                                            "type": "Decimal"
+                                        },
+                                        "sink": {
+                                            "name": "openrevenue",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_partynumber",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_partynumber",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "donotsendmm",
+                                            "type": "Boolean"
+                                        },
+                                        "sink": {
+                                            "name": "donotsendmm",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "donotfax",
+                                            "type": "Boolean"
+                                        },
+                                        "sink": {
+                                            "name": "donotfax",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_telephone1description",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_telephone1description",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_paymenttermsbasedays",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_paymenttermsbasedays",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "donotbulkpostalmail",
+                                            "type": "Boolean"
+                                        },
+                                        "sink": {
+                                            "name": "donotbulkpostalmail",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address1_country",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "address1_country",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_invoiceaddress",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_invoiceaddress",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address1_line1",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "address1_line1",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_creditrating",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_creditrating",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "creditonhold",
+                                            "type": "Boolean"
+                                        },
+                                        "sink": {
+                                            "name": "creditonhold",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "telephone1",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "telephone1",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_customerpaymentmethod",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_customerpaymentmethod",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "transactioncurrencyid",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "transactioncurrencyid",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "accountid",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "accountid",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address2_postalcode",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "address2_postalcode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address1_addresstypecode",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "address1_addresstypecode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "donotbulkemail",
+                                            "type": "Boolean"
+                                        },
+                                        "sink": {
+                                            "name": "donotbulkemail",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "creditlimit_base",
+                                            "type": "Decimal"
+                                        },
+                                        "sink": {
+                                            "name": "creditlimit_base",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address2_county",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "address2_county",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "followemail",
+                                            "type": "Boolean"
+                                        },
+                                        "sink": {
+                                            "name": "followemail",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "shippingmethodcode",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "shippingmethodcode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address2_stateorprovince",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "address2_stateorprovince",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "createdby",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "createdby",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address2_latitude",
+                                            "type": "Double"
+                                        },
+                                        "sink": {
+                                            "name": "address2_latitude",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address1_city",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "address1_city",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "territorycode",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "territorycode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address2_longitude",
+                                            "type": "Double"
+                                        },
+                                        "sink": {
+                                            "name": "address2_longitude",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "openrevenue_date",
+                                            "type": "DateTime"
+                                        },
+                                        "sink": {
+                                            "name": "openrevenue_date",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_taxexempt",
+                                            "type": "Boolean"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_taxexempt",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "owningteam",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "owningteam",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "participatesinworkflow",
+                                            "type": "Boolean"
+                                        },
+                                        "sink": {
+                                            "name": "participatesinworkflow",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "accountclassificationcode",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "accountclassificationcode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "owningbusinessunit",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "owningbusinessunit",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address2_addressid",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "address2_addressid",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address1_postalcode",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "address1_postalcode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "address2_country",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "address2_country",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_company",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_company",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "opendeals_date",
+                                            "type": "DateTime"
+                                        },
+                                        "sink": {
+                                            "name": "opendeals_date",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "emailaddress1",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "emailaddress1",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_emailaddress1description",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_emailaddress1description",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_customergroupid",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_customergroupid",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "owninguser",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "owninguser",
+                                            "type": "String"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "AccountsCDS02",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "AccountsCSVWithSchema04",
+                                "type": "DatasetReference",
+                                "parameters": {
+                                    "filename": "00CDSAccounts.csv"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "FOCDSAccountBootstrapDataFlow",
+                        "type": "ExecuteDataFlow",
+                        "dependsOn": [
+                            {
+                                "activity": "CDSAccountsExportToCSV",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "dataflow": {
+                                "referenceName": "FOCDSAccountBootstrapDataFlow",
+                                "type": "DataFlowReference",
+                                "parameters": {},
+                                "datasetParameters": {
+                                    "FinOpsCustomers": {
+                                        "filename": "01-CustomersV3Export-Customers V3.csv"
+                                    },
+                                    "CDSCompanies": {
+                                        "filename": "CDSCompanies.csv"
+                                    },
+                                    "CDSCustomerGroups": {
+                                        "filename": "02_02_CDSCustomerGroups.csv"
+                                    },
+                                    "CDSAccountsExport01": {
+                                        "filename": "00CDSAccounts.csv"
+                                    },
+                                    "AccountsReadyForCDSImport": {}
+                                }
+                            },
+                            "staging": {},
+                            "compute": {
+                                "coreCount": 8,
+                                "computeType": "General"
+                            }
+                        }
+                    },
+                    {
+                        "name": "ImportToCDS",
+                        "type": "Copy",
+                        "dependsOn": [
+                            {
+                                "activity": "FOCDSAccountBootstrapDataFlow",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "DelimitedTextSource",
+                                "storeSettings": {
+                                    "type": "AzureBlobStorageReadSettings",
+                                    "recursive": true,
+                                    "wildcardFileName": "00CombinedFile.csv",
+                                    "enablePartitionDiscovery": false
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextReadSettings"
+                                }
+                            },
+                            "sink": {
+                                "type": "DynamicsSink",
+                                "writeBatchSize": 10,
+                                "writeBehavior": "upsert",
+                                "ignoreNullValues": false
+                            },
+                            "enableStaging": false,
+                            "translator": {
+                                "type": "TabularTranslator",
+                                "mappings": [
+                                    {
+                                        "source": {
+                                            "name": "CUSTOMERACCOUNT",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "accountnumber",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "INVOICEADDRESSCITY",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "address2_city",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "INVOICEADDRESSCOUNTRYREGIONISOCODE",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "address2_country",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "INVOICEADDRESSCOUNTY",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "address2_county",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "INVOICEADDRESSLATITUDE",
+                                            "type": "Double"
+                                        },
+                                        "sink": {
+                                            "name": "address2_latitude",
+                                            "type": "Double"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "INVOICEADDRESSLONGITUDE",
+                                            "type": "Double"
+                                        },
+                                        "sink": {
+                                            "name": "address2_longitude",
+                                            "type": "Double"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "INVOICEADDRESSSTATE",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "address2_stateorprovince",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "creditlimit",
+                                            "type": "Decimal"
+                                        },
+                                        "sink": {
+                                            "name": "creditlimit",
+                                            "type": "Decimal"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ORGANIZATIONNAME",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "name",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "cdm_companyid",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_company",
+                                            "type": "Guid"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_customergroupid",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_customergroupid",
+                                            "type": "Guid"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "CEAccountId",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "accountid"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "CombinedFOCDSAccounts",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "AccountsDynamicsOutput",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ]
+                    },
+                    {
+                        "name": "CDSCompaniesExportToCSV",
+                        "type": "Copy",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "DynamicsSource",
+                                "query": "<fetch>\n  <entity name=\"cdm_company\">\n    <attribute name=\"cdm_companycode\" />\n    <attribute name=\"cdm_companyid\" />\n  </entity>\n</fetch>"
+                            },
+                            "sink": {
+                                "type": "DelimitedTextSink",
+                                "storeSettings": {
+                                    "type": "AzureBlobStorageWriteSettings"
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextWriteSettings",
+                                    "quoteAllText": true,
+                                    "fileExtension": ".txt"
+                                }
+                            },
+                            "enableStaging": false
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "CompaniesCDSOutput_01_01",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "CompaniesCSVInput_01_02",
+                                "type": "DatasetReference",
+                                "parameters": {
+                                    "filename": "CDSCompanies.csv"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "CDSCustomerGroupsExportToCSV",
+                        "type": "Copy",
+                        "dependsOn": [
+                            {
+                                "activity": "CDSCompaniesExportToCSV",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "DynamicsSource",
+                                "query": "<fetch>\n  <entity name=\"msdyn_customergroup\">\n    <attribute name=\"msdyn_groupid\" />\n    <attribute name=\"msdyn_customergroupid\" />\n    <attribute name=\"msdyn_company\" />\n  </entity>\n</fetch>\n"
+                            },
+                            "sink": {
+                                "type": "DelimitedTextSink",
+                                "storeSettings": {
+                                    "type": "AzureBlobStorageWriteSettings"
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextWriteSettings",
+                                    "quoteAllText": true,
+                                    "fileExtension": ".txt"
+                                }
+                            },
+                            "enableStaging": false,
+                            "translator": {
+                                "type": "TabularTranslator",
+                                "mappings": [
+                                    {
+                                        "source": {
+                                            "name": "msdyn_groupid",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_groupid",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_customergroupid",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_customergroupidCE",
+                                            "type": "Guid"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_company",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_companyCE",
+                                            "type": "Guid"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "CustomerGroupsCDSOutput_02_01",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "CustomerGroupsCSV_02_02",
+                                "type": "DatasetReference",
+                                "parameters": {
+                                    "filename": "02_02_CDSCustomerGroups.csv"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "annotations": [],
+                "lastPublishTime": "2020-09-14T06:32:38Z"
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/AccountsCDS02')]",
+                "[concat(variables('factoryId'), '/datasets/AccountsCSVWithSchema04')]",
+                "[concat(variables('factoryId'), '/dataflows/FOCDSAccountBootstrapDataFlow')]",
+                "[concat(variables('factoryId'), '/datasets/CombinedFOCDSAccounts')]",
+                "[concat(variables('factoryId'), '/datasets/AccountsDynamicsOutput')]",
+                "[concat(variables('factoryId'), '/datasets/CompaniesCDSOutput_01_01')]",
+                "[concat(variables('factoryId'), '/datasets/CompaniesCSVInput_01_02')]",
+                "[concat(variables('factoryId'), '/datasets/CustomerGroupsCDSOutput_02_01')]",
+                "[concat(variables('factoryId'), '/datasets/CustomerGroupsCSV_02_02')]"
+            ]
+        }
+    ]
+}
