@@ -402,7 +402,7 @@
                                             "type": "Expression"
                                           },
 
-                                          "StorageAccunt": {
+                                          "StorageAccount": {
                                                 "value": "@{pipeline().parameters.StorageAccount}",
                                                 "type": "Expression"
                                             },
