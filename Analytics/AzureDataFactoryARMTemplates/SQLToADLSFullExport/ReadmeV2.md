@@ -99,7 +99,7 @@ Once Azure function is deployed and Storage account is ready, collect all the pa
 |CDMUTIL_functionKey                                   | App keys                          | Access key|
 
 
-6. Download the [ARM template file](/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/arm_templateV2.json) to your local directory.
+6. Download the [ARM template file](/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/arm_template_V2.json) to your local directory.
 7. Click [Template deployment] https://ms.portal.azure.com/#create/Microsoft.Template
 8. Click  Build your own template in the editor option
 9. Click load file and locate the ARM template file you downloaded ealrier and click Save.
