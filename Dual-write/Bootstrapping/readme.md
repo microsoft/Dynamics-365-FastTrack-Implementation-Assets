@@ -156,6 +156,6 @@ Execution
 
 ![F&OCustomerFileImage](/Dual-write/Bootstrapping/F&OCustomerFileImage.png)
 
-- Download Dynamics 365 Finance & Operations sample customer file[Sample customer file](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Dual-write/Bootstrapping/arm_template.json)
+- Download Dynamics 365 Finance & Operations [Sample customer file](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Dual-write/Bootstrapping/01-CustomersV3Export-Customers%20V3.csv)
 
 -   Run 'BootstrapAccountsPipeline' from Azure Data Factory.
