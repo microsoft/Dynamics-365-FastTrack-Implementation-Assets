@@ -7,7 +7,7 @@ namespace Extensions.Crt.NegativeInventoryCheck
 {
     class SuspendCartRequestTrigger : IRequestTrigger
     {
-        IEnumerable<Type> ISupportedTypesAware.SupportedRequestTypes
+        IEnumerable<Type> IRequestTrigger.SupportedRequestTypes
         {
             get
             {

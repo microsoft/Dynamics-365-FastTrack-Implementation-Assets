@@ -8,7 +8,7 @@ namespace Extensions.Crt.NegativeInventoryCheck
 {
     class ValidateCartForCheckoutRequestTrigger : IRequestTrigger
     {
-        IEnumerable<Type> ISupportedTypesAware.SupportedRequestTypes
+        IEnumerable<Type> IRequestTrigger.SupportedRequestTypes
         {
             get
             {

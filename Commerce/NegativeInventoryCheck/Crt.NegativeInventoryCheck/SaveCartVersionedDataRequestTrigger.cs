@@ -9,7 +9,7 @@ namespace Extensions.Crt.NegativeInventoryCheck
 {
     class SaveCartVersionedDataRequestTrigger : IRequestTrigger
     {
-        IEnumerable<Type> ISupportedTypesAware.SupportedRequestTypes
+        IEnumerable<Type> IRequestTrigger.SupportedRequestTypes
         {
             get
             {

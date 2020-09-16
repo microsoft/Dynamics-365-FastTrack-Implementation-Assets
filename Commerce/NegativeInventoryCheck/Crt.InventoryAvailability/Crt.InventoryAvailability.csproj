@@ -1,151 +1,20 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\BuildTools\retailPackagePaths.settings" />
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props') And '$(MicrosoftCommonPropsHasBeenImported)' != 'true'" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\BuildTools\Microsoft.Dynamics.RetailSdk.Build.props" />
   <Import Project="..\..\BuildTools\Common.props" />
   <Import Project="..\..\BuildTools\Microsoft.Dynamics.RetailSdk.Build.settings" />
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <!-- TODO: convert to netstandard2.0 upon migration to VS2017 -->
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>Extensions.Crt.InventoryAvailability</AssemblyName>
     <RootNamespace>Extensions.Crt.InventoryAvailability</RootNamespace>
-    <OutputType>Library</OutputType>
-    <Configurations>Debug;Release</Configurations>
-    <Platforms>AnyCPU</Platforms>
-    <OutputPath>bin\$(Configuration)\net461</OutputPath>
-    <ProjectGuid>{69EA2784-ACDB-40B3-B1B2-7CBD0539EAD4}</ProjectGuid>
-    <DefaultLanguage>en-US</DefaultLanguage>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
+
   <ItemGroup>
-    <Compile Include="ExtGetInventoryAvailabilityForFulfillmentLinesServiceRequest.cs" />
-    <Compile Include="ExtInventoryAvailabilityService.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <PackageReference Include="Microsoft.Dynamics.Commerce.Runtime.Client" Version="9.22.20167.4" />
+    <PackageReference Include="Microsoft.Dynamics.Commerce.Runtime.Framework" Version="$(ChannelRepoPackagesVersion)" />
+    <PackageReference Include="Microsoft.Dynamics.Commerce.Runtime.Services" Version="9.22.20167.4" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="$(SdkReferencesPath)\netstandard.dll" />
-    <Reference Include="Microsoft.Dynamics.Commerce.Runtime.Client">
-      <HintPath>..\..\References\Microsoft.Dynamics.Commerce.Runtime.Client.9.20.20041.14\lib\netstandard2.0\Microsoft.Dynamics.Commerce.Runtime.Client.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Dynamics.Commerce.Runtime.DataServices.Messages">
-      <HintPath>..\..\References\Microsoft.Dynamics.Commerce.Runtime.DataServices.Messages.9.20.20041.14\lib\netstandard2.0\Microsoft.Dynamics.Commerce.Runtime.DataServices.Messages.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Dynamics.Commerce.Runtime.DataServices.SqlServer">
-      <HintPath>..\..\References\Microsoft.Dynamics.Commerce.Runtime.DataServices.SqlServer.9.20.20041.14\lib\net461\Microsoft.Dynamics.Commerce.Runtime.DataServices.SqlServer.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Dynamics.Commerce.Runtime.Entities">
-      <HintPath>..\..\References\Microsoft.Dynamics.Commerce.Runtime.Entities.9.20.20041.14\lib\netstandard2.0\Microsoft.Dynamics.Commerce.Runtime.Entities.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Dynamics.Commerce.Runtime.Framework, Version=7.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>$(PkgMicrosoft_Dynamics_Commerce_Runtime_Framework)\lib\netstandard2.0\Microsoft.Dynamics.Commerce.Runtime.Framework.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Dynamics.Commerce.Runtime.Messages">
-      <HintPath>..\..\References\Microsoft.Dynamics.Commerce.Runtime.Messages.9.20.20041.14\lib\netstandard2.0\Microsoft.Dynamics.Commerce.Runtime.Messages.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Dynamics.Commerce.Runtime.Services">
-      <HintPath>..\..\References\Microsoft.Dynamics.Commerce.Runtime.Services.9.20.20041.14\lib\netstandard2.0\Microsoft.Dynamics.Commerce.Runtime.Services.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Dynamics.Commerce.Runtime.Services.Messages">
-      <HintPath>..\..\References\Microsoft.Dynamics.Commerce.Runtime.Services.Messages.9.20.20041.14\lib\netstandard2.0\Microsoft.Dynamics.Commerce.Runtime.Services.Messages.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Dynamics.Commerce.Runtime.Workflow">
-      <HintPath>..\..\References\Microsoft.Dynamics.Commerce.Runtime.Workflow.9.20.20041.14\lib\netstandard2.0\Microsoft.Dynamics.Commerce.Runtime.Workflow.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Dynamics.Retail.Diagnostics, Version=7.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>$(PkgMicrosoft_Dynamics_Commerce_Diagnostics)\lib\netstandard2.0\Microsoft.Dynamics.Retail.Diagnostics.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Win32.Primitives, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\References\Microsoft.Win32.Primitives.4.3.0\lib\net46\Microsoft.Win32.Primitives.dll</HintPath>
-      <Private>True</Private>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.AppContext, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\References\System.AppContext.4.3.0\lib\net46\System.AppContext.dll</HintPath>
-      <Private>True</Private>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Composition.AttributedModel, Version=1.0.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\References\System.Composition.AttributedModel.1.2.0\lib\netstandard2.0\System.Composition.AttributedModel.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Convention, Version=1.0.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\References\System.Composition.Convention.1.2.0\lib\netstandard2.0\System.Composition.Convention.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Hosting, Version=1.0.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\References\System.Composition.Hosting.1.2.0\lib\netstandard2.0\System.Composition.Hosting.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Runtime, Version=1.0.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\References\System.Composition.Runtime.1.2.0\lib\netstandard2.0\System.Composition.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.TypedParts, Version=1.0.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\References\System.Composition.TypedParts.1.2.0\lib\netstandard2.0\System.Composition.TypedParts.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Console, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\References\System.Console.4.3.0\lib\net46\System.Console.dll</HintPath>
-      <Private>True</Private>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Diagnostics.DiagnosticSource, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\..\References\System.Diagnostics.DiagnosticSource.4.3.0\lib\net46\System.Diagnostics.DiagnosticSource.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Globalization.Calendars, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\References\System.Globalization.Calendars.4.3.0\lib\net46\System.Globalization.Calendars.dll</HintPath>
-      <Private>True</Private>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.IO.Compression.FileSystem" />
-    <Reference Include="System.IO.Compression.ZipFile, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\..\References\System.IO.Compression.ZipFile.4.3.0\lib\net46\System.IO.Compression.ZipFile.dll</HintPath>
-      <Private>True</Private>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.IO.FileSystem, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\References\System.IO.FileSystem.4.3.0\lib\net46\System.IO.FileSystem.dll</HintPath>
-      <Private>True</Private>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.IO.FileSystem.Primitives, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\References\System.IO.FileSystem.Primitives.4.3.0\lib\net46\System.IO.FileSystem.Primitives.dll</HintPath>
-      <Private>True</Private>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Net.Sockets, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\References\System.Net.Sockets.4.3.0\lib\net46\System.Net.Sockets.dll</HintPath>
-      <Private>True</Private>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Runtime.InteropServices.RuntimeInformation">
-      <HintPath>..\..\References\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\netstandard1.1\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Security.Cryptography.Algorithms, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\References\System.Security.Cryptography.Algorithms.4.3.0\lib\net461\System.Security.Cryptography.Algorithms.dll</HintPath>
-      <Private>True</Private>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Security.Cryptography.Encoding, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\References\System.Security.Cryptography.Encoding.4.3.0\lib\net46\System.Security.Cryptography.Encoding.dll</HintPath>
-      <Private>True</Private>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Security.Cryptography.Primitives, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\References\System.Security.Cryptography.Primitives.4.3.0\lib\net46\System.Security.Cryptography.Primitives.dll</HintPath>
-      <Private>True</Private>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Security.Cryptography.X509Certificates, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\References\System.Security.Cryptography.X509Certificates.4.3.0\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
-      <Private>True</Private>
-      <Private>True</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  
   <Import Project="..\..\BuildTools\Microsoft.Dynamics.RetailSdk.Build.targets" />
 </Project>
