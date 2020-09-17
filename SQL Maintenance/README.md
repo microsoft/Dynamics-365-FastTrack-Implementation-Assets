@@ -21,7 +21,7 @@ This implemetation asset provides a self-contained T-SQL script for Azure SQL or
 | `AzureSQLMaintenance.sql` | The T-SQL script. |
 
 # Using the script
-The script is commented quite extensively in line. Please read them. In summary, you will typically set the primary operation mode parameters at the beginning of the script. You can also tune the behavior of the script in the subsequent parameters, though for typcial maintenance scenarios you will not need to. Then execute the script in SQL Server Management Studio while connected to the database you wish to maintain.
+The script is commented quite extensively in line. Please read the comments. While you can have the script create a stored procedure, then execute the stored procedure as needed, it is more commonly run directly. The T-SQL related to creating a stored procedure is commented out by default. To run it directly, you will just set the primary operation mode parameters at the beginning of the script and then run it. You can also tune the behavior of the script in the subsequent parameters, though for typcial maintenance scenarios you will not need to. Once you have configured the script as required, execute it in SQL Server Management Studio, while connected to the database you wish to maintain.
 
 > [!TIP]
 > The default operation parameters are set to execute a dry run, where no changes are made to the database. Instead the script outputs what it *would* do if were not a dry run. Set the @DryRun bit to 0 to execute the maintenance.
