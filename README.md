@@ -46,6 +46,9 @@ Outline the file contents of the repository. It helps users navigate the codebas
 ### SQL Maintenance
 - [SQL maintenance script](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/SQL%20Maintenance)
 
+### Dual-write
+- [Bootstrapping CDS data](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Dual-write/Bootstrapping)
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
