@@ -38,7 +38,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 
 ### Commerce guides
 
-- [POS Negative inventory check (CRT extension)](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Commerce/NegativeInventoryCheck)
+- [POS UI Negative inventory check/prevention (CRT extension)](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Commerce/NegativeInventoryCheck)
 
 ### Analytics guides 
 - [SQL to data lake export](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/README.md)
