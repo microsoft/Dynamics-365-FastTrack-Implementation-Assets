@@ -14,7 +14,7 @@ This document describes sample scenarios explaining how to use Azure
 Data Factory (ADF) to bootstrap data into CDS entities (for DualWrite
 solution). It doesn't cover all entities, error handling scenarios,
 lookup etc. Use this document and template as a reference to setup your
-own ADF pipeline to import/export data into/from CDS.
+own ADF pipeline to import/update data into CDS.
 
 High-level scenario
 -------------------
@@ -31,11 +31,11 @@ High-level scenario
     from each companies (with DataAreaId field) in F&O. It's one-time
     manual process.
 
--   Use of Azure Blob Storage to store the csv files for lookup,
+-   Use Azure Blob Storage to store the csv files for lookup,
     transformation etc. Upload your F&O customers csv file in Azure Blob
     Strorage.
 
--   Use of Azure Data Factory
+-   Use Azure Data Factory
     ([ADF](https://docs.microsoft.com/en-us/azure/data-factory/introduction))
     to bootstrap data into CDS.
 
