@@ -29,6 +29,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 |-------------------|--------------------------------------------|
 | `Commerce`        | Dymamics 365 Commerce guides               |
 | `Analytics`       | Dymamics 365 Analytics guides              |
+| `SQL Maintenance` | Indexes & statistics maintenance script    |
 | `.gitignore`      | Define what to ignore at commit time.      |
 | `CHANGELOG.md`    | List of changes to the sample.             |
 | `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
@@ -41,6 +42,9 @@ Outline the file contents of the repository. It helps users navigate the codebas
 
 ### Analytics guides 
 - [SQL to data lake export](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/README.md)
+
+### SQL Maintenance
+- [SQL maintenance script](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/SQL%20Maintenance)
 
 ## Contributing
 
