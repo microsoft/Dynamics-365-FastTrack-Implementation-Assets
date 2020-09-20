@@ -30,6 +30,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 | `Commerce`        | Dymamics 365 Commerce guides               |
 | `Analytics`       | Dymamics 365 Analytics guides              |
 | `SQL Maintenance` | Indexes & statistics maintenance script    |
+| `Dual-write`      | Dymamics 365 Dual-write guides             |
 | `.gitignore`      | Define what to ignore at commit time.      |
 | `CHANGELOG.md`    | List of changes to the sample.             |
 | `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
