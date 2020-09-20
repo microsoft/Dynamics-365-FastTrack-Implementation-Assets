@@ -41,16 +41,38 @@ namespace CDMUtil.SQL
 
           
         }
-        public bool createDataSource(string location, string dataSourceName, string SAS, string pass)
+        public bool createCredentialsOrDS(bool createDS, string adlsUri, string rootFolder, string SAS, string pass, string dataSourceName)
         {
-            string sql = $" if ((select  count(1) from Sys.external_data_sources where name = '{dataSourceName}') = 0) " +
-            "Begin " +
-            "if ((SELECT d.is_master_key_encrypted_by_server FROM sys.databases AS d WHERE d.name = DB_NAME()) = 0) " +
-            $"  Create MASTER KEY ENCRYPTION BY PASSWORD = '{pass}'; " +
-            $"CREATE DATABASE SCOPED CREDENTIAL {dataSourceName} WITH IDENTITY = 'SHARED ACCESS SIGNATURE', SECRET = '{SAS}'" +
-            $"CREATE EXTERNAL DATA SOURCE {dataSourceName} WITH(LOCATION = '{location}',CREDENTIAL = {dataSourceName}) " +
-            $" END";
+            SqlConnectionStringBuilder connectionString = new SqlConnectionStringBuilder(SQLConnectionStr);
+            string sql;
+            
+            if (createDS)
+            {
+                string location = adlsUri + rootFolder;
+                sql = $"if ((select count(1) from sys.database_scoped_credentials where name = '{dataSourceName}') = 1 )" +
+                " Begin " +
+                $" DROP EXTERNAL DATA SOURCE[{dataSourceName}]" +
+                $" Drop DATABASE SCOPED CREDENTIAL[{dataSourceName}]" +
+                " end" +
 
+                " if ((SELECT d.is_master_key_encrypted_by_server FROM sys.databases AS d WHERE d.name = DB_NAME()) = 0) " +
+                $"  Create MASTER KEY ENCRYPTION BY PASSWORD = '{pass}'; " +
+
+                $"CREATE DATABASE SCOPED CREDENTIAL {dataSourceName} WITH IDENTITY = 'SHARED ACCESS SIGNATURE', SECRET = '{SAS}'" +
+                $"CREATE EXTERNAL DATA SOURCE {dataSourceName} WITH(LOCATION = '{location}',CREDENTIAL = {dataSourceName}) ";
+                
+            }
+            else
+            {
+                 sql = $" if ((select count(1) from Sys.credentials where name = '{adlsUri}') = 0) " +
+                "Begin " +
+                "if ((SELECT d.is_master_key_encrypted_by_server FROM sys.databases AS d WHERE d.name = DB_NAME()) = 0) " +
+                $"  Create MASTER KEY ENCRYPTION BY PASSWORD = '{pass}'; " +
+                $"CREATE CREDENTIAL [{adlsUri}] WITH IDENTITY = 'SHARED ACCESS SIGNATURE', SECRET = '{SAS}'" +
+                $"use master; GRANT REFERENCES ON CREDENTIAL::[{adlsUri}] TO [{connectionString.UserID}]" +
+                $" END";
+            }
+            
             SqlConnection conn = new SqlConnection(SQLConnectionStr);
             conn.Open();
 
@@ -67,7 +89,6 @@ namespace CDMUtil.SQL
                 }
             }
         }
-
        
+        }
     }
-}
