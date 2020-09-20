@@ -23,8 +23,7 @@ namespace CDMUtil.Manifest
         private const bool DateTimeAsString = true;
         private const bool UseCollat = false;
         private const string DefaultCollation = "Latin1_General_100_BIN2_UTF8";
-
-
+        private const string dataSourceName = "sqlOnDemandDS";
 
         public ManifestHandler(AdlsContext adlsContext, string currentFolder)
         {
@@ -123,7 +122,7 @@ namespace CDMUtil.Manifest
             cdmCorpus.Storage.DefaultNamespace = "adls"; // local is our default. so any paths that start out navigating without a device tag will assume local
         }
 
-        public async Task<bool> createManifest(EntityList entityList, bool resolveRef = true)
+        public async Task<bool> createManifest(EntityList entityList, bool resolveRef = true, bool createModelJson = false)
         {
             bool manifestCreated = false;
             string manifestName = entityList.manifestName;
@@ -165,12 +164,20 @@ namespace CDMUtil.Manifest
                 entityDoc.Imports.Add(FoundationJsonPath);
                 entityDoc.Definitions.Add(entity);
                 // Add the document to the root of the local documents in the corpus
-                localRoot.Documents.Add(entityDoc, entityDoc.Name);
+                var document = localRoot.Documents.Add(entityDoc, entityDoc.Name);
+                if (resolveRef == false)
+                {
+                   await document.SaveAsAsync($"{entityName}.cdm.json");
+                }
+                
                 manifestAbstract.Entities.Add(entity);
+                
             }
 
-            CdmManifestDefinition manifestResolved = await manifestAbstract.CreateResolvedManifestAsync(manifestName, null);
-
+            CdmManifestDefinition manifestResolved;
+            
+            manifestResolved = await manifestAbstract.CreateResolvedManifestAsync(manifestName, null);
+            
             // Add an import to the foundations doc so the traits about partitons will resolve nicely
             manifestResolved.Imports.Add(FoundationJsonPath);
 
@@ -208,9 +215,14 @@ namespace CDMUtil.Manifest
             Console.WriteLine("Save the documents");
             // We can save the documents as manifest.cdm.json format or model.json
             // Save as manifest.cdm.json
+        
             manifestCreated = await manifestResolved.SaveAsAsync($"{manifestName}.manifest.cdm.json", resolveRef);
+
             // Save as a model.json
-            // await manifestResolved.SaveAsAsync("model.json", true);
+            if (createModelJson)
+            {
+                await manifestResolved.SaveAsAsync("model.json", true);
+            }
             return manifestCreated;
         }
         public static CdmManifestDeclarationDefinition CreateSubManifestDefinition(CdmCorpusDefinition cdmCorpus, string nextFolder)
@@ -337,25 +349,21 @@ namespace CDMUtil.Manifest
             SQLStatements statements = new SQLStatements();
             List<SQLStatement> statementsList = new List<SQLStatement>();
 
-            string dataSourceName = "";
             var SQLHandler = new SQLHandler(System.Environment.GetEnvironmentVariable("SQL-On-Demand"));
 
-            var adlsURI = "https://" + storageAccount + rootFolder;
+            var adlsURI = "https://" + storageAccount;
 
-            if (createDS)
-            {
-                dataSourceName = "sqlOnDemandDS";
-                var sqlOnDemand = SQLHandler.createDataSource(adlsURI, dataSourceName, SAS, pass);
-            }
 
-            await ManifestHandler.manifestToSQL(adlsContext, manifestName, localFolder, statementsList, dataSourceName);
+            var sqlOnDemand = SQLHandler.createCredentialsOrDS(createDS, adlsURI, rootFolder, SAS, pass, dataSourceName);
+
+            await ManifestHandler.manifestToSQL(adlsContext, manifestName, localFolder, statementsList, createDS);
             statements.Statements = statementsList;
 
             SQLHandler.executeStatements(statements);
 
             return statements;
         }
-        public async static Task<bool> manifestToSQL(AdlsContext adlsContext, string manifestName, string localRoot, List<SQLStatement> statemensList, string datasourceName = "")
+        public async static Task<bool> manifestToSQL(AdlsContext adlsContext, string manifestName, string localRoot, List<SQLStatement> statemensList, bool createDS)
         {
             ManifestHandler manifestHandler = new ManifestHandler(adlsContext, localRoot);
             CdmManifestDefinition manifest = await manifestHandler.cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(manifestName + ".manifest.cdm.json");
@@ -370,7 +378,7 @@ namespace CDMUtil.Manifest
             {
                 string subManifestName = submanifest.ManifestName;
 
-                await manifestToSQL(adlsContext, subManifestName, localRoot + '/' + subManifestName, statemensList, datasourceName);
+                await manifestToSQL(adlsContext, subManifestName, localRoot + '/' + subManifestName, statemensList, createDS);
 
             }
 
@@ -383,6 +391,16 @@ namespace CDMUtil.Manifest
                 if (eDef.DataPartitions.Count > 0)
                 {
                     dataLocation = eDef.DataPartitions[0].Location;
+                    string nameSpace = dataLocation.Substring(0, dataLocation.IndexOf(":") + 1);
+
+                    if (nameSpace != "")
+                    {
+                        dataLocation = dataLocation.Replace(nameSpace, localRoot);
+                    }
+                    else
+                    {
+                        dataLocation = localRoot + "/" + dataLocation;
+                    }
                 }
                 else
                 {
@@ -392,19 +410,20 @@ namespace CDMUtil.Manifest
                 string fileName = dataLocation.Substring(dataLocation.LastIndexOf("/") + 1);
                 string ext = fileName.Substring(fileName.LastIndexOf("."));
                 dataLocation = dataLocation.Replace(fileName, "*" + ext);
+
                 string dataSource = "";
-                if (datasourceName == "")
+
+                if (createDS)
                 {
-                    localRoot = $"https://{adlsContext.StorageAccount}{adlsContext.FileSytemName}{localRoot}";
+                    dataSource = $", DATA_SOURCE = '{dataSourceName}'";
 
                 }
                 else
-
                 {
-                    dataSource = $", DATA_SOURCE = '{datasourceName}'";
+                    dataLocation = $"https://{adlsContext.StorageAccount}{adlsContext.FileSytemName}{dataLocation}";
                 }
 
-                dataLocation = dataLocation.Replace("adls:", localRoot);
+
                 var entSelected = await manifestHandler.cdmCorpus.FetchObjectAsync<CdmEntityDefinition>(eDef.EntityPath, manifest);
                 string columnDef = string.Join(", ", entSelected.Attributes.Select(i => CdmTypeToSQl((CdmTypeAttributeDefinition)i))); ;
 
@@ -415,7 +434,6 @@ namespace CDMUtil.Manifest
             return true;
 
         }
-
         static string cdmToSQLDataType(string dataType)
         {
 
@@ -642,6 +660,7 @@ namespace CDMUtil.Manifest
 
             return sqlColumnDef;
         }
+        
     }
 
 }

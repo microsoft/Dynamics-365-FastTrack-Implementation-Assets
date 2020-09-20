@@ -81,7 +81,8 @@ namespace CDMUtil
             string storageAccount = req.Headers["StorageAccount"];
             string rootFolder = req.Headers["RootFolder"];
             string localFolder = req.Headers["LocalFolder"];
-            string resolveReference = req.Headers["ResolveReference"]; 
+            string resolveReference = req.Headers["ResolveReference"];
+            string createModelJson = req.Headers["CreateModelJson"];
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             EntityList entityList = JsonConvert.DeserializeObject<EntityList>(requestBody);
@@ -103,14 +104,20 @@ namespace CDMUtil
                                                         };
 
             ManifestHandler manifestHandler = new ManifestHandler(adlsContext, localFolder);
+            bool createModel = false;
+            if (createModelJson != null && createModelJson.Equals("true", StringComparison.OrdinalIgnoreCase))
+            {
+                createModel = true;
+            }
 
             bool resolveRef = false;
-            if (resolveReference.Equals("true",StringComparison.OrdinalIgnoreCase))
+            if (resolveReference != null && resolveReference.Equals("true",StringComparison.OrdinalIgnoreCase))
             {
                 resolveRef = true;  
             }
             
-            bool ManifestCreated = await manifestHandler.createManifest(entityList, resolveRef);
+            bool ManifestCreated = await manifestHandler.createManifest(entityList, resolveRef, createModel);
+
 
             //Folder structure Tables/AccountReceivable/Group
             var subFolders = localFolder.Split('/');
