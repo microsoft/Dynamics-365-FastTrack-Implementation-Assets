@@ -61,7 +61,7 @@ Create an Azure Active directory application and secret, this  AAD Application i
     4. Click on Manage Azure App Service and copy all local configurations to remote
     5. Click Publish
     
-    ![Publish Azure Function](/Analytics/Publish.PNG)
+    ![Publish Azure Function](/Analytics/DeployingAzureFunction.gif)
 5. Open Azure Portal and locate Azure Function App created. 
 6.  Ensure that all configuration from local.settings.json in the Azure function app configuration tab. 
   ![Azure Function Configurations](/Analytics/AzureFunctionConfiguration.PNG)
