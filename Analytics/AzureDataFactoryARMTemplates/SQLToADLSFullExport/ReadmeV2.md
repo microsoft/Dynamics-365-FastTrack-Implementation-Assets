@@ -22,7 +22,7 @@ If you are new to Azure Data Factory, Azure functions and Synapse Analytics, you
 - **Synapse Analytics Workspace** [create synapse workspace](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-create-workspace) 
 - **Connect to SQL-On-Demand endpoint:** Once you provisioned Synapse workspace, you can use [Synapse Studio](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-synapse-studio) or SQL Server Management Studio (SSMS 18.5 or higher) or [Azure Data Studio](https://docs.microsoft.com/en-us/sql/azure-data-studio/download-azure-data-studio?toc=/azure/synapse-analytics/toc.json&bc=/azure/synapse-analytics/breadcrumb/toc.json&view=azure-sqldw-latest). For details check [supported tools](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/connect-overview#supported-tools-for-sql-on-demand-preview)
 - **Create Database:** Before you can query data using TSQL, you need to create Database. Follow the documentation [First time setup](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-sql-on-demand#first-time-setup)   
-- **Install Visual Studio 2019**: C# solution  Azure function C# Solution  
+- **Install Visual Studio 2019**: to build and deploy C# solution as Azure function APP (Download and .NET48 framework install https://dotnet.microsoft.com/download/dotnet-framework/thank-you/net48-developer-pack-offline-installer )
 # Deployment steps
 ## Create Azure Application and Secret 
 Create an Azure Active directory application and secret, this  AAD Application is used by Azure function to access Azure storage account to create and read CDM metadata. Follow the bellow steps to create the Azure Active directory application.
