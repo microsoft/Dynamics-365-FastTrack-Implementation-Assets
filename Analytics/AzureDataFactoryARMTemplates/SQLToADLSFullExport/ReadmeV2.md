@@ -54,7 +54,13 @@ Create an Azure Active directory application and secret, this  AAD Application i
   }
 }
 ```
-4.	Publish the CDMUtil_AzureFunctions Project as Azure function (Ensure that local.Settings.json values are copied during deployment) 
+4.	Publish the CDMUtil_AzureFunctions Project as Azure function 
+    a. Right-click on the project CDMUtil_AzureFunctions from Solution Explorer and select "Publish". 
+    b. Select Azure as Target and selct Azure Function Apps ( Windows) 
+    c. Click Create new Azure Function App and select subscription and resource group to create Azure function app 
+    d. Click on Manage Azure App Service and copy all local configurations to remote
+    e. Click Publish
+    
     ![Publish Azure Function](/Analytics/Publish.PNG)
 5. Open Azure Portal and locate Azure Function App created. 
 6.  Ensure that all configuration from local.settings.json in the Azure function app configuration tab. 
