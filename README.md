@@ -45,7 +45,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 - [SQL to data lake export](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/README.md)
 
 ### SQL Maintenance
-- [SQL maintenance script](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/SQL%20Maintenance)
+- [SQL maintenance script](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/SQL%20Maintenance) - A standalone, tuneable T-SQL script for maintaining SQL Server or Azure SQL indexes and statistics.
 
 ### Dual-write
 - [Bootstrapping CDS data](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Dual-write/Bootstrapping)
