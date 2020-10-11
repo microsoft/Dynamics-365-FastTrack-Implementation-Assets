@@ -56,6 +56,8 @@ Assumptions
 
 -   Records have 1-1 mapping across the apps.
 
+-   All fields of account entity are not mapped in provided template. This template should be used as reference so that you can add more lookups and map remaining fields of account entity by your own.
+
 Prerequisites
 -------------
 
