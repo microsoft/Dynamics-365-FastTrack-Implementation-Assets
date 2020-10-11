@@ -2728,7 +2728,7 @@
                                     },
                                     {
                                         "source": {
-                                            "name": "msdyn_customergroupid",
+                                            "name": "msdyn_customergroupidCE",
                                             "type": "Guid"
                                         },
                                         "sink": {
