@@ -5,6 +5,7 @@
     "\\Analytics\\AzureDataFactoryARMTemplates",
     "\\Analytics\\CDMUtilSolution",
     "\\Analytics\\CDMUtilSolution\\CDMUtil",
+    "\\Analytics\\CDMUtilSolution\\CDMUtil\\Authentication",
     "\\Analytics\\CDMUtilSolution\\CDMUtil\\Manifest",
     "\\Analytics\\CDMUtilSolution\\CDMUtil_AzureFunctions",
     "\\Analytics\\CDMUtilSolution\\CDMUtil_AzureFunctions\\Properties"

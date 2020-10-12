@@ -22,7 +22,7 @@ If you are new to Azure Data Factory, Azure functions and Synapse Analytics, you
 - **Synapse Analytics Workspace** [create synapse workspace](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-create-workspace) 
 - **Connect to SQL-On-Demand endpoint:** Once you provisioned Synapse workspace, you can use [Synapse Studio](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-synapse-studio) or SQL Server Management Studio (SSMS 18.5 or higher) or [Azure Data Studio](https://docs.microsoft.com/en-us/sql/azure-data-studio/download-azure-data-studio?toc=/azure/synapse-analytics/toc.json&bc=/azure/synapse-analytics/breadcrumb/toc.json&view=azure-sqldw-latest). For details check [supported tools](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/connect-overview#supported-tools-for-sql-on-demand-preview)
 - **Create Database:** Before you can query data using TSQL, you need to create Database. Follow the documentation [First time setup](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-sql-on-demand#first-time-setup)   
-- **Install Visual Studio 2019**: C# solution  Azure function C# Solution  
+- **Install Visual Studio 2019**: to build and deploy C# solution as Azure function APP (Download and .NET46 framework install https://dotnet.microsoft.com/download/dotnet-framework/thank-you/net462-developer-pack-offline-installer)
 # Deployment steps
 ## Create Azure Application and Secret 
 Create an Azure Active directory application and secret, this  AAD Application is used by Azure function to access Azure storage account to create and read CDM metadata. Follow the bellow steps to create the Azure Active directory application.
@@ -54,8 +54,14 @@ Create an Azure Active directory application and secret, this  AAD Application i
   }
 }
 ```
-4.	Publish the CDMUtil_AzureFunctions Project as Azure function (Ensure that local.Settings.json values are copied during deployment) 
-    ![Publish Azure Function](/Analytics/Publish.PNG)
+4.	Publish the CDMUtil_AzureFunctions Project as Azure function 
+    1. Right-click on the project CDMUtil_AzureFunctions from Solution Explorer and select "Publish". 
+    2. Select Azure as Target and selct Azure Function Apps ( Windows) 
+    3. Click Create new Azure Function App and select subscription and resource group to create Azure function app 
+    4. Click on Manage Azure App Service and copy all local configurations to remote
+    5. Click Publish
+    
+    ![Publish Azure Function](/Analytics/DeployingAzureFunction.gif)
 5. Open Azure Portal and locate Azure Function App created. 
 6.  Ensure that all configuration from local.settings.json in the Azure function app configuration tab. 
   ![Azure Function Configurations](/Analytics/AzureFunctionConfiguration.PNG)
@@ -81,8 +87,8 @@ Once Azure function is deployed and Storage account is ready, collect all the pa
 
 | **Note** 
 | :--------------------   
-|If your source system is Dynamics 365 for Finance and Operations Tier 1 or Tier 2 environment. You can get the database connection details from Life Cycle Services Environment details page. You would need **Environment Manager or Project Owner access** in LCS to see the database connection details. To Connect Azure data factory to Dynamics 365 for Finance and Operations Tier 1 and Tier 2 boxes, You may also need to RDP access to VM and install Self-hosted integration runtime. For details steps check out next section **Connecting data factory to On-Premise SQL DB or Firewall enabled Azure SQL DB**     
-|To connect Finance and Operations Self-Service Tier2 environments, you can follow the documentation [Connecting to Self-Service Tier 2](/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/ConnectingAFDtoSelf_ServiceDeploymentv2.docx) .Note that Self-Service database connections are only valid for 8 hours. So you have to updated the database crededential in the database before excuting the data factory.
+|If your source system is Dynamics 365 for **Finance and Operations Tier 1 or Tier 2 environment**. You can get the database connection details from Life Cycle Services Environment details page. You would need **Environment Manager or Project Owner access** in LCS to see the database connection details. To Connect Azure data factory to Dynamics 365 for Finance and Operations Tier 1 and Tier 2 boxes, you need to create **Self-Hosted integration runtime** for your Azure data factory.Follow the documentation link to install and configure Self-Hosted Integration runtime on tier 1 VM or Tier 2 VM [Create a Self-hosted integration runtime](https://docs.microsoft.com/en-us/azure/data-factory/create-self-hosted-integration-runtime#create-a-self-hosted-ir-via-azure-data-factory-ui) and then change the integration runtime for your SQLServerDB link services, validate connection and deploy changes to your data factory.  
+|To connect Finance and Operations **Self-Service Tier2** environments, you can follow the documentation [Connecting to Self-Service Tier 2](/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/ConnectingAFDtoSelf_ServiceDeploymentv2.docx) .Note that Self-Service database connections are only valid for 8 hours. So you have to updated the database crededential in the Data factory connection before excuting the data factory.
 
 4. Navigate to Function App Deployed earlier steps and Notedown Azure function ***URL : Function App > Overview > URL***  example:https://msftcdmutilazurefunction.azurewebsites.net and  Function ***App Key: Function App > App Keys > Host Keys> Value (Name= _master)***  
 5. Here is all parameters you need

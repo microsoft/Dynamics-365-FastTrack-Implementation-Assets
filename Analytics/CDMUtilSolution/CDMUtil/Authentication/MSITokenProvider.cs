@@ -16,7 +16,6 @@ namespace CDMUtil.Manifest
         }
         public string GetToken()
             {
-                Console.WriteLine("gettting MNSI token");
                 string token = this.GetAccessTokenAsync().Result;
                 return $"Bearer {token}";
             }
