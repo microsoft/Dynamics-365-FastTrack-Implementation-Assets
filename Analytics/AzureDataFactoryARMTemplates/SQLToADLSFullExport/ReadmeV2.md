@@ -36,7 +36,7 @@ Create an Azure Active directory application and secret, this  AAD Application i
 ![Clone](/Analytics/CloneRepository.PNG)
 2.  Open C# solution Microsoft.CommonDataModel.sln in Visual Studio 2019 and build
 3.  update local.setting.json under CDMUtil_AzureFunctions to as per your environment configurations   
-```json
+```jsonc
 {
   "IsEncrypted": false,
   "Values": {
