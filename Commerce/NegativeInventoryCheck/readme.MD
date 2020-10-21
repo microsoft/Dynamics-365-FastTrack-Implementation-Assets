@@ -125,3 +125,22 @@ Instead of the prevention of a sale, other possible implementations can be envis
 ## Variations of implementation
 
 There may be cases where simply throwing a CommerceException is not good enough. There could be a more advanced UI flow, view or operation in POS to carry out a more complex business process. The CRT extension will be similar, but, possibly, it would have to be exposed via a new RetailServer api.
+
+## Evaluating this on a development environment
+
+A quick way to test this and see it in action is to "hand-drop" the necessary files. 
+
+1. Copy the binaries into the location where RetailServer is installed, into the subfolder bin\Ext.  Often those files are located at K:\RetailServer\WebRoot\bin\Ext
+2. Edit and save the CommerceRuntime.Ext.config file in the same location in order to register these 2 extension DLLs with the runtime. Alternatively, you can just copy the config file from the github project.
+
+                                <!-- inventory lookup/calculation -->
+                                <add source="type" value="Extensions.Crt.InventoryAvailability.ExtInventoryAvailabilityService, Extensions.Crt.InventoryAvailability" />
+
+                                <!-- inventory on hand enforcement during add to cart and checkout -->
+                                <add source="type" value="Extensions.Crt.NegativeInventoryCheck.SaveCartVersionedDataRequestTrigger, Extensions.Crt.NegativeInventoryCheck" />
+                                <add source="type" value="Extensions.Crt.NegativeInventoryCheck.ValidateCartForCheckoutRequestTrigger, Extensions.Crt.NegativeInventoryCheck" />
+                                <add source="type" value="Extensions.Crt.NegativeInventoryCheck.ResumeCartRequestTrigger, Extensions.Crt.NegativeInventoryCheck" />
+                                <add source="type" value="Extensions.Crt.NegativeInventoryCheck.SuspendCartRequestTrigger, Extensions.Crt.NegativeInventoryCheck" />
+
+3. Browse to the RetailServer endpoint. A positive response (Alive!) indicates that the DLLs are loaded and runtime is happy. Now, the DLLs are properly deployed. Assuming all the above mentioned configuration steps are carried out, you should see an error message when an item is added to the cart with no on-hand inventory.
+
