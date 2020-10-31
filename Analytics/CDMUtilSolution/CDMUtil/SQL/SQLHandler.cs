@@ -1,25 +1,28 @@
 ﻿using CDMUtil.Context.ObjectDefinitions;
-using System;
+using CDMUtil.Manifest;
+using Microsoft.Azure.Services.AppAuthentication;
 using System.Data.SqlClient;
-using System.Security;
 
 namespace CDMUtil.SQL
 {
     public class SQLHandler
     {
         private string SQLConnectionStr;
+        private  string Tenant;
 
-        public SQLHandler(string SqlConnectionStr)
+        public SQLHandler(string SqlConnectionStr, string Tenant)
         {
             this.SQLConnectionStr = SqlConnectionStr;
+            this.Tenant = Tenant;
+           
         }
         public  void executeStatements(SQLStatements sqlStatements)
         {
            
-
             foreach (var s in sqlStatements.Statements)
             {
                 SqlConnection conn = new SqlConnection(SQLConnectionStr);
+                conn.AccessToken = (new AzureServiceTokenProvider()).GetAccessTokenAsync("https://database.windows.net/", Tenant).Result;
                 conn.Open();
                 using (var command = new SqlCommand(s.Statement, conn))
                 {
@@ -74,6 +77,7 @@ namespace CDMUtil.SQL
             }
             
             SqlConnection conn = new SqlConnection(SQLConnectionStr);
+            conn.AccessToken = (new Microsoft.Azure.Services.AppAuthentication.AzureServiceTokenProvider()).GetAccessTokenAsync("https://database.windows.net/").Result;
             conn.Open();
 
             using (var command = new SqlCommand(sql, conn))

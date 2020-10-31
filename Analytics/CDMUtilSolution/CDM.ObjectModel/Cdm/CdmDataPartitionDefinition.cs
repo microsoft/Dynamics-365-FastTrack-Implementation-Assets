@@ -76,10 +76,10 @@ namespace Microsoft.CommonDataModel.ObjectModel.Cdm
         public string Name { get; set; }
 
         /// Gets or sets the data partition's refresh time.
-        public DateTime? RefreshTime { get; set; }
+        public DateTimeOffset? RefreshTime { get; set; }
 
-        /// Gets or sets the last child file modified time.
-        public DateTimeOffset? LastChildFileModifiedTime { get; set; }
+        /// LastChildFileModifiedTime is not valid for DataPartitions since they do not contain any children objects.
+        public DateTimeOffset? LastChildFileModifiedTime { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         /// <inheritdoc />
         [Obsolete]
@@ -172,11 +172,6 @@ namespace Microsoft.CommonDataModel.ObjectModel.Cdm
         /// <inheritdoc />
         public override bool IsDerivedFrom(string baseDef, ResolveOptions resOpt = null)
         {
-            if (resOpt == null)
-            {
-                resOpt = new ResolveOptions(this, this.Ctx.Corpus.DefaultResolutionDirectives);
-            }
-
             return false;
         }
 

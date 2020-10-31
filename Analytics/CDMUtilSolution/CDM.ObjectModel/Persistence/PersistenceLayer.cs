@@ -384,6 +384,8 @@ namespace Microsoft.CommonDataModel.ObjectModel.Persistence
                     var content = JsonConvert.SerializeObject(persistedDoc, Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, ContractResolver = new CamelCasePropertyNamesContractResolver() });
                     await adapter.WriteAsync(newPath, content);
 
+                    doc._fileSystemModifiedTime = await adapter.ComputeLastModifiedTimeAsync(newPath);
+
                     // Write the adapter's config.
                     if (options.IsTopLevelDocument)
                     {
@@ -398,6 +400,7 @@ namespace Microsoft.CommonDataModel.ObjectModel.Persistence
                     Logger.Error(nameof(PersistenceLayer), (ResolveContext)this.Ctx, $"Failed to write to the file '{newName}' for reason {e.Message}.", nameof(SaveDocumentAsAsync));
                     return false;
                 }
+
                 // if we also want to save referenced docs, then it depends on what kind of thing just got saved
                 // if a model.json there are none. If a manifest or definition doc then ask the docs to do the right things
                 // definition will save imports, manifests will save imports, schemas, sub manifests
@@ -426,8 +429,15 @@ namespace Microsoft.CommonDataModel.ObjectModel.Persistence
             {
                 var oldDocumentPath = doc.DocumentPath;
                 var newDocumentPath = oldDocumentPath.Substring(0, oldDocumentPath.Length - OdiExtension.Length) + newName;
+                // Remove namespace from path
+                Tuple<string, string> pathTuple = StorageUtils.SplitNamespacePath(newDocumentPath);
+                if (pathTuple == null)
+                {
+                    Logger.Error(nameof(PersistenceLayer), this.Ctx, "The object path cannot be null or empty.", nameof(SaveOdiDocuments));
+                    return;
+                }
                 var content = JsonConvert.SerializeObject(doc, Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, ContractResolver = new CamelCasePropertyNamesContractResolver() });
-                await adapter.WriteAsync(newDocumentPath, content);
+                await adapter.WriteAsync(pathTuple.Item2, content);
             }
             catch (Exception e)
             {

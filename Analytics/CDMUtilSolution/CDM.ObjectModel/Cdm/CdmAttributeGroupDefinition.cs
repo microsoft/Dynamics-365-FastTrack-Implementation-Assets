@@ -6,7 +6,9 @@ namespace Microsoft.CommonDataModel.ObjectModel.Cdm
     using Microsoft.CommonDataModel.ObjectModel.Enums;
     using Microsoft.CommonDataModel.ObjectModel.ResolvedModel;
     using Microsoft.CommonDataModel.ObjectModel.Utilities;
+    using Microsoft.CommonDataModel.ObjectModel.Utilities.Logging;
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// The CDM definition that contains a collection of CdmAttributeItem objects.
@@ -50,11 +52,6 @@ namespace Microsoft.CommonDataModel.ObjectModel.Cdm
         /// <inheritdoc />
         public override bool IsDerivedFrom(string baseDef, ResolveOptions resOpt = null)
         {
-            if (resOpt == null)
-            {
-                resOpt = new ResolveOptions(this, this.Ctx.Corpus.DefaultResolutionDirectives);
-            }
-
             return false;
         }
 
@@ -96,7 +93,12 @@ namespace Microsoft.CommonDataModel.ObjectModel.Cdm
         /// <inheritdoc />
         public override bool Validate()
         {
-            return !string.IsNullOrEmpty(this.AttributeGroupName);
+            if (string.IsNullOrWhiteSpace(this.AttributeGroupName))
+            {
+                Logger.Error(nameof(CdmAttributeGroupDefinition), this.Ctx, Errors.ValidateErrorString(this.AtCorpusPath, new List<string> { "AttributeGroupName" }), nameof(Validate));
+                return false;
+            }
+            return true;
         }
 
         internal CdmAttributeItem AddAttributeDef(CdmAttributeItem attributeDef)

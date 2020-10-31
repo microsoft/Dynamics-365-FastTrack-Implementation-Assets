@@ -6,7 +6,9 @@ namespace Microsoft.CommonDataModel.ObjectModel.Cdm
     using Microsoft.CommonDataModel.ObjectModel.Enums;
     using Microsoft.CommonDataModel.ObjectModel.ResolvedModel;
     using Microsoft.CommonDataModel.ObjectModel.Utilities;
+    using Microsoft.CommonDataModel.ObjectModel.Utilities.Logging;
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -102,7 +104,18 @@ namespace Microsoft.CommonDataModel.ObjectModel.Cdm
         /// <inheritdoc />
         public override bool Validate()
         {
-            return !string.IsNullOrWhiteSpace(this.EntityName) && !string.IsNullOrWhiteSpace(this.EntityPath);
+            List<string> missingFields = new List<string>();
+            if (string.IsNullOrWhiteSpace(this.EntityName))
+                missingFields.Add("EntityName");
+            if (string.IsNullOrWhiteSpace(this.EntityPath))
+                missingFields.Add("EntityPath");
+
+            if (missingFields.Count > 0)
+            {
+                Logger.Error(nameof(CdmReferencedEntityDeclarationDefinition), this.Ctx, Errors.ValidateErrorString(this.AtCorpusPath, missingFields), nameof(Validate));
+                return false;
+            }
+            return true;
         }
 
 
@@ -121,11 +134,6 @@ namespace Microsoft.CommonDataModel.ObjectModel.Cdm
         /// <inheritdoc />
         public override bool IsDerivedFrom(string baseObj, ResolveOptions resOpt = null)
         {
-            if (resOpt == null)
-            {
-                resOpt = new ResolveOptions(this, this.Ctx.Corpus.DefaultResolutionDirectives);
-            }
-
             return false;
         }
 

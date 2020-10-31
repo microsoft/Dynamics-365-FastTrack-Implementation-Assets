@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CDMUtil.Context.ADLS;
 using CDMUtil.Context.ObjectDefinitions;
-using CDMUtil.SQL;
+using NLog.Filters;
 
 namespace CDMUtil.Manifest
 {
@@ -91,7 +91,7 @@ namespace CDMUtil.Manifest
 
             if (adlsContext.MSIAuth == true)
             {
-                MSITokenProvider MSITokenProvider = new MSITokenProvider($"https://{adlsContext.StorageAccount}/");
+                MSITokenProvider MSITokenProvider = new MSITokenProvider($"https://{adlsContext.StorageAccount}/", adlsContext.TenantId);
 
                 cdmCorpus.Storage.Mount("adls", new ADLSAdapter(
                   adlsContext.StorageAccount, // Hostname.
@@ -121,82 +121,47 @@ namespace CDMUtil.Manifest
 
             cdmCorpus.Storage.DefaultNamespace = "adls"; // local is our default. so any paths that start out navigating without a device tag will assume local
         }
-
-        public async Task<bool> createManifest(EntityList entityList, bool resolveRef = true, bool createModelJson = false)
+     
+        public CdmDocumentDefinition CreateDocumentDefinition(CdmEntityDefinition cdmEntityDefinition)
         {
-            bool manifestCreated = false;
-            string manifestName = entityList.manifestName;
+            // Create the document which contains the entity
+            var entityDoc = this.cdmCorpus.MakeObject<CdmDocumentDefinition>(CdmObjectType.DocumentDef, $"{cdmEntityDefinition.EntityName}.cdm.json", false);
+            
+            entityDoc.Definitions.Add(cdmEntityDefinition);
 
-            Console.WriteLine("Make placeholder manifest");
-            // Add the temp manifest to the root of the local adapter in the corpus
-            var localRoot = cdmCorpus.Storage.FetchRootFolder("adls");
+            return entityDoc;
+        }
 
-            CdmManifestDefinition manifestAbstract = cdmCorpus.MakeObject<CdmManifestDefinition>(CdmObjectType.ManifestDef, "tempAbstract");
-            localRoot.Documents.Add(manifestAbstract, "TempAbstract.manifest.cdm.json");
 
-            // Create two entities from scratch, and add some attributes, traits, properties, and relationships in between
-            Console.WriteLine("Create net new entities");
+        public CdmEntityDefinition CreateCdmEntityDefinition(EntityDefinition entityDefinition)
+        {
+          
+            var cdmEntity = this.cdmCorpus.MakeObject<CdmEntityDefinition>(CdmObjectType.EntityDef, entityDefinition.name, simpleNameRef: false);
+          
+            cdmEntity.DisplayName = entityDefinition.description;
 
-            List<EntityDefinition> EntityDefinitions = entityList.entityDefinitions;
+            List<dynamic> attributes = entityDefinition.attributes;
 
-            foreach (EntityDefinition entityDefinition in EntityDefinitions)
+            foreach (var a in attributes)
             {
-                string entityName = entityDefinition.name;
-                string entityDesciption = entityDefinition.description;
-                // Create the entity definition instance
-                var entity = cdmCorpus.MakeObject<CdmEntityDefinition>(CdmObjectType.EntityDef, entityName, false);
-                // Add properties to the entity instance
-                entity.DisplayName = entityName;
-                entity.Version = "1.0.0";
-                entity.Description = entityDesciption;
-
-                List<dynamic> attributes = entityDefinition.attributes;
-
-                foreach (var a in attributes)
-                {
-                    // Add type attributes to the entity instance
-                    entity.Attributes.Add(sqlToCDMAttribute(cdmCorpus, a));
-                }
-
-                // Create the document which contains the entity
-                var entityDoc = cdmCorpus.MakeObject<CdmDocumentDefinition>(CdmObjectType.DocumentDef, $"{entityName}.cdm.json", false);
-                // Add an import to the foundations doc so the traits about partitons will resolve nicely
-                entityDoc.Imports.Add(FoundationJsonPath);
-                entityDoc.Definitions.Add(entity);
-                // Add the document to the root of the local documents in the corpus
-                var document = localRoot.Documents.Add(entityDoc, entityDoc.Name);
-                if (resolveRef == false)
-                {
-                   await document.SaveAsAsync($"{entityName}.cdm.json");
-                }
-                
-                manifestAbstract.Entities.Add(entity);
-                
+                // Add type attributes to the entity instance
+                cdmEntity.Attributes.Add(sqlToCDMAttribute(cdmCorpus, a));
             }
+            return cdmEntity;
+        }
 
-            CdmManifestDefinition manifestResolved;
-            
-            manifestResolved = await manifestAbstract.CreateResolvedManifestAsync(manifestName, null);
-            
-            // Add an import to the foundations doc so the traits about partitons will resolve nicely
-            manifestResolved.Imports.Add(FoundationJsonPath);
-
-            foreach (CdmEntityDeclarationDefinition eDef in manifestResolved.Entities)
+        public CdmManifestDefinition addPartition (CdmManifestDefinition manifest, EntityDefinition entityDefinition)
+        {
+            foreach (CdmEntityDeclarationDefinition eDef in manifest.Entities)
             {
-                // Get the entity being pointed at
-                var localEDef = eDef;
-                var entDef = await cdmCorpus.FetchObjectAsync<CdmEntityDefinition>(localEDef.EntityPath, manifestResolved);
-                var entityDefinition = EntityDefinitions.Find(x => x.name.Equals(entDef.EntityName, StringComparison.OrdinalIgnoreCase));
-
-                if (entityDefinition != null)
+                if (eDef.EntityName.Equals(entityDefinition.name, StringComparison.OrdinalIgnoreCase))
                 {
-
-                    var part = cdmCorpus.MakeObject<CdmDataPartitionDefinition>(CdmObjectType.DataPartitionDef, $"{entDef.EntityName}-data");
+                    var part = cdmCorpus.MakeObject<CdmDataPartitionDefinition>(CdmObjectType.DataPartitionDef, $"{entityDefinition.name}-data");
                     eDef.DataPartitions.Add(part);
                     part.Explanation = "data files";
 
                     // We have existing partition files for the custom entities, so we need to make the partition point to the file location
-                    part.Location = $"adls:{entityDefinition.dataPartitionLocation}/{entityDefinition.partitionPattern}";
+                    part.Location = $"{entityDefinition.dataPartitionLocation}/{entityDefinition.partitionPattern}";
 
                     if (entityDefinition.partitionPattern.Contains("parquet"))
                     {
@@ -210,19 +175,79 @@ namespace CDMUtil.Manifest
                         csvTrait.Arguments.Add("columnHeaders", "false");
                         csvTrait.Arguments.Add("delimiter", ",");
                     }
+
                 }
             }
+            return manifest;
+        }
+               
+
+        public async Task<bool> createManifest(EntityList entityList, bool createModelJson = false)
+        {
+
+            bool manifestCreated = false;
+            string manifestName = entityList.manifestName;
+            // Add to root folder.
+            var adlsRoot = cdmCorpus.Storage.FetchRootFolder("adls");
+
+            List<EntityDefinition> EntityDefinitions = entityList.entityDefinitions;
+
+            // Read manifest if exists.
+            CdmManifestDefinition manifest = await cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(manifestName + ".manifest.cdm.json");
+
+            if (manifest == null)
+            {
+                // Make the temp manifest and add it to the root of the local documents in the corpus
+                manifest = cdmCorpus.MakeObject<CdmManifestDefinition>(CdmObjectType.ManifestDef, manifestName);
+
+                // Add an import to the foundations doc so the traits about partitons will resolve nicely
+                manifest.Imports.Add(FoundationJsonPath);
+
+                // Add to root folder.
+                adlsRoot.Documents.Add(manifest, $"{manifestName}.manifest.cdm.json");
+
+            }
+            else
+            {
+                foreach (EntityDefinition entityDefinition in EntityDefinitions)
+                {
+                    foreach (CdmEntityDeclarationDefinition localEntityDefinition in manifest.Entities.ToList())
+                    {
+                        if (localEntityDefinition.EntityName.Equals(entityDefinition.name, StringComparison.OrdinalIgnoreCase))
+                        {
+                            manifest.Entities.Remove(currObject: localEntityDefinition);
+                        }
+                    }
+                }
+            }
+
+            foreach (EntityDefinition entityDefinition in EntityDefinitions)
+            {   
+                var cdmEntityDefinition = this.CreateCdmEntityDefinition(entityDefinition);
+                var cdmEntityDocument = this.CreateDocumentDefinition(cdmEntityDefinition);
+                // Add Imports to the entity document.
+                cdmEntityDocument.Imports.Add(FoundationJsonPath);
+
+                // Add the document to the root of the local documents in the corpus.
+                adlsRoot.Documents.Add(cdmEntityDocument, cdmEntityDocument.Name);
+
+                // Add the entity to the manifest.
+                manifest.Entities.Add(cdmEntityDefinition);
+
+                this.addPartition(manifest, entityDefinition);
+            }
+            
             Console.WriteLine("Save the documents");
             // We can save the documents as manifest.cdm.json format or model.json
-            // Save as manifest.cdm.json
-        
-            manifestCreated = await manifestResolved.SaveAsAsync($"{manifestName}.manifest.cdm.json", resolveRef);
+            // Save as manifest.cdm.json 
+            manifestCreated = await manifest.SaveAsAsync($"{manifestName}.manifest.cdm.json", true);
 
             // Save as a model.json
             if (createModelJson)
             {
-                await manifestResolved.SaveAsAsync("model.json", true);
+                await manifest.SaveAsAsync("model.json", true);
             }
+
             return manifestCreated;
         }
         public static CdmManifestDeclarationDefinition CreateSubManifestDefinition(CdmCorpusDefinition cdmCorpus, string nextFolder)
@@ -254,43 +279,6 @@ namespace CDMUtil.Manifest
             entityAttribute.Purpose = cdmCorpus.MakeRef<CdmPurposeReference>(CdmObjectType.PurposeRef, purpose, true);
             return entityAttribute;
 
-        }
-        private async static void addExistingEntity(CdmCorpusDefinition cdmCorpus, string manifestName, CdmManifestDefinition manifestDefinition)
-        {
-            CdmManifestDefinition manifest = await cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(manifestName + ".manifest.cdm.json");
-            if (manifest != null)
-            {
-                foreach (CdmEntityDeclarationDefinition eDef in manifest.Entities)
-                {
-                    // Create the entity definition instance
-                    var entity = cdmCorpus.MakeObject<CdmEntityDefinition>(CdmObjectType.EntityDef, eDef.EntityName, false);
-                    // Add properties to the entity instance
-                    entity.DisplayName = eDef.EntityName;
-                    entity.Version = "1.0.0";
-                    entity.Description = eDef.EntityName;
-                    //manifestAbstract.Entities.Add(entity.EntityName, $"resolved/{eDef.EntityName}.cdm.json/{eDef.EntityName}");
-
-
-                    var entSelected = await cdmCorpus.FetchObjectAsync<CdmEntityDefinition>(eDef.EntityPath, manifest);
-                    foreach (CdmTypeAttributeDefinition attribute in entSelected.Attributes)
-
-                    {
-                        //var attributes = CreateEntityAttributeWithPurposeAndDataType(cdmCorpus, attribute.Name, "hasA", attribute.DataType);
-                        entity.Attributes.Add(attribute);
-                    }
-                    // Create the document which contains the entity
-                    var entityDoc = cdmCorpus.MakeObject<CdmDocumentDefinition>(CdmObjectType.DocumentDef, $"{eDef.EntityName}.cdm.json", false);
-                    // Add an import to the foundations doc so the traits about partitons will resolve nicely
-                    entityDoc.Imports.Add(FoundationJsonPath);
-                    entityDoc.Definitions.Add(entity);
-                    // Add the document to the root of the local documents in the corpus
-                    var localRoot = cdmCorpus.Storage.FetchRootFolder("adls");
-                    localRoot.Documents.Add(entityDoc, entityDoc.Name);
-                    manifestDefinition.Entities.Add(entity);
-
-                }
-
-            }
         }
         public async static Task<ManifestDefinitions> getManifestDefinition(string artifactsFile, string tableList)
         {
@@ -344,26 +332,33 @@ namespace CDMUtil.Manifest
             }
         }
 
-        public async static Task<SQLStatements> CDMToSQL(AdlsContext adlsContext, string storageAccount, string rootFolder, string localFolder, string manifestName, string SAS, string pass, bool createDS)
+        
+        public async static Task<List<SQLStatement>> SQLMetadataToDDL(List<SQLMetadata> metadataList, string type, string dataSourceName="")
         {
-            SQLStatements statements = new SQLStatements();
-            List<SQLStatement> statementsList = new List<SQLStatement>();
+            List<SQLStatement> sqlStatements = new List<SQLStatement>();
+            string template ="";
 
-            var SQLHandler = new SQLHandler(System.Environment.GetEnvironmentVariable("SQL-On-Demand"));
+            switch (type)
+            {
+               case "SynapseView":
+                    template = @"CREATE OR ALTER VIEW {0} AS SELECT * FROM OPENROWSET(BULK '{2}', FORMAT = 'CSV', Parser_Version = '2.0', DATA_SOURCE ='{3}') WITH ({1}) as r";
+                    break;
+                case "SQLTable":
+                    template = @"CREATE Table {0} ({1})";
+                    break;
 
-            var adlsURI = "https://" + storageAccount;
-
-
-            var sqlOnDemand = SQLHandler.createCredentialsOrDS(createDS, adlsURI, rootFolder, SAS, pass, dataSourceName);
-
-            await ManifestHandler.manifestToSQL(adlsContext, manifestName, localFolder, statementsList, createDS);
-            statements.Statements = statementsList;
-
-            SQLHandler.executeStatements(statements);
-
-            return statements;
+            }
+            
+            foreach (SQLMetadata metadata in metadataList)
+            {
+                var sql = string.Format(template,metadata.entityName, metadata.columnDefinition, metadata.dataLocation,dataSourceName);
+          
+                sqlStatements.Add(new SQLStatement() { Statement = sql });
+            }
+            
+            return sqlStatements;
         }
-        public async static Task<bool> manifestToSQL(AdlsContext adlsContext, string manifestName, string localRoot, List<SQLStatement> statemensList, bool createDS)
+        public async static Task<bool> manifestToSQLMetadata(AdlsContext adlsContext, string manifestName, string localRoot, List<SQLMetadata> metadataList)
         {
             ManifestHandler manifestHandler = new ManifestHandler(adlsContext, localRoot);
             CdmManifestDefinition manifest = await manifestHandler.cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(manifestName + ".manifest.cdm.json");
@@ -378,7 +373,7 @@ namespace CDMUtil.Manifest
             {
                 string subManifestName = submanifest.ManifestName;
 
-                await manifestToSQL(adlsContext, subManifestName, localRoot + '/' + subManifestName, statemensList, createDS);
+                await manifestToSQLMetadata(adlsContext, subManifestName, localRoot + '/' + subManifestName, metadataList);
 
             }
 
@@ -411,25 +406,10 @@ namespace CDMUtil.Manifest
                 string ext = fileName.Substring(fileName.LastIndexOf("."));
                 dataLocation = dataLocation.Replace(fileName, "*" + ext);
 
-                string dataSource = "";
-
-                if (createDS)
-                {
-                    dataSource = $", DATA_SOURCE = '{dataSourceName}'";
-
-                }
-                else
-                {
-                    dataLocation = $"https://{adlsContext.StorageAccount}{adlsContext.FileSytemName}{dataLocation}";
-                }
-
-
                 var entSelected = await manifestHandler.cdmCorpus.FetchObjectAsync<CdmEntityDefinition>(eDef.EntityPath, manifest);
                 string columnDef = string.Join(", ", entSelected.Attributes.Select(i => CdmTypeToSQl((CdmTypeAttributeDefinition)i))); ;
-
-                var sql = $"CREATE OR ALTER VIEW {entityName} AS SELECT * FROM OPENROWSET(BULK '{dataLocation}', FORMAT = 'CSV', Parser_Version = '2.0' {dataSource}) WITH({columnDef}) as r ";
-                statemensList.Add(new SQLStatement() { Statement = sql });
-
+                
+                metadataList.Add(new SQLMetadata() { entityName = entityName, columnDefinition = columnDef, dataLocation = dataLocation });
             }
             return true;
 

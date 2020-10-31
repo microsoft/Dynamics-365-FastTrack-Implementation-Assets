@@ -1,6 +1,6 @@
 {
-    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
   "parameters": {
     "factoryName": {
       "type": "string",
@@ -37,1379 +37,1647 @@
     "CDMUTIL_functionKey": {
       "type": "secureString",
       "metadata": "Secure string for 'functionKey' of 'CDMUTIL'"
+    },
+    "TenantId": {
+      "type": "string"
+    },
+    "DataSourceName": {
+      "type": "string",
+      "defaultValue": "sqlOnDemandDS"
+    },
+    "SQLEndPoint": {
+      "type": "string",
+      "defaultValue": "Server=d365ftazuresynapsedemo-ondemand.sql.azuresynapse.net;Database=AXDB"
+    },
+    "DDLType": {
+      "type": "string",
+      "defaultValue": "SynapseView"
     }
   },
-    "variables": {
-        "factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
-    },
-    "resources": [
-        {
-            "name": "[concat(parameters('factoryName'), '/SQLTablesToADLS')]",
-            "type": "Microsoft.DataFactory/factories/pipelines",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "activities": [
-                    {
-                        "name": "CopyData",
-                        "type": "ForEach",
-                        "dependsOn": [
-                            {
-                                "activity": "GetManifestDefinition",
-                                "dependencyConditions": [
-                                    "Succeeded"
-                                ]
-                            }
-                        ],
-                        "userProperties": [],
-                        "typeProperties": {
-                            "items": {
-                                "value": "@activity('GetManifestDefinition').output.Tables",
-                                "type": "Expression"
-                            },
-                            "isSequential": false,
-                            "activities": [
-                                {
-                                    "name": "CSVORParquet",
-                                    "type": "Switch",
-                                    "dependsOn": [],
-                                    "userProperties": [],
-                                    "typeProperties": {
-                                        "on": {
-                                            "value": "@pipeline().parameters.FileFormat",
-                                            "type": "Expression"
-                                        },
-                                        "cases": [
-                                            {
-                                                "value": "parquet",
-                                                "activities": [
-                                                    {
-                                                        "name": "CopyTablesToParquet",
-                                                        "type": "Copy",
-                                                        "dependsOn": [],
-                                                        "policy": {
-                                                            "timeout": "7.00:00:00",
-                                                            "retry": 0,
-                                                            "retryIntervalInSeconds": 30,
-                                                            "secureOutput": false,
-                                                            "secureInput": false
-                                                        },
-                                                        "userProperties": [],
-                                                        "typeProperties": {
-                                                            "source": {
-                                                                "type": "SqlServerSource",
-                                                                "sqlReaderQuery": {
-                                                                    "value": "select * from @{pipeline().parameters.Schema}.@{item().TableName}",
-                                                                    "type": "Expression"
-                                                                },
-                                                                "queryTimeout": "02:00:00",
-                                                                "partitionOption": "None"
-                                                            },
-                                                            "sink": {
-                                                                "type": "ParquetSink",
-                                                                "storeSettings": {
-                                                                    "type": "AzureBlobFSWriteSettings"
-                                                                }
-                                                            },
-                                                            "enableStaging": false,
-                                                            "translator": {
-                                                                "type": "TabularTranslator",
-                                                                "typeConversion": true,
-                                                                "typeConversionSettings": {
-                                                                    "allowDataTruncation": true,
-                                                                    "treatBooleanAsNumber": false
-                                                                }
-                                                            }
-                                                        },
-                                                        "inputs": [
-                                                            {
-                                                                "referenceName": "SqlTable",
-                                                                "type": "DatasetReference",
-                                                                "parameters": {}
-                                                            }
-                                                        ],
-                                                        "outputs": [
-                                                            {
-                                                                "referenceName": "Parquet",
-                                                                "type": "DatasetReference",
-                                                                "parameters": {
-                                                                    "Container": {
-                                                                        "value": "@pipeline().parameters.Container",
-                                                                        "type": "Expression"
-                                                                    },
-                                                                    "Folder": {
-                                                                        "value": "@{pipeline().parameters.Folder}\\@{item().DataLocation}",
-                                                                        "type": "Expression"
-                                                                    },
-                                                                    "FileName": {
-                                                                        "value": "@{item().TableName}.@{pipeline().parameters.FileFormat}",
-                                                                        "type": "Expression"
-                                                                    }
-                                                                }
-                                                            }
-                                                        ]
-                                                    }
-                                                ]
-                                            }
-                                        ],
-                                        "defaultActivities": [
-                                            {
-                                                "name": "CopyTablesToCSV",
-                                                "type": "Copy",
-                                                "dependsOn": [],
-                                                "policy": {
-                                                    "timeout": "7.00:00:00",
-                                                    "retry": 0,
-                                                    "retryIntervalInSeconds": 30,
-                                                    "secureOutput": false,
-                                                    "secureInput": false
-                                                },
-                                                "userProperties": [],
-                                                "typeProperties": {
-                                                    "source": {
-                                                        "type": "SqlServerSource",
-                                                        "sqlReaderQuery": {
-                                                            "value": "select * from @{pipeline().parameters.Schema}.@{item().TableName}",
-                                                            "type": "Expression"
-                                                        },
-                                                        "queryTimeout": "02:00:00",
-                                                        "partitionOption": "None"
-                                                    },
-                                                    "sink": {
-                                                        "type": "DelimitedTextSink",
-                                                        "storeSettings": {
-                                                            "type": "AzureBlobFSWriteSettings"
-                                                        },
-                                                        "formatSettings": {
-                                                            "type": "DelimitedTextWriteSettings",
-                                                            "quoteAllText": true,
-                                                            "fileExtension": ".txt"
-                                                        }
-                                                    },
-                                                    "enableStaging": false,
-                                                    "translator": {
-                                                        "type": "TabularTranslator",
-                                                        "typeConversion": true,
-                                                        "typeConversionSettings": {
-                                                            "allowDataTruncation": true,
-                                                            "treatBooleanAsNumber": false
-                                                        }
-                                                    }
-                                                },
-                                                "inputs": [
-                                                    {
-                                                        "referenceName": "SqlTable",
-                                                        "type": "DatasetReference",
-                                                        "parameters": {}
-                                                    }
-                                                ],
-                                                "outputs": [
-                                                    {
-                                                        "referenceName": "CSVFile",
-                                                        "type": "DatasetReference",
-                                                        "parameters": {
-                                                            "Container": {
-                                                                "value": "@pipeline().parameters.Container",
-                                                                "type": "Expression"
-                                                            },
-                                                            "Folder": {
-                                                                "value": "@{pipeline().parameters.Folder}\\@{item().DataLocation}",
-                                                                "type": "Expression"
-                                                            },
-                                                            "FileName": {
-                                                                "value": "@{item().TableName}.@{pipeline().parameters.FileFormat}",
-                                                                "type": "Expression"
-                                                            }
-                                                        }
-                                                    }
-                                                ]
-                                            }
-                                        ]
-                                    }
-                                },
-                                {
-                                    "name": "Get Metadata",
-                                    "type": "GetMetadata",
-                                    "dependsOn": [
-                                        {
-                                            "activity": "CSVORParquet",
-                                            "dependencyConditions": [
-                                                "Succeeded"
-                                            ]
-                                        }
-                                    ],
-                                    "policy": {
-                                        "timeout": "7.00:00:00",
-                                        "retry": 0,
-                                        "retryIntervalInSeconds": 30,
-                                        "secureOutput": false,
-                                        "secureInput": false
-                                    },
-                                    "userProperties": [],
-                                    "typeProperties": {
-                                        "dataset": {
-                                            "referenceName": "CSVInputFile",
-                                            "type": "DatasetReference",
-                                            "parameters": {
-                                                "Container": {
-                                                    "value": "@pipeline().parameters.Container",
-                                                    "type": "Expression"
-                                                },
-                                                "Folder": {
-                                                    "value": "@{pipeline().parameters.Folder}/@{item().DataLocation}",
-                                                    "type": "Expression"
-                                                },
-                                                "FileName": {
-                                                    "value": "@{item().TableName}.@{pipeline().parameters.FileFormat}",
-                                                    "type": "Expression"
-                                                }
-                                            }
-                                        },
-                                        "fieldList": [
-                                            "size"
-                                        ],
-                                        "storeSettings": {
-                                            "type": "AzureBlobFSReadSettings",
-                                            "recursive": true
-                                        },
-                                        "formatSettings": {
-                                            "type": "DelimitedTextReadSettings"
-                                        }
-                                    }
-                                },
-                                {
-                                    "name": "IfLargeFile",
-                                    "type": "IfCondition",
-                                    "dependsOn": [
-                                        {
-                                            "activity": "Get Metadata",
-                                            "dependencyConditions": [
-                                                "Succeeded"
-                                            ]
-                                        }
-                                    ],
-                                    "userProperties": [],
-                                    "typeProperties": {
-                                        "expression": {
-                                            "value": "@greater(activity('Get Metadata').output.size, mul(pipeline().parameters.PartitionSizeMB,1000000))",
-                                            "type": "Expression"
-                                        },
-                                        "ifTrueActivities": [
-                                            {
-                                                "name": "PartionFile",
-                                                "type": "ExecutePipeline",
-                                                "dependsOn": [],
-                                                "userProperties": [],
-                                                "typeProperties": {
-                                                    "pipeline": {
-                                                        "referenceName": "PartitionBySize",
-                                                        "type": "PipelineReference"
-                                                    },
-                                                    "waitOnCompletion": true,
-                                                    "parameters": {
-                                                        "Container": {
-                                                            "value": "@pipeline().parameters.Container",
-                                                            "type": "Expression"
-                                                        },
-                                                        "SourceFolder": {
-                                                            "value": "@{pipeline().parameters.Folder}/@{item().DataLocation}",
-                                                            "type": "Expression"
-                                                        },
-                                                        "FileName": {
-                                                            "value": "@{item().TableName}.@{pipeline().parameters.FileFormat}",
-                                                            "type": "Expression"
-                                                        },
-                                                        "TargetFolder": {
-                                                            "value": "@{pipeline().parameters.Folder}/@{item().DataLocation}",
-                                                            "type": "Expression"
-                                                        },
-                                                        "NoOfPartitions": {
-                                                            "value": "@max(div(activity('Get Metadata').output.Size, mul(pipeline().parameters.PartitionSizeMB,1000000)),1)",
-                                                            "type": "Expression"
-                                                        },
-                                                        "EXT": {
-                                                            "value": "@{pipeline().parameters.FileFormat}",
-                                                            "type": "Expression"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        ]
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "name": "GetManifestDefinition",
-                        "type": "AzureFunctionActivity",
-                        "dependsOn": [],
-                        "policy": {
-                            "timeout": "7.00:00:00",
-                            "retry": 0,
-                            "retryIntervalInSeconds": 30,
-                            "secureOutput": false,
-                            "secureInput": false
-                        },
-                        "userProperties": [],
-                        "typeProperties": {
-                            "functionName": "getManifestDefinition",
-                            "method": "GET",
-                            "headers": {
-                                "TableList": {
-                                    "value": "@pipeline().parameters.TableNames",
-                                    "type": "Expression"
-                                }
-                            }
-                        },
-                        "linkedServiceName": {
-                            "referenceName": "CDMUTIL",
-                            "type": "LinkedServiceReference"
-                        }
-                    },
-                    {
-                        "name": "CreateManifest",
-                        "type": "ForEach",
-                        "dependsOn": [
-                            {
-                                "activity": "CopyData",
-                                "dependencyConditions": [
-                                    "Succeeded"
-                                ]
-                            }
-                        ],
-                        "userProperties": [],
-                        "typeProperties": {
-                            "items": {
-                                "value": "@activity('GetManifestDefinition').output.Manifests",
-                                "type": "Expression"
-                            },
-                            "isSequential": true,
-                            "activities": [
-                                {
-                                    "name": "GenerateCDM",
-                                    "type": "ExecutePipeline",
-                                    "dependsOn": [],
-                                    "userProperties": [],
-                                    "typeProperties": {
-                                        "pipeline": {
-                                            "referenceName": "GenerateCDM",
-                                            "type": "PipelineReference"
-                                        },
-                                        "waitOnCompletion": true,
-                                        "parameters": {
-                                          "Tables": {
-                                            "value": "@item().Tables",
-                                            "type": "Expression"
-                                          },
-
-                                          "StorageAccount": {
-                                                "value": "@{pipeline().parameters.StorageAccount}",
-                                                "type": "Expression"
-                                            },
-                                            "CDMRootFolder": {
-                                                "value": "@{pipeline().parameters.Container}/@{pipeline().parameters.Folder}",
-                                                "type": "Expression"
-                                            },
-                                            "ManifestFolder": {
-                                                "value": "@{item().ManifestLocation}",
-                                                "type": "Expression"
-                                            },
-                                            "FileFormat": {
-                                                "value": "@pipeline().parameters.FileFormat",
-                                                "type": "Expression"
-                                            },
-                                            "Schema": {
-                                                "value": "@pipeline().parameters.Schema",
-                                                "type": "Expression"
-                                            },
-                                            "ManifestName": {
-                                                "value": "@{item().ManifestName}",
-                                                "type": "Expression"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                ],
-              "parameters": {
-                "TableNames": {
-                  "type": "string",
-                  "defaultValue": "CustTable,CustGroup"
-                },
-                "StorageAccount": {"type": "string", "defaultValue": "[parameters('StorageAccount')]" },
-                "Container": {
-                  "type": "string",
-                  "defaultValue": "[parameters('Container')]"
-                },
-                "Folder": {
-                  "type": "string",
-                  "defaultValue": "[parameters('RootFolder')]"
-                },
-                "FileFormat": {
-                  "type": "string",
-                  "defaultValue": "csv"
-                },
-                "Schema": {
-                  "type": "string",
-                  "defaultValue": "dbo"
-                },
-                "PartitionSizeMB": {
-                  "type": "int",
-                  "defaultValue": 200
-                }
-              },
-                "annotations": [],
-                "lastPublishTime": "2020-08-13T23:50:53Z"
-            },
+  "variables": {
+    "factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+  },
+  "resources": [
+    {
+      "name": "[concat(parameters('factoryName'), '/SQLTablesToADLS')]",
+      "type": "Microsoft.DataFactory/factories/pipelines",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "activities": [
+          {
+            "name": "CopyData",
+            "type": "ForEach",
             "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/CDMUTIL')]",
-                "[concat(variables('factoryId'), '/datasets/CSVInputFile')]",
-                "[concat(variables('factoryId'), '/pipelines/GenerateCDM')]",
-                "[concat(variables('factoryId'), '/datasets/SqlTable')]",
-                "[concat(variables('factoryId'), '/datasets/CSVFile')]",
-                "[concat(variables('factoryId'), '/pipelines/PartitionBySize')]",
-                "[concat(variables('factoryId'), '/datasets/Parquet')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/PartitionBySize')]",
-            "type": "Microsoft.DataFactory/factories/pipelines",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "activities": [
-                    {
-                        "name": "CSVOrParquet",
-                        "type": "Switch",
-                        "dependsOn": [],
-                        "userProperties": [],
-                        "typeProperties": {
-                            "on": {
-                                "value": "@toLower(pipeline().parameters.EXT)",
-                                "type": "Expression"
+              {
+                "activity": "GetManifestDefinition",
+                "dependencyConditions": [
+                  "Succeeded"
+                ]
+              }
+            ],
+            "userProperties": [],
+            "typeProperties": {
+              "items": {
+                "value": "@activity('GetManifestDefinition').output.Tables",
+                "type": "Expression"
+              },
+              "isSequential": false,
+              "activities": [
+                {
+                  "name": "CSVORParquet",
+                  "type": "Switch",
+                  "dependsOn": [],
+                  "userProperties": [],
+                  "typeProperties": {
+                    "on": {
+                      "value": "@pipeline().parameters.FileFormat",
+                      "type": "Expression"
+                    },
+                    "cases": [
+                      {
+                        "value": "parquet",
+                        "activities": [
+                          {
+                            "name": "CopyTablesToParquet",
+                            "type": "Copy",
+                            "dependsOn": [],
+                            "policy": {
+                              "timeout": "7.00:00:00",
+                              "retry": 0,
+                              "retryIntervalInSeconds": 30,
+                              "secureOutput": false,
+                              "secureInput": false
                             },
-                            "cases": [
-                                {
-                                    "value": ".parquet",
-                                    "activities": [
-                                        {
-                                            "name": "PartitionBySize_parquet",
-                                            "type": "ExecuteDataFlow",
-                                            "dependsOn": [],
-                                            "policy": {
-                                                "timeout": "7.00:00:00",
-                                                "retry": 0,
-                                                "retryIntervalInSeconds": 30,
-                                                "secureOutput": false,
-                                                "secureInput": false
-                                            },
-                                            "userProperties": [],
-                                            "typeProperties": {
-                                                "dataflow": {
-                                                    "referenceName": "PartitionBySize_parquet",
-                                                    "type": "DataFlowReference",
-                                                    "parameters": {
-                                                        "FileName": {
-                                                            "value": "'@{pipeline().parameters.FileName}'",
-                                                            "type": "Expression"
-                                                        },
-                                                        "Partition": {
-                                                            "value": "@pipeline().parameters.NoOfPartitions",
-                                                            "type": "Expression"
-                                                        }
-                                                    },
-                                                    "datasetParameters": {
-                                                        "InputFile": {
-                                                            "Container": {
-                                                                "value": "@pipeline().parameters.Container",
-                                                                "type": "Expression"
-                                                            },
-                                                            "Folder": {
-                                                                "value": "@pipeline().parameters.SourceFolder",
-                                                                "type": "Expression"
-                                                            },
-                                                            "FileName": {
-                                                                "value": "@pipeline().parameters.FileName",
-                                                                "type": "Expression"
-                                                            }
-                                                        },
-                                                        "PartitionFile": {
-                                                            "Container": {
-                                                                "value": "@pipeline().parameters.Container",
-                                                                "type": "Expression"
-                                                            },
-                                                            "Folder": {
-                                                                "value": "@pipeline().parameters.TargetFolder",
-                                                                "type": "Expression"
-                                                            }
-                                                        }
-                                                    }
-                                                },
-                                                "staging": {},
-                                                "compute": {
-                                                    "coreCount": 8,
-                                                    "computeType": "General"
-                                                }
-                                            }
-                                        }
-                                    ]
+                            "userProperties": [],
+                            "typeProperties": {
+                              "source": {
+                                "type": "SqlServerSource",
+                                "sqlReaderQuery": {
+                                  "value": "select * from @{pipeline().parameters.Schema}.@{item().TableName}",
+                                  "type": "Expression"
+                                },
+                                "queryTimeout": "02:00:00",
+                                "partitionOption": "None"
+                              },
+                              "sink": {
+                                "type": "ParquetSink",
+                                "storeSettings": {
+                                  "type": "AzureBlobFSWriteSettings"
                                 }
+                              },
+                              "enableStaging": false,
+                              "translator": {
+                                "type": "TabularTranslator",
+                                "typeConversion": true,
+                                "typeConversionSettings": {
+                                  "allowDataTruncation": true,
+                                  "treatBooleanAsNumber": false
+                                }
+                              }
+                            },
+                            "inputs": [
+                              {
+                                "referenceName": "SqlTable",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                              }
                             ],
-                            "defaultActivities": [
-                                {
-                                    "name": "PartitionBySize",
-                                    "type": "ExecuteDataFlow",
-                                    "dependsOn": [],
-                                    "policy": {
-                                        "timeout": "7.00:00:00",
-                                        "retry": 0,
-                                        "retryIntervalInSeconds": 30,
-                                        "secureOutput": false,
-                                        "secureInput": false
-                                    },
-                                    "userProperties": [],
-                                    "typeProperties": {
-                                        "dataflow": {
-                                            "referenceName": "PartitionBySize_csv",
-                                            "type": "DataFlowReference",
-                                            "parameters": {
-                                                "FileName": {
-                                                    "value": "'@{pipeline().parameters.FileName}'",
-                                                    "type": "Expression"
-                                                },
-                                                "Partition": {
-                                                    "value": "@pipeline().parameters.NoOfPartitions",
-                                                    "type": "Expression"
-                                                }
-                                            },
-                                            "datasetParameters": {
-                                                "InputFile": {
-                                                    "Container": {
-                                                        "value": "@pipeline().parameters.Container",
-                                                        "type": "Expression"
-                                                    },
-                                                    "Folder": {
-                                                        "value": "@pipeline().parameters.SourceFolder",
-                                                        "type": "Expression"
-                                                    },
-                                                    "FileName": {
-                                                        "value": "@pipeline().parameters.FileName",
-                                                        "type": "Expression"
-                                                    }
-                                                },
-                                                "PartitionFile": {
-                                                    "Container": {
-                                                        "value": "@pipeline().parameters.Container",
-                                                        "type": "Expression"
-                                                    },
-                                                    "Folder": {
-                                                        "value": "@pipeline().parameters.TargetFolder",
-                                                        "type": "Expression"
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        "staging": {},
-                                        "compute": {
-                                            "coreCount": 8,
-                                            "computeType": "General"
-                                        }
-                                    }
+                            "outputs": [
+                              {
+                                "referenceName": "Parquet",
+                                "type": "DatasetReference",
+                                "parameters": {
+                                  "Container": {
+                                    "value": "@pipeline().parameters.Container",
+                                    "type": "Expression"
+                                  },
+                                  "Folder": {
+                                    "value": "@{pipeline().parameters.Folder}\\@{item().DataLocation}",
+                                    "type": "Expression"
+                                  },
+                                  "FileName": {
+                                    "value": "@{item().TableName}.@{pipeline().parameters.FileFormat}",
+                                    "type": "Expression"
+                                  }
                                 }
+                              }
                             ]
-                        }
-                    }
-                ],
-                "parameters": {
-                    "Container": {
-                        "type": "string",
-                        "defaultValue": "dynamicsax"
-                    },
-                    "SourceFolder": {
-                        "type": "string"
-                    },
-                    "FileName": {
-                        "type": "string"
-                    },
-                    "TargetFolder": {
-                        "type": "string"
-                    },
-                    "NoOfPartitions": {
-                        "type": "int"
-                    },
-                    "EXT": {
-                        "type": "string"
-                    }
+                          }
+                        ]
+                      }
+                    ],
+                    "defaultActivities": [
+                      {
+                        "name": "CopyTablesToCSV",
+                        "type": "Copy",
+                        "dependsOn": [],
+                        "policy": {
+                          "timeout": "7.00:00:00",
+                          "retry": 0,
+                          "retryIntervalInSeconds": 30,
+                          "secureOutput": false,
+                          "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                          "source": {
+                            "type": "SqlServerSource",
+                            "sqlReaderQuery": {
+                              "value": "select * from @{pipeline().parameters.Schema}.@{item().TableName}",
+                              "type": "Expression"
+                            },
+                            "queryTimeout": "02:00:00",
+                            "partitionOption": "None"
+                          },
+                          "sink": {
+                            "type": "DelimitedTextSink",
+                            "storeSettings": {
+                              "type": "AzureBlobFSWriteSettings"
+                            },
+                            "formatSettings": {
+                              "type": "DelimitedTextWriteSettings",
+                              "quoteAllText": true,
+                              "fileExtension": ".txt"
+                            }
+                          },
+                          "enableStaging": false,
+                          "translator": {
+                            "type": "TabularTranslator",
+                            "typeConversion": true,
+                            "typeConversionSettings": {
+                              "allowDataTruncation": true,
+                              "treatBooleanAsNumber": false
+                            }
+                          }
+                        },
+                        "inputs": [
+                          {
+                            "referenceName": "SqlTable",
+                            "type": "DatasetReference",
+                            "parameters": {}
+                          }
+                        ],
+                        "outputs": [
+                          {
+                            "referenceName": "CSVFile",
+                            "type": "DatasetReference",
+                            "parameters": {
+                              "Container": {
+                                "value": "@pipeline().parameters.Container",
+                                "type": "Expression"
+                              },
+                              "Folder": {
+                                "value": "@{pipeline().parameters.Folder}\\@{item().DataLocation}",
+                                "type": "Expression"
+                              },
+                              "FileName": {
+                                "value": "@{item().TableName}.@{pipeline().parameters.FileFormat}",
+                                "type": "Expression"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
                 },
-                "folder": {
-                    "name": "PartitionFile"
-                },
-                "annotations": [],
-                "lastPublishTime": "2020-07-29T19:32:46Z"
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/dataflows/PartitionBySize_csv')]",
-                "[concat(variables('factoryId'), '/dataflows/PartitionBySize_parquet')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/GenerateCDM')]",
-            "type": "Microsoft.DataFactory/factories/pipelines",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "activities": [
+                {
+                  "name": "Get Metadata",
+                  "type": "GetMetadata",
+                  "dependsOn": [
                     {
-                        "name": "ForEachTable",
-                        "type": "ForEach",
+                      "activity": "CSVORParquet",
+                      "dependencyConditions": [
+                        "Succeeded"
+                      ]
+                    }
+                  ],
+                  "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                  },
+                  "userProperties": [],
+                  "typeProperties": {
+                    "dataset": {
+                      "referenceName": "CSVInputFile",
+                      "type": "DatasetReference",
+                      "parameters": {
+                        "Container": {
+                          "value": "@pipeline().parameters.Container",
+                          "type": "Expression"
+                        },
+                        "Folder": {
+                          "value": "@{pipeline().parameters.Folder}/@{item().DataLocation}",
+                          "type": "Expression"
+                        },
+                        "FileName": {
+                          "value": "@{item().TableName}.@{pipeline().parameters.FileFormat}",
+                          "type": "Expression"
+                        }
+                      }
+                    },
+                    "fieldList": [
+                      "size"
+                    ],
+                    "storeSettings": {
+                      "type": "AzureBlobFSReadSettings",
+                      "recursive": true
+                    },
+                    "formatSettings": {
+                      "type": "DelimitedTextReadSettings"
+                    }
+                  }
+                },
+                {
+                  "name": "IfLargeFile",
+                  "type": "IfCondition",
+                  "dependsOn": [
+                    {
+                      "activity": "Get Metadata",
+                      "dependencyConditions": [
+                        "Succeeded"
+                      ]
+                    }
+                  ],
+                  "userProperties": [],
+                  "typeProperties": {
+                    "expression": {
+                      "value": "@greater(activity('Get Metadata').output.size, mul(pipeline().parameters.PartitionSizeMB,1000000))",
+                      "type": "Expression"
+                    },
+                    "ifTrueActivities": [
+                      {
+                        "name": "PartionFile",
+                        "type": "ExecutePipeline",
                         "dependsOn": [],
                         "userProperties": [],
                         "typeProperties": {
-                            "items": {
-                                "value": "@pipeline().parameters.Tables",
-                                "type": "Expression"
+                          "pipeline": {
+                            "referenceName": "PartitionBySize",
+                            "type": "PipelineReference"
+                          },
+                          "waitOnCompletion": true,
+                          "parameters": {
+                            "Container": {
+                              "value": "@pipeline().parameters.Container",
+                              "type": "Expression"
                             },
-                            "isSequential": true,
-                            "activities": [
-                                {
-                                    "name": "LookupColumns",
-                                    "type": "Lookup",
-                                    "dependsOn": [],
-                                    "policy": {
-                                        "timeout": "7.00:00:00",
-                                        "retry": 0,
-                                        "retryIntervalInSeconds": 30,
-                                        "secureOutput": false,
-                                        "secureInput": false
-                                    },
-                                    "userProperties": [],
-                                    "typeProperties": {
-                                        "source": {
-                                            "type": "SqlServerSource",
-                                            "sqlReaderQuery": {
-                                                "value": "select \n\tc.COLUMN_NAME as name, \n\tDATA_TYPE as dataType, \n\tCHARACTER_MAXIMUM_LENGTH as maximumLength, \n\tNUMERIC_PRECISION precision, \n\tNUMERIC_SCALE scale, \n\tCHARACTER_SET_NAME characterSet, \n\tCOLLATION_NAME collation\n\t,CASE WHEN pk.COLUMN_NAME IS NOT NULL THEN 1 ELSE 0  end as IsPrimaryKey\n\tFROM INFORMATION_SCHEMA.COLUMNS c     \n\tLEFT JOIN (\n            SELECT ku.TABLE_CATALOG,ku.TABLE_SCHEMA,ku.TABLE_NAME,ku.COLUMN_NAME\n            FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS tc\n            INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS ku\n                ON tc.CONSTRAINT_TYPE = 'PRIMARY KEY' \n                AND tc.CONSTRAINT_NAME = ku.CONSTRAINT_NAME\n         )   pk \nON  c.TABLE_CATALOG = pk.TABLE_CATALOG\n            AND c.TABLE_SCHEMA = pk.TABLE_SCHEMA\n            AND c.TABLE_NAME = pk.TABLE_NAME\n            AND c.COLUMN_NAME = pk.COLUMN_NAME\nwhere c.TABLE_NAME = '@{item().TableName}'    \nand c.TABLE_SCHEMA = 'dbo'\norder by C.ORDINAL_POSITION ASC",
-                                                "type": "Expression"
-                                            },
-                                            "queryTimeout": "02:00:00",
-                                            "partitionOption": "None"
-                                        },
-                                        "dataset": {
-                                            "referenceName": "SqlTable",
-                                            "type": "DatasetReference",
-                                            "parameters": {}
-                                        },
-                                        "firstRowOnly": false
-                                    }
-                                },
-                                {
-                                    "name": "EntityDefinition",
-                                    "type": "SetVariable",
-                                    "dependsOn": [
-                                        {
-                                            "activity": "LookupColumns",
-                                            "dependencyConditions": [
-                                                "Succeeded"
-                                            ]
-                                        }
-                                    ],
-                                    "userProperties": [],
-                                    "typeProperties": {
-                                        "variableName": "EntityDefinition",
-                                        "value": {
-                                            "value": "{\"name\":\"@{item().TableName}\", \n\"description\":\"@{item().TableName}\", \n\"dataPartitionLocation\":\"/@{item().TableName}\",\n \"partitionPattern\":\"*.@{pipeline().parameters.FileFormat}\",\n \"attributes\":@{activity('LookupColumns').output.value}\n}",
-                                            "type": "Expression"
-                                        }
-                                    }
-                                },
-                                {
-                                    "name": "EntityDefinitions",
-                                    "type": "AppendVariable",
-                                    "dependsOn": [
-                                        {
-                                            "activity": "EntityDefinition",
-                                            "dependencyConditions": [
-                                                "Succeeded"
-                                            ]
-                                        }
-                                    ],
-                                    "userProperties": [],
-                                    "typeProperties": {
-                                        "variableName": "ManifestDefinition",
-                                        "value": {
-                                            "value": "@json(variables('EntityDefinition'))",
-                                            "type": "Expression"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "name": "createEntity",
-                        "type": "AzureFunctionActivity",
-                        "dependsOn": [
-                            {
-                                "activity": "SetManifest",
-                                "dependencyConditions": [
-                                    "Succeeded"
-                                ]
+                            "SourceFolder": {
+                              "value": "@{pipeline().parameters.Folder}/@{item().DataLocation}",
+                              "type": "Expression"
+                            },
+                            "FileName": {
+                              "value": "@{item().TableName}.@{pipeline().parameters.FileFormat}",
+                              "type": "Expression"
+                            },
+                            "TargetFolder": {
+                              "value": "@{pipeline().parameters.Folder}/@{item().DataLocation}",
+                              "type": "Expression"
+                            },
+                            "NoOfPartitions": {
+                              "value": "@max(div(activity('Get Metadata').output.Size, mul(pipeline().parameters.PartitionSizeMB,1000000)),1)",
+                              "type": "Expression"
+                            },
+                            "EXT": {
+                              "value": "@{pipeline().parameters.FileFormat}",
+                              "type": "Expression"
                             }
-                        ],
-                        "policy": {
-                            "timeout": "7.00:00:00",
-                            "retry": 0,
-                            "retryIntervalInSeconds": 30,
-                            "secureOutput": false,
-                            "secureInput": false
-                        },
-                        "userProperties": [],
-                        "typeProperties": {
-                            "functionName": "createManifest",
-                            "method": "POST",
-                            "headers": {
-                                "StorageAccount": {
-                                    "value": "@pipeline().parameters.StorageAccount",
-                                    "type": "Expression"
-                                },
-                                "RootFolder": {
-                                    "value": "@{pipeline().parameters.CDMRootFolder}",
-                                    "type": "Expression"
-                                },
-                                "LocalFolder": {
-                                    "value": "@{pipeline().parameters.ManifestFolder}",
-                                    "type": "Expression"
-                                },
-                                "ResolveReference": "true"
-                            },
-                            "body": {
-                                "value": "@json(variables('ManifestBody'))",
-                                "type": "Expression"
-                            }
-                        },
-                        "linkedServiceName": {
-                            "referenceName": "CDMUTIL",
-                            "type": "LinkedServiceReference"
+                          }
                         }
-                    },
-                    {
-                        "name": "SetManifest",
-                        "type": "SetVariable",
-                        "dependsOn": [
-                            {
-                                "activity": "ForEachTable",
-                                "dependencyConditions": [
-                                    "Succeeded"
-                                ]
-                            }
-                        ],
-                        "userProperties": [],
-                        "typeProperties": {
-                            "variableName": "ManifestBody",
-                            "value": {
-                                "value": "{\"manifestName\":\"@{pipeline().parameters.ManifestName}\",\n\"entityDefinitions\":@{variables('ManifestDefinition')}\n}",
-                                "type": "Expression"
-                            }
-                        }
-                    }
-                ],
-              "parameters": {
-                "Tables": {
-                  "type": "object"
-                },
-                "StorageAccount": {"type": "String"},
-                "CDMRootFolder": {
-                  "type": "string"
-                },
-                "ManifestFolder": {
-                  "type": "string"
-                },
-                "FileFormat": {
-                  "type": "string",
-                  "defaultValue": "csv"
-                },
-                "Schema": {
-                  "type": "string",
-                  "defaultValue": "dbo"
-                },
-                "ManifestName": {
-                  "type": "string"
+                      }
+                    ]
+                  }
                 }
-              },
-                "variables": {
-                    "ManifestDefinition": {
-                        "type": "Array"
-                    },
-                    "EntityDefinition": {
-                        "type": "String"
-                    },
-                    "ManifestBody": {
-                        "type": "String"
-                    }
-                },
-                "folder": {
-                    "name": "GenerateCDM"
-                },
-                "annotations": [],
-                "lastPublishTime": "2020-08-14T22:53:42Z"
+              ]
+            }
+          },
+          {
+            "name": "GetManifestDefinition",
+            "type": "AzureFunctionActivity",
+            "dependsOn": [],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
             },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/CDMUTIL')]",
-                "[concat(variables('factoryId'), '/datasets/SqlTable')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/CreateView')]",
-            "type": "Microsoft.DataFactory/factories/pipelines",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "activities": [
-                    {
-                        "name": "ManifestToSynapseView",
-                        "type": "AzureFunctionActivity",
-                        "dependsOn": [],
-                        "policy": {
-                            "timeout": "7.00:00:00",
-                            "retry": 0,
-                            "retryIntervalInSeconds": 30,
-                            "secureOutput": false,
-                            "secureInput": false
-                        },
-                        "userProperties": [],
-                        "typeProperties": {
-                            "functionName": "manifestToSynapseView",
-                            "method": "POST",
-                            "headers": {
-                                "StorageAccount": {
-                                    "value": "@pipeline().parameters.StorageAccount",
-                                    "type": "Expression"
-                                },
-                                "RootFolder": {
-                                    "value": "@{pipeline().parameters.CDMRootFolder}",
-                                    "type": "Expression"
-                                },
-                                "ManifestLocation": {
-                                    "value": "@pipeline().parameters.ManifestLocation",
-                                    "type": "Expression"
-                                },
-                                "ManifestName": {
-                                    "value": "@pipeline().parameters.ManifestName",
-                                    "type": "Expression"
-                                }
-                            },
-                            "body": {}
-                        },
-                        "linkedServiceName": {
-                            "referenceName": "CDMUTIL",
-                            "type": "LinkedServiceReference"
-                        }
-                    }
-                ],
-              "parameters": {
-                "StorageAccount": {"type": "String", "defaultValue": "[parameters('StorageAccount')]"},
-                "CDMRootFolder": {
-                  "type": "string",
-                  "defaultValue": "[concat('/',parameters('Container'), '/', parameters('RootFolder'), '/')]"
-                },
-                "ManifestLocation": {
-                  "type": "string",
-                  "defaultValue": "Tables"
-                },
-                "ManifestName": {
-                  "type": "string",
-                  "defaultValue": "Tables"
-                }
-              },
-                "folder": {
-                    "name": "CreateView"
-                },
-                "annotations": [],
-                "lastPublishTime": "2020-08-13T23:50:53Z"
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/CDMUTIL')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/CSVFile')]",
-            "type": "Microsoft.DataFactory/factories/datasets",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "linkedServiceName": {
-                    "referenceName": "DataLakeGen2Storage",
-                    "type": "LinkedServiceReference"
-                },
-                "parameters": {
-                    "Container": {
-                        "type": "string"
-                    },
-                    "Folder": {
-                        "type": "string"
-                    },
-                    "FileName": {
-                        "type": "string"
-                    }
-                },
-                "folder": {
-                    "name": "ADLS"
-                },
-                "annotations": [],
-                "type": "DelimitedText",
-                "typeProperties": {
-                    "location": {
-                        "type": "AzureBlobFSLocation",
-                        "fileName": {
-                            "value": "@dataset().FileName",
-                            "type": "Expression"
-                        },
-                        "folderPath": {
-                            "value": "@dataset().Folder",
-                            "type": "Expression"
-                        },
-                        "fileSystem": {
-                            "value": "@dataset().Container",
-                            "type": "Expression"
-                        }
-                    },
-                    "columnDelimiter": ",",
-                    "escapeChar": "\"",
-                    "quoteChar": "\""
-                },
-                "schema": []
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/Parquet')]",
-            "type": "Microsoft.DataFactory/factories/datasets",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "linkedServiceName": {
-                    "referenceName": "DataLakeGen2Storage",
-                    "type": "LinkedServiceReference"
-                },
-                "parameters": {
-                    "Container": {
-                        "type": "string"
-                    },
-                    "Folder": {
-                        "type": "string"
-                    },
-                    "FileName": {
-                        "type": "string"
-                    }
-                },
-                "folder": {
-                    "name": "ADLS"
-                },
-                "annotations": [],
-                "type": "Parquet",
-                "typeProperties": {
-                    "location": {
-                        "type": "AzureBlobFSLocation",
-                        "fileName": {
-                            "value": "@dataset().FileName",
-                            "type": "Expression"
-                        },
-                        "folderPath": {
-                            "value": "@dataset().Folder",
-                            "type": "Expression"
-                        },
-                        "fileSystem": {
-                            "value": "@dataset().Container",
-                            "type": "Expression"
-                        }
-                    },
-                    "compressionCodec": "snappy"
-                },
-                "schema": []
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/SqlTable')]",
-            "type": "Microsoft.DataFactory/factories/datasets",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "linkedServiceName": {
-                    "referenceName": "SqlServerDB",
-                    "type": "LinkedServiceReference"
-                },
-                "folder": {
-                    "name": "SQL"
-                },
-                "annotations": [],
-                "type": "SqlServerTable",
-                "schema": [],
-                "typeProperties": {}
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/SqlServerDB')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/CSVOutputFile')]",
-            "type": "Microsoft.DataFactory/factories/datasets",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "linkedServiceName": {
-                    "referenceName": "DataLakeGen2Storage",
-                    "type": "LinkedServiceReference"
-                },
-                "parameters": {
-                    "Container": {
-                        "type": "string"
-                    },
-                    "Folder": {
-                        "type": "string"
-                    }
-                },
-                "folder": {
-                    "name": "ADLS/DataFlow"
-                },
-                "annotations": [],
-                "type": "DelimitedText",
-                "typeProperties": {
-                    "location": {
-                        "type": "AzureBlobFSLocation",
-                        "folderPath": {
-                            "value": "@dataset().Folder",
-                            "type": "Expression"
-                        },
-                        "fileSystem": {
-                            "value": "@dataset().Container",
-                            "type": "Expression"
-                        }
-                    },
-                    "columnDelimiter": ",",
-                    "escapeChar": "\"",
-                    "quoteChar": "\""
-                },
-                "schema": []
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/CSVInputFile')]",
-            "type": "Microsoft.DataFactory/factories/datasets",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "linkedServiceName": {
-                    "referenceName": "DataLakeGen2Storage",
-                    "type": "LinkedServiceReference"
-                },
-                "parameters": {
-                    "Container": {
-                        "type": "string"
-                    },
-                    "Folder": {
-                        "type": "string"
-                    },
-                    "FileName": {
-                        "type": "string"
-                    }
-                },
-                "folder": {
-                    "name": "ADLS/DataFlow"
-                },
-                "annotations": [],
-                "type": "DelimitedText",
-                "typeProperties": {
-                    "location": {
-                        "type": "AzureBlobFSLocation",
-                        "fileName": {
-                            "value": "@dataset().FileName",
-                            "type": "Expression"
-                        },
-                        "folderPath": {
-                            "value": "@dataset().Folder",
-                            "type": "Expression"
-                        },
-                        "fileSystem": {
-                            "value": "@dataset().Container",
-                            "type": "Expression"
-                        }
-                    },
-                    "columnDelimiter": ",",
-                    "escapeChar": "\"",
-                    "quoteChar": "\""
-                },
-                "schema": []
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/ParquetInputFile')]",
-            "type": "Microsoft.DataFactory/factories/datasets",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "linkedServiceName": {
-                    "referenceName": "DataLakeGen2Storage",
-                    "type": "LinkedServiceReference"
-                },
-                "parameters": {
-                    "Container": {
-                        "type": "string"
-                    },
-                    "Folder": {
-                        "type": "string"
-                    },
-                    "FileName": {
-                        "type": "string"
-                    }
-                },
-                "folder": {
-                    "name": "ADLS/DataFlow"
-                },
-                "annotations": [],
-                "type": "Parquet",
-                "typeProperties": {
-                    "location": {
-                        "type": "AzureBlobFSLocation",
-                        "fileName": {
-                            "value": "@dataset().FileName",
-                            "type": "Expression"
-                        },
-                        "folderPath": {
-                            "value": "@dataset().Folder",
-                            "type": "Expression"
-                        },
-                        "fileSystem": {
-                            "value": "@dataset().Container",
-                            "type": "Expression"
-                        }
-                    },
-                    "compressionCodec": "snappy"
-                },
-                "schema": []
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/ParquetOutputFile')]",
-            "type": "Microsoft.DataFactory/factories/datasets",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "linkedServiceName": {
-                    "referenceName": "DataLakeGen2Storage",
-                    "type": "LinkedServiceReference"
-                },
-                "parameters": {
-                    "Container": {
-                        "type": "string"
-                    },
-                    "Folder": {
-                        "type": "string"
-                    }
-                },
-                "folder": {
-                    "name": "ADLS/DataFlow"
-                },
-                "annotations": [],
-                "type": "Parquet",
-                "typeProperties": {
-                    "location": {
-                        "type": "AzureBlobFSLocation",
-                        "folderPath": {
-                            "value": "@dataset().Folder",
-                            "type": "Expression"
-                        },
-                        "fileSystem": {
-                            "value": "@dataset().Container",
-                            "type": "Expression"
-                        }
-                    },
-                    "compressionCodec": "snappy"
-                },
-                "schema": []
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/JsonFile')]",
-            "type": "Microsoft.DataFactory/factories/datasets",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "linkedServiceName": {
-                    "referenceName": "DataLakeGen2Storage",
-                    "type": "LinkedServiceReference"
-                },
-                "parameters": {
-                    "Container": {
-                        "type": "string"
-                    },
-                    "Folder": {
-                        "type": "string"
-                    },
-                    "FileName": {
-                        "type": "string"
-                    }
-                },
-                "folder": {
-                    "name": "ADLS"
-                },
-                "annotations": [],
-                "type": "Json",
-                "typeProperties": {
-                    "location": {
-                        "type": "AzureBlobFSLocation",
-                        "fileName": {
-                            "value": "@dataset().FileName",
-                            "type": "Expression"
-                        },
-                        "folderPath": {
-                            "value": "@dataset().Folder",
-                            "type": "Expression"
-                        },
-                        "fileSystem": {
-                            "value": "@dataset().Container",
-                            "type": "Expression"
-                        }
-                    },
-                    "columnDelimiter": "\t",
-                    "escapeChar": "\\",
-                    "quoteChar": ""
-                },
-                "schema": []
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/PartitionBySize_csv')]",
-            "type": "Microsoft.DataFactory/factories/dataflows",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "folder": {
-                    "name": "Partition"
-                },
-                "type": "MappingDataFlow",
-                "typeProperties": {
-                    "sources": [
-                        {
-                            "dataset": {
-                                "referenceName": "CSVInputFile",
-                                "type": "DatasetReference"
-                            },
-                            "name": "InputFile",
-                            "description": "Load Input file"
-                        }
-                    ],
-                    "sinks": [
-                        {
-                            "dataset": {
-                                "referenceName": "CSVOutputFile",
-                                "type": "DatasetReference"
-                            },
-                            "name": "PartitionFile",
-                            "description": "Export data to output file"
-                        }
-                    ],
-                    "transformations": [],
-                    "script": "parameters{\n\tFileName as string,\n\tPartition as integer\n}\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false) ~> InputFile\nInputFile sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tfilePattern:(replace($FileName, '.', '[n].')),\n\tpartitionBy('roundRobin', ($Partition)),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> PartitionFile"
-                }
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/datasets/CSVInputFile')]",
-                "[concat(variables('factoryId'), '/datasets/CSVOutputFile')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/PartitionBySize_parquet')]",
-            "type": "Microsoft.DataFactory/factories/dataflows",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "folder": {
-                    "name": "Partition"
-                },
-                "type": "MappingDataFlow",
-                "typeProperties": {
-                    "sources": [
-                        {
-                            "dataset": {
-                                "referenceName": "ParquetInputFile",
-                                "type": "DatasetReference"
-                            },
-                            "name": "InputFile",
-                            "description": "Load Input file"
-                        }
-                    ],
-                    "sinks": [
-                        {
-                            "dataset": {
-                                "referenceName": "ParquetOutputFile",
-                                "type": "DatasetReference"
-                            },
-                            "name": "PartitionFile",
-                            "description": "Export data to output file"
-                        }
-                    ],
-                    "transformations": [],
-                    "script": "parameters{\n\tFileName as string,\n\tPartition as integer\n}\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet') ~> InputFile\nInputFile sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tfilePattern:(replace($FileName, '.', '[n].')),\n\tpartitionBy('roundRobin', ($Partition)),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> PartitionFile"
-                }
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/datasets/ParquetInputFile')]",
-                "[concat(variables('factoryId'), '/datasets/ParquetOutputFile')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/DataLakeGen2Storage')]",
-            "type": "Microsoft.DataFactory/factories/linkedServices",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "annotations": [],
-                "type": "AzureBlobFS",
-              "typeProperties": {
-                "url": "[concat('https://',parameters('StorageAccount'), '/')]",
-                "accountKey": {
-                  "type": "SecureString",
-                  "value": "[parameters('DataLakeGen2Storage_accountKey')]"
+            "userProperties": [],
+            "typeProperties": {
+              "functionName": "getManifestDefinition",
+              "method": "GET",
+              "headers": {
+                "TableList": {
+                  "value": "@pipeline().parameters.TableNames",
+                  "type": "Expression"
                 }
               }
             },
-            "dependsOn": []
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/SqlServerDB')]",
-            "type": "Microsoft.DataFactory/factories/linkedServices",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "annotations": [],
-                "type": "SqlServer",
-                "typeProperties": {
-                    "connectionString": "[parameters('SqlServerDB_connectionString')]"
-                }
+            "linkedServiceName": {
+              "referenceName": "CDMUTIL",
+              "type": "LinkedServiceReference"
             }
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/CDMUTIL')]",
-            "type": "Microsoft.DataFactory/factories/linkedServices",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "annotations": [],
-                "type": "AzureFunction",
-                "typeProperties": {
-                    "functionAppUrl": "[parameters('CDMUTIL_functionAppUrl')]",
-                    "functionKey": {
-                        "type": "SecureString",
-                        "value": "[parameters('CDMUTIL_functionKey')]"
+          },
+          {
+            "name": "CreateManifest",
+            "type": "ForEach",
+            "dependsOn": [
+              {
+                "activity": "CopyData",
+                "dependencyConditions": [
+                  "Succeeded"
+                ]
+              }
+            ],
+            "userProperties": [],
+            "typeProperties": {
+              "items": {
+                "value": "@activity('GetManifestDefinition').output.Manifests",
+                "type": "Expression"
+              },
+              "isSequential": true,
+              "activities": [
+                {
+                  "name": "GenerateCDM",
+                  "type": "ExecutePipeline",
+                  "dependsOn": [],
+                  "userProperties": [],
+                  "typeProperties": {
+                    "pipeline": {
+                      "referenceName": "GenerateCDM",
+                      "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                      "Tables": {
+                        "value": "@item().Tables",
+                        "type": "Expression"
+                      },
+
+                      "StorageAccount": {
+                        "value": "@{pipeline().parameters.StorageAccount}",
+                        "type": "Expression"
+                      },
+                      "CDMRootFolder": {
+                        "value": "@{pipeline().parameters.Container}/@{pipeline().parameters.Folder}",
+                        "type": "Expression"
+                      },
+                      "ManifestFolder": {
+                        "value": "@{item().ManifestLocation}",
+                        "type": "Expression"
+                      },
+                      "FileFormat": {
+                        "value": "@pipeline().parameters.FileFormat",
+                        "type": "Expression"
+                      },
+                      "Schema": {
+                        "value": "@pipeline().parameters.Schema",
+                        "type": "Expression"
+                      },
+                      "ManifestName": {
+                        "value": "@{item().ManifestName}",
+                        "type": "Expression"
+                      }
                     }
+                  }
                 }
+              ]
+            }
+          }
+        ],
+        "parameters": {
+          "TableNames": {
+            "type": "string",
+            "defaultValue": "CustTable,CustGroup"
+          },
+          "StorageAccount": {
+            "type": "string",
+            "defaultValue": "[parameters('StorageAccount')]"
+          },
+          "Container": {
+            "type": "string",
+            "defaultValue": "[parameters('Container')]"
+          },
+          "Folder": {
+            "type": "string",
+            "defaultValue": "[parameters('RootFolder')]"
+          },
+          "FileFormat": {
+            "type": "string",
+            "defaultValue": "csv"
+          },
+          "Schema": {
+            "type": "string",
+            "defaultValue": "dbo"
+          },
+          "PartitionSizeMB": {
+            "type": "int",
+            "defaultValue": 200
+          }
+        },
+        "annotations": [],
+        "lastPublishTime": "2020-08-13T23:50:53Z"
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/linkedServices/CDMUTIL')]",
+        "[concat(variables('factoryId'), '/datasets/CSVInputFile')]",
+        "[concat(variables('factoryId'), '/pipelines/GenerateCDM')]",
+        "[concat(variables('factoryId'), '/datasets/SqlTable')]",
+        "[concat(variables('factoryId'), '/datasets/CSVFile')]",
+        "[concat(variables('factoryId'), '/pipelines/PartitionBySize')]",
+        "[concat(variables('factoryId'), '/datasets/Parquet')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/PartitionBySize')]",
+      "type": "Microsoft.DataFactory/factories/pipelines",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "activities": [
+          {
+            "name": "CSVOrParquet",
+            "type": "Switch",
+            "dependsOn": [],
+            "userProperties": [],
+            "typeProperties": {
+              "on": {
+                "value": "@toLower(pipeline().parameters.EXT)",
+                "type": "Expression"
+              },
+              "cases": [
+                {
+                  "value": ".parquet",
+                  "activities": [
+                    {
+                      "name": "PartitionBySize_parquet",
+                      "type": "ExecuteDataFlow",
+                      "dependsOn": [],
+                      "policy": {
+                        "timeout": "7.00:00:00",
+                        "retry": 0,
+                        "retryIntervalInSeconds": 30,
+                        "secureOutput": false,
+                        "secureInput": false
+                      },
+                      "userProperties": [],
+                      "typeProperties": {
+                        "dataflow": {
+                          "referenceName": "PartitionBySize_parquet",
+                          "type": "DataFlowReference",
+                          "parameters": {
+                            "FileName": {
+                              "value": "'@{pipeline().parameters.FileName}'",
+                              "type": "Expression"
+                            },
+                            "Partition": {
+                              "value": "@pipeline().parameters.NoOfPartitions",
+                              "type": "Expression"
+                            }
+                          },
+                          "datasetParameters": {
+                            "InputFile": {
+                              "Container": {
+                                "value": "@pipeline().parameters.Container",
+                                "type": "Expression"
+                              },
+                              "Folder": {
+                                "value": "@pipeline().parameters.SourceFolder",
+                                "type": "Expression"
+                              },
+                              "FileName": {
+                                "value": "@pipeline().parameters.FileName",
+                                "type": "Expression"
+                              }
+                            },
+                            "PartitionFile": {
+                              "Container": {
+                                "value": "@pipeline().parameters.Container",
+                                "type": "Expression"
+                              },
+                              "Folder": {
+                                "value": "@pipeline().parameters.TargetFolder",
+                                "type": "Expression"
+                              }
+                            }
+                          }
+                        },
+                        "staging": {},
+                        "compute": {
+                          "coreCount": 8,
+                          "computeType": "General"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ],
+              "defaultActivities": [
+                {
+                  "name": "PartitionBySize",
+                  "type": "ExecuteDataFlow",
+                  "dependsOn": [],
+                  "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                  },
+                  "userProperties": [],
+                  "typeProperties": {
+                    "dataflow": {
+                      "referenceName": "PartitionBySize_csv",
+                      "type": "DataFlowReference",
+                      "parameters": {
+                        "FileName": {
+                          "value": "'@{pipeline().parameters.FileName}'",
+                          "type": "Expression"
+                        },
+                        "Partition": {
+                          "value": "@pipeline().parameters.NoOfPartitions",
+                          "type": "Expression"
+                        }
+                      },
+                      "datasetParameters": {
+                        "InputFile": {
+                          "Container": {
+                            "value": "@pipeline().parameters.Container",
+                            "type": "Expression"
+                          },
+                          "Folder": {
+                            "value": "@pipeline().parameters.SourceFolder",
+                            "type": "Expression"
+                          },
+                          "FileName": {
+                            "value": "@pipeline().parameters.FileName",
+                            "type": "Expression"
+                          }
+                        },
+                        "PartitionFile": {
+                          "Container": {
+                            "value": "@pipeline().parameters.Container",
+                            "type": "Expression"
+                          },
+                          "Folder": {
+                            "value": "@pipeline().parameters.TargetFolder",
+                            "type": "Expression"
+                          }
+                        }
+                      }
+                    },
+                    "staging": {},
+                    "compute": {
+                      "coreCount": 8,
+                      "computeType": "General"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "parameters": {
+          "Container": {
+            "type": "string",
+            "defaultValue": "dynamicsax"
+          },
+          "SourceFolder": {
+            "type": "string"
+          },
+          "FileName": {
+            "type": "string"
+          },
+          "TargetFolder": {
+            "type": "string"
+          },
+          "NoOfPartitions": {
+            "type": "int"
+          },
+          "EXT": {
+            "type": "string"
+          }
+        },
+        "folder": {
+          "name": "PartitionFile"
+        },
+        "annotations": [],
+        "lastPublishTime": "2020-07-29T19:32:46Z"
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/dataflows/PartitionBySize_csv')]",
+        "[concat(variables('factoryId'), '/dataflows/PartitionBySize_parquet')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/GenerateMetadata')]",
+      "type": "Microsoft.DataFactory/factories/pipelines",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "activities": [
+          {
+            "name": "GetManifestDefinition",
+            "type": "AzureFunctionActivity",
+            "dependsOn": [],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
             },
-            "dependsOn": []
+            "userProperties": [],
+            "typeProperties": {
+              "functionName": "getManifestDefinition",
+              "method": "GET",
+              "headers": {
+                "TableList": {
+                  "value": "@pipeline().parameters.TableNames",
+                  "type": "Expression"
+                }
+              }
+            },
+            "linkedServiceName": {
+              "referenceName": "CDMUTIL",
+              "type": "LinkedServiceReference"
+            }
+          },
+          {
+            "name": "CreateManifest",
+            "type": "ForEach",
+            "dependsOn": [
+              {
+                "activity": "GetManifestDefinition",
+                "dependencyConditions": [
+                  "Succeeded"
+                ]
+              }
+            ],
+            "userProperties": [],
+            "typeProperties": {
+              "items": {
+                "value": "@activity('GetManifestDefinition').output.Manifests",
+                "type": "Expression"
+              },
+              "isSequential": true,
+              "activities": [
+                {
+                  "name": "GenerateCDM",
+                  "type": "ExecutePipeline",
+                  "dependsOn": [],
+                  "userProperties": [],
+                  "typeProperties": {
+                    "pipeline": {
+                      "referenceName": "GenerateCDM",
+                      "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                      "Tables": {
+                        "value": "@item().Tables",
+                        "type": "Expression"
+                      },
+                      "CDMRootFolder": {
+                        "value": "@{pipeline().parameters.Container}/@{pipeline().parameters.Folder}",
+                        "type": "Expression"
+                      },
+                      "ManifestFolder": {
+                        "value": "@{item().ManifestLocation}",
+                        "type": "Expression"
+                      },
+                      "FileFormat": {
+                        "value": "@pipeline().parameters.FileFormat",
+                        "type": "Expression"
+                      },
+                      "Schema": {
+                        "value": "@pipeline().parameters.Schema",
+                        "type": "Expression"
+                      },
+                      "ManifestName": {
+                        "value": "@{item().ManifestName}",
+                        "type": "Expression"
+                      },
+                      "StorageAccount": {
+                        "value": "@pipeline().parameters.StorageAccount",
+                        "type": "Expression"
+                      },
+                      "TenantId": {
+                        "value": "@pipeline().parameters.TenantId",
+                        "type": "Expression"
+                      },
+                      "CreateModelJson": {
+                        "value": "@pipeline().parameters.CreateModelJson",
+                        "type": "Expression"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "parameters": {
+          "TableNames": {
+            "type": "string",
+            "defaultValue": "CustTable,CustGroup"
+          },
+          "Container": {
+            "type": "string",
+            "defaultValue": "parameters('Container')"
+          },
+          "Folder": {
+            "type": "string",
+            "defaultValue": "paramters('RootFolder')"
+          },
+          "FileFormat": {
+            "type": "string",
+            "defaultValue": "csv"
+          },
+          "Schema": {
+            "type": "string",
+            "defaultValue": "dbo"
+          },
+          "PartitionSizeMB": {
+            "type": "int",
+            "defaultValue": 200
+          },
+          "StorageAccount": {
+            "type": "string",
+            "defaultValue": "parameters('StorageAccount')"
+          },
+          "TenantId": {
+            "type": "string",
+            "defaultValue": "parameters('TenantId')"
+          },
+          "CreateModelJson": {
+            "type": "Bool",
+            "defaultValue": "false"
+          }
+        },
+        "folder": {
+          "name": "GenerateCDM"
+        },
+        "annotations": [],
+        "lastPublishTime": "2020-08-13T23:50:53Z"
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/linkedServices/CDMUTIL')]",
+        "[concat(variables('factoryId'), '/pipelines/GenerateCDM')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/CreateView')]",
+      "type": "Microsoft.DataFactory/factories/pipelines",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "activities": [
+          {
+            "name": "ReadManifestCreateDDL",
+            "type": "AzureFunctionActivity",
+            "dependsOn": [],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "functionName": "manifestToSynapseView",
+              "method": "POST",
+              "headers": {
+                "StorageAccount": {
+                  "value": "@pipeline().parameters.StorageAccount",
+                  "type": "Expression"
+                },
+                "RootFolder": {
+                  "value": "@{pipeline().parameters.CDMRootFolder}",
+                  "type": "Expression"
+                },
+                "ManifestLocation": {
+                  "value": "@pipeline().parameters.ManifestLocation",
+                  "type": "Expression"
+                },
+                "ManifestName": {
+                  "value": "@pipeline().parameters.ManifestName",
+                  "type": "Expression"
+                },
+                "TenantId": {
+                  "value": "@pipeline().parameters.TenantId",
+                  "type": "Expression"
+                },
+                "DataSourceName": {
+                  "value": "@pipeline().parameters.DataSourceName",
+                  "type": "Expression"
+                },
+                "DDLType": {
+                  "value": "@pipeline().parameters.DDLType",
+                  "type": "Expression"
+                },
+                "SQLEndPoint": {
+                  "value": "@pipeline().parameters.SQLEndPoint",
+                  "type": "Expression"
+                }
+              }
+            },
+            "linkedServiceName": {
+              "referenceName": "CDMUTIL",
+              "type": "LinkedServiceReference"
+            }
+          }
+        ],
+        "parameters": {
+          "CDMRootFolder": {
+            "type": "string",
+            "defaultValue": "[concat('/',parameters('Container'), '/', parameters('RootFolder'), '/')]"
+          },
+          "ManifestLocation": {
+            "type": "string",
+            "defaultValue": "Tables"
+          },
+          "ManifestName": {
+            "type": "string",
+            "defaultValue": "Tables"
+          },
+          "TenantId": {
+            "type": "string",
+            "defaultValue": "parameters('TenantId')"
+          },
+          "DataSourceName": {
+            "type": "string",
+            "defaultValue": "parameters('DataSourceName')"
+          },
+          "SQLEndPoint": {
+            "type": "string",
+            "defaultValue": "parameters('DataSourceName')"
+          },
+          "DDLType": {
+            "type": "string",
+            "defaultValue": "parameters('DDLType')"
+          },
+          "StorageAccount": {
+            "type": "string",
+            "defaultValue": "parameters('StorageAccount')"
+          }
+        },
+        "folder": {
+          "name": "CreateView"
+        },
+        "annotations": [],
+        "lastPublishTime": "2020-08-13T23:50:53Z"
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/linkedServices/CDMUTIL')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/GenerateCDM')]",
+      "type": "Microsoft.DataFactory/factories/pipelines",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "activities": [
+          {
+            "name": "ForEachTable",
+            "type": "ForEach",
+            "dependsOn": [],
+            "userProperties": [],
+            "typeProperties": {
+              "items": {
+                "value": "@pipeline().parameters.Tables",
+                "type": "Expression"
+              },
+              "isSequential": true,
+              "activities": [
+                {
+                  "name": "LookupColumns",
+                  "type": "Lookup",
+                  "dependsOn": [],
+                  "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                  },
+                  "userProperties": [],
+                  "typeProperties": {
+                    "source": {
+                      "type": "SqlServerSource",
+                      "sqlReaderQuery": {
+                        "value": "select \n\tc.COLUMN_NAME as name, \n\tDATA_TYPE as dataType, \n\tCHARACTER_MAXIMUM_LENGTH as maximumLength, \n\tNUMERIC_PRECISION precision, \n\tNUMERIC_SCALE scale, \n\tCHARACTER_SET_NAME characterSet, \n\tCOLLATION_NAME collation\n\t,CASE WHEN pk.COLUMN_NAME IS NOT NULL THEN 1 ELSE 0  end as IsPrimaryKey\n\tFROM INFORMATION_SCHEMA.COLUMNS c     \n\tLEFT JOIN (\n            SELECT ku.TABLE_CATALOG,ku.TABLE_SCHEMA,ku.TABLE_NAME,ku.COLUMN_NAME\n            FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS tc\n            INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS ku\n                ON tc.CONSTRAINT_TYPE = 'PRIMARY KEY' \n                AND tc.CONSTRAINT_NAME = ku.CONSTRAINT_NAME\n         )   pk \nON  c.TABLE_CATALOG = pk.TABLE_CATALOG\n            AND c.TABLE_SCHEMA = pk.TABLE_SCHEMA\n            AND c.TABLE_NAME = pk.TABLE_NAME\n            AND c.COLUMN_NAME = pk.COLUMN_NAME\nwhere c.TABLE_NAME = '@{item().TableName}'    \nand c.TABLE_SCHEMA = 'dbo'\norder by C.ORDINAL_POSITION ASC",
+                        "type": "Expression"
+                      },
+                      "queryTimeout": "02:00:00",
+                      "partitionOption": "None"
+                    },
+                    "dataset": {
+                      "referenceName": "SqlTable",
+                      "type": "DatasetReference",
+                      "parameters": {}
+                    },
+                    "firstRowOnly": false
+                  }
+                },
+                {
+                  "name": "EntityDefinition",
+                  "type": "SetVariable",
+                  "dependsOn": [
+                    {
+                      "activity": "LookupColumns",
+                      "dependencyConditions": [
+                        "Succeeded"
+                      ]
+                    }
+                  ],
+                  "userProperties": [],
+                  "typeProperties": {
+                    "variableName": "EntityDefinition",
+                    "value": {
+                      "value": "{\"name\":\"@{item().TableName}\", \n\"description\":\"@{item().TableName}\", \n\"dataPartitionLocation\":\"/@{item().TableName}\",\n \"partitionPattern\":\"*.@{pipeline().parameters.FileFormat}\",\n \"attributes\":@{activity('LookupColumns').output.value}\n}",
+                      "type": "Expression"
+                    }
+                  }
+                },
+                {
+                  "name": "EntityDefinitions",
+                  "type": "AppendVariable",
+                  "dependsOn": [
+                    {
+                      "activity": "EntityDefinition",
+                      "dependencyConditions": [
+                        "Succeeded"
+                      ]
+                    }
+                  ],
+                  "userProperties": [],
+                  "typeProperties": {
+                    "variableName": "ManifestDefinition",
+                    "value": {
+                      "value": "@json(variables('EntityDefinition'))",
+                      "type": "Expression"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "createEntity",
+            "type": "AzureFunctionActivity",
+            "dependsOn": [
+              {
+                "activity": "SetManifest",
+                "dependencyConditions": [
+                  "Succeeded"
+                ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "functionName": "createManifest",
+              "method": "POST",
+              "headers": {
+                "StorageAccount": {
+                  "value": "@pipeline().parameters.StorageAccount",
+                  "type": "Expression"
+                },
+                "RootFolder": {
+                  "value": "@{pipeline().parameters.CDMRootFolder}",
+                  "type": "Expression"
+                },
+                "LocalFolder": {
+                  "value": "@{pipeline().parameters.ManifestFolder}",
+                  "type": "Expression"
+                },
+                "CreateModelJson": {
+                  "value": "@pipeline().parameters.CreateModelJson",
+                  "type": "Expression"
+                },
+                "TenantId": {
+                  "value": "@pipeline().parameters.TenantId",
+                  "type": "Expression"
+                }
+              },
+              "body": {
+                "value": "@json(variables('ManifestBody'))",
+                "type": "Expression"
+              }
+            },
+            "linkedServiceName": {
+              "referenceName": "CDMUTIL",
+              "type": "LinkedServiceReference"
+            }
+          },
+          {
+            "name": "SetManifest",
+            "type": "SetVariable",
+            "dependsOn": [
+              {
+                "activity": "ForEachTable",
+                "dependencyConditions": [
+                  "Succeeded"
+                ]
+              }
+            ],
+            "userProperties": [],
+            "typeProperties": {
+              "variableName": "ManifestBody",
+              "value": {
+                "value": "{\"manifestName\":\"@{pipeline().parameters.ManifestName}\",\n\"entityDefinitions\":@{variables('ManifestDefinition')}\n}",
+                "type": "Expression"
+              }
+            }
+          }
+        ],
+        "parameters": {
+          "Tables": {
+            "type": "object"
+          },
+          "StorageAccount": {"type": "String"},
+          "CDMRootFolder": {
+            "type": "string"
+          },
+          "ManifestFolder": {
+            "type": "string"
+          },
+          "FileFormat": {
+            "type": "string",
+            "defaultValue": "csv"
+          },
+          "Schema": {
+            "type": "string",
+            "defaultValue": "dbo"
+          },
+          "ManifestName": {
+            "type": "string"
+          },
+          "TenantId": {
+            "type": "string"
+          },
+          "CreateModelJson": {
+            "type": "string",
+            "defaultValue": "false"
+          }
+        },
+        "variables": {
+          "ManifestDefinition": {
+            "type": "Array"
+          },
+          "EntityDefinition": {
+            "type": "String"
+          },
+          "ManifestBody": {
+            "type": "String"
+          }
+        },
+        "folder": {
+          "name": "GenerateCDM"
+        },
+        "annotations": [],
+        "lastPublishTime": "2020-08-14T22:53:42Z"
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/linkedServices/CDMUTIL')]",
+        "[concat(variables('factoryId'), '/datasets/SqlTable')]"
+      ]
+    },
+
+    {
+      "name": "[concat(parameters('factoryName'), '/CSVFile')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "DataLakeGen2Storage",
+          "type": "LinkedServiceReference"
+        },
+        "parameters": {
+          "Container": {
+            "type": "string"
+          },
+          "Folder": {
+            "type": "string"
+          },
+          "FileName": {
+            "type": "string"
+          }
+        },
+        "folder": {
+          "name": "ADLS"
+        },
+        "annotations": [],
+        "type": "DelimitedText",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobFSLocation",
+            "fileName": {
+              "value": "@dataset().FileName",
+              "type": "Expression"
+            },
+            "folderPath": {
+              "value": "@dataset().Folder",
+              "type": "Expression"
+            },
+            "fileSystem": {
+              "value": "@dataset().Container",
+              "type": "Expression"
+            }
+          },
+          "columnDelimiter": ",",
+          "escapeChar": "\"",
+          "quoteChar": "\""
+        },
+        "schema": []
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/CSVInputFile')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "DataLakeGen2Storage",
+          "type": "LinkedServiceReference"
+        },
+        "parameters": {
+          "Container": {
+            "type": "string"
+          },
+          "Folder": {
+            "type": "string"
+          },
+          "FileName": {
+            "type": "string"
+          }
+        },
+        "folder": {
+          "name": "ADLS/DataFlow"
+        },
+        "annotations": [],
+        "type": "DelimitedText",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobFSLocation",
+            "fileName": {
+              "value": "@dataset().FileName",
+              "type": "Expression"
+            },
+            "folderPath": {
+              "value": "@dataset().Folder",
+              "type": "Expression"
+            },
+            "fileSystem": {
+              "value": "@dataset().Container",
+              "type": "Expression"
+            }
+          },
+          "columnDelimiter": ",",
+          "escapeChar": "\"",
+          "quoteChar": "\""
+        },
+        "schema": []
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/CSVOutputFile')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "DataLakeGen2Storage",
+          "type": "LinkedServiceReference"
+        },
+        "parameters": {
+          "Container": {
+            "type": "string"
+          },
+          "Folder": {
+            "type": "string"
+          }
+        },
+        "folder": {
+          "name": "ADLS/DataFlow"
+        },
+        "annotations": [],
+        "type": "DelimitedText",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobFSLocation",
+            "folderPath": {
+              "value": "@dataset().Folder",
+              "type": "Expression"
+            },
+            "fileSystem": {
+              "value": "@dataset().Container",
+              "type": "Expression"
+            }
+          },
+          "columnDelimiter": ",",
+          "escapeChar": "\"",
+          "quoteChar": "\""
+        },
+        "schema": []
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/JsonFile')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "DataLakeGen2Storage",
+          "type": "LinkedServiceReference"
+        },
+        "parameters": {
+          "Container": {
+            "type": "string"
+          },
+          "Folder": {
+            "type": "string"
+          },
+          "FileName": {
+            "type": "string"
+          }
+        },
+        "folder": {
+          "name": "ADLS"
+        },
+        "annotations": [],
+        "type": "Json",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobFSLocation",
+            "fileName": {
+              "value": "@dataset().FileName",
+              "type": "Expression"
+            },
+            "folderPath": {
+              "value": "@dataset().Folder",
+              "type": "Expression"
+            },
+            "fileSystem": {
+              "value": "@dataset().Container",
+              "type": "Expression"
+            }
+          },
+          "columnDelimiter": "\t",
+          "escapeChar": "\\",
+          "quoteChar": ""
+        },
+        "schema": []
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/Parquet')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "DataLakeGen2Storage",
+          "type": "LinkedServiceReference"
+        },
+        "parameters": {
+          "Container": {
+            "type": "string"
+          },
+          "Folder": {
+            "type": "string"
+          },
+          "FileName": {
+            "type": "string"
+          }
+        },
+        "folder": {
+          "name": "ADLS"
+        },
+        "annotations": [],
+        "type": "Parquet",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobFSLocation",
+            "fileName": {
+              "value": "@dataset().FileName",
+              "type": "Expression"
+            },
+            "folderPath": {
+              "value": "@dataset().Folder",
+              "type": "Expression"
+            },
+            "fileSystem": {
+              "value": "@dataset().Container",
+              "type": "Expression"
+            }
+          },
+          "compressionCodec": "snappy"
+        },
+        "schema": []
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/ParquetInputFile')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "DataLakeGen2Storage",
+          "type": "LinkedServiceReference"
+        },
+        "parameters": {
+          "Container": {
+            "type": "string"
+          },
+          "Folder": {
+            "type": "string"
+          },
+          "FileName": {
+            "type": "string"
+          }
+        },
+        "folder": {
+          "name": "ADLS/DataFlow"
+        },
+        "annotations": [],
+        "type": "Parquet",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobFSLocation",
+            "fileName": {
+              "value": "@dataset().FileName",
+              "type": "Expression"
+            },
+            "folderPath": {
+              "value": "@dataset().Folder",
+              "type": "Expression"
+            },
+            "fileSystem": {
+              "value": "@dataset().Container",
+              "type": "Expression"
+            }
+          },
+          "compressionCodec": "snappy"
+        },
+        "schema": []
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/ParquetOutputFile')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "DataLakeGen2Storage",
+          "type": "LinkedServiceReference"
+        },
+        "parameters": {
+          "Container": {
+            "type": "string"
+          },
+          "Folder": {
+            "type": "string"
+          }
+        },
+        "folder": {
+          "name": "ADLS/DataFlow"
+        },
+        "annotations": [],
+        "type": "Parquet",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobFSLocation",
+            "folderPath": {
+              "value": "@dataset().Folder",
+              "type": "Expression"
+            },
+            "fileSystem": {
+              "value": "@dataset().Container",
+              "type": "Expression"
+            }
+          },
+          "compressionCodec": "snappy"
+        },
+        "schema": []
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/SqlTable')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "SqlServerDB",
+          "type": "LinkedServiceReference"
+        },
+        "folder": {
+          "name": "SQL"
+        },
+        "annotations": [],
+        "type": "SqlServerTable",
+        "schema": [],
+        "typeProperties": {}
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/linkedServices/SqlServerDB')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/modeljson')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "DataLakeGen2Storage",
+          "type": "LinkedServiceReference"
+        },
+        "parameters": {
+          "Container": {
+            "type": "string"
+          },
+          "Folder": {
+            "type": "string"
+          }
+        },
+        "folder": {
+          "name": "ADLS"
+        },
+        "annotations": [],
+        "type": "DelimitedText",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobFSLocation",
+            "fileName": "model.json",
+            "folderPath": {
+              "value": "@dataset().Folder",
+              "type": "Expression"
+            },
+            "fileSystem": {
+              "value": "@dataset().Container",
+              "type": "Expression"
+            }
+          },
+          "columnDelimiter": "\t",
+          "escapeChar": "\\",
+          "quoteChar": ""
+        },
+        "schema": []
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/linkedServices/DataLakeGen2Storage')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/CDMUTIL')]",
+      "type": "Microsoft.DataFactory/factories/linkedServices",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "annotations": [],
+        "type": "AzureFunction",
+        "typeProperties": {
+          "functionAppUrl": "[parameters('CDMUTIL_functionAppUrl')]",
+          "functionKey": {
+            "type": "SecureString",
+            "value": "[parameters('CDMUTIL_functionKey')]"
+          }
         }
-    ]
+      },
+      "dependsOn": []
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/DataLakeGen2Storage')]",
+      "type": "Microsoft.DataFactory/factories/linkedServices",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "annotations": [],
+        "type": "AzureBlobFS",
+        "typeProperties": {
+          "url": "[concat('https://',parameters('StorageAccount'), '/')]",
+          "accountKey": {
+            "type": "SecureString",
+            "value": "[parameters('DataLakeGen2Storage_accountKey')]"     
+            }
+          }
+        },
+      "dependsOn": []
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/SqlServerDB')]",
+      "type": "Microsoft.DataFactory/factories/linkedServices",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "annotations": [],
+        "type": "SqlServer",
+        "typeProperties": {
+          "connectionString": "[parameters('SqlServerDB_connectionString')]"
+        }
+      }
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/PartitionBySize_csv')]",
+      "type": "Microsoft.DataFactory/factories/dataflows",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "folder": {
+          "name": "Partition"
+        },
+        "type": "MappingDataFlow",
+        "typeProperties": {
+          "sources": [
+            {
+              "dataset": {
+                "referenceName": "CSVInputFile",
+                "type": "DatasetReference"
+              },
+              "name": "InputFile",
+              "description": "Load Input file"
+            }
+          ],
+          "sinks": [
+            {
+              "dataset": {
+                "referenceName": "CSVOutputFile",
+                "type": "DatasetReference"
+              },
+              "name": "PartitionFile",
+              "description": "Export data to output file"
+            }
+          ],
+          "transformations": [],
+          "script": "parameters{\n\tFileName as string,\n\tPartition as integer\n}\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> InputFile\nInputFile sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tfilePattern:(replace($FileName, '.', '[n].')),\n\tpartitionBy('roundRobin', ($Partition)),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tquoteAll: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> PartitionFile"
+        }
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/datasets/CSVInputFile')]",
+        "[concat(variables('factoryId'), '/datasets/CSVOutputFile')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/PartitionBySize_parquet')]",
+      "type": "Microsoft.DataFactory/factories/dataflows",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "folder": {
+          "name": "Partition"
+        },
+        "type": "MappingDataFlow",
+        "typeProperties": {
+          "sources": [
+            {
+              "dataset": {
+                "referenceName": "ParquetInputFile",
+                "type": "DatasetReference"
+              },
+              "name": "InputFile",
+              "description": "Load Input file"
+            }
+          ],
+          "sinks": [
+            {
+              "dataset": {
+                "referenceName": "ParquetOutputFile",
+                "type": "DatasetReference"
+              },
+              "name": "PartitionFile",
+              "description": "Export data to output file"
+            }
+          ],
+          "transformations": [],
+          "script": "parameters{\n\tFileName as string,\n\tPartition as integer\n}\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> InputFile\nInputFile sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tfilePattern:(replace($FileName, '.', '[n].')),\n\tpartitionBy('roundRobin', ($Partition)),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> PartitionFile"
+        }
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/datasets/ParquetInputFile')]",
+        "[concat(variables('factoryId'), '/datasets/ParquetOutputFile')]"
+      ]
+    }
+  ]
 }

@@ -10,9 +10,11 @@ namespace CDMUtil.Manifest
     public class MSITokenProvider : TokenProvider
     {
         string Resource;
-        public MSITokenProvider(string resource)
+        string Tenant;
+        public MSITokenProvider(string resource, string tenant)
         {
             Resource = resource;
+            Tenant = tenant;
         }
         public string GetToken()
             {
@@ -22,7 +24,7 @@ namespace CDMUtil.Manifest
             private async Task<string> GetAccessTokenAsync()
             {
                 var tokenProvider = new AzureServiceTokenProvider();
-                string token = await tokenProvider.GetAccessTokenAsync(Resource);
+                string token = await tokenProvider.GetAccessTokenAsync(Resource, Tenant);
 
                 return token;
             }
