@@ -6,14 +6,13 @@ namespace Microsoft.CommonDataModel.ObjectModel.Storage
     using Microsoft.CommonDataModel.ObjectModel.Utilities;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    using Newtonsoft.Json.Serialization;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
     using System.Threading.Tasks;
 
-    public class LocalAdapter : StorageAdapter
+    public class LocalAdapter : StorageAdapterBase
     {
         /// <summary>
         /// The root path of the schema documents.
@@ -25,8 +24,6 @@ namespace Microsoft.CommonDataModel.ObjectModel.Storage
         /// </summary>
         internal string FullRoot { get; private set; }
 
-        /// <inheritdoc />
-        public string LocationHint { get; set; }
 
         internal const string Type = "local";
 
@@ -53,13 +50,13 @@ namespace Microsoft.CommonDataModel.ObjectModel.Storage
         }
 
         /// <inheritdoc />
-        public bool CanRead()
+        public override bool CanRead()
         {
             return true;
         }
 
         /// <inheritdoc />
-        public async Task<string> ReadAsync(string corpusPath)
+        public override async Task<string> ReadAsync(string corpusPath)
         {
             string path = this.CreateAdapterPath(corpusPath);
             byte[] result;
@@ -74,13 +71,13 @@ namespace Microsoft.CommonDataModel.ObjectModel.Storage
         }
 
         /// <inheritdoc />
-        public bool CanWrite()
+        public override bool CanWrite()
         {
             return true;
         }
 
         /// <inheritdoc />
-        public async Task WriteAsync(string corpusPath, string data)
+        public override async Task WriteAsync(string corpusPath, string data)
         {
             // ensure that the path exists before trying to write the file
             string path = this.CreateAdapterPath(corpusPath);
@@ -88,7 +85,7 @@ namespace Microsoft.CommonDataModel.ObjectModel.Storage
             {
                 throw new Exception($"Could not create folder for document '{path}'");
             }
-            
+
             using (FileStream stream = File.Open(path, FileMode.Create))
             {
                 byte[] bytes = Encoding.UTF8.GetBytes(data);
@@ -97,12 +94,15 @@ namespace Microsoft.CommonDataModel.ObjectModel.Storage
         }
 
         /// <inheritdoc />
-        public string CreateAdapterPath(string corpusPath)
+        public override string CreateAdapterPath(string corpusPath)
         {
-            if (corpusPath.Contains(":"))
+            var pathTuple = StorageUtils.SplitNamespacePath(corpusPath);
+            if (pathTuple == null)
             {
-                corpusPath = StringUtils.Slice(corpusPath, corpusPath.IndexOf(":") + 1);
+                return null;
             }
+
+            corpusPath = pathTuple.Item2;
 
             if (corpusPath.StartsWith("/"))
             {
@@ -118,15 +118,10 @@ namespace Microsoft.CommonDataModel.ObjectModel.Storage
         }
 
         /// <inheritdoc />
-        public void ClearCache()
+        public override string CreateCorpusPath(string adapterPath)
         {
-            return;
-        }
-
-        /// <inheritdoc />
-        public string CreateCorpusPath(string adapterPath)
-        {
-            if (string.IsNullOrEmpty(adapterPath) || adapterPath.StartsWith("http")) {
+            if (string.IsNullOrEmpty(adapterPath) || adapterPath.StartsWith("http"))
+            {
                 return null;
             }
 
@@ -140,12 +135,12 @@ namespace Microsoft.CommonDataModel.ObjectModel.Storage
             {
                 return formattedAdapterPath.Slice(formattedRoot.Length).Replace("\\", "/");
             }
-            
+
             return null; // signal that we didn't recognize path as one for this adapter
         }
 
         /// <inheritdoc />
-        public Task<DateTimeOffset?> ComputeLastModifiedTimeAsync(string corpusPath)
+        public override Task<DateTimeOffset?> ComputeLastModifiedTimeAsync(string corpusPath)
         {
             var adapterPath = this.CreateAdapterPath(corpusPath);
             FileInfo fileInfo = new FileInfo(adapterPath);
@@ -156,7 +151,7 @@ namespace Microsoft.CommonDataModel.ObjectModel.Storage
         }
 
         /// <inheritdoc />
-        public async Task<List<string>> FetchAllFilesAsync(string folderCorpusPath)
+        public override async Task<List<string>> FetchAllFilesAsync(string folderCorpusPath)
         {
             // Returns a list corpus paths to all files and folders at or under the
             // provided corpus path to a folder
@@ -217,7 +212,7 @@ namespace Microsoft.CommonDataModel.ObjectModel.Storage
         }
 
         /// <inheritdoc />
-        public string FetchConfig()
+        public override string FetchConfig()
         {
             var resultConfig = new JObject
             {
@@ -240,7 +235,7 @@ namespace Microsoft.CommonDataModel.ObjectModel.Storage
         }
 
         /// <inheritdoc />
-        public void UpdateConfig(string config)
+        public override void UpdateConfig(string config)
         {
             if (config == null)
             {

@@ -11,6 +11,7 @@ using CDMUtil.Context.ADLS;
 using CDMUtil.Context.ObjectDefinitions;
 using CDMUtil.Manifest;
 using System;
+using CDMUtil.SQL;
 
 namespace CDMUtil
 {
@@ -38,37 +39,75 @@ namespace CDMUtil
           ILogger log, ExecutionContext context)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
+            
             //get data from 
+            string tenantId         = req.Headers["TenantId"];
+            string storageAccount   = req.Headers["StorageAccount"];
+            string rootFolder       = req.Headers["RootFolder"];
+            string localFolder      = req.Headers["ManifestLocation"];
+            string manifestName     = req.Headers["ManifestName"];
+            string DDLType          = req.Headers["DDLType"];
+            string dataSourceName   = req.Headers["DataSourceName"];
+            string connectionString = req.Headers["SQLEndpoint"];
+
+           
+            AdlsContext adlsContext = new AdlsContext() {
+                StorageAccount = storageAccount,
+                FileSytemName = rootFolder,
+                MSIAuth = true,
+                TenantId = tenantId
+            };
+
+            // Read Manifest metadata
+            log.Log(LogLevel.Information, "Reading Manifest metadata");
+            List<SQLMetadata> metadataList = new List<SQLMetadata>();
+            await ManifestHandler.manifestToSQLMetadata(adlsContext, manifestName, localFolder, metadataList);
+           
+            // convert metadata to DDL
+            log.Log(LogLevel.Information, "Converting metadata to DDL");
+            var statementsList = await ManifestHandler.SQLMetadataToDDL(metadataList, DDLType, dataSourceName);
+
+            // Execute DDL
+            log.Log(LogLevel.Information, "Converting metadata to DDL");
+            SQLHandler sQLHandler = new SQLHandler(connectionString, tenantId);
+            var statements = new SQLStatements { Statements = statementsList };
+            sQLHandler.executeStatements(statements);
+                             
+            return new OkObjectResult(JsonConvert.SerializeObject(statements));
+        }
+        [FunctionName("manifestToSQLDDL")]
+        public static async Task<IActionResult> manifestToSQLDDL(
+          [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
+          ILogger log, ExecutionContext context)
+        {
+            log.LogInformation("C# HTTP trigger function processed a request.");
+            //get data from 
+            string tenantId = req.Headers["TenantId"];
             string storageAccount = req.Headers["StorageAccount"];
             string rootFolder = req.Headers["RootFolder"];
             string localFolder = req.Headers["ManifestLocation"];
             string manifestName = req.Headers["ManifestName"];
+            string dataSourceName = req.Headers["DataSourceName"];
+            string DDLType = req.Headers["DDLType"];
 
-            var MSIAuth = System.Convert.ToBoolean(System.Environment.GetEnvironmentVariable("MSIAuth"));
-            var TenantId = System.Environment.GetEnvironmentVariable("TenantId");
-            var AppId = System.Environment.GetEnvironmentVariable("AppId"); ;
-            var AppSecret = System.Environment.GetEnvironmentVariable("AppSecret");
-            var SharedKey = System.Environment.GetEnvironmentVariable("SharedKey");
-            bool createDS = System.Convert.ToBoolean(System.Environment.GetEnvironmentVariable("CreateDS"));
-            var SAS = System.Environment.GetEnvironmentVariable("SAS");
-            var pass = System.Environment.GetEnvironmentVariable("Password");
-            
-            AdlsContext adlsContext = new AdlsContext() {
+            AdlsContext adlsContext = new AdlsContext()
+            {
                 StorageAccount = storageAccount,
                 FileSytemName = rootFolder,
-                MSIAuth = MSIAuth,
-                TenantId = TenantId,
-                ClientAppId = AppId,
-                ClientSecret = AppSecret,
-                SharedKey = SharedKey
+                MSIAuth = true,
+                TenantId = tenantId
             };
-            
-            log.Log(LogLevel.Information, "adlsContext");
 
-            var statements = await ManifestHandler.CDMToSQL(adlsContext, storageAccount, rootFolder, localFolder, manifestName, SAS, pass, createDS);
-                     
+            // Read Manifest metadata
+            log.Log(LogLevel.Information, "Reading Manifest metadata");
+            List<SQLMetadata> metadataList = new List<SQLMetadata>();
+            await ManifestHandler.manifestToSQLMetadata(adlsContext, manifestName, localFolder, metadataList);
 
-            return new OkObjectResult(JsonConvert.SerializeObject(statements));
+            // convert metadata to DDL
+            log.Log(LogLevel.Information, "Converting metadata to DDL");
+            var statementsList = await ManifestHandler.SQLMetadataToDDL(metadataList, DDLType, dataSourceName);
+
+            return new OkObjectResult(JsonConvert.SerializeObject(statementsList));
         }
 
         [FunctionName("createManifest")]
@@ -78,30 +117,22 @@ namespace CDMUtil
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
             //get data from 
-            string storageAccount = req.Headers["StorageAccount"];
-            string rootFolder = req.Headers["RootFolder"];
-            string localFolder = req.Headers["LocalFolder"];
-            string resolveReference = req.Headers["ResolveReference"];
-            string createModelJson = req.Headers["CreateModelJson"];
+            string tenantId         = req.Headers["TenantId"];
+            string storageAccount   = req.Headers["StorageAccount"];
+            string rootFolder       = req.Headers["RootFolder"];
+            string localFolder      = req.Headers["LocalFolder"];
+            string createModelJson  = req.Headers["CreateModelJson"];
 
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            EntityList entityList = JsonConvert.DeserializeObject<EntityList>(requestBody);
+            string requestBody      = await new StreamReader(req.Body).ReadToEndAsync();
+            EntityList entityList   = JsonConvert.DeserializeObject<EntityList>(requestBody);
 
-            var TenantId = System.Environment.GetEnvironmentVariable("TenantId");
-            var AppId = System.Environment.GetEnvironmentVariable("AppId"); ;
-            var AppSecret = System.Environment.GetEnvironmentVariable("AppSecret");
-            var MSIAuth = System.Convert.ToBoolean(System.Environment.GetEnvironmentVariable("MSIAuth"));
-            var SharedKey = System.Environment.GetEnvironmentVariable("SharedKey");
-
-            AdlsContext adlsContext = new AdlsContext() {
-                                                            StorageAccount = storageAccount,
-                                                            FileSytemName = rootFolder,
-                                                            MSIAuth = MSIAuth,
-                                                            TenantId = TenantId,
-                                                            ClientAppId = AppId,
-                                                            ClientSecret = AppSecret,
-                                                            SharedKey = SharedKey
-                                                        };
+            AdlsContext adlsContext = new AdlsContext() 
+            {
+                StorageAccount = storageAccount,
+                FileSytemName = rootFolder,
+                MSIAuth = true,
+                TenantId = tenantId
+            };
 
             ManifestHandler manifestHandler = new ManifestHandler(adlsContext, localFolder);
             bool createModel = false;
@@ -110,14 +141,7 @@ namespace CDMUtil
                 createModel = true;
             }
 
-            bool resolveRef = false;
-            if (resolveReference != null && resolveReference.Equals("true",StringComparison.OrdinalIgnoreCase))
-            {
-                resolveRef = true;  
-            }
-            
-            bool ManifestCreated = await manifestHandler.createManifest(entityList, resolveRef, createModel);
-
+            bool ManifestCreated = await manifestHandler.createManifest(entityList, createModel);
 
             //Folder structure Tables/AccountReceivable/Group
             var subFolders = localFolder.Split('/');

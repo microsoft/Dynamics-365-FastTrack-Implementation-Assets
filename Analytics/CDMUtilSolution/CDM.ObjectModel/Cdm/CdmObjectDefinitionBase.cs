@@ -3,10 +3,8 @@
 
 namespace Microsoft.CommonDataModel.ObjectModel.Cdm
 {
-    using Microsoft.CommonDataModel.ObjectModel.Enums;
     using Microsoft.CommonDataModel.ObjectModel.ResolvedModel;
     using Microsoft.CommonDataModel.ObjectModel.Utilities;
-    using System.Collections.Generic;
 
     public abstract class CdmObjectDefinitionBase : CdmObjectBase, CdmObjectDefinition
     {
@@ -62,7 +60,7 @@ namespace Microsoft.CommonDataModel.ObjectModel.Cdm
             return (dynamic)this;
         }
 
-                internal bool VisitDef(string pathFrom, VisitCallback preChildren, VisitCallback postChildren)
+        internal bool VisitDef(string pathFrom, VisitCallback preChildren, VisitCallback postChildren)
         {
             if (this.ExhibitsTraits != null)
                 if (this.ExhibitsTraits.VisitList(pathFrom + "/exhibitsTraits/", preChildren, postChildren))

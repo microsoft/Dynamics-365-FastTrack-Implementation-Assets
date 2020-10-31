@@ -5,7 +5,6 @@ namespace Microsoft.CommonDataModel.ObjectModel.Cdm
 {
     using Microsoft.CommonDataModel.ObjectModel.Utilities;
     using System;
-    using System.Collections.Generic;
 
     public interface CdmObjectReference : CdmObject
     {
@@ -30,6 +29,6 @@ namespace Microsoft.CommonDataModel.ObjectModel.Cdm
         bool SimpleNamedReference { get; set; }
 
         [Obsolete("Only for internal use.")]
-        CdmObjectDefinition FetchResolvedReference(ResolveOptions resOpt = null);
+        CdmObject FetchResolvedReference(ResolveOptions resOpt = null);
     }
 }

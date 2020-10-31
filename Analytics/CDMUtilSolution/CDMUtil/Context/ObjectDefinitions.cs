@@ -65,6 +65,12 @@ namespace CDMUtil.Context.ObjectDefinitions
         public bool Created;
         public string Detail;
     }
+    public class SQLMetadata
+    {
+        public string entityName;
+        public string columnDefinition;
+        public string dataLocation;
+    }
     public class SQLStatements
     {
         public List<SQLStatement> Statements;

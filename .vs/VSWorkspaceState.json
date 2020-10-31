@@ -3,6 +3,7 @@
     "",
     "\\Analytics",
     "\\Analytics\\AzureDataFactoryARMTemplates",
+    "\\Analytics\\AzureDataFactoryARMTemplates\\SQLToADLSFullExport",
     "\\Analytics\\CDMUtilSolution",
     "\\Analytics\\CDMUtilSolution\\CDMUtil",
     "\\Analytics\\CDMUtilSolution\\CDMUtil\\Authentication",

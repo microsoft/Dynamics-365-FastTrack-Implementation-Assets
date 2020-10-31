@@ -14,28 +14,38 @@ namespace ManifestToSQLView
         static void Main(string[] args)
         {
             //get data from 
-            string storageAccount= ConfigurationManager.AppSettings["StorageAccount"];
-            string rootFolder   = ConfigurationManager.AppSettings["RootFolder"];
-            string localFolder  = ConfigurationManager.AppSettings["ManifestLocation"];
-            string manifestName = ConfigurationManager.AppSettings["ManifestName"];
-            var TenantId            = ConfigurationManager.AppSettings["TenantId"];
-            var AppId               = ConfigurationManager.AppSettings["AppId"] ;
-            var AppSecret           = ConfigurationManager.AppSettings["AppSecret"];
-            bool createDS           = System.Convert.ToBoolean(ConfigurationManager.AppSettings["CreateDS"]);
-            var SAS                 = ConfigurationManager.AppSettings["SAS"];
-            var pass                = ConfigurationManager.AppSettings["Password"];
-            
+            string tenantId         = "979fd422-22c4-4a36-bea6-1cf87b6502dd";
+            string storageAccount   = "ftanalyticsd365fo.dfs.core.windows.net";
+            string rootFolder       = "/dynamics365-financeandoperations/analytics.sandbox.operations.dynamics.com/";
+            string localFolder      = "Tables/Finance/Ledger/Main";
+            string manifestName     = "Main";
+          
+            var connectionString    = "Server=ftsasynapseworkspace-ondemand.sql.azuresynapse.net;Database=AnalyticsAXDB";
+            string dataSourceName   = "sqlOnDemandDS";
+
+
             AdlsContext adlsContext = new AdlsContext()
             {
                 StorageAccount = storageAccount,
                 FileSytemName = rootFolder,
-                TenantId = TenantId,
-                ClientAppId = AppId,
-                ClientSecret = AppSecret
+                MSIAuth = true,
+                TenantId = tenantId
             };
 
-            var statements =  ManifestHandler.CDMToSQL(adlsContext, storageAccount, rootFolder, localFolder, manifestName, SAS, pass, createDS);
+            // Read Manifest metadata
+            Console.WriteLine("Reading Manifest metadata");
+            List<SQLMetadata> metadataList = new List<SQLMetadata>();
+            ManifestHandler.manifestToSQLMetadata(adlsContext, manifestName, localFolder, metadataList);
 
+            // convert metadata to DDL
+            Console.WriteLine("Converting metadata to DDL");
+            var statementsList =  ManifestHandler.SQLMetadataToDDL(metadataList, "SynapseView", dataSourceName);
+
+            // Execute DDL
+            Console.WriteLine("Executing DDL");
+            SQLHandler sQLHandler = new SQLHandler(connectionString, tenantId);
+            var statements = new SQLStatements { Statements = statementsList.Result};
+            sQLHandler.executeStatements(statements);
 
             Console.WriteLine(JsonConvert.SerializeObject(statements));
 

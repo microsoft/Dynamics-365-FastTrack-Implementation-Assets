@@ -61,6 +61,24 @@ namespace Microsoft.CommonDataModel.ObjectModel.Utilities
             { "is.constrained", new List<string> { "maximumValue", "minimumValue", "maximumLength" } }
         };
 
+        private IList<string> DataFormatTraitNames = new List<string>()
+        {
+            "is.dataFormat.integer",
+            "is.dataFormat.small",
+            "is.dataFormat.big",
+            "is.dataFormat.floatingPoint",
+            "is.dataFormat.guid",
+            "is.dataFormat.character",
+            "is.dataFormat.array",
+            "is.dataFormat.byte",
+            "is.dataFormat.time",
+            "is.dataFormat.date",
+            "is.dataFormat.timeOffset",
+            "is.dataFormat.boolean",
+            "is.dataFormat.numeric.shaped",
+            "means.content.text.JSON"
+        };
+
         internal TraitToPropertyMap(CdmObject host)
         {
             this.Host = host;
@@ -148,7 +166,7 @@ namespace Microsoft.CommonDataModel.ObjectModel.Utilities
                 case "isPrimaryKey":
                     if (this.Host is CdmTypeAttributeDefinition)
                     {
-                        CdmTypeAttributeDefinition typeAttribute = (CdmTypeAttributeDefinition) this.Host;
+                        CdmTypeAttributeDefinition typeAttribute = (CdmTypeAttributeDefinition)this.Host;
                         if (!onlyFromProperty && typeAttribute.Purpose != null && typeAttribute.Purpose.NamedReference == "identifiedBy")
                         {
                             return true;
@@ -190,25 +208,14 @@ namespace Microsoft.CommonDataModel.ObjectModel.Utilities
         /// <param name="onlyFromProperty">Specifies do we want to fetch only from property.</param>
         internal CdmTraitReference FetchTraitReference(string traitName, bool onlyFromProperty = false)
         {
-            int traitIndex = this.Traits.IndexOf(traitName, onlyFromProperty);
+            int traitIndex = this.Traits != null ? this.Traits.IndexOf(traitName, onlyFromProperty) : -1;
 
             return (traitIndex == -1) ? null : this.Traits[traitIndex];
         }
 
         internal void RemoveTrait(string traitName)
         {
-            if (this.Host is CdmObjectReference)
-            {
-                (this.Host as CdmObjectReference).AppliedTraits.Remove(traitName, true); // validate a known prop?
-            }
-            else if (this.Host is CdmAttribute)
-            {
-                (this.Host as CdmAttribute).AppliedTraits.Remove(traitName, true); // validate a known prop?
-            }
-            else
-            {
-                (this.Host as CdmObjectDefinition).ExhibitsTraits.Remove(traitName, true); // validate a known prop?
-            }
+            this.Traits.Remove(traitName, true);
         }
 
         internal void MapBooleanTrait(string traitName, bool value)
@@ -225,8 +232,10 @@ namespace Microsoft.CommonDataModel.ObjectModel.Utilities
 
         internal void DataFormatToTraits(CdmDataFormat dataFormat)
         {
-            // if this is going to be called many times, then need to remove dynamic dataformat traits that are left behind.
-            // but ... probably not. in fact, this is probably never used because data formats come from data type which is not an attribute
+            // reset the current dataFormat
+            foreach (var traitName in DataFormatTraitNames) {
+                this.RemoveTrait(traitName);
+            }
             switch (dataFormat)
             {
                 case CdmDataFormat.Int16:
@@ -235,7 +244,6 @@ namespace Microsoft.CommonDataModel.ObjectModel.Utilities
                     break;
                 case CdmDataFormat.Int32:
                     this.FetchOrCreateTrait("is.dataFormat.integer", true);
-                    this.FetchOrCreateTrait("is.dataFormat.small", true);
                     break;
                 case CdmDataFormat.Int64:
                     this.FetchOrCreateTrait("is.dataFormat.integer", true);
@@ -250,6 +258,8 @@ namespace Microsoft.CommonDataModel.ObjectModel.Utilities
                     break;
                 case CdmDataFormat.Guid:
                     this.FetchOrCreateTrait("is.dataFormat.guid", true);
+                    this.FetchOrCreateTrait("is.dataFormat.character", true);
+                    this.FetchOrCreateTrait("is.dataFormat.array", true);
                     break;
                 case CdmDataFormat.String:
                     this.FetchOrCreateTrait("is.dataFormat.character", true);
@@ -263,6 +273,7 @@ namespace Microsoft.CommonDataModel.ObjectModel.Utilities
                     this.FetchOrCreateTrait("is.dataFormat.byte", true);
                     break;
                 case CdmDataFormat.Binary:
+                    this.FetchOrCreateTrait("is.dataFormat.byte", true);
                     this.FetchOrCreateTrait("is.dataFormat.array", true);
                     break;
                 case CdmDataFormat.Time:
@@ -419,30 +430,26 @@ namespace Microsoft.CommonDataModel.ObjectModel.Utilities
                     baseType = CdmDataFormat.Double;
                 if (isInteger && isBig)
                     baseType = CdmDataFormat.Int64;
-                if (isInteger && isSmall)
+                else if (isInteger && isSmall)
                     baseType = CdmDataFormat.Int16;
-                if (isInteger)
+                else if (isInteger)
                     baseType = CdmDataFormat.Int32;
             }
 
             return baseType;
         }
 
-        internal CdmTraitReference FetchOrCreateTrait(string traitName, bool simpleRef = false)
+        internal CdmTraitReference FetchOrCreateTrait(string traitName, bool simpleRef)
         {
             var trait = FetchTraitReference(traitName, true);
             if (trait == null)
             {
-                trait = this.Ctx.Corpus.MakeObject<CdmTraitReference>(CdmObjectType.TraitRef, traitName, false);
-                if (this.Host is CdmObjectReference)
-                    (this.Host as CdmObjectReference).AppliedTraits.Add(trait);
-                else if (this.Host is CdmAttribute)
-                    (this.Host as CdmAttribute).AppliedTraits.Add(trait);
-                else
-                    (this.Host as CdmObjectDefinition).ExhibitsTraits.Add(trait);
+                trait = this.Ctx.Corpus.MakeObject<CdmTraitReference>(CdmObjectType.TraitRef, traitName, simpleRef);
+                trait.IsFromProperty = true;
+                this.Traits.Add(trait);
             }
-            (trait as CdmTraitReference).IsFromProperty = true;
-            return trait as CdmTraitReference;
+
+            return trait;
         }
 
         internal void UpdateTraitArgument(string traitName, string argName, dynamic value)

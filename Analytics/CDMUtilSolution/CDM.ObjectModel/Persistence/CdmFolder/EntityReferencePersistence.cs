@@ -35,15 +35,27 @@ namespace Microsoft.CommonDataModel.ObjectModel.Persistence.CdmFolder
             CdmEntityReference entityReference = ctx.Corpus.MakeRef<CdmEntityReference>(CdmObjectType.EntityRef, entity, simpleReference);
 
             if (!(obj is JValue))
+            {
                 appliedTraits = Utils.CreateTraitReferenceList(ctx, obj["appliedTraits"]);
+                if (appliedTraits != null)
+                {
+                    Utils.AddListToCdmCollection(entityReference.AppliedTraits, appliedTraits);
+                }
+            }
 
-            Utils.AddListToCdmCollection(entityReference.AppliedTraits, appliedTraits);
             return entityReference;
         }
 
         public static dynamic ToData(CdmEntityReference instance, ResolveOptions resOpt, CopyOptions options)
         {
-            return CdmObjectRefPersistence.ToData(instance, resOpt, options);
+            if (instance.ExplicitReference != null && instance.ExplicitReference.GetType() == typeof(CdmProjection))
+            {
+                return ProjectionPersistence.ToData(instance.ExplicitReference as CdmProjection, resOpt, options);
+            }
+            else
+            {
+                return CdmObjectRefPersistence.ToData(instance, resOpt, options);
+            }
         }
 
         private static dynamic GetEntityReference(CdmCorpusContext ctx, JToken obj)
@@ -53,6 +65,8 @@ namespace Microsoft.CommonDataModel.ObjectModel.Persistence.CdmFolder
                 entity = obj["entityReference"];
             else if (obj["entityReference"]?["entityShape"] != null)
                 entity = ConstantEntityPersistence.FromData(ctx, obj["entityReference"]);
+            else if (obj["source"] != null)
+                entity = ProjectionPersistence.FromData(ctx, obj);
             else
                 entity = EntityPersistence.FromData(ctx, obj["entityReference"]);
             return entity;

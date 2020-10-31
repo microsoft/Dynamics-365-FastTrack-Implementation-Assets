@@ -6,8 +6,10 @@ namespace Microsoft.CommonDataModel.ObjectModel.Cdm
     using Microsoft.CommonDataModel.ObjectModel.Enums;
     using Microsoft.CommonDataModel.ObjectModel.ResolvedModel;
     using Microsoft.CommonDataModel.ObjectModel.Utilities;
+    using Microsoft.CommonDataModel.ObjectModel.Utilities.Logging;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     public class CdmAttributeContext : CdmObjectDefinitionBase
     {
@@ -15,6 +17,11 @@ namespace Microsoft.CommonDataModel.ObjectModel.Cdm
         /// Gets or sets the attribute context type.
         /// </summary>
         public CdmAttributeContextType? Type { get; set; }
+
+        /// <summary>
+        /// Gets or sets the attribute context name.
+        /// </summary>
+        public string Name { get; set; }
 
         /// <summary>
         /// Gets or sets the attribute context's parent.
@@ -36,10 +43,6 @@ namespace Microsoft.CommonDataModel.ObjectModel.Cdm
         /// </summary>
         public new string AtCorpusPath { get; set; }
 
-        /// <summary>
-        /// Gets or sets the attribute context name.
-        /// </summary>
-        public string Name { get; set; }
         internal int? LowestOrder { get; set; }
 
         /// <summary>
@@ -72,11 +75,6 @@ namespace Microsoft.CommonDataModel.ObjectModel.Cdm
         /// <inheritdoc />
         public override bool IsDerivedFrom(string baseDef, ResolveOptions resOpt = null)
         {
-            if (resOpt == null)
-            {
-                resOpt = new ResolveOptions(this, this.Ctx.Corpus.DefaultResolutionDirectives);
-            }
-
             return false;
         }
 
@@ -117,7 +115,6 @@ namespace Microsoft.CommonDataModel.ObjectModel.Cdm
             }
 
             // add moniker if this is a reference
-            //if (!string.IsNullOrWhiteSpace(moniker) && newNode.Definition?.NamedReference?.StartsWith(moniker) == false)
             if (!string.IsNullOrWhiteSpace(moniker) && newNode.Definition?.NamedReference != null)
             {
                 newNode.Definition.NamedReference = $"{moniker}/{newNode.Definition.NamedReference}";
@@ -189,7 +186,18 @@ namespace Microsoft.CommonDataModel.ObjectModel.Cdm
         /// <inheritdoc />
         public override bool Validate()
         {
-            return !string.IsNullOrEmpty(this.Name) && this.Type != null;
+            List<string> missingFields = new List<string>();
+            if (string.IsNullOrWhiteSpace(this.Name))
+                missingFields.Add("Name");
+            if (this.Type == null)
+                missingFields.Add("Type");
+
+            if (missingFields.Count > 0)
+            {
+                Logger.Error(nameof(CdmAttributeContext), this.Ctx, Errors.ValidateErrorString(this.AtCorpusPath, missingFields), nameof(Validate));
+                return false;
+            }
+            return true;
         }
 
         [Obsolete("CopyData is deprecated. Please use the Persistence Layer instead.")]
