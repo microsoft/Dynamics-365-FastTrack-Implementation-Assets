@@ -440,6 +440,14 @@
                       "ManifestName": {
                         "value": "@{item().ManifestName}",
                         "type": "Expression"
+                      },
+                      "TenantId": {
+                        "value": "@pipeline().parameters.TenantId",
+                        "type": "Expression"
+                      },
+                      "CreateModelJson": {
+                        "value": "@pipeline().parameters.CreateModelJson",
+                        "type": "Expression"
                       }
                     }
                   }
@@ -476,6 +484,14 @@
           "PartitionSizeMB": {
             "type": "int",
             "defaultValue": 200
+          },
+          "TenantId": {
+            "type": "string",
+            "defaultValue": "[parameters('TenantId')]"
+          },
+          "CreateModelJson": {
+            "type": "Bool",
+            "defaultValue": false
           }
         },
         "annotations": [],
@@ -785,11 +801,11 @@
           },
           "Container": {
             "type": "string",
-            "defaultValue": "parameters('Container')"
+            "defaultValue": "[parameters('Container')]"
           },
           "Folder": {
             "type": "string",
-            "defaultValue": "paramters('RootFolder')"
+            "defaultValue": "[parameters('RootFolder')]"
           },
           "FileFormat": {
             "type": "string",
@@ -805,11 +821,11 @@
           },
           "StorageAccount": {
             "type": "string",
-            "defaultValue": "parameters('StorageAccount')"
+            "defaultValue": "[parameters('StorageAccount')]"
           },
           "TenantId": {
             "type": "string",
-            "defaultValue": "parameters('TenantId')"
+            "defaultValue": "[parameters('TenantId')]"
           },
           "CreateModelJson": {
             "type": "Bool",
@@ -904,23 +920,23 @@
           },
           "TenantId": {
             "type": "string",
-            "defaultValue": "parameters('TenantId')"
+            "defaultValue": "[parameters('TenantId')]"
           },
           "DataSourceName": {
             "type": "string",
-            "defaultValue": "parameters('DataSourceName')"
+            "defaultValue": "[parameters('DataSourceName')]"
           },
           "SQLEndPoint": {
             "type": "string",
-            "defaultValue": "parameters('DataSourceName')"
+            "defaultValue": "[parameters('DataSourceName')]"
           },
           "DDLType": {
             "type": "string",
-            "defaultValue": "parameters('DDLType')"
+            "defaultValue": "[parameters('DDLType')]"
           },
           "StorageAccount": {
             "type": "string",
-            "defaultValue": "parameters('StorageAccount')"
+            "defaultValue": "[parameters('StorageAccount')]"
           }
         },
         "folder": {
