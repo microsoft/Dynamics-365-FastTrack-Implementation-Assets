@@ -91,8 +91,10 @@ For more details follow the documentation [First time setup](https://docs.micros
     1. Right-click on the project CDMUtil_AzureFunctions from Solution Explorer and select "Publish". 
     2. Select Azure as Target and selct Azure Function Apps ( Windows) 
     3. Click Create new Azure Function App and select subscription and resource group to create Azure function app 
-    4. Click Publish   
-    ![Publish Azure Function](/Analytics/DeployAzureFunction.gif)
+    4. Click Publish ![Publish Azure Function](/Analytics/DeployAzureFunction.gif)
 2. Open Azure Portal and locate Azure Function App created.
-3. ***Enable MSI*** go to Identity tab enable System managed identity (/Analytics/EnableMSI.PNG) 
-4. To learn more aboubt Azure functions follow the link [Azure functions in Visual Studio](https://docs.microsoft.com/en-us/azure/azure-functions/functions-develop-vs)
+3. ***Enable MSI*** go to Identity tab enable [System managed identity](/Analytics/EnableMSI.PNG) 
+4. Add Azure Function MSI app to SQL-On-Demand - follow steps above "Create Azure Function MSI App as User on SQL" 
+5. Use Postman to valudate. You can further utilize ultilize any other integration tools such as Logic App, Azure data factory ect to create endto end integration 
+5. To learn more aboubt Azure functions follow the link [Azure functions in Visual Studio](https://docs.microsoft.com/en-us/azure/azure-functions/functions-develop-vs)
+ 
