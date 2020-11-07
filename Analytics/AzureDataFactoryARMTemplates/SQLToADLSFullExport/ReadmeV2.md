@@ -37,10 +37,10 @@ For details check [supported tools](https://docs.microsoft.com/en-us/azure/synap
     2. Select Azure as Target and selct Azure Function Apps ( Windows) 
     3. Click Create new Azure Function App and select subscription and resource group to create Azure function app 
     4. Click Publish   
-    ![Publish Azure Function](/Analytics/DeployingAzureFunction.gif)
+    ![Publish Azure Function](/Analytics/DeployAzureFunction.gif)
 4. Open Azure Portal and locate Azure Function App created.
 5. ***Enable MSI*** go to Identity tab enable System managed identity (/Analytics/EnableMSI.PNG) 
-5. To learn more aboubt Azure functions follow the link [Azure functions in Visual Studio](https://docs.microsoft.com/en-us/azure/azure-functions/functions-develop-vs)
+6. To learn more aboubt Azure functions follow the link [Azure functions in Visual Studio](https://docs.microsoft.com/en-us/azure/azure-functions/functions-develop-vs)
 
 ## Setup Storage Account 
 1. In Azure portal, go to Storage account and grant Blob Data Contributor and Blob Data Reader access to Azure Function App MSI
@@ -61,13 +61,13 @@ CREATE MASTER KEY ENCRYPTION BY PASSWORD = <enter very strong password here>
 
 -- create credentials for containers in our demo storage account
 -- Replace your storage account location and provide shared access signature
-CREATE DATABASE SCOPED CREDENTIAL sqlondemand
+CREATE DATABASE SCOPED CREDENTIAL myenvironment
 WITH IDENTITY='SHARED ACCESS SIGNATURE',  
 SECRET = 'sv=2018-03-28&ss=bf&srt=sco&sp=rl&st=2019-10-14T12%3A10%3A25Z&se=2061-12-31T12%3A10%3A00Z&sig=KlSU2ullCscyTS0An0nozEpo4tO5JAgGBvw%2FJX2lguw%3D'
 GO
-CREATE EXTERNAL DATA SOURCE SqlOnDemandDemo WITH (
-    LOCATION = 'https://sqlondemandstorage.blob.core.windows.net',
-    CREDENTIAL = sqlondemand
+CREATE EXTERNAL DATA SOURCE myenvironmentds WITH (
+    LOCATION = 'https://mydatalake.dfs.core.windows.net/dynamics365-financeandoperations/myenvironment.cloudax.dynamics.com',
+    CREDENTIAL = myenvironment
 );
 ```
 3. **Create Azure Function MSI App as User on SQL:**
@@ -118,17 +118,17 @@ If your source system is Dynamics 365 for **Finance and Operations Cloud Hosteed
 You can get the database connection details from Life Cycle Services Environment details page. 
 You would need **Environment Manager or Project Owner access** in LCS to see the database connection details. 
 
-###Cloud Hosted Tier 1 environment  
+### Cloud Hosted Tier 1 environment  
 1. To Connect Azure data factory to Dynamics 365 for Finance and Operations Cloud Hosted Development environment 
 you need to create **Self-Hosted integration runtime** for your Azure data factory.
 2. Follow the documentation link to install and configure Self-Hosted Integration runtime on the VM 
 [Create a Self-hosted integration runtime](https://docs.microsoft.com/en-us/azure/data-factory/create-self-hosted-integration-runtime#create-a-self-hosted-ir-via-azure-data-factory-ui) 
 3. Change the integration runtime for your SQLServerDB link services, validate connection and deploy changes to your data factory.  
 
-###Connecting to Tier 2 environment 
-1.To connect Azure data factory to tier 2 environment you dont need Self-Hosted Integration Runtime as Tier 2 envirinment uses Azure SQL
-2.However you would Tier 2 Azure SQL Database are firewall enabled so you have to whitelist the IP address of Azure data factory in order to connect
-3.Follow the documentation [Connecting to Tier 2 database](/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/ConnectingAFDtoSelf_ServiceDeploymentv2.docx) .
+### Connecting to Tier 2 environment 
+1. To connect Azure data factory to tier 2 environment you dont need Self-Hosted Integration Runtime as Tier 2 envirinment uses Azure SQL
+2. However Tier 2 Azure SQL Database are firewall enabled so you have to whitelist the IP address of Azure data factory to connect
+3. Follow the documentation [Connecting to Tier 2 database](/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/ConnectingAFDtoSelf_ServiceDeploymentv2.docx) .
 Note that Self-Service database connections are only valid for 8 hours. So you have to updated the database crededential in the Data factory connection before excutin
 
 ## Execute pipelines 
@@ -151,4 +151,15 @@ Once you created views on SQL-On-Demand to read your tables data stored in data 
 # Troubleshooting 
 1. If your pipleline fails on the Azure function calls, validate your Azure function configuration.
 2. you can also debug C# code by running the CDMUtil_AzureFunctions locally and PostMan - Postman template can be found under /SQLToADLSFullExport/CDMUtil.postman_collection you can find input parameters for Azure function in Azure data factory pipeline execution history. 
+
+## Using CDMUtil Solution Locally 
+1. Right Click on Project CDMUtil_AzureFunctions and set as Startup project 
+2. In Visual Studio select account for authentication Tools>Options>Azure Service Authentication> Account selection
+3. Selected account must have Storage Blob Data Contributor and Storage Blob Data Reader access on the Storage account and AAD access on the SQL-On-Demand endpoint
+4. Click Debug - Azure Function CLI will open up 
+5. Download and install [Postman](https://www.postman.com/downloads/) if you dont have it already.
+6. Import [PostmanCollection](/Analytics/CDMUtilSolution/CDMUtil.postman_collection)
+7. Collection contains request for all methods with sample header value 
+8. Change the header values as per your environment for requests and send the request 
+9. In case error you can debug the local code.
 

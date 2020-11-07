@@ -928,7 +928,7 @@
           },
           "SQLEndPoint": {
             "type": "string",
-            "defaultValue": "[parameters('DataSourceName')]"
+            "defaultValue": "[parameters('SQLEndPoint')]"
           },
           "DDLType": {
             "type": "string",

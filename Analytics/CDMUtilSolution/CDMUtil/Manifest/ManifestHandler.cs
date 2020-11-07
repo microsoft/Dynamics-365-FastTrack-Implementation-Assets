@@ -394,7 +394,7 @@ namespace CDMUtil.Manifest
                     }
                     else
                     {
-                        dataLocation = localRoot + "/" + dataLocation;
+                        dataLocation = localRoot + dataLocation;
                     }
                 }
                 else
@@ -588,7 +588,7 @@ namespace CDMUtil.Manifest
             }
             else
             {
-                dataType = typeAttributeDefinition.DataType.ToString().ToLower();
+                dataType = typeAttributeDefinition.DataType.NamedReference.ToLower();
             }
 
             int maximumLenght = DefaultMaxLength;
