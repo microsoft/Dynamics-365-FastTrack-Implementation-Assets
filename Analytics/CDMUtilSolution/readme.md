@@ -35,13 +35,13 @@ CREATE MASTER KEY ENCRYPTION BY PASSWORD = <enter very strong password here>
 
 -- create credentials for containers in our demo storage account
 -- Replace your storage account location and provide shared access signature
-CREATE DATABASE SCOPED CREDENTIAL mydatalake
+CREATE DATABASE SCOPED CREDENTIAL myenvironment
 WITH IDENTITY='SHARED ACCESS SIGNATURE',  
 SECRET = 'sv=2018-03-28&ss=bf&srt=sco&sp=rl&st=2019-10-14T12%3A10%3A25Z&se=2061-12-31T12%3A10%3A00Z&sig=KlSU2ullCscyTS0An0nozEpo4tO5JAgGBvw%2FJX2lguw%3D'
 GO
-CREATE EXTERNAL DATA SOURCE mydatalakeds WITH (
-    LOCATION = 'https://mydatalake.dfs.core.windows.net',
-    CREDENTIAL = mydatalake
+CREATE EXTERNAL DATA SOURCE myenvironmentds WITH (
+    LOCATION = 'https://mydatalake.dfs.core.windows.net/dynamics365-financeandoperations/myenvironment.cloudax.dynamics.com',
+    CREDENTIAL = myenvironment
 );
 ```
 3. **Create Azure Function MSI App as User on SQL:**
@@ -77,14 +77,16 @@ For more details follow the documentation [First time setup](https://docs.micros
 ![Clone](/Analytics/CloneRepository.PNG)
 2. Open C# solution Microsoft.CommonDataModel.sln in Visual Studio 2019 and build
 
-## Using CDM Solution Locally 
+## Using CDMUtil Solution Locally 
 1. Right Click on Project CDMUtil_AzureFunctions and set as Startup project 
-2. Click Debug - Azure Function CLI will open up 
-3. Download and install [Postman](https://www.postman.com/downloads/) if you dont have it already.
-4. Import [PostmanCollection](/Analytics/CDMUtilSolution/CDMUtil.postman_collection)
-5. Collection contains request for all methods with sample header value 
-5. Change the header values as per your environment for requests and send the request 
-6. In case error you can debug the local code.
+2. In Visual Studio select account for authentication Tools>Options>Azure Service Authentication> Account selection
+3. Selected account must have Storage Blob Data Contributor and Storage Blob Data Reader access on the Storage account and AAD access on the SQL-On-Demand endpoint
+4. Click Debug - Azure Function CLI will open up 
+5. Download and install [Postman](https://www.postman.com/downloads/) if you dont have it already.
+6. Import [PostmanCollection](/Analytics/CDMUtilSolution/CDMUtil.postman_collection)
+7. Collection contains request for all methods with sample header value 
+8. Change the header values as per your environment for requests and send the request 
+9. In case error you can debug the local code.
 
 ## Deploy C# Solution as Azure function 
 1.	Publish the CDMUtil_AzureFunctions Project as Azure function 
@@ -94,7 +96,8 @@ For more details follow the documentation [First time setup](https://docs.micros
     4. Click Publish ![Publish Azure Function](/Analytics/DeployAzureFunction.gif)
 2. Open Azure Portal and locate Azure Function App created.
 3. ***Enable MSI*** go to Identity tab enable [System managed identity](/Analytics/EnableMSI.PNG) 
-4. Add Azure Function MSI app to SQL-On-Demand - follow steps above "Create Azure Function MSI App as User on SQL" 
-5. Use Postman to valudate. You can further utilize ultilize any other integration tools such as Logic App, Azure data factory ect to create endto end integration 
-5. To learn more aboubt Azure functions follow the link [Azure functions in Visual Studio](https://docs.microsoft.com/en-us/azure/azure-functions/functions-develop-vs)
+4. On the Storage account grant Azure Function Storage Blob Data Contributor and Storage Blob Data Reader access 
+5. Add Azure Function MSI app to SQL-On-Demand - follow steps above "Create Azure Function MSI App as User on SQL" 
+6. Use Postman to valudate. You can further utilize ultilize any other integration tools such as Logic App, Azure data factory ect to create endto end integration 
+7. To learn more aboubt Azure functions follow the link [Azure functions in Visual Studio](https://docs.microsoft.com/en-us/azure/azure-functions/functions-develop-vs)
  

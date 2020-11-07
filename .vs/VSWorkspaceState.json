@@ -2,13 +2,13 @@
   "ExpandedNodes": [
     "",
     "\\Analytics",
+    "\\Analytics\\AzureDataFactoryARMTemplates",
     "\\Analytics\\AzureDataFactoryARMTemplates\\SQLToADLSFullExport",
     "\\Analytics\\CDMUtilSolution",
     "\\Analytics\\CDMUtilSolution\\CDMUtil",
     "\\Analytics\\CDMUtilSolution\\CDMUtil\\Authentication",
-    "\\Analytics\\CDMUtilSolution\\CDMUtil\\Manifest",
-    "\\Analytics\\CDMUtilSolution\\CDMUtil_AzureFunctions",
-    "\\Analytics\\CDMUtilSolution\\CDMUtil_AzureFunctions\\Properties"
+    "\\Analytics\\CDMUtilSolution\\CDMUtil\\Manifest"
   ],
+  "SelectedNode": "\\Analytics\\AzureDataFactoryARMTemplates\\SQLToADLSFullExport\\ReadmeV2.md",
   "PreviewInSolutionExplorer": false
 }
