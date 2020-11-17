@@ -382,8 +382,12 @@ namespace CDMUtil.Manifest
                 string entityName = eDef.EntityName;
 
                 string dataLocation;
-
-                if (eDef.DataPartitions.Count > 0)
+                if (eDef.DataPartitionPatterns.Count > 0)
+                {
+                    var pattern = eDef.DataPartitionPatterns.First();
+                    dataLocation = localRoot + "/" + pattern.RootLocation + pattern.GlobPattern; 
+                }
+                else if (eDef.DataPartitions.Count > 0)
                 {
                     dataLocation = eDef.DataPartitions[0].Location;
                     string nameSpace = dataLocation.Substring(0, dataLocation.IndexOf(":") + 1);
@@ -394,7 +398,7 @@ namespace CDMUtil.Manifest
                     }
                     else
                     {
-                        dataLocation = localRoot + dataLocation;
+                        dataLocation = localRoot + "/" + dataLocation;
                     }
                 }
                 else
@@ -436,7 +440,7 @@ namespace CDMUtil.Manifest
 
                     if (DateTimeAsString)
                     {
-                        sqlDataType = "varchar(100)";
+                        sqlDataType = "nvarchar(100)";
                     }
                     else
                     {
@@ -456,10 +460,10 @@ namespace CDMUtil.Manifest
                     sqlDataType = "binary";
                     break;
                 case "string":
-                    sqlDataType = "varchar";
+                    sqlDataType = "nvarchar";
                     break;
                 default:
-                    sqlDataType = "varchar(1000)";
+                    sqlDataType = "nvarchar(1000)";
                     break;
             }
 
@@ -609,7 +613,7 @@ namespace CDMUtil.Manifest
                         }
                     }
 
-                    sqlColumnDef = $"{typeAttributeDefinition.Name} varchar({maximumLenght})";
+                    sqlColumnDef = $"{typeAttributeDefinition.Name} nvarchar({maximumLenght})";
 
                     if (UseCollat)
                     {
