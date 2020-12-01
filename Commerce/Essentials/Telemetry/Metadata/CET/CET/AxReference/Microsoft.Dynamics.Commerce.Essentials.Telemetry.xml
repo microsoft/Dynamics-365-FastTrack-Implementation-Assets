@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxReference xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+    <Name>Microsoft.Dynamics.Commerce.Essentials.Telemetry</Name>
+    <AssemblyName>Microsoft.Dynamics.Commerce.Essentials.Telemetry</AssemblyName>
+    <AssemblyDisplayName>Microsoft.Dynamics.Commerce.Essentials.Telemetry, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</AssemblyDisplayName>
+    <Version>1.0.0.0</Version>
+</AxReference>

@@ -1,0 +1,77 @@
+﻿NewLabel0=Label files created on 11/03/2020 15:57:10 for label file Id CETM and language en-US
+ ;Label file comment - see above label
+DevDoc=A list of all monitoring checks that are called during the monitoring batch sweep
+ ;Table dev doc
+MonitoringInterfaces=Monitoring checks
+ ;Table name
+SQLMonitoringDesc=SQL: Blocking
+ParmValue=Parameter value
+HelpText=Generic help text
+LogMetricDescription=Please enter a unique name that describes this metric you are logging.
+ ;Monitoring interface parameter
+LogMetricThresholdMs=Please enter a threshold in milliseconds that will trigger this event to be logged.
+ ;Monitoring interface parameter
+LogMetricThresholdSec=Please enter a threshold in seconds that will trigger this event to be logged.
+ ;Monitoring interface parameter
+LogMetricSQLBlocked=SQL: Blocked queries over X seconds (default 5 minutes)
+ ;Monitoring interface parameter
+LogMetricSQLBlockedOver5secs=SQL: Queries blocked over 5 seconds
+ ;Monitoring interface parameter
+LogMetricSQLEventThreshold=Threshold in seconds before logging a blocking monitoring event
+ ;Monitoring interface parameter
+LogMetricSQLBlockedAvgDuration=SQL: Average blocked duration
+ ;Monitoring interface parameter
+BatchCaption=Telemetry and monitoring polling (controller)
+ ;Batch class caption
+BatchThreadCaption=Telemetry and monitoring worker thread (%1)
+ ;Batch class (thread) caption
+ConfigureMonitoring=Configure monitoring
+ ;Menu item
+TelemetryMonitoring=Monitoring and telemetry
+ ;Menu folder
+Enabled=Enabled
+Enable=Enable
+Refresh=Refresh list
+Disable=Disable
+ParameterSettings=Parameter settings
+SQLPerfMonitoring=SQL: Performance
+RefreshInterval=Refresh frequency
+WHSEOrphanedRecords=WHSE: Orphaned reservations
+WHSERecordLabel=WHSE: Excessive reservation records needing cleanup.
+WHSERecordThreshold=Threshold of orphaned reservations
+WHSEMonitoringDesc=WHSE:  Monitor warehouse reservation records needing cleanup
+LogMetricSQLAvgCPU=SQL: Average CPU %
+LogMetricSQLAvgLogIO=SQL: Average I/O %
+LogMetricSQLAvgMemory=SQL: Average Memory Usage %
+LogMetricSQLAvgLogWrite=SQL: Average Log Write %
+LogMetricSQLAverageDTULimit=SQL: Average DTU Limit
+LogMetricSQLMaxSessionPercentage=SQL: Average Max Session %
+LogMetricSQLMaxWorkerPercentage=SQL: Average Max Worker %
+LogMetricSQLAvgStorage=SQL: Average Storage %
+MonitoringBatch=Monitoring batch service
+MonitoringBatchTooltip=The monitoring batch service coordinates the monitoring modules
+MonitoringBatchMustEnable=You must enable the batch service in parameters before scheduling the batch job
+MonitoringBatchOnlyOne=Only one monitoring batch service can run.
+Monitoring=Monitoring
+MonitoringTimeInMs=Time in milliseconds
+InterfaceNextRun=Next scheduled run
+InterfaceLastRun=Last successful run
+MonitoringEventName=Event name
+MonitoringEventData=Additional event data
+MonitoringEventValue=Event metric value
+TelemetryMonitoringDescription=A value-add framework built on top of the Monitoring and Telemetry framework for tracking additional data around monitoring events so that critical system data can be tracked in order to better support and investigate D365 health.
+MonitoringBatchError=Error encountered in batch (%1 - %2)
+MonitoringCallStack=Call stack: %1
+MonitoringFeatureEnabled=Feature: Enabled via UI: %1
+MonitoringBatchPrivilege=Schedule the monitoring batch service
+MonitoringDutyManage=Manage telemetry and monitoring business rules
+MonitoringRoleManage=Manage telemetry and monitoring business rules
+MonitoringFeatureScheduled=Feature: Scheduled to be enabled: [%1: %2]
+MonitoringFeatureEnableAll=Feature: All  Enabled
+MonitoringFeatureDisabled=Feature: Scheduled Feature disabled: %1
+MonitoringFeatureDisabledWkspace=Feature: Disabled via UI: %1
+MonitoringVeatureDisabledWkspace=Feature: Enabled via UI: %1
+MonitoringBusinessRuleParameters=Business rules parameters
+BusinessRuleParameterType=Parameter type
+MonitoringLog=Monitoring log
+MonitoringBatchEnable=Enable the monitoring batch service
