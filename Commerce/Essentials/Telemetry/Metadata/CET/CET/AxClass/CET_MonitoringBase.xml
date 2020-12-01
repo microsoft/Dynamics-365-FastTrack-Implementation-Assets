@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>CET_MonitoringBase</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/**
+* SAMPLE CODE NOTICE
+*
+* THIS SAMPLE CODE IS MADE AVAILABLE AS IS.  MICROSOFT MAKES NO WARRANTIES, WHETHER EXPRESS OR IMPLIED,
+* OF FITNESS FOR A PARTICULAR PURPOSE, OF ACCURACY OR COMPLETENESS OF RESPONSES, OF RESULTS, OR CONDITIONS OF MERCHANTABILITY.
+* THE ENTIRE RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS SAMPLE CODE REMAINS WITH THE USER.
+* NO TECHNICAL SUPPORT IS PROVIDED.  YOU MAY NOT DISTRIBUTE THIS CODE UNLESS YOU HAVE A LICENSE AGREEMENT WITH MICROSOFT THAT ALLOWS YOU TO DO SO.
+*/
+
+
+/// <summary>
+/// Base class for monitoring business rules.
+/// </summary>
+public class CET_MonitoringBase
+{
+    protected CET_MonitoringContract contract;
+    private ClassId myId;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>minRefreshInMs</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Define a minimum refresh interval so that users cannot accidentally 
+    /// run this more frequently than needed.
+    /// </summary>
+    /// <returns>Minmum refresh interval in milliseconds</returns>
+    public int minRefreshInMs()
+    {
+        return 120000; // 120k ms = 2 minutes
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmClassId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Getter/setter method for class ID.
+    /// </summary>
+    /// <param name = "_newId">If set to true, resets base parameters to default if already created</param>
+    /// <returns>Minmum refresh interval in milliseconds</returns>
+    ClassId parmClassId(ClassId _newId = myId)
+    {
+        myId = _newId;
+        return myId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setContractDefaults</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets the default values for the contract.  This
+    /// can be changed through the parameters form.
+    /// </summary>
+    public void setContractDefaults()
+    {
+        contract.parmRefreshInMs(300000); // 300k ms = 5 minutes
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Default initializer for the class.
+    /// </summary>
+    // BP Deviation documented
+    protected void new()
+    {
+        myId = classIdGet(this);
+        contract = this.newContract();
+        this.setContractDefaults();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processor</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Define the batch class that is required to process this monitoring module.
+    /// </summary>
+    /// <returns>The Class ID of the batch class needed to handle this monitoring module</returns>
+    public ClassId processor()
+    {
+        return classNum(CET_MonitoringBatch);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParameters</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Create or reset parameter defaults.
+    /// </summary>
+    /// <param name = "_force">If set to true, resets base parameters to default if already created</param>
+    public void initParameters(boolean _force = false)
+    {
+        if (_force)
+        {
+            // Delete, then re-create.
+            CET_MonitoringInterfaceParameters::clearParmsForClass(myId);
+        }
+
+        contract.writeParms(myId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>readParameters</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Read parameter configuration.
+    /// </summary>
+    public void readParameters() 
+    {
+        contract.readParms(myId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Default description and purpose of this class.
+    /// </summary>
+    /// <returns>Description of this class</returns>
+    public ClassDescription description()
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Execute the business logic implemented by this monitoring interface.
+    /// </summary>
+    public void run()
+    {
+        this.readParameters();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nextRunStart</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Calculate the next time that this module should run.
+    /// </summary>
+    /// <returns>Next time this module should run</returns>
+    public utcdatetime nextRunStart()
+    {
+        utcdatetime timeRef = DateTimeUtil::utcNow();
+
+        timeRef = DateTimeUtil::addSeconds(timeRef, real2int(contract.parmRefreshInMs()/1000));
+
+        return timeRef;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmContract</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets or gets the data contract.
+    /// </summary>
+    /// <param name = "_contract">The optional data contract.</param>
+    /// <returns>The effective data contract</returns>
+    CET_MonitoringContract parmContract(CET_MonitoringContract _contract = contract)
+    {
+        contract = _contract;
+        return contract;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>newContract</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Return a new instance of the monitoring contract.
+    /// </summary>
+    /// <returns> new instance of the monitoring contract</returns>
+    CET_MonitoringContract newContract()
+    {
+        return CET_MonitoringContract::construct();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>logMetric</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Log a metric to telemetry and save a payload if included.
+    /// </summary>
+    /// <param name = "_contractParameterIndex">Parameter index with the metric name</param>
+    /// <param name = "_value">Metric value to track</param>
+    /// <param name = "_data">Optional:  payload</param>
+    public void logMetric(int _contractParameterIndex, CET_EventMetricValue _value, CET_EventData _data = '')
+    {
+        CET_EventName eventName = contract.getParmValueStr(_contractParameterIndex);
+        SysGlobalTelemetry::logMetric(eventName, _value);
+
+        CET_MonitoringBase::saveEventData(eventName, _data, _value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>logEvent</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Log an event to telemetry and save a payload if included.
+    /// </summary>
+    /// <param name = "_contractParameterIndex">Parameter index with the metric name</param>
+    /// <param name = "_data">Optional:  payload</param>
+    public void logEvent(int _contractParameterIndex, CET_EventData _data = '')
+    {
+        CET_EventName eventName = contract.getParmValueStr(_contractParameterIndex);
+
+        SysGlobalTelemetry::logEvent(eventName);
+
+        CET_MonitoringBase::saveEventData(eventName, _data);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveEventData</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Save a payload that was included with a metric.
+    /// </summary>
+    /// <param name = "_eventName">Name of the metric or event</param>
+    /// <param name = "_value">Optional:  Metric value to track</param>
+    /// <param name = "_data">payload</param>
+    public static void saveEventData(CET_EventName _eventName, CET_EventData _data, CET_EventMetricValue _value = 0)
+    {
+        CET_MonitoringLog monitoringLog;
+
+        if (_eventName == '' || _data == '')
+        {
+            // Both need to be provided.
+            return;
+        }
+
+        // Log event data.
+        monitoringLog.initValue();
+        monitoringLog.Name = _eventName;
+        monitoringLog.Data = _data;
+        monitoringLog.MetricValue = _value;
+        monitoringLog.insert();
+
+        // Call the businiess event service.
+        monitoringLog.sendEvent();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

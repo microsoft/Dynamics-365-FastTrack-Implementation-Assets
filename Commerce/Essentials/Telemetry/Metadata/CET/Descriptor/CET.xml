@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxModelInfo xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<AppliedUpdates xmlns:d2p1="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+	<Customization>Allow</Customization>
+	<Description>Extensions on top of Preview D365 Application Insights telemetry functionality</Description>
+	<DisplayName>Commerce Essentials - Telemetry</DisplayName>
+	<Id>895972837</Id>
+	<InternalsVisibleTo xmlns:d2p1="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+	<Layer>12</Layer>
+	<Locked>false</Locked>
+	<ModelModule>CET</ModelModule>
+	<ModelReferences xmlns:d2p1="http://schemas.microsoft.com/2003/10/Serialization/Arrays"
+		i:nil="true" />
+	<ModuleReferences xmlns:d2p1="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
+		<d2p1:string>ApplicationFoundation</d2p1:string>
+		<d2p1:string>ApplicationPlatform</d2p1:string>
+		<d2p1:string>ApplicationSuite</d2p1:string>
+		<d2p1:string>MonitoringandTelemetry</d2p1:string>
+	</ModuleReferences>
+	<Name>CET</Name>
+	<Publisher>D365 FastTrack</Publisher>
+	<SolutionId>00000000-0000-0000-0000-000000000000</SolutionId>
+	<VersionBuild>0</VersionBuild>
+	<VersionMajor>0</VersionMajor>
+	<VersionMinor>1</VersionMinor>
+	<VersionRevision>0</VersionRevision>
+</AxModelInfo>

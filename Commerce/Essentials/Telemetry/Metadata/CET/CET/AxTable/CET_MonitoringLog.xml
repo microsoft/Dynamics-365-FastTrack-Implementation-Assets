@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>CET_MonitoringLog</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/**
+* SAMPLE CODE NOTICE
+*
+* THIS SAMPLE CODE IS MADE AVAILABLE AS IS.  MICROSOFT MAKES NO WARRANTIES, WHETHER EXPRESS OR IMPLIED,
+* OF FITNESS FOR A PARTICULAR PURPOSE, OF ACCURACY OR COMPLETENESS OF RESPONSES, OF RESULTS, OR CONDITIONS OF MERCHANTABILITY.
+* THE ENTIRE RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS SAMPLE CODE REMAINS WITH THE USER.
+* NO TECHNICAL SUPPORT IS PROVIDED.  YOU MAY NOT DISTRIBUTE THIS CODE UNLESS YOU HAVE A LICENSE AGREEMENT WITH MICROSOFT THAT ALLOWS YOU TO DO SO.
+*/
+
+/// <summary>
+/// A table used to log monitoring events that may have additional 
+/// data.  For example, if you log an event for excessive blocking, 
+/// you may also want to list the lead query blocker and call stack.
+/// 
+/// Data model from https://docs.microsoft.com/en-us/azure/azure-monitor/app/data-model-event-telemetry#name
+/// </summary>
+public class CET_MonitoringLog extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>purgeLog</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Cleanup method to purge logs.  
+    /// </summary>
+    /// <param name = "hoursToKeep">Optitonal, specify number of hours to keep</param>
+    public static void purgeLog(int hoursToKeep = 24)
+    {
+        CET_MonitoringLog log;
+        utcdatetime cutoff = DateTimeUtil::addHours(CET_MonitoringFactory::now(), -real2int(abs(hoursToKeep)));
+
+        delete_from log where log.LogDateTime <= cutoff;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets default data.
+    /// </summary>
+    public void initValue()
+    {
+        super();
+        this.LogDateTime = CET_MonitoringFactory::now();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendEvent</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Send a business event if it is enabled.
+    /// </summary>
+    public void sendEvent()
+    {
+        if (BusinessEventsConfigurationReader::isBusinessEventEnabled(classStr(CET_MonitoringBusinessEvent)))
+        {
+            CET_MonitoringBusinessEvent::newFromCET_MonitoringLog(this).send();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@CETM:HelpText</DeveloperDocumentation>
+	<Label>@CETM:MonitoringLog</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>Name</TitleField1>
+	<TitleField2>LogDateTime</TitleField2>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>LogDateTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Data</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MetricValue</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldUtcDateTime">
+			<Name>LogDateTime</Name>
+			<ExtendedDataType>EndDateTime</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Name</Name>
+			<ExtendedDataType>CET_EventName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Data</Name>
+			<ExtendedDataType>CET_EventData</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>MetricValue</Name>
+			<ExtendedDataType>CET_EventMetricValue</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes />
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

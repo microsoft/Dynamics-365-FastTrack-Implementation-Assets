@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>CET_MonitoringSQLBlocking</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/**
+* SAMPLE CODE NOTICE
+*
+* THIS SAMPLE CODE IS MADE AVAILABLE AS IS.  MICROSOFT MAKES NO WARRANTIES, WHETHER EXPRESS OR IMPLIED,
+* OF FITNESS FOR A PARTICULAR PURPOSE, OF ACCURACY OR COMPLETENESS OF RESPONSES, OF RESULTS, OR CONDITIONS OF MERCHANTABILITY.
+* THE ENTIRE RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS SAMPLE CODE REMAINS WITH THE USER.
+* NO TECHNICAL SUPPORT IS PROVIDED.  YOU MAY NOT DISTRIBUTE THIS CODE UNLESS YOU HAVE A LICENSE AGREEMENT WITH MICROSOFT THAT ALLOWS YOU TO DO SO.
+*/
+
+/// <summary>
+/// Business rules that measure SQL blocking.
+/// </summary>
+class CET_MonitoringSQLBlocking extends CET_MonitoringBase 
+{
+    private const int BlockingMetricOver5SecLabel = 1;
+    private const int BlockingMetricAvgDurationLabel = 2;
+    private const int BlockingMetricBlockingEventLabel = 3;
+    private const int BlockingMetricBlockingEventTreshold = 4;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setContractDefaults</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets the default values for the contract.  This
+    /// can be changed through the parameters form.
+    /// </summary>
+    public void setContractDefaults()
+    {        
+        super();
+        contract.parmRefreshInMs(300000); // 300k ms = 5 minutes
+        contract.addParm(
+            BlockingMetricOver5SecLabel,                        // Line number / position
+            literalStr("@CETM:LogMetricSQLBlockedOver5secs"),    // Name
+            literalStr("@CETM:LogMetricDescription"),            // Description of this parameters
+            "@CETM:LogMetricSQLBlockedOver5secs");                // Default value
+                                                                // Type is defaulted to String
+
+        contract.addParm(
+            BlockingMetricAvgDurationLabel,                        // Line number / position
+            literalStr("@CETM:LogMetricSQLBlockedAvgDuration"),    // Name
+            literalStr("@CETM:LogMetricDescription"),            // Description of this parameters
+            "@CETM:LogMetricSQLBlockedAvgDuration");            // Default value
+                                                                // Type is defaulted to String
+
+        contract.addParm(
+            BlockingMetricBlockingEventLabel,                    // Line number / position
+            literalStr("@CETM:LogMetricSQLBlocked"),            // Name
+            literalStr("@CETM:LogMetricDescription"),            // Description of this parameters
+            "@CETM:LogMetricSQLBlocked");                        // Default value
+                                                                // Type is defaulted to String
+
+        contract.addParm(
+            BlockingMetricBlockingEventTreshold,                // Line number / position
+            literalStr("@CETM:LogMetricSQLEventThreshold"),        // Name
+            literalStr("@CETM:LogMetricThresholdSec"),            // Description of this parameters
+            300,                                                 // Default value
+            CET_MonitoringParameterValueType::Integer,            // Value type
+            1000);                                                // Scale factor (ask for seconds, convert to milliseconds)
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Default description and purpose of this class.
+    /// </summary>
+    /// <returns>Description of this class</returns>
+    public ClassDescription description()
+    {
+        return "@CETM:SQLMonitoringDesc";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The following method will be called every time the monitoring runs.  
+    /// This was inspired by the class SysSqlDiagnosticService.
+    /// </summary>
+    public void run()
+    {
+        super(); // Pulls config into contract.
+
+        SysSqlBlockingView view;
+        select firstonly count(recid), avg(WaitDurationMs) from view;
+                
+        this.logMetric(BlockingMetricOver5SecLabel, view.RecId);
+        this.logMetric(BlockingMetricAvgDurationLabel, view.WaitDurationMs);
+    
+        while select view where view.WaitDurationMs > contract.getParmValueInt(BlockingMetricBlockingEventTreshold)
+        {
+            this.logEvent(BlockingMetricBlockingEventLabel, CET_MonitoringFactory::Record2JSON(view)); // "SQL Sessions Blocked over 5 minutes"
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Use for testing / debugging as needed. From Visual Studio, right-click
+    /// on the class and choose "Set as Startup Object"
+    /// </summary>
+    /// <param name = "_args">Framework parameter</param>
+    public static void main(Args _args)
+    {
+        CET_MonitoringSQLBlocking monitorTest = new CET_MonitoringSQLBlocking();
+
+        monitorTest.initParameters(true);
+
+        monitorTest.run();        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>CET_MonitoringInterfaces</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/**
+* SAMPLE CODE NOTICE
+*
+* THIS SAMPLE CODE IS MADE AVAILABLE AS IS.  MICROSOFT MAKES NO WARRANTIES, WHETHER EXPRESS OR IMPLIED,
+* OF FITNESS FOR A PARTICULAR PURPOSE, OF ACCURACY OR COMPLETENESS OF RESPONSES, OF RESULTS, OR CONDITIONS OF MERCHANTABILITY.
+* THE ENTIRE RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS SAMPLE CODE REMAINS WITH THE USER.
+* NO TECHNICAL SUPPORT IS PROVIDED.  YOU MAY NOT DISTRIBUTE THIS CODE UNLESS YOU HAVE A LICENSE AGREEMENT WITH MICROSOFT THAT ALLOWS YOU TO DO SO.
+*/
+
+/// <summary>
+/// Table methods for CET_MonitoringInterfaces
+/// </summary>
+public class CET_MonitoringInterfaces extends common
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard find method
+    /// </summary>
+    /// <param name = "_classId">The unique ID of the class</param>
+    /// <param name = "_forupdate">Flag indicating if the record should be selected for update.</param>
+    /// <returns>Record instance if found</returns>
+    public static CET_MonitoringInterfaces find(RecId _classId, boolean _forupdate = false)
+    {
+        CET_MonitoringInterfaces result;
+
+        result.selectForUpdate(_forupdate);
+
+        select firstonly result where result.ClassId == _classId;
+
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>startInterface</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Mark an interface (aka business rule) as started.
+    /// </summary>
+    /// <param name = "_batchClass">Optional:  batch hclass running this thread</param>
+    public void startInterface(CET_MonitoringBatch _batchClass = null)
+    {
+        this.set(this.Enabled, this.StartDateTime, utcDateTimeNull(), BatchStatus::Executing);        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>stopInterface</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Mark an interface (aka business rule) as stopped.
+    /// </summary>
+    /// <param name = "_status">Status of rule</param>
+    /// <param name = "_nextRun">If healthy, the next time this is expected to run</param>
+    public void stopInterface(BatchStatus _status, utcdatetime _nextRun)
+    {
+        utcdatetime timeRef = CET_MonitoringFactory::now();
+        utcdatetime nextRun = _nextRun;
+
+        if (nextRun < timeRef)
+        {
+            // The next run needs to be in the future.  Add five minutes.
+            nextRun = DateTimeUtil::addMinutes(timeRef, 5);
+        }
+        this.set(this.Enabled, nextRun, timeRef, _status);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>set</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Helper method that consistently sets the properties of this record.
+    /// </summary>
+    /// <param name = "_enabled">On/off</param>
+    /// <param name = "_start">When the rule should run next</param>
+    /// <param name = "_stop">When the rule last ran</param>
+    /// <param name = "_status">Latest status of the rule</param>
+    private void set(NoYes _enabled, utcdatetime _start, utcdatetime _stop = utcDateTimeNull(), BatchStatus _status = BatchStatus::Hold)  
+    {
+        CET_MonitoringInterfaces row;
+        if (this.RecId == 0)
+        {
+            // Can't update this record as it hasn't been selected.
+            return;
+        }
+
+        ttsbegin;
+        update_recordset row
+            setting Enabled = _enabled,
+                StartDateTime = _start,
+                EndDateTime = _stop,
+                BatchStatus = _status
+            where row.RecId == this.RecId;
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>disableInterface</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Disable the business rule.  Usually called when something throws an exception.
+    /// </summary>
+    /// <param name = "_status">Status indicating why the rule was disabled</param>
+    public void disableInterface(BatchStatus _status = BatchStatus::Error) 
+    {
+        this.set(NoYes::No, DateTimeUtil::maxValue(), utcDateTimeNull(), _status);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>enableInterface</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Enable the business rule
+    /// </summary>
+    /// <param name = "_start">Time when it should next run</param>
+    /// <param name = "_status">Optional:  Status of the rule</param>
+    public void enableInterface(utcdatetime _start = utcDateTimeNull(), BatchStatus _status = BatchStatus::Waiting)
+    {
+        this.set(NoYes::Yes, _start, utcDateTimeNull(), _status);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@CETM:DevDoc</DeveloperDocumentation>
+	<Label>@CETM:MonitoringInterfaces</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>ClassId</TitleField1>
+	<TitleField2>ClassDescription</TitleField2>
+	<ReplacementKey>ClassIdx</ReplacementKey>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Enabled</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ClassId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ClassDescription</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Processor</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>BatchStatus</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>StartDateTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>EndDateTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RefreshInterval</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ClassDescription</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Enabled</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ClassId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ClassDescription</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Enabled</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RefreshInterval</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>StartDateTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>EndDateTime</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ClassDescription</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Enabled</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RefreshInterval</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ClassDescription</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>ClassDescription</ExtendedDataType>
+			<Label>@SYS7399</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Enabled</Name>
+			<Label>@CETM:Enabled</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>ClassId</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>ClassId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>Processor</Name>
+			<ExtendedDataType>ClassId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>BatchStatus</Name>
+			<EnumType>BatchStatus</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldUtcDateTime">
+			<Name>StartDateTime</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<AssetClassification>Customer Content</AssetClassification>
+			<ExtendedDataType>StartDateTime</ExtendedDataType>
+			<Label>@CETM:InterfaceNextRun</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldUtcDateTime">
+			<Name>EndDateTime</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<AssetClassification>Customer Content</AssetClassification>
+			<ExtendedDataType>EndDateTime</ExtendedDataType>
+			<Label>@CETM:InterfaceLastRun</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>RefreshInterval</Name>
+			<ExtendedDataType>CET_MonitoringRefreshInterval</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>ClassIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>ClassId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

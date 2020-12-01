@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>CET_MonitoringContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/**
+* SAMPLE CODE NOTICE
+*
+* THIS SAMPLE CODE IS MADE AVAILABLE AS IS.  MICROSOFT MAKES NO WARRANTIES, WHETHER EXPRESS OR IMPLIED,
+* OF FITNESS FOR A PARTICULAR PURPOSE, OF ACCURACY OR COMPLETENESS OF RESPONSES, OF RESULTS, OR CONDITIONS OF MERCHANTABILITY.
+* THE ENTIRE RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS SAMPLE CODE REMAINS WITH THE USER.
+* NO TECHNICAL SUPPORT IS PROVIDED.  YOU MAY NOT DISTRIBUTE THIS CODE UNLESS YOU HAVE A LICENSE AGREEMENT WITH MICROSOFT THAT ALLOWS YOU TO DO SO.
+*/
+
+/// <summary>
+/// Base class - data contract for monitoring business rules.
+/// </summary>
+class CET_MonitoringContract
+{
+    int refreshInMs;
+    private Map parameters;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Initialize private member data when instantiated.
+    /// </summary>
+    protected void new()
+    {
+        refreshInMs = 300000; // Default to 5 minute refresh.
+        parameters = new Map(Types::Integer, Types::Container);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addParm</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Add a configurable parameter to the contract.
+    /// </summary>
+    /// <param name = "_pos">Position/line number</param>
+    /// <param name = "_name">Friendly name</param>
+    /// <param name = "_desc">Description or purpose</param>
+    /// <param name = "_value">Value (any type)</param>
+    /// <param name = "_type">Enum reprepsenting the parameter data type</param>
+    /// <param name = "_factor">Conversion factor for numberic (e.g., to convert from seconds to milliseconds)</param>
+    public void addParm(int _pos, str _name, str _desc, anytype _value,  CET_MonitoringParameterValueType _type = CET_MonitoringParameterValueType::String, real _factor = 1.0)
+    {
+        parameters.add(_pos, [_name, _desc, _value, _type, _factor]);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRefreshInMs</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get/set the default refresh (polling) rate in milliseconds.
+    /// </summary>
+    /// <param name = "_refresh">refresh time in milliseconds</param>
+    /// <returns>polling rate in milliseconds</returns>
+    int parmRefreshInMs(int _refresh = refreshInMs)
+    {
+        refreshInMs = _refresh;
+        return refreshInMs;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Public method for creating an instance of this class.
+    /// Wraps the new() method.
+    /// </summary>
+    /// <returns>An instance of this class</returns>
+    public static CET_MonitoringContract construct()
+    {
+        return new CET_MonitoringContract();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getParmValueStr</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Get a parameter value (string) specified by an index.
+    /// </summary>
+    /// <param name = "_key">Index of the parameter in the map</param>
+    /// <returns>Value of parameter at _key position</returns>
+    public str getParmValueStr(int _key)
+    {
+        return any2Str(this.getParmValue(_key));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getParmValueInt</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get a parameter value (integer) specified by an index.
+    /// </summary>
+    /// <param name = "_key">Index of the parameter in the map</param>
+    /// <returns>Value of parameter at _key position</returns>
+    public int getParmValueInt(int _key)
+    {
+        return any2Int(this.getParmValue(_key));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setParmValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Set a parameter value (any type) specified by an index.
+    /// </summary>
+    /// <param name = "_key">Index of the parameter in the map</param>
+    /// <param name = "_value">Value to set</param>
+    private void setParmValue(int _key, anytype _value)
+    {
+        str name = '';
+        str description = '';
+        anytype value = _value;
+        CET_MonitoringParameterValueType parmType = CET_MonitoringParameterValueType::String;
+        real factor = 1;
+
+        if (parameters.exists(_key))
+        {
+            // Valid key, so extract the setting and then delete it.
+            [name, description, value, parmType, factor] = parameters.lookup(_key);
+            value = _value;
+
+            if (parmType == CET_MonitoringParameterValueType::Integer)
+            {
+                value = any2Int(_value) * factor;
+            }
+            if (parmType == CET_MonitoringParameterValueType::Decimal)
+            {
+                value = any2Real(_value) * factor;
+            }
+        }
+
+
+        // At this point, the mapping for the key is gone.  Add it.
+        parameters.add(_key, [name, description, value, parmType, factor]);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getParmValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Set a parameter value (any type) specified by an index.
+    /// </summary>
+    /// <param name = "_key">Index of the parameter in the map</param>
+    /// <returns>Parameter value specified by the index key</returns>
+    public anytype getParmValue(int _key)
+    {
+        str name;
+        str description;
+        anytype value;
+        CET_MonitoringParameterValueType parmType;
+        real factor;
+
+        if (!parameters.exists(_key))
+        {
+            // Invalid key, so return nothing.
+            return '';
+        }
+        // Key exists, so lookup the value.
+        [name, description, value, parmType, factor] = parameters.lookup(_key);
+
+        return value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>readParms</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Read saved parameter values into this contract.
+    /// </summary>
+    /// <param name = "_classId">AOT-assigned class number for this business rule</param>
+    public void readParms(ClassId _classId)
+    {
+        CET_MonitoringInterfaceParameters parms;
+        anytype value;        
+
+        while select parms where parms.ClassId == _classId
+        {
+            switch (parms.Type)
+            {
+                case CET_MonitoringParameterValueType::Integer:
+                    value = str2Int(parms.Value);
+                    break;
+
+                case CET_MonitoringParameterValueType::Decimal:
+                    value = str2Num(parms.Value);
+                    break;
+                
+                case CET_MonitoringParameterValueType::Date:
+                    value = str2Date(parms.Value,0);
+                    break;
+                
+                default:
+                    value = parms.Value;
+            }
+            this.setParmValue(real2int(parms.LineNumber), value); // Factor will be used in the set method.
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeParms</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Write parameter values from this contract into the parm table.
+    /// </summary>
+    /// <param name = "_classId">AOT-assigned class number for this business rule</param>
+    public void writeParms(ClassId _classId) 
+    {
+        CET_MonitoringInterfaceParameters parmLine;                                               
+        MapEnumerator mapEnum;
+
+        // Packed data
+        int pos;
+        str name;
+        str description;
+        anytype value;  
+        CET_MonitoringParameterValueType parmType;
+        real factor;
+
+        // Initialize the parameter record.
+        parmLine.ClassId = _classId;
+
+        mapEnum = parameters.getEnumerator();
+        while (mapEnum.moveNext())
+        {
+            pos = mapEnum.currentKey();
+            [name, description, value, parmType, factor] = mapEnum.currentValue();
+            parmLine.LineNumber = pos;
+            parmLine.Name = name;
+            parmLine.Description = description;
+            parmLine.Value = any2Str(value);
+            parmLine.Type = parmType;
+            CET_MonitoringInterfaceParameters::findOrCreate(parmLine);
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
