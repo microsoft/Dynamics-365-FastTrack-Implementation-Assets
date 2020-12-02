@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxSecurityDuty xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+    <Name>CET_MonitoringManageDuty</Name>
+    <Description>@CETM:MonitoringDutyManage</Description>
+    <Label>@CETM:MonitoringDutyManage</Label>
+    <Privileges>
+        <AxSecurityPrivilegeReference>
+            <Name>CET_MonitoringBatchActionPrivilege</Name>
+        </AxSecurityPrivilegeReference>
+        <AxSecurityPrivilegeReference>
+            <Name>CET_MonitoringConfigurationPrivilege</Name>
+        </AxSecurityPrivilegeReference>
+    </Privileges>
+</AxSecurityDuty>

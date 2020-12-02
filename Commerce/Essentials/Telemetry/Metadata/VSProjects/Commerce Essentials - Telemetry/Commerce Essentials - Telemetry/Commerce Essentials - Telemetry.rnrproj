@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <BuildTasksDirectory Condition=" '$(BuildTasksDirectory)' == ''">$(MSBuildProgramFiles32)\MSBuild\Microsoft\Dynamics\AX</BuildTasksDirectory>
+    <Model>CET</Model>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <OutputPath>bin</OutputPath>
+    <SchemaVersion>2.0</SchemaVersion>
+    <GenerateCrossReferences>True</GenerateCrossReferences>
+    <ProjectGuid>{654fed0d-eb3d-4f37-9244-a1a9a539097a}</ProjectGuid>
+    <Name>Commerce Essentials - Telemetry</Name>
+    <RootNamespace>Commerce Essentials - Telemetry</RootNamespace>
+    <StartupObject>CET_MonitoringSQLBlocking</StartupObject>
+    <StartupType>Class</StartupType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <Configuration>Debug</Configuration>
+    <DBSyncInBuild>False</DBSyncInBuild>
+    <GenerateFormAdaptors>False</GenerateFormAdaptors>
+    <Company>
+    </Company>
+    <Partition>initial</Partition>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DataEntityExpandParentChildRelations>False</DataEntityExpandParentChildRelations>
+    <DataEntityUseLabelTextAsFieldName>False</DataEntityUseLabelTextAsFieldName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="Code" />
+    <Folder Include="Data Model" />
+    <Folder Include="Data Types" />
+    <Folder Include="Security" />
+    <Folder Include="User Interface" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="AxClass\CET_MonitoringBase">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringBase</Name>
+      <Link>Code\CET_MonitoringBase</Link>
+    </Content>
+    <Content Include="AxClass\CET_MonitoringBatch">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringBatch</Name>
+      <Link>Code\CET_MonitoringBatch</Link>
+    </Content>
+    <Content Include="AxClass\CET_MonitoringBusinessEvent">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringBusinessEvent</Name>
+      <Link>Code\CET_MonitoringBusinessEvent</Link>
+    </Content>
+    <Content Include="AxClass\CET_MonitoringBusinessEventContract">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringBusinessEventContract</Name>
+      <Link>Code\CET_MonitoringBusinessEventContract</Link>
+    </Content>
+    <Content Include="AxClass\CET_MonitoringContract">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringContract</Name>
+      <Link>Code\CET_MonitoringContract</Link>
+    </Content>
+    <Content Include="AxClass\CET_MonitoringFactory">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringFactory</Name>
+      <Link>Code\CET_MonitoringFactory</Link>
+    </Content>
+    <Content Include="AxClass\CET_MonitoringHandlers">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringHandlers</Name>
+      <Link>Code\CET_MonitoringHandlers</Link>
+    </Content>
+    <Content Include="AxClass\CET_MonitoringSQLBlocking">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringSQLBlocking</Name>
+      <Link>Code\CET_MonitoringSQLBlocking</Link>
+    </Content>
+    <Content Include="AxClass\CET_MonitoringSQLPerf">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringSQLPerf</Name>
+      <Link>Code\CET_MonitoringSQLPerf</Link>
+    </Content>
+    <Content Include="AxClass\CET_MonitoringWHSECleanup">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringWHSECleanup</Name>
+      <Link>Code\CET_MonitoringWHSECleanup</Link>
+    </Content>
+    <Content Include="AxEdt\CET_EventData">
+      <SubType>Content</SubType>
+      <Name>CET_EventData</Name>
+      <Link>Data Types\CET_EventData</Link>
+    </Content>
+    <Content Include="AxEdt\CET_EventMetricValue">
+      <SubType>Content</SubType>
+      <Name>CET_EventMetricValue</Name>
+      <Link>Data Types\CET_EventMetricValue</Link>
+    </Content>
+    <Content Include="AxEdt\CET_EventName">
+      <SubType>Content</SubType>
+      <Name>CET_EventName</Name>
+      <Link>Data Types\CET_EventName</Link>
+    </Content>
+    <Content Include="AxEdt\CET_MonitoringParameterValue">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringParameterValue</Name>
+      <Link>Data Types\CET_MonitoringParameterValue</Link>
+    </Content>
+    <Content Include="AxEdt\CET_MonitoringRefreshInterval">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringRefreshInterval</Name>
+      <Link>Data Types\CET_MonitoringRefreshInterval</Link>
+    </Content>
+    <Content Include="AxEnum\CET_MonitoringParameterValueType">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringParameterValueType</Name>
+      <Link>Data Types\CET_MonitoringParameterValueType</Link>
+    </Content>
+    <Content Include="AxFormExtension\SysIntParameters.CET">
+      <SubType>Content</SubType>
+      <Name>SysIntParameters.CET</Name>
+      <Link>User Interface\SysIntParameters.CET</Link>
+    </Content>
+    <Content Include="AxForm\CET_MonitoringConfiguration">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringConfiguration</Name>
+      <Link>User Interface\CET_MonitoringConfiguration</Link>
+    </Content>
+    <Content Include="AxLabelFile\CETM_en-US">
+      <SubType>Content</SubType>
+      <Name>CETM_en-US</Name>
+      <Link>CETM_en-US</Link>
+    </Content>
+    <Content Include="AxMenuExtension\SystemAdministration.CET">
+      <SubType>Content</SubType>
+      <Name>SystemAdministration.CET</Name>
+      <Link>User Interface\SystemAdministration.CET</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\CET_MonitoringBatchAction">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringBatchAction</Name>
+      <Link>User Interface\CET_MonitoringBatchAction</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\CET_MonitoringConfigurationMenuItem">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringConfigurationMenuItem</Name>
+      <Link>User Interface\CET_MonitoringConfigurationMenuItem</Link>
+    </Content>
+    <Content Include="AxSecurityDuty\CET_MonitoringManageDuty">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringManageDuty</Name>
+      <Link>Security\CET_MonitoringManageDuty</Link>
+    </Content>
+    <Content Include="AxSecurityPrivilege\CET_MonitoringBatchActionPrivilege">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringBatchActionPrivilege</Name>
+      <Link>Security\CET_MonitoringBatchActionPrivilege</Link>
+    </Content>
+    <Content Include="AxSecurityPrivilege\CET_MonitoringConfigurationPrivilege">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringConfigurationPrivilege</Name>
+      <Link>Security\CET_MonitoringConfigurationPrivilege</Link>
+    </Content>
+    <Content Include="AxSecurityRole\CET_MonitoringManageRole">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringManageRole</Name>
+      <Link>Security\CET_MonitoringManageRole</Link>
+    </Content>
+    <Content Include="AxTable\CET_MonitoringInterfaceParameters">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringInterfaceParameters</Name>
+      <Link>Data Model\CET_MonitoringInterfaceParameters</Link>
+    </Content>
+    <Content Include="AxTable\CET_MonitoringInterfaces">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringInterfaces</Name>
+      <Link>Data Model\CET_MonitoringInterfaces</Link>
+    </Content>
+    <Content Include="AxTable\CET_MonitoringLog">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringLog</Name>
+      <Link>Data Model\CET_MonitoringLog</Link>
+    </Content>
+    <Content Include="AxTable\CET_MonitoringParameters">
+      <SubType>Content</SubType>
+      <Name>CET_MonitoringParameters</Name>
+      <Link>Data Model\CET_MonitoringParameters</Link>
+    </Content>
+    <Content Include="CETM.en-US.label.txt">
+      <SubType>Content</SubType>
+      <Name>CETM.en-US.label.txt</Name>
+      <DependentUpon>AxLabelFile\CETM_en-US</DependentUpon>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.Dynamics.Commerce.Essentials.Telemetry\Microsoft.Dynamics.Commerce.Essentials.Telemetry.csproj">
+      <Name>Microsoft.Dynamics.Commerce.Essentials.Telemetry</Name>
+      <Project>{46fe1d32-49c6-41bf-8ed7-0620e3dd0ca8}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>12.0.3</Version>
+    </PackageReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.Common.targets" />
+  <Import Project="$(BuildTasksDirectory)\Microsoft.Dynamics.Framework.Tools.BuildTasks.targets" />
+</Project>

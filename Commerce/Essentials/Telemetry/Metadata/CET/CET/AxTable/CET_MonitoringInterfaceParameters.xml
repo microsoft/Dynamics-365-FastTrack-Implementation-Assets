@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>CET_MonitoringInterfaceParameters</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/**
+* SAMPLE CODE NOTICE
+*
+* THIS SAMPLE CODE IS MADE AVAILABLE AS IS.  MICROSOFT MAKES NO WARRANTIES, WHETHER EXPRESS OR IMPLIED,
+* OF FITNESS FOR A PARTICULAR PURPOSE, OF ACCURACY OR COMPLETENESS OF RESPONSES, OF RESULTS, OR CONDITIONS OF MERCHANTABILITY.
+* THE ENTIRE RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS SAMPLE CODE REMAINS WITH THE USER.
+* NO TECHNICAL SUPPORT IS PROVIDED.  YOU MAY NOT DISTRIBUTE THIS CODE UNLESS YOU HAVE A LICENSE AGREEMENT WITH MICROSOFT THAT ALLOWS YOU TO DO SO.
+*/
+
+
+public class CET_MonitoringInterfaceParameters extends common
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard find method.
+    /// </summary>
+    /// <param name = "_classId">Class</param>
+    /// <param name = "_linenum">Line number</param>
+    /// <param name = "_forupdate">Optional:  set if updating the record</param>
+    /// <returns>Record found</returns>
+    public static CET_MonitoringInterfaceParameters find(ClassId _classId, LineNumber _linenum, boolean    _forupdate = false) 
+    {
+        CET_MonitoringInterfaceParameters parameters;
+
+        parameters.selectForUpdate(_forupdate);
+
+        select firstonly parameters 
+            where parameters.ClassId == _classId && parameters.LineNumber == _linenum;
+
+        return parameters;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findOrCreate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard find or create
+    /// </summary>
+    /// <param name = "_parm">A fully populated record</param>
+    /// <param name = "_forupdate">Optional:  set if updating the record</param>
+    /// <returns>Record found or created</returns>
+    public static CET_MonitoringInterfaceParameters findOrCreate(CET_MonitoringInterfaceParameters _parm, boolean    _forupdate = false)
+    {
+        CET_MonitoringInterfaceParameters parameters = CET_MonitoringInterfaceParameters::find(_parm.ClassId, _parm.LineNumber, _forupdate);
+
+        if (!parameters)
+        {
+            // The record does not exist, add it.
+            _parm.insert();
+            _parm.selectForUpdate(_forupdate);
+            return _parm;
+        }
+
+        return parameters;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>clearParmsForClass</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Clear saved parameter data.  Only use this when a business
+    /// rule definition changes.
+    /// </summary>
+    /// <param name = "_classId">AOT-assigned class id for the business rule</param>
+    public static void clearParmsForClass(ClassId _classId)
+    {
+        CET_MonitoringInterfaceParameters parameters;
+
+        delete_from parameters where parameters.ClassId ==_classId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>friendlyName</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// If the friendly name is a label (best practice), render it in the
+    /// users's current language.
+    /// </summary>
+    /// <returns>Friendly name of parameter in user's current language</returns>
+    public display Name friendlyName()
+    {        
+        if (strFind(this.Name, '@',1,1) > 0)
+        {
+            return SysLabel::labelId2String(this.Name, currentUserLanguage()); // Convert from a label to text.
+        }
+        return this.Name;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>friendlyDescription</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// If the friendly description is a label (best practice), render it in the
+    /// users's current language.
+    /// </summary>
+    /// <returns>Friendly name of parameter in user's current language</returns>
+    public display Description friendlyDescription()
+    {
+        if (strFind(this.Description, '@',1,1) > 0)
+        {
+            return SysLabel::labelId2String(this.Description, currentUserLanguage());
+        }
+        return this.Description;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateWrite</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Validate record content before committing.
+    /// </summary>
+    /// <returns>base value</returns>
+    public boolean validateWrite()
+    {
+        boolean ret;
+    
+        ret = super();
+
+        // This will throw an exception if it fails which will abort the write.
+        switch(this.Type)
+        {
+            case CET_MonitoringParameterValueType::Integer:
+                str2Int(this.Value);
+                break;
+
+            case CET_MonitoringParameterValueType::Date:
+                str2Date(this.Value, 0); 
+                break;
+
+            case CET_MonitoringParameterValueType::Decimal:
+                str2Num(this.Value);
+                break;
+        }
+    
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@CETM:HelpText</DeveloperDocumentation>
+	<Label>@CETM:MonitoringBusinessRuleParameters</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>ClassId</TitleField1>
+	<TitleField2>Name</TitleField2>
+	<ReplacementKey>ClassLineIdx</ReplacementKey>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>LineNumber</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>friendlyName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Type</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ClassId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ClassId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LineNumber</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Details</Name>
+			<Label>@SYS318405</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>friendlyName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Value</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>friendlyDescription</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>ClassId</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>ClassId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Name</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>Name</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>LineNumber</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>LineNumber</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Description</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>Description</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Value</Name>
+			<ExtendedDataType>CET_MonitoringParameterValue</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Type</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<EnumType>CET_MonitoringParameterValueType</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>ClassLineIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>ClassId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>LineNumber</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>ClassIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>ClassId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>InterfaceRef</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>CET_MonitoringInterfaces</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>ClassId</Name>
+					<Field>ClassId</Field>
+					<RelatedField>ClassId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+			<Index>ClassIdx</Index>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

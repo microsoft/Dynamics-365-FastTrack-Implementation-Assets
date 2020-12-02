@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>CET_MonitoringWHSECleanup</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/**
+* SAMPLE CODE NOTICE
+*
+* THIS SAMPLE CODE IS MADE AVAILABLE AS IS.  MICROSOFT MAKES NO WARRANTIES, WHETHER EXPRESS OR IMPLIED,
+* OF FITNESS FOR A PARTICULAR PURPOSE, OF ACCURACY OR COMPLETENESS OF RESPONSES, OF RESULTS, OR CONDITIONS OF MERCHANTABILITY.
+* THE ENTIRE RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS SAMPLE CODE REMAINS WITH THE USER.
+* NO TECHNICAL SUPPORT IS PROVIDED.  YOU MAY NOT DISTRIBUTE THIS CODE UNLESS YOU HAVE A LICENSE AGREEMENT WITH MICROSOFT THAT ALLOWS YOU TO DO SO.
+*/
+
+/// <summary>
+/// Monitoring business rule.
+/// </summary>
+class CET_MonitoringWHSECleanup  extends CET_MonitoringBase
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setContractDefaults</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets the default values for the contract.  This
+    /// can be changed through the parameters form.
+    /// </summary>
+    public void setContractDefaults()
+    {
+        super();
+        contract.parmRefreshInMs(86400000); // 86400000 ms = 24 hours 
+        contract.addParm(
+            1,                        
+            literalStr("@CETM:WHSEOrphanedRecords"),
+            literalStr("@CETM:LogMetricDescription"),            
+            "@CETM:WHSEOrphanedRecords");
+        
+        contract.addParm(
+            2,
+            literalStr("@CETM:WHSERecordLabel"),
+            literalStr("@CETM:LogMetricDescription"),
+            "@CETM:WHSERecordLabel");
+        
+        contract.addParm(
+            3,
+            literalStr("@CETM:WHSERecordThreshold"),
+            literalStr("@CETM:LogMetricDescription"),
+            100000,
+            CET_MonitoringParameterValueType::Integer);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Default description and purpose of this monitoring activity.
+    /// </summary>
+    /// <returns>Description of this class</returns>
+    public ClassDescription description()
+    {
+        return "@CETM:WHSEMonitoringDesc";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Do the real work.  
+    /// </summary>
+    public void run()
+    {
+        WHSInventReserve reserve;
+        super(); // Pulls config into contract.
+
+        select count(RecId) from reserve
+            where reserve.AvailOrdered == 0 &&
+                reserve.AvailPhysical == 0 &&
+                reserve.ReservOrdered == 0 &&
+                reserve.ReservPhysical == 0;
+
+        this.logMetric(1, reserve.RecId);
+
+        if (reserve.RecId > contract.getParmValueInt(3))
+        {
+            this.logEvent(2);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>minRefreshInMs</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Define a minimum refresh interval so that users cannot accidentally
+    /// run this more frequently than needed.
+    /// </summary>
+    /// <returns>Minmum refresh interval in milliseconds</returns>
+    public int minRefreshInMs()
+    {
+        return 28800000; // 28.8m ms = 8 hours
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

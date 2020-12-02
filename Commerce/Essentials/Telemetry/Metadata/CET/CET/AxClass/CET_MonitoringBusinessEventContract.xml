@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>CET_MonitoringBusinessEventContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/**
+* SAMPLE CODE NOTICE
+*
+* THIS SAMPLE CODE IS MADE AVAILABLE AS IS.  MICROSOFT MAKES NO WARRANTIES, WHETHER EXPRESS OR IMPLIED,
+* OF FITNESS FOR A PARTICULAR PURPOSE, OF ACCURACY OR COMPLETENESS OF RESPONSES, OF RESULTS, OR CONDITIONS OF MERCHANTABILITY.
+* THE ENTIRE RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS SAMPLE CODE REMAINS WITH THE USER.
+* NO TECHNICAL SUPPORT IS PROVIDED.  YOU MAY NOT DISTRIBUTE THIS CODE UNLESS YOU HAVE A LICENSE AGREEMENT WITH MICROSOFT THAT ALLOWS YOU TO DO SO.
+*/
+
+/// <summary>
+/// A data contract for a custom business event used for broadcasting 
+/// additional (payload) data with system telemetry.
+/// </summary>
+[DataContract]
+class CET_MonitoringBusinessEventContract extends BusinessEventsContract
+{
+    private utcdatetime                logDateTime;
+    private CET_EventName            name;
+    private CET_EventData            data;
+    private CET_EventMetricValue    metricValue;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>newFromCET_MonitoringLog</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Create a new instance of this data contract.
+    /// </summary>
+    /// <param name = "_log">Table record that inspires this data contract.</param>
+    /// <returns>An instance of this data contract.</returns>
+    public static CET_MonitoringBusinessEventContract newFromCET_MonitoringLog(CET_MonitoringLog _log)
+    {
+        CET_MonitoringBusinessEventContract contract = new CET_MonitoringBusinessEventContract();
+
+        contract.initialize(_log);
+
+        return contract;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initialize</Name>
+				<Source><![CDATA[
+	/// <summary>
+    ///  Framework method.  Initializes data members based on
+    ///  the referenced record
+    /// </summary>
+    /// <param name = "_log">Table record that inspires this data contract.</param>
+    private void initialize(CET_MonitoringLog _log)
+    {
+        logDateTime = _log.LogDateTime;
+        name = _log.Name;
+        data = _log.Data;
+        metricValue = _log.MetricValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLogDateTime</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Framework property setter.
+    /// </summary>
+    /// <param name = "_logDateTime">Optional: new parameter value.</param>
+    /// <returns>Parameter value used by data contract.</returns>
+    [DataMember('LogDateTime'), BusinessEventsDataMember("@CETM:InterfaceLastRun")]
+    public utcdatetime parmLogDateTime(utcdatetime _logDateTime = logDateTime)
+    {
+        logDateTime = _logDateTime;
+
+        return logDateTime;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Framework property setter.
+    /// </summary>
+    /// <param name = "_name">Optional: new parameter value.</param>
+    /// <returns>Parameter value used by data contract.</returns>
+    [DataMember('Name'), BusinessEventsDataMember("@CETM:MonitoringEventName")]
+    public CET_EventName parmName(CET_EventName _name = name)
+    {
+        name = _name;
+        return name;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmData</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Framework property setter.
+    /// </summary>
+    /// <param name = "_data">Optional: new parameter value.</param>
+    /// <returns>Parameter value used by data contract.</returns>
+    [DataMember('Data'), BusinessEventsDataMember("@CETM:MonitoringEventData")]
+    public CET_EventData parmData(CET_EventData _data = data)
+    {
+        data = _data;
+        return data;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMetricValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Framework property setter.
+    /// </summary>
+    /// <param name = "_metricValue">Optional: new parameter value.</param>
+    /// <returns>Parameter value used by data contract.</returns>
+    [DataMember('Value'), BusinessEventsDataMember("@CETM:MonitoringEventValue")]
+    public CET_EventMetricValue  parmMetricValue(CET_EventMetricValue _metricValue = metricValue)
+    {
+        metricValue = _metricValue;
+        return metricValue;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
