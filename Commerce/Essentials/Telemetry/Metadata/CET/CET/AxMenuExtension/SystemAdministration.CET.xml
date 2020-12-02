@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMenuExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+    <Name>SystemAdministration.CET</Name>
+    <Customizations />
+    <Elements>
+        <AxMenuExtensionElement xmlns="">
+            <Parent>Setup</Parent>
+            <MenuElement xmlns=""
+                i:type="AxMenuElementSubMenu">
+                <Name>CET_MonitoringSetup</Name>
+                <Label>@CETM:TelemetryMonitoring</Label>
+                <Elements>
+                    <AxMenuElement xmlns=""
+                        i:type="AxMenuElementMenuItem">
+                        <Name>CET_MonitoringConfigurationMenuItem</Name>
+                        <MenuItemName>CET_MonitoringConfigurationMenuItem</MenuItemName>
+                    </AxMenuElement>
+                    <AxMenuElement xmlns=""
+                        i:type="AxMenuElementMenuItem">
+                        <Name>CET_MonitoringBatchAction</Name>
+                        <MenuItemName>CET_MonitoringBatchAction</MenuItemName>
+                        <MenuItemType>Action</MenuItemType>
+                    </AxMenuElement>
+                </Elements>
+            </MenuElement>
+        </AxMenuExtensionElement>
+    </Elements>
+    <MenuElementModifications />
+    <PropertyModifications />
+</AxMenuExtension>

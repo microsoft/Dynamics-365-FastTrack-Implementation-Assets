@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1145
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FC65038C-1B2F-41E1-A629-BED71D161FFF}") = "Commerce Essentials - Telemetry (CUS) [Commerce Essentials - Telemetry]", "Commerce Essentials - Telemetry\Commerce Essentials - Telemetry.rnrproj", "{654FED0D-EB3D-4F37-9244-A1A9A539097A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Dynamics.Commerce.Essentials.Telemetry", "Microsoft.Dynamics.Commerce.Essentials.Telemetry\Microsoft.Dynamics.Commerce.Essentials.Telemetry.csproj", "{46FE1D32-49C6-41BF-8ED7-0620E3DD0CA8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{654FED0D-EB3D-4F37-9244-A1A9A539097A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{654FED0D-EB3D-4F37-9244-A1A9A539097A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{654FED0D-EB3D-4F37-9244-A1A9A539097A}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{654FED0D-EB3D-4F37-9244-A1A9A539097A}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{46FE1D32-49C6-41BF-8ED7-0620E3DD0CA8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46FE1D32-49C6-41BF-8ED7-0620E3DD0CA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46FE1D32-49C6-41BF-8ED7-0620E3DD0CA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46FE1D32-49C6-41BF-8ED7-0620E3DD0CA8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8FED972E-671E-491C-8FCB-DDC7D9343515}
+	EndGlobalSection
+EndGlobal

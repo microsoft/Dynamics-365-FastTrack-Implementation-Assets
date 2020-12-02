@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>CET_MonitoringFactory</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/**
+* SAMPLE CODE NOTICE
+*
+* THIS SAMPLE CODE IS MADE AVAILABLE AS IS.  MICROSOFT MAKES NO WARRANTIES, WHETHER EXPRESS OR IMPLIED,
+* OF FITNESS FOR A PARTICULAR PURPOSE, OF ACCURACY OR COMPLETENESS OF RESPONSES, OF RESULTS, OR CONDITIONS OF MERCHANTABILITY.
+* THE ENTIRE RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS SAMPLE CODE REMAINS WITH THE USER.
+* NO TECHNICAL SUPPORT IS PROVIDED.  YOU MAY NOT DISTRIBUTE THIS CODE UNLESS YOU HAVE A LICENSE AGREEMENT WITH MICROSOFT THAT ALLOWS YOU TO DO SO.
+*/
+
+using Microsoft.Dynamics.Commerce.Essentials.Telemetry;
+
+/// <summary> 
+/// A factory class used to instantiate monitoring subclasses.
+/// </summary>
+class CET_MonitoringFactory
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>now</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Define a consistent perspective of "now".
+    /// </summary>
+    /// <returns>UTC value for the time and date right now</returns>
+    static utcdatetime now()
+    {
+        return DateTimeUtil::utcNow();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Provision an instance of the factory.
+    /// </summary>
+    /// <returns>An instance of the factory class</returns>
+    static CET_MonitoringFactory construct()
+    {
+        CET_MonitoringFactory retFactory = new CET_MonitoringFactory();
+
+        return retFactory;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// One way to test this class is to debug, so this method
+    /// is used so that you can easily set your breakpoint.
+    /// </summary>
+    /// <param name = "_args">Framework arguments</param>
+    static void main(Args _args)
+    {
+        CET_MonitoringFactory::refreshInterfaceList();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>refreshInterfaceList</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Spin through the AOT and add any new records.
+    /// </summary>
+    public static void refreshInterfaceList()
+    {
+        CET_MonitoringInterfaces    interfaces, interfacesBuff;
+        CET_MonitoringInterfaces    interfacesTmp;
+        // UnitOfWork					uow = new UnitOfWork();
+
+        SysDictClass                dictClass;
+        List                        interfaceList;
+        ListEnumerator              li;
+
+        CET_MonitoringBase		    monitoringClass;
+        ClassId                     monitoringClassId;
+
+        interfacesTmp.setTmp();
+
+        dictClass = new SysDictClass(classNum(CET_MonitoringBase));
+
+        interfaceList = dictClass.extendedBy(false);
+
+        if (interfaceList.elements() > 0) 
+        {
+            li = interfaceList.getEnumerator();
+
+            while (li.moveNext())
+            {
+                monitoringClassId = li.current();
+                if (monitoringClassId == classNum(CET_MonitoringBase))
+                {
+                    // Skip the base class wich is an interface.
+                    continue;
+                }
+                monitoringClass = CET_MonitoringFactory::getClassInstanceFromClassId(monitoringClassId);
+                interfacesTmp.ClassId = monitoringClassId;
+                interfacesTmp.ClassDescription = monitoringClass.description();
+                interfacesTmp.Processor = monitoringClass.processor();
+                interfacesTmp.Enabled = NoYes::No;
+                interfacesTmp.RefreshInterval = monitoringClass.parmContract().parmRefreshInMs();
+				// BP Deviation documented:  Can't use unit of work with temp tables.
+                interfacesTmp.insert();
+                // uow.insertonSaveChanges(interfacesTmp);
+            }
+            // uow.saveChanges();
+
+            // Merge the results - disable monitoring that has been removed
+            update_recordset interfaces
+                setting Enabled = NoYes::No
+                notexists join interfacesTmp
+                where interfaces.ClassId == interfacesTmp.ClassId;
+
+            // Merge the results - update records where the desription has changed.
+            update_recordset interfaces    
+                setting ClassDescription = interfacesTmp.ClassDescription
+                join interfacesTmp 
+                where interfaces.ClassId == interfacesTmp.ClassId &&
+                    interfaces.ClassDescription != interfacesTmp.ClassDescription;
+
+            // Merge the resut - insert new items
+                // First, remove the items that are in common.
+            delete_from interfacesTmp
+                exists join interfaces
+                where interfaces.ClassId == interfacesTmp.ClassId;
+                // Finally, insert the remaining
+            insert_recordset interfacesBuff (ClassId, ClassDescription, Enabled, Processor, RefreshInterval)
+                select ClassId, ClassDescription, Enabled, Processor, RefreshInterval
+                from interfacesTmp;                
+
+            // For all new monitoring, configure their parameters.
+            while select interfacesTmp
+            {
+                CET_MonitoringFactory::initParmsForClass(interfacesTmp.ClassId, true);
+            }
+
+            // Disabled might be due to an update.  Refresh the parameters but do not overwrite.
+            while select interfaces where interfaces.Enabled == NoYes::No
+            {
+                CET_MonitoringFactory::initParmsForClass(interfaces.ClassId, false);
+            }
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getClassInstanceFromClassId</Name>
+				<Source><![CDATA[
+    private static CET_MonitoringBase getClassInstanceFromClassId(ClassId _id) 
+    {
+        SysDictClass dictClass = new SysDictClass(_id);
+        return dictClass.makeObject() as CET_MonitoringBase;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDescriptionFromClassId</Name>
+				<Source><![CDATA[
+    private static ClassDescription getDescriptionFromClassId(ClassId _id) 
+    {        
+        return CET_MonitoringFactory::getClassInstanceFromClassId(_id).description();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParmsForClass</Name>
+				<Source><![CDATA[
+    private static void initParmsForClass(ClassId _id, boolean _forceUpdate = false)
+    {
+        CET_MonitoringFactory::getClassInstanceFromClassId(_id).initParameters(_forceUpdate);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParmsForClass_old</Name>
+				<Source><![CDATA[
+    private static void initParmsForClass_old(ClassId _id, boolean _forceUpdate = false)
+    {
+        SysDictClass dictClass = new SysDictClass(_id);
+        ExecutePermission perm;
+        perm = new ExecutePermission();
+        perm.assert();
+
+        // Code access security (CAS):  https://docs.microsoft.com/en-us/dynamicsax-2012/developer/code-access-security
+        Object classObj = dictClass.makeObject();
+        dictClass.callObject(@"initParameters", classObj, _forceUpdate); // Requires code access security
+        CodeAccessPermission::revertAssert();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Record2JSON</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// A helper method to serialize a table/view record into a JSON 
+    /// string for easier portability of an event payload.
+    /// </summary>
+    /// <param name = "_rec">A table or view record</param>
+    /// <param name = "_includeSysFields">Flag indicating that system fields should 
+    /// be included in the serialization</param>
+    /// <returns>A JSON string reprepsenentation of the record</returns>
+    public static str Record2JSON(Common _rec, boolean _includeSysFields = false)
+    {
+        DictTable dictTable;
+        DictField dictField;
+
+        int i;
+        str retVal = '';
+
+        TelemetryHelper                    helper;
+        InteropPermission                permission;
+
+        try
+        {
+            permission = new InteropPermission(InteropKind::ClrInterop);
+            permission.assert();
+
+            helper = new TelemetryHelper();            
+            dictTable = new DictTable(_rec.TableId);
+
+            for (i = 1; i<= dictTable.fieldCnt(); i++)
+            {
+                dictField = new DictField(_rec.TableId, dictTable.fieldCnt2Id(i));
+                if (dictField.isSystem() && _includeSysFields == false)
+                {
+                    // This is a system field, skip it.
+                    continue;
+                }
+
+                if (dictField.enumId() != 0)
+                {
+                    // This is an enum field, convert from integer value to symbol.
+                    helper.add(dictField.name(), enum2Symbol(dictField.enumId(), _rec.(dictField.id())));
+                }
+                else
+                {
+                    // All other data types should be handled correctly: numeric, date, string
+                    helper.add(dictField.name(), _rec.(dictField.id()));
+                }
+            }
+
+            retVal = helper.serialize();
+        }
+        catch (Exception::CLRError)
+        {
+            // There was a failure/error, clear any incremental
+            // changes that might have been included in the return
+            // value.
+            retVal = '';
+        }
+        CodeAccessPermission::revertAssert();
+
+        return retVal;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

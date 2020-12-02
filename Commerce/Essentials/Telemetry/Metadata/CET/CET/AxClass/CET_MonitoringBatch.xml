@@ -1,0 +1,583 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>CET_MonitoringBatch</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/**
+* SAMPLE CODE NOTICE
+*
+* THIS SAMPLE CODE IS MADE AVAILABLE AS IS.  MICROSOFT MAKES NO WARRANTIES, WHETHER EXPRESS OR IMPLIED,
+* OF FITNESS FOR A PARTICULAR PURPOSE, OF ACCURACY OR COMPLETENESS OF RESPONSES, OF RESULTS, OR CONDITIONS OF MERCHANTABILITY.
+* THE ENTIRE RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS SAMPLE CODE REMAINS WITH THE USER.
+* NO TECHNICAL SUPPORT IS PROVIDED.  YOU MAY NOT DISTRIBUTE THIS CODE UNLESS YOU HAVE A LICENSE AGREEMENT WITH MICROSOFT THAT ALLOWS YOU TO DO SO.
+*/
+
+
+#Define.CurrentVersion(1)
+#LOCALMACRO.CurrentList
+        threadNumber, threadCount
+#ENDMACRO
+
+/// <summary>
+/// Inspired by BusinessEventsBundleBatchBase. [Main thread]
+/// </summary>
+class CET_MonitoringBatch extends RunBaseBatch
+{
+    protected const int mainThreadNumber = 1;
+    protected int threadCount;
+    utcdatetime        cleanupLastRun;
+    private int threadNumber;
+    private ClassName batchClassName;
+    private CET_MonitoringParameters parameter;
+    private Map threadMap;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Instantiate a new class.  Default values.
+    /// </summary>
+    protected void new()
+    {
+        batchClassName = classId2Name(classIdGet(this));
+        threadNumber = mainThreadNumber;
+        parameter = CET_MonitoringParameters::find();
+        threadCount = 100 + mainThreadNumber; // Start with a number higher than the main thread number.
+        super();
+        threadMap = new Map(Types::Integer, Types::Integer);  // ClassId -> Thread #
+        cleanupLastRun = utcDateTimeNull();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Standard method for instantiating the class.
+    /// </summary>
+    /// <returns>Instance of class</returns>
+    public static CET_MonitoringBatch construct()
+    {
+        return new CET_MonitoringBatch();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>hasRuntimeTasks</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Indicates if there are sub-task worker threads.
+    /// </summary>
+    /// <returns>True if worker tasks found, false otherwise.</returns>
+    private boolean hasRuntimeTasks()
+    {
+        if (this.isInBatch())
+        {
+            Batch batch;
+
+            select firstonly batch where
+                batch.BatchJobId == this.getCurrentBatchHeader().parmBatchHeaderId() &&
+                batch.RunTimeTask == NoYes::Yes;
+
+            return batch != null;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>cleanupLog</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Purge logs daily.
+    /// </summary>
+    private void cleanupLog()
+    {
+        if (cleanupLastRun <= DateTimeUtil::addHours(CET_MonitoringFactory::now(), -24))
+        {
+            // Purge older logs.
+            CET_MonitoringLog::purgeLog();
+            cleanupLastRun = CET_MonitoringFactory::now();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCurrentBatchHeader</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// If this is running in batch, get the header.
+    /// </summary>
+    /// <returns>Batch header or null</returns>
+    private BatchHeader getCurrentBatchHeader()
+    {
+        return BatchHeader::getCurrentBatchHeader();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>batchDialogCaption</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Dialog caption
+    /// </summary>
+    /// <returns>Description of this class for a dialog.</returns>
+    private ClassDescription batchDialogCaption()
+    {
+        return "@CETM:BatchCaption";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>batchTaskCaption</Name>
+				<Source><![CDATA[
+	/// <summary>
+    ///  Caption/description for the batch task
+    /// </summary>
+    /// <param name = "_taskNumber">ID of worker task</param>
+    /// <returns>Caption/description for the batch task</returns>
+    private ClassDescription batchTaskCaption(int _taskNumber)
+    {
+        return strFmt("@CETM:BatchThreadCaption", _taskNumber);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>caption</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Framework for getting the dialog caption.
+    /// </summary>
+    /// <returns>Description of the class used in the dialog</returns>
+    public ClassDescription caption()
+    {
+        if (isRunningOnBatch())
+        {
+            return this.batchTaskCaption(threadNumber);
+        }
+        else
+        {
+            return this.batchDialogCaption();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initBatch</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Initialize a batch task/worker thread.
+    /// </summary>
+    /// <param name = "batch">The existing batch record.</param>
+    public void initBatch(Batch batch)
+    {
+        super(batch);
+
+        // Set the caption of the batch task.
+        batch.caption = this.batchTaskCaption(threadNumber);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmThreadNumber</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Framework setter/getter method for the thread number of a worker task
+    /// </summary>
+    /// <param name = "_threadNumber">Thread number</param>
+    /// <returns>Thread number</returns>
+    public int parmThreadNumber(int _threadNumber = threadNumber)
+    {
+        threadNumber = _threadNumber;
+
+        return threadNumber;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Framework -- batch classes that implement <c>RunBaseBatch</c> should always be true.
+    /// </summary>
+    /// <returns>True if this class can be run in batch</returns>
+    public boolean canRunInNewSession()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Framework method that serializes critical method properties and saves it
+    /// so that this trhead can go to sleep.
+    /// </summary>
+    /// <returns>A container with critical member data that needs to persist across batch runs.</returns>
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList, threadMap.pack()];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Framework method that deserializes critical method properties
+    /// </summary>
+    /// <param name = "packedClass">Container with serialized data</param>
+    /// <returns>true if successful, fals otherwise</returns>
+    public boolean unpack(container packedClass)
+    {
+        Version version = conPeek(packedClass, 1);
+        container threadMapContainer;
+        boolean retval = true;
+
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version, #CurrentList, threadMapContainer] = packedClass;
+                threadMap = Map::create(threadMapContainer);
+                cleanupLastRun = utcDateTimeNull(); // trigger a log cleanup
+                retval = true;
+                break;
+
+            default:
+                cleanupLastRun = utcDateTimeNull(); // trigger a log cleanup
+                retval = false;
+                break;
+        }
+        parameter = CET_MonitoringParameters::find();
+        return retval;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isMainBatchTask</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Check to see if this is the main or worker thread instance .
+    /// </summary>
+    /// <returns>True if main thread.</returns>
+    private boolean isMainBatchTask()
+    {
+        return threadNumber == mainThreadNumber;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>continuePolling</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Checks to see if this batch process should continue monitoring. 
+    /// 
+    /// </summary>
+    /// <returns>True if monitoring is enabled</returns>
+    public boolean continuePolling()
+    {
+        parameter.reread();
+
+        return parameter.EnableBatch == NoYes::Yes;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>doWork</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Process monitoring business rules.
+    /// </summary>
+    public void doWork()
+    {
+        CET_MonitoringInterfaces modules;
+        DictClass dc;
+        CET_MonitoringBase moduleInterface;
+        BatchStatus status;
+        
+        while select modules
+            where modules.Enabled == NoYes::Yes
+            && modules.Processor == classIdGet(this)            
+            && modules.StartDateTime <= CET_MonitoringFactory::now()
+        {
+            status = BatchStatus::Waiting; // Default for a successful status.
+            try
+            {
+                modules.startInterface(this); // Mark this as started.
+                
+                dc = new DictClass(modules.ClassId);
+                moduleInterface = dc.makeObject();
+                if (moduleInterface != null)
+                {
+                    moduleInterface.run();
+                    modules.stopInterface(status, moduleInterface.nextRunStart());
+                }
+            }
+            catch(Exception::Error)
+            {
+                status = BatchStatus::Error;
+                modules.disableInterface(status);
+            }
+
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sleepInterval</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Determine how long to sleep
+    /// </summary>
+    /// <returns>Sleep period in milliseconds</returns>
+    public int sleepInterval()
+    {
+        CET_MonitoringInterfaces modules;
+        utcdatetime refTime = CET_MonitoringFactory::now();
+
+        select minof(StartDateTime), count(RecId) from modules
+            where modules.Enabled == NoYes::Yes
+            && modules.Processor == classIdGet(this);
+
+        if (modules.RecId == 0)
+        {
+            // RecId was a count, so zero means no records to process.
+            return parameter.MinRefreshInterval; // Sleep for min, then check if something was created.
+        }
+        int timeDiff = parameter.MinRefreshInterval;
+
+        if (modules.StartDateTime > refTime)
+        {
+            // utcDateTime is in seconds.  Sleep is in milliseconds.
+            timeDiff = int642int(DateTimeUtil::getDifference(modules.StartDateTime, refTime)* 1000);
+        }
+        return min(parameter.MaxSleepInterval, max(parameter.MinRefreshInterval, timeDiff));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addRuntimeTasks</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Add helper/worker threads during batch runtime. 
+    /// </summary>
+    private void addRuntimeTasks()
+    {
+        CET_MonitoringInterfaces interfaceProcessors;
+        CET_MonitoringBatch batchTask;
+        
+
+        if (this.isInBatch())
+        {
+            BatchHeader header = this.getCurrentBatchHeader();
+
+            while select Processor, count(RecId) from interfaceProcessors
+                group by Processor
+                where interfaceProcessors.Enabled == NoYes::Yes
+                && interfaceProcessors.Processor != 0
+                && interfaceProcessors.Processor != classIdGet(this)
+            {
+                if (threadMap.exists(interfaceProcessors.Processor))
+                {
+                    // We already have this thread, move next.
+                    continue;
+                }
+                // Instantiate an batch task for each unique processor required.
+                batchTask = new DictClass(interfaceProcessors.Processor).makeObject() as CET_MonitoringBatch;
+
+                // Assign it a thread number.
+                batchTask.parmThreadNumber(threadCount);
+                threadMap.add(interfaceProcessors.Processor, threadCount);
+                threadCount++;
+
+                // Add to the current batch job
+                header.addRuntimeTask(batchTask, this.parmCurrentBatch().RecId);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>singleThreadedProcessing</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Used when running interactively.
+    /// </summary>
+    private void singleThreadedProcessing()
+    {
+        while (this.continuePolling())
+        {
+            this.doWork();
+            
+            sleep(this.sleepInterval());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Framework method.  Main entry point.
+    /// </summary>
+    public void run()
+    {
+        if (!isRunningOnBatch())
+        {
+            // Do work once, then stop.
+            this.doWork();
+            return;
+        }
+
+        if (this.isMainBatchTask())
+        {
+            while (this.continuePolling())
+            {
+                // Is the main batch task
+                this.addRuntimeTasks();
+                this.doWork();
+
+                sleep(this.sleepInterval());
+            }
+
+        }
+        else
+        {
+            // Is a helper batch task
+            do
+            {
+                this.singleThreadedProcessing();
+            }
+            while(this.isMainTaskRunning());
+            // Run while the main task is creating bundles
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isMainTaskRunning</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Helper method for worker threads to checks if the main thread has exited.
+    /// </summary>
+    /// <returns>True if main task is active.</returns>
+    private boolean isMainTaskRunning()
+    {
+        if (threadNumber == mainThreadNumber)
+        {
+            // The current task is the main task
+            return true;
+        }
+        else if (this.isInBatch())
+        {
+            Batch batch;
+
+            select firstonly batch where
+                batch.BatchJobId == this.getCurrentBatchHeader().parmBatchHeaderId() &&
+                batch.RunTimeTask == NoYes::No;
+
+            return batch.Status == BatchStatus::Executing;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Framework method.
+    /// </summary>
+    /// <param name = "_args">Framework arguments</param>
+    public static void main(Args _args)
+    {
+        CET_MonitoringBatch monitoringMatch = CET_MonitoringBatch::construct();
+
+        if (monitoringMatch.prompt())
+        {
+            monitoringMatch.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>batchJobAlreadyExists</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Check to see if this batch job already exists.
+    /// </summary>
+    /// <returns>True if an instance is already scheduled.</returns>
+    public static boolean batchJobAlreadyExists()
+    {
+        Batch batchTable;
+
+        select count(RecId) from batchTable where batchTable.ClassNumber == classNum(CET_MonitoringBatch);
+
+        return batchTable.RecId > 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Framework method to build the batch dialog.
+    /// </summary>
+    /// <returns>Dialog object</returns>
+    public Object dialog()
+    {
+        Dialog dialog = super();
+
+        if (parameter.EnableBatch == NoYes::No)
+        {
+            dialog.addText("@CETM:MonitoringBatchMustEnable");
+            this.batchInfo().parmBatchExecute(false);
+        }
+        if (CET_MonitoringBatch::batchJobAlreadyExists())
+        {
+            dialog.addText("@CETM:MonitoringBatchOnlyOne");
+            this.batchInfo().parmBatchExecute(false);
+        }
+
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>CET_MonitoringSQLPerf</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/**
+* SAMPLE CODE NOTICE
+*
+* THIS SAMPLE CODE IS MADE AVAILABLE AS IS.  MICROSOFT MAKES NO WARRANTIES, WHETHER EXPRESS OR IMPLIED,
+* OF FITNESS FOR A PARTICULAR PURPOSE, OF ACCURACY OR COMPLETENESS OF RESPONSES, OF RESULTS, OR CONDITIONS OF MERCHANTABILITY.
+* THE ENTIRE RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS SAMPLE CODE REMAINS WITH THE USER.
+* NO TECHNICAL SUPPORT IS PROVIDED.  YOU MAY NOT DISTRIBUTE THIS CODE UNLESS YOU HAVE A LICENSE AGREEMENT WITH MICROSOFT THAT ALLOWS YOU TO DO SO.
+*/
+
+/// <summary>
+/// Monitoring business rule.
+/// </summary>
+public class CET_MonitoringSQLPerf extends CET_MonitoringBase
+{
+    private const int AvgCPU = 1;
+    private const int AvgLogIO = 2;
+    private const int AvgMemory = 3;
+    private const int AverageDTULimit = 4;
+    private const int MaxSessionPercentage = 5;
+    private const int MaxWorkerPercentage = 6;
+    private const int AvgStorage = 7;
+    private const int AvgLogWrite = 8;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setContractDefaults</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets the default values for the contract.  This
+    /// can be changed through the parameters form.
+    /// </summary>
+    public void setContractDefaults()
+    {
+        super();
+        contract.parmRefreshInMs(300000); // 300k ms = 5 minutes
+        contract.addParm(
+            AvgCPU,                        // Line number / position
+            literalStr("@CETM:LogMetricSQLAvgCPU"),    // Name
+            literalStr("@CETM:LogMetricDescription"),            // Description of this parameters
+            "@CETM:LogMetricSQLAvgCPU");                // Default value
+        
+
+        contract.addParm(
+            AvgLogIO,                        // Line number / position
+            literalStr("@CETM:LogMetricSQLAvgLogIO"),    // Name
+            literalStr("@CETM:LogMetricDescription"),            // Description of this parameters
+            "@CETM:LogMetricSQLAvgLogIO");            // Default value
+        
+
+        contract.addParm(
+            AvgMemory,                    // Line number / position
+            literalStr("@CETM:LogMetricSQLAvgMemory"),            // Name
+            literalStr("@CETM:LogMetricDescription"),            // Description of this parameters
+            "@CETM:LogMetricSQLAvgMemory");                        // Default value
+        
+
+        contract.addParm(
+            AverageDTULimit,                    // Line number / position
+            literalStr("@CETM:LogMetricSQLAverageDTULimit"),            // Name
+            literalStr("@CETM:LogMetricDescription"),            // Description of this parameters
+            "@CETM:LogMetricSQLAverageDTULimit");                        // Default value
+
+
+        contract.addParm(
+            MaxSessionPercentage,                    // Line number / position
+            literalStr("@CETM:LogMetricSQLMaxSessionPercentage"),            // Name
+            literalStr("@CETM:LogMetricDescription"),            // Description of this parameters
+            "@CETM:LogMetricSQLMaxSessionPercentage");                        // Default value
+
+
+        contract.addParm(
+            MaxWorkerPercentage,                    // Line number / position
+            literalStr("@CETM:LogMetricSQLMaxWorkerPercentage"),            // Name
+            literalStr("@CETM:LogMetricDescription"),            // Description of this parameters
+            "@CETM:LogMetricSQLMaxWorkerPercentage");                        // Default value
+
+        contract.addParm(
+            AvgStorage,                    // Line number / position
+            literalStr("@CETM:LogMetricSQLAvgStorage"),            // Name
+            literalStr("@CETM:LogMetricDescription"),            // Description of this parameters
+            "@CETM:LogMetricSQLAvgStorage");                        // Default value
+        
+        contract.addParm(
+            AvgLogWrite,                    // Line number / position
+            literalStr("@CETM:LogMetricSQLAvgLogWrite"),            // Name
+            literalStr("@CETM:LogMetricDescription"),            // Description of this parameters
+            "@CETM:LogMetricSQLAvgLogWrite");                        // Default value
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Default description and purpose of this class.
+    /// </summary>
+    /// <returns>Description of this class</returns>
+    public ClassDescription description()
+    {
+        return "@CETM:SQLPerfMonitoring";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The following method will be called every time the monitoring runs.
+    /// 
+    /// Collect perf statistics about the database.  Note that this only works
+    /// when the database is Azure SQL.  This does not work on a dev VM / Tier-1.
+    /// Note that this is by design.  See SysSqlResourceStatsViewBuilder.createSQLStatementExecuting()
+    /// This was inspired by the class SysSqlDiagnosticService.
+    /// </summary>
+    public void run()
+    {
+        super(); // Pulls config into contract.
+        
+        SysSqlResourceStatsView statsView;
+        select firstonly * from  statsView
+            order by EndTime desc;
+        this.logMetric(AvgCPU, statsView.AvgCPUPercent);
+        this.logMetric(AvgLogIO, statsView.AvgDataIOPercent);
+        this.logMetric(AvgLogWrite, statsView.AvgLogWritePercent);
+        this.logMetric(AvgMemory, statsView.AvgMemUsagePercent);
+        this.logMetric(AverageDTULimit, statsView.DTULimit);
+        this.logMetric(MaxSessionPercentage, statsView.MaxSessionPercent);
+        this.logMetric(MaxWorkerPercentage, statsView.MaxWorkerPercent);
+        this.logMetric(AvgStorage, statsView.XtpStoragePercent);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
