@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxLabelFile xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+    <Name>CETM_en-US</Name>
+    <LabelContentFileName>CETM.en-US.label.txt</LabelContentFileName>
+    <LabelFileId>CETM</LabelFileId>
+    <RelativeUriInModelStore>CET\CET\AxLabelFile\LabelResources\en-US\CETM.en-US.label.txt</RelativeUriInModelStore>
+</AxLabelFile>
