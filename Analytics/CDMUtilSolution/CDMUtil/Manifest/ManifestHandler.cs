@@ -333,25 +333,30 @@ namespace CDMUtil.Manifest
         }
 
         
-        public async static Task<List<SQLStatement>> SQLMetadataToDDL(List<SQLMetadata> metadataList, string type, string dataSourceName="")
+        public async static Task<List<SQLStatement>> SQLMetadataToDDL(List<SQLMetadata> metadataList, string type, string schema="dbo", string fileFormat ="", string dataSourceName="")
         {
             List<SQLStatement> sqlStatements = new List<SQLStatement>();
             string template ="";
 
             switch (type)
             {
-               case "SynapseView":
-                    template = @"CREATE OR ALTER VIEW {0} AS SELECT * FROM OPENROWSET(BULK '{2}', FORMAT = 'CSV', Parser_Version = '2.0', DATA_SOURCE ='{3}') WITH ({1}) as r";
+               // {0} Schema, {1} TableName, {2} ColumnDefinition {3} data location ,{4} DataSource, {5} FileFormat
+                case "SynapseView":
+                    template = @"CREATE OR ALTER VIEW {0}.{1} AS SELECT * FROM OPENROWSET(BULK '{3}', FORMAT = 'CSV', Parser_Version = '2.0', DATA_SOURCE ='{4}') WITH ({2}) as r";
                     break;
                 case "SQLTable":
-                    template = @"CREATE Table {0} ({1})";
+                    template = @"CREATE Table {0}.{1} ({2})";
+                    break;
+
+                case "SynapseExternalTable":
+                    template = @"If (OBJECT_ID('{0}.{1}') is not NULL)   drop external table  {0}.{1} ;  create   EXTERNAL TABLE {0}.{1} ({2}) WITH (LOCATION = '{3}', DATA_SOURCE ={4}, FILE_FORMAT = {5})";
                     break;
 
             }
             
             foreach (SQLMetadata metadata in metadataList)
             {
-                var sql = string.Format(template,metadata.entityName, metadata.columnDefinition, metadata.dataLocation,dataSourceName);
+                var sql = string.Format(template,schema, metadata.entityName, metadata.columnDefinition, metadata.dataLocation,dataSourceName,fileFormat);
           
                 sqlStatements.Add(new SQLStatement() { Statement = sql });
             }
@@ -398,13 +403,23 @@ namespace CDMUtil.Manifest
                     }
                     else
                     {
-                        dataLocation = localRoot + "/" + dataLocation;
+                        if (dataLocation.StartsWith('/') || localRoot.EndsWith('/'))
+                        {
+                            dataLocation = localRoot + dataLocation;
+                        }
+                        else
+                        {
+                            dataLocation = localRoot + "/" + dataLocation;
+                        }
+
+                        
                     }
                 }
                 else
                 {
                     dataLocation = $"{localRoot}/{entityName}/*.*";
                 }
+                
 
                 string fileName = dataLocation.Substring(dataLocation.LastIndexOf("/") + 1);
                 string ext = fileName.Substring(fileName.LastIndexOf("."));
@@ -609,7 +624,7 @@ namespace CDMUtil.Manifest
 
                         if (maximumLenght < 0)
                         {
-                            maximumLenght = 8000;
+                            maximumLenght = 4000;
                         }
                     }
 
