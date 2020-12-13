@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>CET_MonitoringBusinessEvent</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/**
+* SAMPLE CODE NOTICE
+*
+* THIS SAMPLE CODE IS MADE AVAILABLE AS IS.  MICROSOFT MAKES NO WARRANTIES, WHETHER EXPRESS OR IMPLIED,
+* OF FITNESS FOR A PARTICULAR PURPOSE, OF ACCURACY OR COMPLETENESS OF RESPONSES, OF RESULTS, OR CONDITIONS OF MERCHANTABILITY.
+* THE ENTIRE RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS SAMPLE CODE REMAINS WITH THE USER.
+* NO TECHNICAL SUPPORT IS PROVIDED.  YOU MAY NOT DISTRIBUTE THIS CODE UNLESS YOU HAVE A LICENSE AGREEMENT WITH MICROSOFT THAT ALLOWS YOU TO DO SO.
+*/
+
+
+/// <summary>
+/// A custom business event used for broadcasting additional (payload) data with system telemetry.
+/// </summary>
+[BusinessEvents(classStr(CET_MonitoringBusinessEventContract),
+    'CETM:TelemetryMonitoring', // Label ID without the leading @
+    'CETM:TelemetryMonitoringDescription', // Label ID without the leading @
+    ModuleAxapta::SystemAdministration)]
+class CET_MonitoringBusinessEvent extends BusinessEventsBase
+{
+    private CET_MonitoringLog monitoringLog;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmCET_MonitoringLog</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Business event parm method for underlying table.
+    /// </summary>
+    /// <param name = "_monitoringLog">Optional: table record that inspires this business event</param>
+    /// <returns>The table record that inspires this business event.</returns>
+    private CET_MonitoringLog parmCET_MonitoringLog(CET_MonitoringLog _monitoringLog = monitoringLog)
+    {
+        monitoringLog = _monitoringLog;
+        return monitoringLog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>newFromCET_MonitoringLog</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Create a new instance of the class in order to assemble the buisness event.
+    /// </summary>
+    /// <param name = "_monitoringLog">The table record that inspires this business event.</param>
+    /// <returns>An instance of this business event class.</returns>
+    public static CET_MonitoringBusinessEvent newFromCET_MonitoringLog(CET_MonitoringLog _monitoringLog)
+    {
+        CET_MonitoringBusinessEvent businessEvent = new CET_MonitoringBusinessEvent();
+
+        businessEvent.parmCET_MonitoringLog(_monitoringLog);
+
+        return businessEvent;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildContract</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Framework method, creates a data contract used by this business event.
+    /// </summary>
+    /// <returns>The data contract relevant to this event.</returns>
+    public BusinessEventsContract buildContract()
+    {
+        return CET_MonitoringBusinessEventContract::newFromCET_MonitoringLog(monitoringLog);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

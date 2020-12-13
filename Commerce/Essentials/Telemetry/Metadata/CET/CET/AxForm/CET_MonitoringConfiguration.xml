@@ -1,0 +1,508 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>CET_MonitoringConfiguration</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class CET_MonitoringConfiguration extends FormRun
+{
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Initialize any local variables or settings.
+    /// </summary>
+    public void init()
+    {
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>refreshInstanceDS</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Refresh the data source for our monitoring instances.
+    /// </summary>
+    void refreshInstanceDS()
+    {
+        CET_MonitoringInterfaces.reread();
+        CET_MonitoringInterfaces_ds.executeQuery();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>FormButtonInitialize</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        /// Re-initialize the list of monitoring modules.
+        /// </summary>
+        public void clicked()
+        {
+            super();
+            CET_MonitoringFactory::refreshInterfaceList();
+
+            // Refresh our data sources.
+            element.refreshInstanceDS();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonEnable</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        /// Enable the selected module.
+        /// </summary>
+        public void clicked()
+        {
+            super();
+            CET_MonitoringInterfaces.enableInterface(DateTimeUtil::utcNow(), BatchStatus::Waiting);
+            // Refresh our data sources.
+            element.refreshInstanceDS();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonDisable</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        /// Disable the selected
+        /// </summary>
+        public void clicked()
+        {
+            super();
+            CET_MonitoringInterfaces.disableInterface(BatchStatus::Hold);
+            // Refresh our data sources.
+            element.refreshInstanceDS();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>CET_MonitoringInterfaces</Name>
+			<Table>CET_MonitoringInterfaces</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>BatchStatus</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ClassDescription</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ClassId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Enabled</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EndDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Processor</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>StartDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCheck>No</AllowCheck>
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<AllowEdit>No</AllowEdit>
+			<MaxAccessRight>NoAccess</MaxAccessRight>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>CET_MonitoringInterfaceParameters</Name>
+			<Table>CET_MonitoringInterfaceParameters</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>ClassId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Description</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LineNumber</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Name</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Type</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Value</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>CET_MonitoringInterfaces</JoinSource>
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<CounterField>LineNumber</CounterField>
+			<Index>ClassLineIdx</Index>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@CETM:ConfigureMonitoring</Caption>
+		<Pattern xmlns="">SimpleListDetails</Pattern>
+		<PatternVersion xmlns="">1.3</PatternVersion>
+		<Style xmlns="">SimpleListDetails</Style>
+		<UseCaptionFromMenuItem xmlns="">Yes</UseCaptionFromMenuItem>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>FormActionPaneControl1</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>FormButtonGroupControl1</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>FormButtonInitialize</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@CETM:Refresh</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonSeparatorControl">
+								<Name>FormButtonSeparatorControl1</Name>
+								<Type>ButtonSeparator</Type>
+								<FormControlExtension
+									i:nil="true" />
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>FormButtonEnable</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<NeedsRecord>Yes</NeedsRecord>
+								<Text>@CETM:Enable</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>FormButtonDisable</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<NeedsRecord>Yes</NeedsRecord>
+								<Text>@CETM:Disable</Text>
+							</AxFormControl>
+						</Controls>
+						<Caption>@CETM:ConfigureMonitoring</Caption>
+						<DataSource>CET_MonitoringInterfaces</DataSource>
+					</AxFormControl>
+				</Controls>
+				<Caption>@CETM:ConfigureMonitoring</Caption>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>FormGroupNavList</Name>
+				<HeightMode>SizeToAvailable</HeightMode>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl>
+						<Name>QuickFilterNavList</Name>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension>
+							<Name>QuickFilterControl</Name>
+							<ExtensionComponents />
+							<ExtensionProperties>
+								<AxFormControlExtensionProperty>
+									<Name>targetControlName</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>placeholderText</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>defaultColumnName</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+							</ExtensionProperties>
+						</FormControlExtension>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGridControl">
+						<Name>FormGridInterfaces</Name>
+						<AllowEdit>No</AllowEdit>
+						<Type>Grid</Type>
+						<WidthMode>SizeToContent</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>FormGridInterfaces_ClassDescription</Name>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>ClassDescription</DataField>
+								<DataSource>CET_MonitoringInterfaces</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormCheckBoxControl">
+								<Name>FormGridInterfaces_Enabled</Name>
+								<Type>CheckBox</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>Enabled</DataField>
+								<DataSource>CET_MonitoringInterfaces</DataSource>
+							</AxFormControl>
+						</Controls>
+						<DataGroup>AutoLookup</DataGroup>
+						<DataSource>CET_MonitoringInterfaces</DataSource>
+						<MultiSelect>No</MultiSelect>
+						<ShowRowLabels>No</ShowRowLabels>
+						<Style>List</Style>
+					</AxFormControl>
+				</Controls>
+				<FrameType>None</FrameType>
+				<Style>SidePanel</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>FormGroupHeader</Name>
+				<Pattern>FieldsFieldGroups</Pattern>
+				<PatternVersion>1.1</PatternVersion>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>FormGroupHeader_ClassDescription</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>ClassDescription</DataField>
+						<DataSource>CET_MonitoringInterfaces</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormCheckBoxControl">
+						<Name>FormGroupHeader_Enabled</Name>
+						<Type>CheckBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>Enabled</DataField>
+						<DataSource>CET_MonitoringInterfaces</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormIntegerControl">
+						<Name>FormGroupHeader_RefreshInterval</Name>
+						<Type>Integer</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>RefreshInterval</DataField>
+						<DataSource>CET_MonitoringInterfaces</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormDateTimeControl">
+						<Name>FormGroupHeader_StartDateTime</Name>
+						<Type>DateTime</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>StartDateTime</DataField>
+						<DataSource>CET_MonitoringInterfaces</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormDateTimeControl">
+						<Name>FormGroupHeader_EndDateTime</Name>
+						<Type>DateTime</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>EndDateTime</DataField>
+						<DataSource>CET_MonitoringInterfaces</DataSource>
+					</AxFormControl>
+				</Controls>
+				<ColumnsMode>Fill</ColumnsMode>
+				<DataGroup>AutoSummary</DataGroup>
+				<DataSource>CET_MonitoringInterfaces</DataSource>
+				<FrameType>None</FrameType>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>FormTabDetails</Name>
+				<Type>Tab</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>FormTabPageInterfaceDetails</Name>
+						<Pattern>Custom</Pattern>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>FormGridInterfaceParameters</Name>
+								<Type>Grid</Type>
+								<WidthMode>SizeToContent</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormRealControl">
+										<Name>FormGridInterfaceParameters_LineNumber</Name>
+										<Type>Real</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>LineNumber</DataField>
+										<DataSource>CET_MonitoringInterfaceParameters</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>FormGridInterfaceParameters_friendlyName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<CacheDataMethod>Yes</CacheDataMethod>
+										<DataMethod>friendlyName</DataMethod>
+										<DataSource>CET_MonitoringInterfaceParameters</DataSource>
+										<Label>@SYS7399</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>FormGridInterfaceParameters_Type</Name>
+										<Type>ComboBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Type</DataField>
+										<DataSource>CET_MonitoringInterfaceParameters</DataSource>
+										<Items />
+									</AxFormControl>
+								</Controls>
+								<DataGroup>AutoReport</DataGroup>
+								<DataSource>CET_MonitoringInterfaceParameters</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>FormGroupInterfaceParameterDetails</Name>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>FormGroupInterfaceParameterDetails_friendlyName</Name>
+										<HeightMode>SizeToAvailable</HeightMode>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<CacheDataMethod>Yes</CacheDataMethod>
+										<DataMethod>friendlyName</DataMethod>
+										<DataSource>CET_MonitoringInterfaceParameters</DataSource>
+										<Label>@SYS7399</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>FormGroupInterfaceParameterDetails_Value</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Value</DataField>
+										<DataSource>CET_MonitoringInterfaceParameters</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>FormGroupInterfaceParameterDetails_friendlyDescription</Name>
+										<AllowEdit>No</AllowEdit>
+										<HeightMode>SizeToAvailable</HeightMode>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<CacheDataMethod>Yes</CacheDataMethod>
+										<DataMethod>friendlyDescription</DataMethod>
+										<DataSource>CET_MonitoringInterfaceParameters</DataSource>
+										<Label>@SYS7576</Label>
+									</AxFormControl>
+								</Controls>
+								<Columns>3</Columns>
+								<DataGroup>Details</DataGroup>
+								<DataSource>CET_MonitoringInterfaceParameters</DataSource>
+							</AxFormControl>
+						</Controls>
+						<Caption>@CETM:ParameterSettings</Caption>
+					</AxFormControl>
+				</Controls>
+				<Style>FastTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

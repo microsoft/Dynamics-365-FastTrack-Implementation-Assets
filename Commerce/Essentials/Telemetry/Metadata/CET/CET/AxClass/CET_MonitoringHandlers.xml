@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>CET_MonitoringHandlers</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/**
+* SAMPLE CODE NOTICE
+*
+* THIS SAMPLE CODE IS MADE AVAILABLE AS IS.  MICROSOFT MAKES NO WARRANTIES, WHETHER EXPRESS OR IMPLIED,
+* OF FITNESS FOR A PARTICULAR PURPOSE, OF ACCURACY OR COMPLETENESS OF RESPONSES, OF RESULTS, OR CONDITIONS OF MERCHANTABILITY.
+* THE ENTIRE RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS SAMPLE CODE REMAINS WITH THE USER.
+* NO TECHNICAL SUPPORT IS PROVIDED.  YOU MAY NOT DISTRIBUTE THIS CODE UNLESS YOU HAVE A LICENSE AGREEMENT WITH MICROSOFT THAT ALLOWS YOU TO DO SO.
+*/
+
+/// <summary>
+/// A collection of form event handlers where users can enable/disable 
+/// features that may impact the system.
+/// </summary>
+public final class CET_MonitoringHandlers
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Global_Post_error</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Log errors from batch processes to App Insights as an event.
+    /// 
+    /// A post event handler for:
+    /// static Exception error(SysInfoLogStr txt, URL helpUrl = '', SysInfoAction _sysInfoAction = null)
+    /// </summary>
+    /// <param name="_args">Post-event handler arguments</param>
+    [PostHandlerFor(classStr(Global), staticMethodStr(Global, error))]
+    public static void Global_Post_error(XppPrePostArgs _args)
+    {
+        var isBatchContext = BatchHeader::isExecutingInBatch();
+
+        if(isBatchContext)
+        {
+            var currentJobContext = BatchHeader::getCurrentBatchTask();
+
+            str eventName = strFmt("@CETM:MonitoringBatchError", currentJobContext.BatchJobId, currentJobContext.Caption); // Error encountered in batch (%1 - %2)
+            SysGlobalTelemetry::logEvent(eventName);
+
+            SysInfoLogStr infoStr = _args.getArg(identifierStr('txt'));
+
+            // Track additional data for this event.
+            CET_MonitoringBase::saveEventData(eventName, infoStr);
+
+            // get the call stack and share it:
+            CET_MonitoringBase::saveEventData(eventName, strFmt("@CETM:MonitoringCallStack", con2StrUnlimited(xSession::xppCallStack())));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FeatureManagementWorkspace_EnableButton_OnClicked</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Track when someone changes the environment using feature management.
+    /// </summary>
+    /// <param name="_sender">Form sender</param>
+    /// <param name="_e">Form control event</param>
+    [FormControlEventHandler(formControlStr(FeatureManagementWorkspaceFeatureListPart, EnableButton), FormControlEventType::Clicked)]
+    public static void FeatureManagementWorkspace_EnableButton_OnClicked(FormControl _sender, FormControlEventArgs _e)
+    {        
+        FeatureManagementMetadata featureManagementMetadata = _sender.formRun().dataSource('FeatureManagementMetadata').cursor();
+        SysGlobalTelemetry::logEvent(strFmt("@CETM:MonitoringVeatureDisabledWkspace",  featureManagementMetadata.DisplayName));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FeatureManagementWorkspace_DisableButton_OnClicked</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Track when someone changes the environment using feature management.
+    /// </summary>
+    /// <param name="_sender">Form sender</param>
+    /// <param name="_e">Form control event</param>
+    [FormControlEventHandler(formControlStr(FeatureManagementWorkspaceFeatureListPart, DisableButton), FormControlEventType::Clicked)]
+    public static void FeatureManagementWorkspace_DisableButton_OnClicked(FormControl _sender, FormControlEventArgs _e)
+    {    
+        FeatureManagementMetadata featureManagementMetadata = _sender.formRun().dataSource('FeatureManagementMetadata').cursor();
+        SysGlobalTelemetry::logEvent(strFmt("@CETM:MonitoringFeatureDisabledWkspace", featureManagementMetadata.DisplayName));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FeatureManagementWorkspace_EnableAllFeaturesButton_OnClicked</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Track when someone changes the environment using feature management.
+    /// </summary>
+    /// <param name="_sender">Form sender</param>
+    /// <param name="_e">Form control event</param>
+    [FormControlEventHandler(formControlStr(FeatureManagementWorkspace, EnableAllFeaturesButton), FormControlEventType::Clicked)]
+    public static void FeatureManagementWorkspace_EnableAllFeaturesButton_OnClicked(FormControl _sender, FormControlEventArgs _e)
+    {
+        SysGlobalTelemetry::logEvent("@CETM:MonitoringFeatureEnableAll");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FeatureManagementEnableFeature_DisableButton_OnClicked</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Track when someone changes the environment using feature management.
+    /// </summary>
+    /// <param name="_sender">Form sender</param>
+    /// <param name="_e">Form control event</param>
+    [FormControlEventHandler(formControlStr(FeatureManagementEnableFeature, DisableButton), FormControlEventType::Clicked)]
+    public static void FeatureManagementEnableFeature_DisableButton_OnClicked(FormControl _sender, FormControlEventArgs _e)
+    {
+        str featureName = _sender.formRun().design().caption();
+        SysGlobalTelemetry::logEvent(strFmt("@CETM:MonitoringFeatureDisabled", featureName));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FeatureManagementEnableFeature_EnableButton_OnClicked</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Track when someone changes the environment using feature management.
+    /// </summary>
+    /// <param name="_sender">Form sender</param>
+    /// <param name="_e">Form control event</param>
+    [FormControlEventHandler(formControlStr(FeatureManagementEnableFeature, EnableButton), FormControlEventType::Clicked)]
+    public static void FeatureManagementEnableFeature_EnableButton_OnClicked(FormControl _sender, FormControlEventArgs _e)
+    {
+      
+        str enabledate = _sender.formRun().design().controlName(formControlStr(FeatureManagementEnableFeature, EnableDate)).valueStr();
+        str featureName = _sender.formRun().design().caption();
+        SysGlobalTelemetry::logEvent(strFmt("@CETM:MonitoringFeatureScheduled", featureName, enabledate));
+    
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
