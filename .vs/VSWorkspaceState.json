@@ -1,11 +1,14 @@
 {
   "ExpandedNodes": [
     "",
-    "\\Analytics\\AzureDataFactoryARMTemplates\\SQLToADLSFullExport",
+    "\\Analytics",
+    "\\Analytics\\CDMUtilSolution",
     "\\Analytics\\CDMUtilSolution\\CDMUtil",
     "\\Analytics\\CDMUtilSolution\\CDMUtil\\Authentication",
-    "\\Analytics\\CDMUtilSolution\\CDMUtil\\Manifest"
+    "\\Analytics\\CDMUtilSolution\\CDMUtil\\Manifest",
+    "\\AX2012DataUpgrade",
+    "\\Commerce"
   ],
-  "SelectedNode": "\\Analytics",
+  "SelectedNode": "\\Analytics\\CDMUtilSolution\\Microsoft.CommonDataModel.sln",
   "PreviewInSolutionExplorer": false
 }

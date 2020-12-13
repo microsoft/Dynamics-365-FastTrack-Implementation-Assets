@@ -33,7 +33,51 @@ namespace CDMUtil
             return new OkObjectResult(JsonConvert.SerializeObject(mds));
             
         }
-        [FunctionName("manifestToSynapseView")]
+        [FunctionName("manifestToSQL")]
+        public static async Task<IActionResult> manifestToSQL(
+          [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
+          ILogger log, ExecutionContext context)
+        {
+            log.LogInformation("C# HTTP trigger function processed a request.");
+            
+            //get data from 
+            string tenantId         = req.Headers["TenantId"];
+            string storageAccount   = req.Headers["StorageAccount"];
+            string rootFolder       = req.Headers["RootFolder"];
+            string localFolder      = req.Headers["ManifestLocation"];
+            string manifestName     = req.Headers["ManifestName"];
+            string DDLType          = req.Headers["DDLType"];
+            string schema           = req.Headers["Schema"];
+            string dataSourceName   = req.Headers["DataSourceName"];
+            string fileFormat       = req.Headers["FileFormat"];
+            string connectionString = req.Headers["SQLEndpoint"];
+
+           
+            AdlsContext adlsContext = new AdlsContext() {
+                StorageAccount = storageAccount,
+                FileSytemName = rootFolder,
+                MSIAuth = true,
+                TenantId = tenantId
+            };
+
+            // Read Manifest metadata
+            log.Log(LogLevel.Information, "Reading Manifest metadata");
+            List<SQLMetadata> metadataList = new List<SQLMetadata>();
+            await ManifestHandler.manifestToSQLMetadata(adlsContext, manifestName, localFolder, metadataList);
+           
+            // convert metadata to DDL
+            log.Log(LogLevel.Information, "Converting metadata to DDL");
+            var statementsList = await ManifestHandler.SQLMetadataToDDL(metadataList, DDLType, schema, fileFormat, dataSourceName);
+
+            // Execute DDL
+            log.Log(LogLevel.Information, "Executing DDL");
+            SQLHandler sQLHandler = new SQLHandler(connectionString, tenantId);
+            var statements = new SQLStatements { Statements = statementsList };
+            sQLHandler.executeStatements(statements);
+                             
+            return new OkObjectResult(JsonConvert.SerializeObject(statements));
+        }
+          [FunctionName("manifestToSynapseView")]
         public static async Task<IActionResult> manifestToSynapseView(
           [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
           ILogger log, ExecutionContext context)
@@ -89,6 +133,8 @@ namespace CDMUtil
             string manifestName = req.Headers["ManifestName"];
             string dataSourceName = req.Headers["DataSourceName"];
             string DDLType = req.Headers["DDLType"];
+            string schema = req.Headers["Schema"];
+            string fileFormat = req.Headers["FileFormat"];
 
             AdlsContext adlsContext = new AdlsContext()
             {
@@ -105,7 +151,7 @@ namespace CDMUtil
 
             // convert metadata to DDL
             log.Log(LogLevel.Information, "Converting metadata to DDL");
-            var statementsList = await ManifestHandler.SQLMetadataToDDL(metadataList, DDLType, dataSourceName);
+            var statementsList = await ManifestHandler.SQLMetadataToDDL(metadataList, DDLType, schema, fileFormat, dataSourceName);
 
             return new OkObjectResult(JsonConvert.SerializeObject(statementsList));
         }

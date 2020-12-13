@@ -6,11 +6,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.5.0" />
+    <PackageReference Include="Microsoft.CommonDataModel.ObjectModel" Version="1.0.14" />
+    <PackageReference Include="Microsoft.CommonDataModel.ObjectModel.Adapter.Adls" Version="1.0.14" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\CDM.ObjectModel.Adapter.Adls\Microsoft.CommonDataModel.ObjectModel.Adapter.Adls.csproj" />
-    <ProjectReference Include="..\CDM.ObjectModel\Microsoft.CommonDataModel.ObjectModel.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="local.settings.json">

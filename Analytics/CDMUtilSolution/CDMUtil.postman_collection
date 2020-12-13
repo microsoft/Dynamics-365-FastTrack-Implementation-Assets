@@ -61,7 +61,7 @@
 			"response": []
 		},
 		{
-			"name": "/manifestToSynapseView",
+			"name": "/manifestToSQL",
 			"request": {
 				"method": "POST",
 				"header": [
@@ -92,7 +92,17 @@
 					},
 					{
 						"key": "DataSourceName",
-						"value": "sqlOnDemandDS",
+						"value": "finance",
+						"type": "text"
+					},
+					{
+						"key": "Schema",
+						"value": "Tables",
+						"type": "text"
+					},
+					{
+						"key": "FileFormat",
+						"value": "CSV",
 						"type": "text"
 					},
 					{
@@ -146,6 +156,21 @@
 					{
 						"key": "ManifestName",
 						"value": "Legder",
+						"type": "text"
+					},
+					{
+						"key": "DataSourceName",
+						"value": "finance",
+						"type": "text"
+					},
+					{
+						"key": "Schema",
+						"value": "Tables",
+						"type": "text"
+					},
+					{
+						"key": "FileFormat",
+						"value": "CSV",
 						"type": "text"
 					}
 				],
