@@ -71,6 +71,7 @@ CREATE EXTERNAL DATA SOURCE myenvironmentds WITH (
 );
 ```
 3. **Create Azure Function MSI App as User on SQL:**
+Make sure you use an AAD login for the connection to SQL-OnDemand, because otherwise you will receive an error that only AAD logins can perform this action.
 ```SQL
 use AXDB
 go
