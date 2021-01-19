@@ -109,7 +109,7 @@ namespace CDMUtil
            
             // convert metadata to DDL
             log.Log(LogLevel.Information, "Converting metadata to DDL");
-            var statementsList = await ManifestHandler.SQLMetadataToDDL(metadataList, DDLType, dataSourceName);
+            var statementsList = await ManifestHandler.SQLMetadataToDDL(metadataList, DDLType, dataSourceName: dataSourceName);
 
             // Execute DDL
             log.Log(LogLevel.Information, "Converting metadata to DDL");
