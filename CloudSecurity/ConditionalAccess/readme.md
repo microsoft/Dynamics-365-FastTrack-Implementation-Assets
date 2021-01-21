@@ -80,35 +80,31 @@ Steps to enable Conditional access with Dynamics 365 for Finance and Operations
 1.  Sign into the Azure portal, click on the Azure Active Directory >
     Enterprise applications.
 
-![](media/image2.png){width="1.8583333333333334in"
-height="4.295833333333333in"}
+![EnterpriseApplication](/CloudSecurity/ConditionalAccess/EnterpriseApplication.png)
 
 2.  On the next screen you will see Conditional access under security
     section. Click on Conditional Access to add conditions to secure
     Microsoft Dynamics 365 for Finance and Operations.
 
-![](media/image3.png){width="3.571253280839895in"
-height="3.8028357392825898in"}
+![ConditionalAccess](/CloudSecurity/ConditionalAccess/ConditionalAccess.png)
 
 3.  Browse to the Conditional Access-Policies page and click on New
     policy button
 
-![](media/image4.png){width="6.5in" height="2.8493055555555555in"}
+![NewPolicy](/CloudSecurity/ConditionalAccess/NewPolicy.png)
 
 4.  On the next page, name the Conditional Access policy and define the
     assignment to conditional grant and block the access to the
     resource.
 
-![](media/image5.png){width="4.6130982064741906in"
-height="4.229166666666667in"}
+![DefinePolicy](/CloudSecurity/ConditionalAccess/DefinePolicy.png)
 
 5.  Select the Users and groups. You can apply Conditional access at
     multiple levels i.e. Groups, specific user or all users. For
     example, in case you are applying Conditional Access security at
     group level then you can exclude service accounts.
 
-![](media/image6.png){width="3.5934798775153105in"
-height="4.080832239720035in"}
+![User](/CloudSecurity/ConditionalAccess/User.png)
 
 6.  Next you will assign the Cloud apps on which you want to apply the
     security, you either apply these Conditional to all apps and exclude
@@ -117,8 +113,7 @@ height="4.080832239720035in"}
     finance and operations. Select "**Microsoft Dynamics ERP"** cloud
     app has shown in the figure below.
 
-![](media/image7.png){width="4.312878390201225in"
-height="4.807292213473316in"}
+![CloudApp](/CloudSecurity/ConditionalAccess/CloudApp.png)
 
 7.  Next you will define conditions, details on Sign in risk, Device
     platforms, client apps, Device state and locations can be found on
@@ -132,23 +127,19 @@ IP restriction.
 8.  To select either block or whitelist certain location, you need to
     first add those IP ranges into Name locations.
 
-![](media/image8.png){width="5.2968449256342955in"
-height="3.4050339020122484in"}
+![NamedLocation](/CloudSecurity/ConditionalAccess/NamedLocation.png)
 
-![](media/image9.png){width="4.488458005249344in"
-height="3.0503291776027996in"}
+Note: Named Locations should be created first before it can be assigned under the conditions for access the resource.  Locations can be defined by going into Enterprise application > Conditional Access policies > Named locations.  
 
 Click on the new locations and enter the IP ranges which are considered
 as trust locations.
 
-![](media/image10.png){width="6.28303915135608in"
-height="3.9725437445319334in"}
+![OfficeIP](/CloudSecurity/ConditionalAccess/OfficeIP.png)
 
 In this scenario, we are blocking all the locations excluding the
 selected locations.
 
-![](media/image11.png){width="5.228685476815398in"
-height="4.088541119860017in"}
+![NSGLocation](/CloudSecurity/ConditionalAccess/NSGLocation.png)
 
 To exclude the trusted locations from conditionally blocking Dynamics
 365 for Finance and Operations, click on the exclude tab as shown above.
@@ -158,23 +149,20 @@ locations or selectively pick individual trusted location.
 Once the exclusion is defined on the locations, switch to include tab to
 include all the locations which needed to be blocked.
 
-![](media/image12.png){width="5.5556408573928255in"
-height="4.053955599300087in"}
+![LocationInclude](/CloudSecurity/ConditionalAccess/LocationInclude.png)
 
 9.  In the Access control sections, either you define the grant or
     block. Which means when the above conditions are meet then grant the
     access with additional check marked or block the access expect for
     the condition in the excluded list.
 
-![](media/image13.png){width="4.3598709536307965in"
-height="4.007261592300963in"}
+![BlockScreenshot](/CloudSecurity/ConditionalAccess/BlockScreenshot.png)
 
 10. Finally, you enable the policy. As soon as you try to access the
     Dynamics 365 for Finance and Operations for any location other then
     exclude one. It will give error message at the time of login
 
-![](media/image14.png){width="4.625404636920385in"
-height="3.5570155293088366in"}
+![ErrorMsgPolicy](/CloudSecurity/ConditionalAccess/ErrorMsgPolicy.png)
 
 Known Behavior
 --------------
@@ -203,12 +191,11 @@ need for your implementation.
 
 Define BlockPolicy to include 'All users'
 
-![](media/image15.png){width="3.6260870516185477in"
-height="4.036733377077865in"}
+![01.BlockPolicyUsers](/CloudSecurity/ConditionalAccess/01.BlockPolicyUsers.png)
 
 Define BlockPolicy to exclude 'Selected locations'
 
-![](media/image16.png){width="6.5in" height="4.627083333333333in"}
+![02.BlockPolicyExcludeLocation](/CloudSecurity/ConditionalAccess/02.BlockPolicyExcludeLocation.png)
 
 With above setup, if any user logs-in from selected location, then only
 he/she can access to Finance and Operations apps.
@@ -217,12 +204,12 @@ he/she can access to Finance and Operations apps.
 
 Define GrantPolicy to include 'All users'
 
-![](media/image17.png){width="6.5in" height="6.777777777777778in"}
+![03.GrantPolicyAllUsers](/CloudSecurity/ConditionalAccess/03.GrantPolicyAllUsers.png)
 
 Define GrantPolicy to enforce 'Multi-factor authentication' and 'Device
 compliant'
 
-![](media/image18.png){width="6.5in" height="4.136805555555555in"}
+![04.GrantPolicyMFA](/CloudSecurity/ConditionalAccess/04.GrantPolicyMFA.png)
 
 ### Scenario c: Block all user to login except from all locations except from few selected locations/IP and enforce MFA & Device compliance to grant access.
 
