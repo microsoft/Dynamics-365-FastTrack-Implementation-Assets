@@ -54,6 +54,9 @@ Outline the file contents of the repository. It helps users navigate the codebas
 ### SCM Tools
 - [Small Parcel Shipping Tools](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/SCM/SPS) A sample TMS DLL is included for testing SPS scenarios without a live connection to a carrier.
 
+### Cloud Security
+- [Conditional access](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/CloudSecurity/ConditionalAccess/readme.md) 
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
