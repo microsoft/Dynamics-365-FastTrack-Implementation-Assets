@@ -7,7 +7,7 @@ capability of Azure Active Directory. With Conditional access, you can
 implement automated access control decisions for accessing your cloud
 apps that are based on conditions.
 
-![](media/image1.png){width="6.5in" height="2.7402777777777776in"}
+![RestrictAccessWithConditionalAccess](/CloudSecurity/ConditionalAccess/RestrictAccessWithConditionalAccess.png)
 
 Common scenarios for using conditional access
 ---------------------------------------------
