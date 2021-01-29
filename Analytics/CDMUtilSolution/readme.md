@@ -27,17 +27,28 @@ Execute the following code snippet to create data source:
 -- create master key that will protect the credentials:
 CREATE MASTER KEY ENCRYPTION BY PASSWORD = <enter very strong password here>
 
--- create credentials for containers for your storage account
+-- create credentials for co for your storage account
+
+-- Option 1: you can create credential using managed identity . When using managed identity make sure to add Storage account blob data reader access
+-- https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/develop-storage-files-storage-access-control?tabs=managed-identity
+
+CREATE DATABASE SCOPED CREDENTIAL myenvironment
+WITH IDENTITY='Managed Identity'
+
+-- Option2 : Create Crednetial using Shared Access Signature
 -- Replace your storage account location 
 -- Generare Shared access signature for your storage account from Azure portal and replace Secret value with generated SAS Secret
 CREATE DATABASE SCOPED CREDENTIAL myenvironment
 WITH IDENTITY='SHARED ACCESS SIGNATURE',  
 SECRET = 'sv=2018-03-28&ss=bf&srt=sco&sp=rl&st=2019-10-14T12%3A10%3A25Z&se=2061-12-31T12%3A10%3A00Z&sig=KlSU2ullCscyTS0An0nozEpo4tO5JAgGBvw%2FJX2lguw%3D'
 GO
+
 CREATE EXTERNAL DATA SOURCE myenvironmentds WITH (
     LOCATION = 'https://mydatalake.dfs.core.windows.net/dynamics365-financeandoperations/myenvironment.cloudax.dynamics.com',
     CREDENTIAL = myenvironment
 );
+
+
 ```
 
 3. **Create external files formats:**
@@ -80,7 +91,7 @@ CREATE LOGIN [jiyada@microsoft.com] FROM EXTERNAL PROVIDER;
 6. **Create MSI App as User:**
 You can deploy CDMUtil solution as FunctionApp to fully automate the view or external table creation. You can use this sample script to add MSI App as user such as (Azure function App, Azure Data Factory etc) 
 ```SQL
--- Use this script sample to create MSI App User on SQLPool Serverless
+-- Use this script sample to create MSI App User on SQLPool Serverless (Make sure to login with AAD credential)
 --replace with your MSI App Name Azure functionName
 use AXDB
 go
@@ -250,4 +261,12 @@ Follow the steps bellow to deploy CDMUtil application as Azure function app
 5. Add Azure Function MSI app to SQL-On-Demand - follow steps above "Create Azure Function MSI App as User on SQL" 
 6. You can further utilize  any other integration tools such as Logic App, Azure data factory to call Azure functions and create end to end integration 
 7. To learn more aboubt Azure functions follow the link [Azure functions in Visual Studio](https://docs.microsoft.com/en-us/azure/azure-functions/functions-develop-vs)
+
+## Create Data Entities as View on Synapse SQL Serverless
+Once you have created Tables as view or external table. You can create additional view on Synapse Serverless. Customer that are using BYOD for reporting and BI scenarios with Dynamics 365 for Finance and Operations Apps, may wants to create BYOD Statging table or Data Entity Schema as view so that their reports and solution can work without much of change. As you might know that Data entities in AXDB are nothing but views, so you can copy the view definition and create that on Synapse SQL Serveless to get the same schema as you have in BYOD. 
+
+Once tables views are present you can copy the view definition of Data entities from AXDB and create view on synapse. Sometime entities may have several level of dependencies on tables or views and help with that you can use bellow script that you can execute on the AXDB and get the view definition with dependencies 
+
+![View Definition and Dependency](/Analytics/CDMUtilSolution/ViewsAndDependencies.sql)
+
  
