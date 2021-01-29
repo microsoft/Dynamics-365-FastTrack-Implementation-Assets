@@ -8,8 +8,8 @@ With allviews (nodeId, parentNodeId, nodeIdType, rootNode, depth) AS (
 	   nv.name as rootNode,
 	   0 as depth
 	from sys.views nv
-	join [DATAFEEDSMODELENTITYCATALOG] catalog
-	on catalog.entityObjectName = nv.name
+	--join [DATAFEEDSMODELENTITYCATALOG] catalog
+	--on catalog.entityObjectName = nv.name
 	where schema_name(nv.schema_id) = 'dbo' 	
 	union all
 -- 2 recursive member - represents the iteration path to navigate from a node to its parent
