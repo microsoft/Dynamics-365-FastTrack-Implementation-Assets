@@ -149,6 +149,26 @@ namespace CDMUtil.Manifest
             }
             return cdmEntity;
         }
+        public CdmEntityDefinition CreateCdmEntityDefinition(CdmEntityDeclarationDefinition entityDefinition)
+        {
+
+            var cdmEntity = this.cdmCorpus.MakeObject<CdmEntityDefinition>(CdmObjectType.EntityDef, entityDefinition.EntityName, simpleNameRef: false);
+
+            cdmEntity.EntityName  = entityDefinition.EntityName;
+            cdmEntity.DisplayName = entityDefinition.EntityName;
+
+            var entSelected = entityDefinition.Ctx.Corpus.FetchObjectAsync<CdmEntityDefinition>(entityDefinition.EntityPath).Result;
+
+            var attributes = entSelected.Attributes;
+
+            foreach (var a in attributes)
+            {
+                // Add type attributes to the entity instance
+                cdmEntity.Attributes.Add(a);
+            }
+            
+            return cdmEntity;
+        }
 
         public CdmManifestDefinition addPartition (CdmManifestDefinition manifest, EntityDefinition entityDefinition)
         {
@@ -250,6 +270,83 @@ namespace CDMUtil.Manifest
 
             return manifestCreated;
         }
+        public async Task<bool> manifestToModelJson(AdlsContext adlsContext, string manifestName, string localRoot, CdmManifestDefinition modelJson = null, bool root = true)
+        {
+
+            ManifestHandler manifestHandler = new ManifestHandler(adlsContext, localRoot);
+            CdmManifestDefinition manifest;
+
+            if (root)
+            {
+                // Add to root folder.
+                var cdmFolderDefinition = manifestHandler.cdmCorpus.Storage.FetchRootFolder("adls");
+
+                // Read if model.json exists.
+                modelJson = await manifestHandler.cdmCorpus.FetchObjectAsync<CdmManifestDefinition>("model.json");
+                if (modelJson == null)
+                {
+                    // Make the temp manifest and add it to the root of the local documents in the corpus
+                    modelJson = manifestHandler.cdmCorpus.MakeObject<CdmManifestDefinition>(CdmObjectType.ManifestDef, "model.json");
+
+                    // Add an import to the foundations doc so the traits about partitons will resolve nicely
+                    modelJson.Imports.Add(FoundationJsonPath);
+
+                    // Add to root folder.
+                    cdmFolderDefinition.Documents.Add(modelJson, $"model.json");
+                }
+            }
+
+            manifest = await manifestHandler.cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(manifestName + ".manifest.cdm.json");
+            Console.WriteLine($"Reading Manifest : {manifest.Name}");
+
+            foreach (var submanifest in manifest.SubManifests)
+            {
+                string subManifestName = submanifest.ManifestName;
+
+                await this.manifestToModelJson(adlsContext, subManifestName, localRoot + '/' + subManifestName, modelJson, false);
+
+            }
+
+            foreach (CdmEntityDeclarationDefinition eDef in manifest.Entities.ToList())
+            {
+                Console.WriteLine($"Adding Entity : {eDef.EntityName}");
+                var cdmEntityDefinition = this.CreateCdmEntityDefinition(eDef);
+                var cdmEntityDocument = this.CreateDocumentDefinition(cdmEntityDefinition);
+                // Add Imports to the entity document.
+                cdmEntityDocument.Imports.Add(FoundationJsonPath);
+
+                // Add the document to the root of the local documents in the corpus.
+                var cdmFolderDefinition = modelJson.Ctx.Corpus.Storage.FetchRootFolder("adls");
+                cdmFolderDefinition.Documents.Add(cdmEntityDocument, cdmEntityDocument.Name);
+
+                // Add the entity to the manifest.
+                modelJson.Entities.Add(cdmEntityDefinition);
+   
+                CdmEntityDeclarationDefinition modelJsonEdef = modelJson.Entities.Item(eDef.EntityName);
+                if (eDef.DataPartitions.Count > 0)
+                {
+                    var dataPartition = eDef.DataPartitions.First();
+                    dataPartition.Location = manifestName + "/" + dataPartition.Location;
+                    modelJsonEdef.DataPartitions.Add(dataPartition);
+                }
+                if (eDef.DataPartitionPatterns.Count > 0)
+                {
+                    var DataPartitionPatterns= eDef.DataPartitionPatterns.First();
+                    DataPartitionPatterns.RootLocation = manifestName + "/" + DataPartitionPatterns.RootLocation;
+                    modelJsonEdef.DataPartitionPatterns.Add(DataPartitionPatterns);
+                }
+            }
+            bool created = false;
+
+            if (root)
+            {
+                await modelJson.FileStatusCheckAsync();
+                created = await modelJson.SaveAsAsync("model.json", true);
+            }
+
+            return created;
+        }
+
         public static CdmManifestDeclarationDefinition CreateSubManifestDefinition(CdmCorpusDefinition cdmCorpus, string nextFolder)
         {
             var subManifest = cdmCorpus.MakeObject<CdmManifestDeclarationDefinition>(CdmObjectType.ManifestDeclarationDef, nextFolder, simpleNameRef: false);
@@ -342,32 +439,39 @@ namespace CDMUtil.Manifest
             {
                // {0} Schema, {1} TableName, {2} ColumnDefinition {3} data location ,{4} DataSource, {5} FileFormat
                 case "SynapseView":
-                    template = @"CREATE OR ALTER VIEW {0}.{1} AS SELECT * FROM OPENROWSET(BULK '{3}', FORMAT = 'CSV', Parser_Version = '2.0', DATA_SOURCE ='{4}') WITH ({2}) as r";
+                    template = @"CREATE OR ALTER VIEW {0}.{1} AS SELECT {6} FROM OPENROWSET(BULK '{3}', FORMAT = 'CSV', PARSER_VERSION = '2.0', DATA_SOURCE ='{4}') WITH ({2}) as r";
                     break;
                 case "SQLTable":
                     template = @"CREATE Table {0}.{1} ({2})";
                     break;
 
                 case "SynapseExternalTable":
-                    template = @"If (OBJECT_ID('{0}.{1}') is not NULL)   drop external table  {0}.{1} ;  create   EXTERNAL TABLE {0}.{1} ({2}) WITH (LOCATION = '{3}', DATA_SOURCE ={4}, FILE_FORMAT = {5})";
+                    template = @"If (OBJECT_ID('{0}.{1}') is not NULL)   drop external table  {0}.{1} ;  create   EXTERNAL TABLE {0}.{1} ({2}) WITH (LOCATION = '{3}', DATA_SOURCE ={4}, FILE_FORMAT = {5}, PARSER_VERSION = '2.0')";
                     break;
 
             }
             
             foreach (SQLMetadata metadata in metadataList)
             {
-                var sql = string.Format(template,schema, metadata.entityName, metadata.columnDefinition, metadata.dataLocation,dataSourceName,fileFormat);
+                var sql = string.Format(template,schema, metadata.entityName, metadata.columnDefinition, metadata.dataLocation,dataSourceName,fileFormat, metadata.columnNames);
           
                 sqlStatements.Add(new SQLStatement() { Statement = sql });
             }
             
             return sqlStatements;
         }
+     
         public async static Task<bool> manifestToSQLMetadata(AdlsContext adlsContext, string manifestName, string localRoot, List<SQLMetadata> metadataList)
         {
             ManifestHandler manifestHandler = new ManifestHandler(adlsContext, localRoot);
-            CdmManifestDefinition manifest = await manifestHandler.cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(manifestName + ".manifest.cdm.json");
+            
+            if (manifestName != "model.json" && manifestName.EndsWith(".manifest.cdm.json") == false)
+            {
+                manifestName = manifestName + ".manifest.cdm.json";
+            }
 
+            CdmManifestDefinition manifest = await manifestHandler.cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(manifestName);
+            
             if (manifest == null)
             {
                 Console.WriteLine($"Manifest: {manifestName } at Location {localRoot} is invalid");
@@ -377,8 +481,18 @@ namespace CDMUtil.Manifest
             foreach (var submanifest in manifest.SubManifests)
             {
                 string subManifestName = submanifest.ManifestName;
+                string subManifestRoot;
+                
+                if (localRoot.EndsWith('/'))
+                {
+                    subManifestRoot = localRoot + subManifestName;
+                }
+                else
+                {
+                    subManifestRoot = localRoot + '/' + subManifestName;
+                }
 
-                await manifestToSQLMetadata(adlsContext, subManifestName, localRoot + '/' + subManifestName, metadataList);
+                await manifestToSQLMetadata(adlsContext, subManifestName, subManifestRoot, metadataList);
 
             }
 
@@ -426,9 +540,9 @@ namespace CDMUtil.Manifest
                 dataLocation = dataLocation.Replace(fileName, "*" + ext);
 
                 var entSelected = await manifestHandler.cdmCorpus.FetchObjectAsync<CdmEntityDefinition>(eDef.EntityPath, manifest);
-                string columnDef = string.Join(", ", entSelected.Attributes.Select(i => CdmTypeToSQl((CdmTypeAttributeDefinition)i))); ;
-                
-                metadataList.Add(new SQLMetadata() { entityName = entityName, columnDefinition = columnDef, dataLocation = dataLocation });
+                string columnDef = string.Join(", ", entSelected.Attributes.Select(i => CdmTypeToSQl((CdmTypeAttributeDefinition)i))); 
+                string columnNames = string.Join(", ", entSelected.Attributes.Select(i => CdmAttributeToColumnNames((CdmTypeAttributeDefinition)i))); 
+                metadataList.Add(new SQLMetadata() { entityName = entityName, columnDefinition = columnDef, dataLocation = dataLocation, columnNames = columnNames });
             }
             return true;
 
@@ -463,6 +577,7 @@ namespace CDMUtil.Manifest
                     }
                     break;
                 case "decimal":
+                case "double":
                     sqlDataType = "decimal";
                     break;
                 case "boolean":
@@ -659,7 +774,38 @@ namespace CDMUtil.Manifest
 
             return sqlColumnDef;
         }
-        
+
+        static string CdmAttributeToColumnNames(CdmTypeAttributeDefinition typeAttributeDefinition)
+        {
+            string sqlColumnNames;
+            string dataType;
+
+            if (typeAttributeDefinition.DataType == null)
+            {
+                dataType = typeAttributeDefinition.DataFormat.ToString().ToLower();
+            }
+            else
+            {
+                dataType = typeAttributeDefinition.DataType.NamedReference.ToLower();
+            }
+
+            switch (dataType)
+            {
+                case "date":
+                case "datetime":
+                case "datetime2":
+                    sqlColumnNames = $" TRY_CONVERT(DATETIME, {typeAttributeDefinition.Name}, 102) as {typeAttributeDefinition.Name}";
+                    break;
+                  
+                default:
+                    sqlColumnNames = $"{typeAttributeDefinition.Name}";
+                    break;
+            }
+
+
+            return sqlColumnNames;
+        }
+
     }
 
 }

@@ -6,20 +6,20 @@ using CDMUtil.Manifest;
 using CDMUtil.SQL;
 using System.Configuration;
 using System.Collections.Specialized;
+using System.IO;
 
 namespace ManifestToSQLView
 {
     class Program
     {
         static void Main(string[] args)
-        {
-           
+        {      
             //get data from config 
             string tenantId             = ConfigurationManager.AppSettings.Get("TenantId");//"979fd422-22c4-4a36-bea6-1cf87b6502dd";
             string storageAccount       = ConfigurationManager.AppSettings.Get("StorageAccount");//"ftfinanced365fo.dfs.core.windows.net";
+            string accessKey            = ConfigurationManager.AppSettings.Get("AccessKey");
             string rootFolder           = ConfigurationManager.AppSettings.Get("RootFolder");//"/dynamics365-financeandoperations/finance.sandbox.operations.dynamics.com/";
-            string localFolder          = ConfigurationManager.AppSettings.Get("LocalFolder"); //"ChangeFeed";
-            string manifestName         = ConfigurationManager.AppSettings.Get("ManifestName");//"ChangeFeed";
+            string manifestFilePath     = ConfigurationManager.AppSettings.Get("ManifestFilePath");
             var targetDbConnectionString= ConfigurationManager.AppSettings.Get("TargetDbConnectionString");//"Server=ftsasynapseworkspace-ondemand.sql.azuresynapse.net;Database=Finance_AXDB";
             string dataSourceName       = ConfigurationManager.AppSettings.Get("DataSourceName");//"finance" ;
             string DDLType              = ConfigurationManager.AppSettings.Get("DDLType");//"SynapseExternalTable";
@@ -30,16 +30,36 @@ namespace ManifestToSQLView
             foreach (string s in sAll.AllKeys)
                 Console.WriteLine("Key: " + s + " Value: " + sAll.Get(s));
 
+            if (String.IsNullOrEmpty(manifestFilePath))
+            {
+                Console.WriteLine("Enter Manifest file relative path:(/Tables/Tables.manifest.cdm.json or /Tables/model.json)");
+                manifestFilePath = Console.ReadLine();
+            }
+            
+            string manifestName = Path.GetFileName(manifestFilePath);
+            string localFolder = manifestFilePath.Replace(manifestName, "");
+            bool MSIAuth;
+            
+            if (String.IsNullOrEmpty(accessKey))
+            {
+                MSIAuth = true;
+            }
+            else
+            {
+                MSIAuth = false;
+            }
+
             AdlsContext adlsContext = new AdlsContext()
             {
                 StorageAccount = storageAccount,
                 FileSytemName = rootFolder,
-                MSIAuth = true,
-                TenantId = tenantId
+                MSIAuth = MSIAuth,
+                TenantId = tenantId,
+                SharedKey = accessKey
             };
 
             // Read Manifest metadata
-            Console.WriteLine($"Reading Manifest metadata https://{storageAccount}{rootFolder}{localFolder}/{manifestName}.manifest.json" );
+            Console.WriteLine($"Reading Manifest metadata https://{storageAccount}{rootFolder}{manifestFilePath}" );
             List <SQLMetadata> metadataList = new List<SQLMetadata>();
             ManifestHandler.manifestToSQLMetadata(adlsContext, manifestName, localFolder, metadataList);
 
@@ -63,9 +83,10 @@ namespace ManifestToSQLView
 
                 }
             }
-            catch 
+            catch(Exception e)
             {
                 Console.WriteLine("ERROR executing SQL");
+                Console.WriteLine(e.Message);
             }
             Console.WriteLine("Press any key to exit");
             Console.ReadLine();

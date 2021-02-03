@@ -22,7 +22,15 @@ namespace CDMUtil.SQL
             foreach (var s in sqlStatements.Statements)
             {
                 SqlConnection conn = new SqlConnection(SQLConnectionStr);
-                conn.AccessToken = (new AzureServiceTokenProvider()).GetAccessTokenAsync("https://database.windows.net/", Tenant).Result;
+
+                SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder(SQLConnectionStr);
+                
+                //use AAD auth when userid is not passed in connection string 
+                if (string.IsNullOrEmpty(builder.UserID))
+                {
+                    conn.AccessToken = (new AzureServiceTokenProvider()).GetAccessTokenAsync("https://database.windows.net/", Tenant).Result;
+                }
+                
                 conn.Open();
                 using (var command = new SqlCommand(s.Statement, conn))
                 {
