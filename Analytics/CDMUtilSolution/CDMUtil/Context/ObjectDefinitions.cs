@@ -68,6 +68,7 @@ namespace CDMUtil.Context.ObjectDefinitions
     public class SQLMetadata
     {
         public string entityName;
+        public string columnNames;
         public string columnDefinition;
         public string dataLocation;
     }

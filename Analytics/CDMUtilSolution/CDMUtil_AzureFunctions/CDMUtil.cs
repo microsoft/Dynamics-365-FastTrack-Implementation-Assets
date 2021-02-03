@@ -77,7 +77,38 @@ namespace CDMUtil
                              
             return new OkObjectResult(JsonConvert.SerializeObject(statements));
         }
-          [FunctionName("manifestToSynapseView")]
+        [FunctionName("manifestToModelJson")]
+        public static async Task<IActionResult> manifestToModelJson(
+          [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
+          ILogger log, ExecutionContext context)
+        {
+            log.LogInformation("C# HTTP trigger function processed a request.");
+
+            //get data from 
+            string tenantId = req.Headers["TenantId"];
+            string storageAccount = req.Headers["StorageAccount"];
+            string rootFolder = req.Headers["RootFolder"];
+            string localFolder = req.Headers["ManifestLocation"];
+            string manifestName = req.Headers["ManifestName"];
+            
+            AdlsContext adlsContext = new AdlsContext()
+            {
+                StorageAccount = storageAccount,
+                FileSytemName = rootFolder,
+                MSIAuth = true,
+                TenantId = tenantId
+            };
+
+            // Read Manifest metadata
+            log.Log(LogLevel.Information, "Reading Manifest metadata");
+          
+            ManifestHandler manifestHandler = new ManifestHandler(adlsContext, localFolder);
+
+            bool created = await manifestHandler.manifestToModelJson(adlsContext, manifestName, localFolder);
+
+            return new OkObjectResult("{\"Status\":" + created +"}");
+        }
+        [FunctionName("manifestToSynapseView")]
         public static async Task<IActionResult> manifestToSynapseView(
           [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
           ILogger log, ExecutionContext context)
@@ -94,12 +125,12 @@ namespace CDMUtil
             string dataSourceName   = req.Headers["DataSourceName"];
             string connectionString = req.Headers["SQLEndpoint"];
 
-           
+
             AdlsContext adlsContext = new AdlsContext() {
                 StorageAccount = storageAccount,
                 FileSytemName = rootFolder,
                 MSIAuth = true,
-                TenantId = tenantId
+                TenantId = tenantId 
             };
 
             // Read Manifest metadata
