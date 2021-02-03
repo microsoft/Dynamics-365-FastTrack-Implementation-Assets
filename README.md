@@ -31,6 +31,8 @@ Outline the file contents of the repository. It helps users navigate the codebas
 | `Analytics`       | Dymamics 365 Analytics guides              |
 | `SQL Maintenance` | Indexes & statistics maintenance script    |
 | `Dual-write`      | Dymamics 365 Dual-write guides             |
+| `SCM`      		    | Tools for SCM and WHS solutions            |
+| `Cloud security`  | Dynamics 365 Cloud security guides         |
 | `.gitignore`      | Define what to ignore at commit time.      |
 | `CHANGELOG.md`    | List of changes to the sample.             |
 | `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
@@ -49,6 +51,12 @@ Outline the file contents of the repository. It helps users navigate the codebas
 
 ### Dual-write
 - [Bootstrapping CDS data](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Dual-write/Bootstrapping)
+
+### SCM Tools
+- [Small Parcel Shipping Tools](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/SCM/SPS) A sample TMS DLL is included for testing SPS scenarios without a live connection to a carrier.
+
+### Cloud Security
+- [Conditional access](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/CloudSecurity/ConditionalAccess/readme.md) 
 
 ## Contributing
 
