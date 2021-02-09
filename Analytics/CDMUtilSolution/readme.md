@@ -58,7 +58,7 @@ To create external tables on SQL Pool, you need to create external file format. 
 CREATE EXTERNAL FILE FORMAT CSV
 WITH (  
     FORMAT_TYPE = DELIMITEDTEXT,
-    FORMAT_OPTIONS ( FIELD_TERMINATOR = ',', STRING_DELIMITER = '"', FIRST_ROW = 2   )
+    FORMAT_OPTIONS ( FIELD_TERMINATOR = ',', STRING_DELIMITER = '"', FIRST_ROW = 1   )
 );
 GO
 CREATE EXTERNAL FILE FORMAT ParquetFormat WITH (  FORMAT_TYPE = PARQUET );
@@ -113,20 +113,22 @@ For simple POC scenario you can execute the CDM Util solution as a Console Appli
 1. Download the Console Application executable [CDMUtilConsoleApp.zip](/Analytics/CDMUtilSolution/CDMUtilConsoleApp.zip)
 2. Extract the zip file and extract to local folder 
 3. Open CDMUtil_ConsoleApp.dll.config file and update the parameters as per your setup
+4. Console application will use AccessKey to read cdm files from data lake and use sql login to create view on synapse serverless
 ```XML
 <?xml version="1.0" encoding="utf-8" ?>
 <configuration>
   <appSettings>
-    <add key="TenantId" value="00000000-86f1-41af-91ab-0000000" />
+   <add key="TenantId" value="00000000-86f1-41af-91ab-0000000" />
     <add key="StorageAccount" value="mylake.dfs.core.windows.net" />
-    <add key="RootFolder" value="/dynamics365-financeandoperations/jjd365fo2d9ba7ea6d7563beaos.cloudax.dynamics.com/" />
-    <add key="LocalFolder" value="Tables" />
-    <add key="ManifestName" value="Tables" />
-    <add key="TargetDbConnectionString" value="Server=mysqlondemand-ondemand.sql.azuresynapse.net;Database=AXDB_Dev" />
-    <add key="DataSourceName" value="jjd365fo" />
-    <add key="DDLType" value="SynapseExternalTable" />
-    <add key="Schema" value="Tables" />
-    <add key="FileFormat" value="CSV" /> 
+    <add key="AccessKey" value="YourStorageAccountAccessKey" />
+     <add key="RootFolder" value="/dynamics365-financeandoperations/Yourenvironmentfolder.dynamics.com" />
+    <add key="ManifestFilePath" value="/Tables/Tables.manifest.cdm.json" />
+    <add key="TargetDbConnectionString" value="Server=yoursynapse-ondemand.sql.azuresynapse.net;Database=YourDB;Uid=sqluser;Pwd=Password" />
+    <add key="DataSourceName" value="yourdatasourcename" />
+    <add key="DDLType" value="SynapseView" />
+    <add key="Schema" value="dbo" />
+    <add key="FileFormat" value="CSV" />
+    <add key="CovertDateTime"/>
   </appSettings>
 </configuration>
 ```
