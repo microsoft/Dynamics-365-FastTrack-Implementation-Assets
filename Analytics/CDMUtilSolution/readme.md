@@ -128,7 +128,7 @@ For simple POC scenario you can execute the CDM Util solution as a Console Appli
     <add key="DDLType" value="SynapseView" />
     <add key="Schema" value="dbo" />
     <add key="FileFormat" value="CSV" />
-    <add key="CovertDateTime"/>
+    <add key="CovertDateTime" value ="false"/>
   </appSettings>
 </configuration>
 ```
