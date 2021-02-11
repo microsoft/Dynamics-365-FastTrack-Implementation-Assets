@@ -25,6 +25,7 @@ namespace ManifestToSQLView
             string DDLType              = ConfigurationManager.AppSettings.Get("DDLType");//"SynapseExternalTable";
             string schema               = ConfigurationManager.AppSettings.Get("Schema");//"ChangeFeed";
             string fileFormat           = ConfigurationManager.AppSettings.Get("FileFormat"); //"CSV";
+            string convertToDateTimeStr    = ConfigurationManager.AppSettings.Get("CovertDateTime"); //"CSV";
 
             NameValueCollection sAll = ConfigurationManager.AppSettings;
             foreach (string s in sAll.AllKeys)
@@ -60,9 +61,16 @@ namespace ManifestToSQLView
 
             // Read Manifest metadata
             Console.WriteLine($"Reading Manifest metadata https://{storageAccount}{rootFolder}{manifestFilePath}" );
-            List <SQLMetadata> metadataList = new List<SQLMetadata>();
-            ManifestHandler.manifestToSQLMetadata(adlsContext, manifestName, localFolder, metadataList);
 
+            bool convertDateTime = false;
+            if (convertToDateTimeStr.ToLower() == "true")
+            {
+                convertDateTime = true;
+            }
+            List <SQLMetadata> metadataList = new List<SQLMetadata>();
+            ManifestHandler.manifestToSQLMetadata(adlsContext, manifestName, localFolder, metadataList, convertDateTime);
+
+          
             // convert metadata to DDL
             Console.WriteLine("Converting metadata to DDL");
             var statementsList =  ManifestHandler.SQLMetadataToDDL(metadataList, DDLType,schema,fileFormat, dataSourceName);

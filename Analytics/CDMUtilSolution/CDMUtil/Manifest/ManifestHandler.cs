@@ -461,7 +461,7 @@ namespace CDMUtil.Manifest
             return sqlStatements;
         }
      
-        public async static Task<bool> manifestToSQLMetadata(AdlsContext adlsContext, string manifestName, string localRoot, List<SQLMetadata> metadataList)
+        public async static Task<bool> manifestToSQLMetadata(AdlsContext adlsContext, string manifestName, string localRoot, List<SQLMetadata> metadataList, bool convertDateTime = false)
         {
             ManifestHandler manifestHandler = new ManifestHandler(adlsContext, localRoot);
             
@@ -492,7 +492,7 @@ namespace CDMUtil.Manifest
                     subManifestRoot = localRoot + '/' + subManifestName;
                 }
 
-                await manifestToSQLMetadata(adlsContext, subManifestName, subManifestRoot, metadataList);
+                await manifestToSQLMetadata(adlsContext, subManifestName, subManifestRoot, metadataList, convertDateTime);
 
             }
 
@@ -541,7 +541,7 @@ namespace CDMUtil.Manifest
 
                 var entSelected = await manifestHandler.cdmCorpus.FetchObjectAsync<CdmEntityDefinition>(eDef.EntityPath, manifest);
                 string columnDef = string.Join(", ", entSelected.Attributes.Select(i => CdmTypeToSQl((CdmTypeAttributeDefinition)i))); 
-                string columnNames = string.Join(", ", entSelected.Attributes.Select(i => CdmAttributeToColumnNames((CdmTypeAttributeDefinition)i))); 
+                string columnNames = string.Join(", ", entSelected.Attributes.Select(i => CdmAttributeToColumnNames((CdmTypeAttributeDefinition)i,convertDateTime))); 
                 metadataList.Add(new SQLMetadata() { entityName = entityName, columnDefinition = columnDef, dataLocation = dataLocation, columnNames = columnNames });
             }
             return true;
@@ -556,6 +556,7 @@ namespace CDMUtil.Manifest
             {
                 case "biginteger":
                 case "int64":
+                case "bigint":
                     sqlDataType = "bigInt";
                     break;
                 case "smallinteger":
@@ -775,7 +776,7 @@ namespace CDMUtil.Manifest
             return sqlColumnDef;
         }
 
-        static string CdmAttributeToColumnNames(CdmTypeAttributeDefinition typeAttributeDefinition)
+        static string CdmAttributeToColumnNames(CdmTypeAttributeDefinition typeAttributeDefinition, bool convertDatetime = false)
         {
             string sqlColumnNames;
             string dataType;
@@ -794,7 +795,14 @@ namespace CDMUtil.Manifest
                 case "date":
                 case "datetime":
                 case "datetime2":
-                    sqlColumnNames = $" TRY_CONVERT(DATETIME, {typeAttributeDefinition.Name}, 102) as {typeAttributeDefinition.Name}";
+                    if (convertDatetime)
+                    {
+                        sqlColumnNames = $" TRY_CONVERT(DATETIME, {typeAttributeDefinition.Name}, 102) as {typeAttributeDefinition.Name}";
+                    }
+                    else
+                    {
+                        sqlColumnNames = $"{typeAttributeDefinition.Name}";
+                    }
                     break;
                   
                 default:
