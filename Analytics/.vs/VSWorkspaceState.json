@@ -4,10 +4,9 @@
     "\\AzureDataFactoryARMTemplates",
     "\\AzureDataFactoryARMTemplates\\SQLToADLSFullExport",
     "\\CDMUtilSolution",
-    "\\CDMUtilSolution\\CDMUtil_AzureFunctions",
     "\\CDMUtilSolution\\CDMUtil_AzureFunctions\\Properties",
     "\\CDMUtilSolution\\CDMUtil_ConsoleApp"
   ],
-  "SelectedNode": "\\CDMUtilSolution\\CDMUtil_ConsoleApp\\App.config",
+  "SelectedNode": "\\CDMUtilSolution\\readme.md",
   "PreviewInSolutionExplorer": false
 }

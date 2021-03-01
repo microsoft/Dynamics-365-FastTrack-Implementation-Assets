@@ -26,6 +26,8 @@ namespace ManifestToSQLView
             string schema               = ConfigurationManager.AppSettings.Get("Schema");//"ChangeFeed";
             string fileFormat           = ConfigurationManager.AppSettings.Get("FileFormat"); //"CSV";
             string convertToDateTimeStr    = ConfigurationManager.AppSettings.Get("CovertDateTime"); //"CSV";
+            string TableNames =     ConfigurationManager.AppSettings.Get("TableNames"); //"CSV";
+
 
             NameValueCollection sAll = ConfigurationManager.AppSettings;
             foreach (string s in sAll.AllKeys)
@@ -73,7 +75,7 @@ namespace ManifestToSQLView
           
             // convert metadata to DDL
             Console.WriteLine("Converting metadata to DDL");
-            var statementsList =  ManifestHandler.SQLMetadataToDDL(metadataList, DDLType,schema,fileFormat, dataSourceName);
+            var statementsList =  ManifestHandler.SQLMetadataToDDL(metadataList, DDLType,schema,fileFormat, dataSourceName, TableNames);
             
 
             // Execute DDL
