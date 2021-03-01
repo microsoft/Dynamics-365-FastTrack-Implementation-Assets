@@ -27,5 +27,5 @@ The script is commented quite extensively in line. Please read the comments. Whi
 > The default operation parameters are set to execute a dry run, where no changes are made to the database. Instead the script outputs what it *would* do if were not a dry run. Set the @DryRun bit to 0 to execute the maintenance.
 
 > [!TIP]
-> Since the F&O system index maintenance batch job does not maintain indexes on a tier-1 environment, you will most likely use @operation 'all' in this case. In a tier-2+ environment, the system index maintenance batch job, if set up correctly, takes care of the indexes, so you will most likely use @operation 'statistics'.
+> The F&O system index maintenance batch job has been deprecated, effective January 28th, 2021. Index maintenance on Azure SQL instances will be performed automatically by Microsoft going forward. See https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/get-started/removed-deprecated-features-platform-updates#feature-removed-effective-january-28-2021. Since this does not apply to tier-1 environments, to the extent that you wish to run database maintainenance on one, you will most likely use @operation 'all'. Since tier-2+ environments use Azure SQL, you would most likely use only @operation 'statistics', if you need to update statistics immediately.
 
