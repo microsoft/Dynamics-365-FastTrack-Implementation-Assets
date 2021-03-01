@@ -396,7 +396,7 @@
               "source": {
                 "type": "AzureSqlSource",
                 "sqlReaderQuery": {
-                  "value": "SELECT  TABLE_NAME\n       ,STUFF((SELECT ', ' + CAST(COLUMN_NAME AS VARCHAR(100)) [text()]\n         FROM INFORMATION_SCHEMA.COLUMNS \n         WHERE TABLE_NAME = t.TABLE_NAME and TABLE_SCHEMA = t.TABLE_SCHEMA\n\t\t and COLUMN_NAME not in ('_SysRowId', 'LSN', 'LastProcessedChange_DateTime', 'DataLakeModified_DateTime')\n\t\t order by Ordinal_position Asc\n         FOR XML PATH(''), TYPE)\n        .value('.','NVARCHAR(MAX)'),1,2,' ') COLUMN_NAME\nFROM INFORMATION_SCHEMA.COLUMNS t\nWHERE TABLE_NAME = '@{pipeline().parameters.TABLE_NAME}'\nand  TABLE_SCHEMA = '@{pipeline().parameters.TABLE_SCHEMA}'\nGROUP BY TABLE_NAME, TABLE_SCHEMA",
+                  "value": "SELECT  TABLE_NAME\n       ,STUFF((SELECT ', ' + CAST(COLUMN_NAME AS VARCHAR(100)) [text()]\n         FROM INFORMATION_SCHEMA.COLUMNS \n         WHERE TABLE_NAME = t.TABLE_NAME and TABLE_SCHEMA = t.TABLE_SCHEMA\n\t\t and COLUMN_NAME not in ('$FileName','_SysRowId', 'LSN', 'LastProcessedChange_DateTime', 'DataLakeModified_DateTime')\n\t\t order by Ordinal_position Asc\n         FOR XML PATH(''), TYPE)\n        .value('.','NVARCHAR(MAX)'),1,2,' ') COLUMN_NAME\nFROM INFORMATION_SCHEMA.COLUMNS t\nWHERE TABLE_NAME = '@{pipeline().parameters.TABLE_NAME}'\nand  TABLE_SCHEMA = '@{pipeline().parameters.TABLE_SCHEMA}'\nGROUP BY TABLE_NAME, TABLE_SCHEMA",
                   "type": "Expression"
                 },
                 "queryTimeout": "02:00:00",
