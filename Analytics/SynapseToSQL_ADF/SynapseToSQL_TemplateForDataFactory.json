@@ -1,0 +1,1115 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "factoryName": {
+      "type": "string",
+      "metadata": "Data Factory name",
+      "defaultValue": "ftd365synapseanalytics"
+    },
+    "SourceSqlDB_connectionString": {
+      "type": "securestring",
+      "metadata": "Connection string 'data source=myServerAddress;initial catalog=myDataBase;user Id=myUsername;Password=myPassword;'"
+    },
+    "DestinationSQLDB_connectionString": {
+      "type": "securestring",
+      "metadata": "Connection string 'data source=myServerAddress;initial catalog=myDataBase;user Id=myUsername;Password=myPassword;' "
+ 
+    },
+    "BlobCreatedEvent_scope": {
+      "type": "string",
+      "defaultValue": "/subscriptions/{SubscriptionId}/resourceGroups/{ResourceGroup}/providers/Microsoft.Storage/storageAccounts/{StorageAccount}"
+    },
+    "BlobCreatedEvent_FullExport_filter": {
+      "type": "string",
+      "defaultValue": "/dynamics365-financeandoperations/blobs/{YourEnvironment}.sandbox.operations.dynamics.com/Tables/Finance/AccountsReceivable/Group/"
+    },
+    "BlobCreatedEvent_IncrementalExport_filter": {
+      "type": "string",
+      "defaultValue": "/dynamics365-financeandoperations/blobs/{YourEnvironment}.sandbox.operations.dynamics.com/ChangeFeed/"
+    }
+  },
+  "variables": {
+    "factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+  },
+  "resources": [
+    {
+      "name": "[concat(parameters('factoryName'), '/DestinationSQLDB')]",
+      "type": "Microsoft.DataFactory/factories/linkedServices",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "annotations": [],
+        "type": "AzureSqlDatabase",
+        "typeProperties": {
+          "connectionString": "[parameters('DestinationSQLDB_connectionString')]"
+        },
+        "connectVia": {
+          "referenceName": "AutoResolveIntegrationRuntime",
+          "type": "IntegrationRuntimeReference"
+        }
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/SourceSqlDB')]",
+      "type": "Microsoft.DataFactory/factories/linkedServices",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "annotations": [],
+        "type": "AzureSqlDatabase",
+        "typeProperties": {
+          "connectionString": "[parameters('SourceSqlDB_connectionString')]"
+        },
+        "connectVia": {
+          "referenceName": "AutoResolveIntegrationRuntime",
+          "type": "IntegrationRuntimeReference"
+        }
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/CDCFileDropped')]",
+      "type": "Microsoft.DataFactory/factories/triggers",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "annotations": [],
+        "runtimeState": "Stopped",
+        "pipelines": [
+          {
+            "pipelineReference": {
+              "referenceName": "IncrementalExport_EventBased",
+              "type": "PipelineReference"
+            },
+            "parameters": {
+              "FolderPath": "@triggerBody().folderPath",
+              "FileName": "@triggerBody().fileName"
+            }
+          }
+        ],
+        "type": "BlobEventsTrigger",
+        "typeProperties": {
+          "blobPathBeginsWith": "[parameters('BlobCreatedEvent_IncrementalExport_filter')]",
+          "blobPathEndsWith": ".csv",
+          "ignoreEmptyBlobs": true,
+          "scope": "[parameters('BlobCreatedEvent_scope')]",
+          "events": [
+            "Microsoft.Storage.BlobCreated"
+          ]
+        }
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/pipelines/IncrementalExport_EventBased')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/CDMJSONCREATED')]",
+      "type": "Microsoft.DataFactory/factories/triggers",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "annotations": [],
+        "runtimeState": "Stopped",
+        "pipelines": [
+          {
+            "pipelineReference": {
+              "referenceName": "FullExport_SQL_EventBased",
+              "type": "PipelineReference"
+            },
+            "parameters": {
+              "FileName": "@triggerBody().fileName",
+              "FolderPath": "@triggerBody().folderPath"
+            }
+          }
+        ],
+        "type": "BlobEventsTrigger",
+        "typeProperties": {
+          "blobPathBeginsWith": "[parameters('BlobCreatedEvent_FullExport_filter')]",
+          "blobPathEndsWith": ".cdm.json",
+          "ignoreEmptyBlobs": true,
+          "scope": "[parameters('BlobCreatedEvent_scope')]",
+          "events": [
+            "Microsoft.Storage.BlobCreated"
+          ]
+        }
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/pipelines/FullExport_SQL_EventBased')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/AutoResolveIntegrationRuntime')]",
+      "type": "Microsoft.DataFactory/factories/integrationRuntimes",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "type": "Managed",
+        "typeProperties": {
+          "computeProperties": {
+            "location": "AutoResolve",
+            "dataFlowProperties": {
+              "computeType": "General",
+              "coreCount": 8,
+              "timeToLive": 0
+            }
+          }
+        }
+      },
+      "dependsOn": []
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/FullExport_SQL')]",
+      "type": "Microsoft.DataFactory/factories/pipelines",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "activities": [
+          {
+            "name": "PublishTables",
+            "type": "SqlServerStoredProcedure",
+            "dependsOn": [
+              {
+                "activity": "GetMetadata",
+                "dependencyConditions": [
+                  "Succeeded"
+                ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "storedProcedureName": "[[dbo].[publishTable]",
+              "storedProcedureParameters": {
+                "CDCTableName": {
+                  "value": {
+                    "value": "@{pipeline().parameters.CDC_SCHEMA}.@{activity('GetMetadata').output.firstRow.TABLE_NAME}",
+                    "type": "Expression"
+                  },
+                  "type": "String"
+                },
+                "ColumnNames": {
+                  "value": {
+                    "value": "@activity('GetMetadata').output.firstRow.COLUMN_NAME",
+                    "type": "Expression"
+                  },
+                  "type": "String"
+                },
+                "TableName": {
+                  "value": {
+                    "value": "@{pipeline().parameters.TABLE_SCHEMA}.@{activity('GetMetadata').output.firstRow.TABLE_NAME}",
+                    "type": "Expression"
+                  },
+                  "type": "String"
+                },
+                "PrimaryTableName": {
+                  "value": {
+                    "value": "@{pipeline().parameters.TABLE_SCHEMA}.@{pipeline().parameters.PRIMARY_TABLE_NAME}",
+                    "type": "Expression"
+                  },
+                  "type": "String"
+                }
+              }
+            },
+            "linkedServiceName": {
+              "referenceName": "DestinationSQLDB",
+              "type": "LinkedServiceReference"
+            }
+          },
+          {
+            "name": "CopyFullDataSQL",
+            "type": "Copy",
+            "dependsOn": [
+              {
+                "activity": "PublishTables",
+                "dependencyConditions": [
+                  "Succeeded"
+                ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "source": {
+                "type": "AzureSqlSource",
+                "sqlReaderQuery": {
+                  "value": "Select @{activity('GetMetadata').output.firstRow.COLUMN_NAME} from @{pipeline().parameters.TABLE_SCHEMA}.@{activity('GetMetadata').output.firstRow.TABLE_NAME}",
+                  "type": "Expression"
+                },
+                "queryTimeout": "02:00:00",
+                "partitionOption": "None"
+              },
+              "sink": {
+                "type": "AzureSqlSink",
+                "preCopyScript": {
+                  "value": "DROP TABLE IF EXISTS @{pipeline().parameters.TABLE_SCHEMA}.@{activity('GetMetadata').output.firstRow.TABLE_NAME}",
+                  "type": "Expression"
+                },
+                "tableOption": "autoCreate",
+                "disableMetricsCollection": false
+              },
+              "enableStaging": false,
+              "translator": {
+                "type": "TabularTranslator",
+                "typeConversion": true,
+                "typeConversionSettings": {
+                  "allowDataTruncation": true,
+                  "treatBooleanAsNumber": false
+                }
+              }
+            },
+            "inputs": [
+              {
+                "referenceName": "Source_SQL_Query",
+                "type": "DatasetReference",
+                "parameters": {}
+              }
+            ],
+            "outputs": [
+              {
+                "referenceName": "Dest_SQL_Table",
+                "type": "DatasetReference",
+                "parameters": {
+                  "Schema": {
+                    "value": "@pipeline().parameters.TABLE_SCHEMA",
+                    "type": "Expression"
+                  },
+                  "Table": {
+                    "value": "@activity('GetMetadata').output.firstRow.TABLE_NAME",
+                    "type": "Expression"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "name": "UpdateStatus",
+            "type": "SqlServerStoredProcedure",
+            "dependsOn": [
+              {
+                "activity": "CreateRecIdIndex",
+                "dependencyConditions": [
+                  "Succeeded"
+                ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "storedProcedureName": "[[dbo].[SetTableStatus]",
+              "storedProcedureParameters": {
+                "Status": {
+                  "value": "1",
+                  "type": "Int32"
+                },
+                "TableName": {
+                  "value": {
+                    "value": "@{pipeline().parameters.TABLE_SCHEMA}.@{activity('GetMetadata').output.firstRow.TABLE_NAME}",
+                    "type": "Expression"
+                  },
+                  "type": "String"
+                },
+                "LAST_FILENAME": {
+                  "value": null,
+                  "type": "String"
+                }
+              }
+            },
+            "linkedServiceName": {
+              "referenceName": "DestinationSQLDB",
+              "type": "LinkedServiceReference"
+            }
+          },
+          {
+            "name": "CreateRecIdIndex",
+            "type": "SqlServerStoredProcedure",
+            "dependsOn": [
+              {
+                "activity": "CopyFullDataSQL",
+                "dependencyConditions": [
+                  "Succeeded"
+                ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "storedProcedureName": "[[dbo].[Create_RecId_Index]",
+              "storedProcedureParameters": {
+                "TableName": {
+                  "value": {
+                    "value": "@{activity('GetMetadata').output.firstRow.TABLE_NAME}",
+                    "type": "Expression"
+                  },
+                  "type": "String"
+                },
+                "Schema": {
+                  "value": {
+                    "value": "@pipeline().parameters.TABLE_SCHEMA",
+                    "type": "Expression"
+                  },
+                  "type": "String"
+                }
+              }
+            },
+            "linkedServiceName": {
+              "referenceName": "DestinationSQLDB",
+              "type": "LinkedServiceReference"
+            }
+          },
+          {
+            "name": "GetMetadata",
+            "type": "Lookup",
+            "dependsOn": [],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "source": {
+                "type": "AzureSqlSource",
+                "sqlReaderQuery": {
+                  "value": "SELECT  TABLE_NAME\n       ,STUFF((SELECT ', ' + CAST(COLUMN_NAME AS VARCHAR(100)) [text()]\n         FROM INFORMATION_SCHEMA.COLUMNS \n         WHERE TABLE_NAME = t.TABLE_NAME and TABLE_SCHEMA = t.TABLE_SCHEMA\n\t\t and COLUMN_NAME not in ('_SysRowId', 'LSN', 'LastProcessedChange_DateTime', 'DataLakeModified_DateTime')\n\t\t order by Ordinal_position Asc\n         FOR XML PATH(''), TYPE)\n        .value('.','NVARCHAR(MAX)'),1,2,' ') COLUMN_NAME\nFROM INFORMATION_SCHEMA.COLUMNS t\nWHERE TABLE_NAME = '@{pipeline().parameters.TABLE_NAME}'\nand  TABLE_SCHEMA = '@{pipeline().parameters.TABLE_SCHEMA}'\nGROUP BY TABLE_NAME, TABLE_SCHEMA",
+                  "type": "Expression"
+                },
+                "queryTimeout": "02:00:00",
+                "partitionOption": "None"
+              },
+              "dataset": {
+                "referenceName": "Source_SQL_Query",
+                "type": "DatasetReference",
+                "parameters": {}
+              },
+              "firstRowOnly": true
+            }
+          }
+        ],
+        "parameters": {
+          "TABLE_NAME": {
+            "type": "string",
+            "defaultValue": "CustGroup"
+          },
+          "TABLE_SCHEMA": {
+            "type": "string",
+            "defaultValue": "DBO"
+          },
+          "CDC_SCHEMA": {
+            "type": "string",
+            "defaultValue": "CDC"
+          },
+          "PRIMARY_TABLE_NAME": {
+            "type": "string"
+          }
+        },
+        "folder": {
+          "name": "DataLakeToSQL/Main"
+        },
+        "annotations": [],
+        "lastPublishTime": "2021-02-28T12:53:58Z"
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/linkedServices/DestinationSQLDB')]",
+        "[concat(variables('factoryId'), '/datasets/Source_SQL_Query')]",
+        "[concat(variables('factoryId'), '/datasets/Dest_SQL_Table')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/IncrementalExport_SQL')]",
+      "type": "Microsoft.DataFactory/factories/pipelines",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "activities": [
+          {
+            "name": "CDCCopy",
+            "type": "Copy",
+            "dependsOn": [],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "source": {
+                "type": "AzureSqlSource",
+                "sqlReaderQuery": {
+                  "value": "Select DML_Action, @{pipeline().parameters.COLUMN_NAMES}\n\t\tFROM \n\t\t(\n\t\t\tSELECT *, ROW_NUMBER() OVER (PARTITION BY RECID ORDER BY Start_LSN DESC) AS ROWNO FROM @{pipeline().parameters.CDC_TABLE_NAME}\nWHERE [$FileName] > '@{pipeline().parameters.LAST_PROCESSED_FILE_NAME}'  OR\n[$FileName] = '@{pipeline().parameters.LAST_UPDATED_CDC_FILE}' \n\t\t) AS X\n\t\tWHERE X.ROWNO = 1",
+                  "type": "Expression"
+                },
+                "queryTimeout": "02:00:00",
+                "partitionOption": "None"
+              },
+              "sink": {
+                "type": "AzureSqlSink",
+                "preCopyScript": {
+                  "value": "DROP TABLE IF EXISTS @{pipeline().parameters.CDC_TABLE_NAME}",
+                  "type": "Expression"
+                },
+                "tableOption": "autoCreate",
+                "disableMetricsCollection": false
+              },
+              "enableStaging": false,
+              "translator": {
+                "type": "TabularTranslator",
+                "typeConversion": true,
+                "typeConversionSettings": {
+                  "allowDataTruncation": true,
+                  "treatBooleanAsNumber": false
+                }
+              }
+            },
+            "inputs": [
+              {
+                "referenceName": "Source_SQL_Query",
+                "type": "DatasetReference",
+                "parameters": {}
+              }
+            ],
+            "outputs": [
+              {
+                "referenceName": "Dest_SQL_Table",
+                "type": "DatasetReference",
+                "parameters": {
+                  "Schema": {
+                    "value": "@{first(split(pipeline().parameters.CDC_TABLE_NAME,'.'))}",
+                    "type": "Expression"
+                  },
+                  "Table": {
+                    "value": "@{last(split(pipeline().parameters.CDC_TABLE_NAME,'.'))}",
+                    "type": "Expression"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "name": "MergeCDC",
+            "type": "SqlServerStoredProcedure",
+            "dependsOn": [
+              {
+                "activity": "CDCCopy",
+                "dependencyConditions": [
+                  "Succeeded"
+                ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "storedProcedureName": "[[dbo].[MERGECDC]",
+              "storedProcedureParameters": {
+                "CDCTable": {
+                  "value": {
+                    "value": "@pipeline().parameters.CDC_TABLE_NAME",
+                    "type": "Expression"
+                  },
+                  "type": "String"
+                },
+                "TargetTable": {
+                  "value": {
+                    "value": "@pipeline().parameters.TABLE_NAME",
+                    "type": "Expression"
+                  },
+                  "type": "String"
+                }
+              }
+            },
+            "linkedServiceName": {
+              "referenceName": "DestinationSQLDB",
+              "type": "LinkedServiceReference"
+            }
+          },
+          {
+            "name": "UpdateStatus",
+            "type": "SqlServerStoredProcedure",
+            "dependsOn": [
+              {
+                "activity": "MergeCDC",
+                "dependencyConditions": [
+                  "Succeeded"
+                ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "storedProcedureName": "[[dbo].[SetTableStatus]",
+              "storedProcedureParameters": {
+                "LAST_FILENAME": {
+                  "value": {
+                    "value": "@pipeline().parameters.LAST_UPDATED_CDC_FILE",
+                    "type": "Expression"
+                  },
+                  "type": "String"
+                },
+                "Status": {
+                  "value": "1",
+                  "type": "Int32"
+                },
+                "TableName": {
+                  "value": {
+                    "value": "@pipeline().parameters.TABLE_NAME",
+                    "type": "Expression"
+                  },
+                  "type": "String"
+                }
+              }
+            },
+            "linkedServiceName": {
+              "referenceName": "DestinationSQLDB",
+              "type": "LinkedServiceReference"
+            }
+          }
+        ],
+        "parameters": {
+          "TABLE_NAME": {
+            "type": "string"
+          },
+          "LAST_UPDATED_CDC_FILE": {
+            "type": "string"
+          },
+          "COLUMN_NAMES": {
+            "type": "string"
+          },
+          "CDC_TABLE_NAME": {
+            "type": "string"
+          },
+          "LAST_PROCESSED_FILE_NAME": {
+            "type": "string"
+          }
+        },
+        "folder": {
+          "name": "DataLakeToSQL/Main"
+        },
+        "annotations": [],
+        "lastPublishTime": "2021-02-28T12:56:16Z"
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/datasets/Source_SQL_Query')]",
+        "[concat(variables('factoryId'), '/datasets/Dest_SQL_Table')]",
+        "[concat(variables('factoryId'), '/linkedServices/DestinationSQLDB')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/IncrementalExport_EventBased')]",
+      "type": "Microsoft.DataFactory/factories/pipelines",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "activities": [
+          {
+            "name": "GetTableDetails",
+            "type": "Lookup",
+            "dependsOn": [],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "source": {
+                "type": "AzureSqlSource",
+                "sqlReaderQuery": {
+                  "value": "SELECT [TableName] as [TABLE_NAME]\n      ,[CDCTableName] as [CDC_TABLE_NAME]\n      ,[ColumnNames] as [COLUMN_NAMES]\n      ,[LastProcessedFile] as [LAST_PROCESSED_FILE_NAME]\n  FROM [dbo].[SynapseToSQLTables]\n  WHERE PrimaryTableName = '@{pipeline().parameters.TABLE_SCHEMA}.@{last(split(pipeline().parameters.FolderPath, '/'))}'\n  AND STATUS = 1",
+                  "type": "Expression"
+                },
+                "queryTimeout": "02:00:00",
+                "partitionOption": "None"
+              },
+              "dataset": {
+                "referenceName": "Dest_SQL_Query",
+                "type": "DatasetReference",
+                "parameters": {}
+              },
+              "firstRowOnly": false
+            }
+          },
+          {
+            "name": "ForEachTable",
+            "type": "ForEach",
+            "dependsOn": [
+              {
+                "activity": "GetTableDetails",
+                "dependencyConditions": [
+                  "Succeeded"
+                ]
+              }
+            ],
+            "userProperties": [],
+            "typeProperties": {
+              "items": {
+                "value": "@activity('GetTableDetails').output.value",
+                "type": "Expression"
+              },
+              "isSequential": false,
+              "activities": [
+                {
+                  "name": "ExecuteIncremental",
+                  "type": "ExecutePipeline",
+                  "dependsOn": [],
+                  "userProperties": [],
+                  "typeProperties": {
+                    "pipeline": {
+                      "referenceName": "IncrementalExport_SQL",
+                      "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                      "TABLE_NAME": {
+                        "value": "@item().TABLE_NAME",
+                        "type": "Expression"
+                      },
+                      "LAST_UPDATED_CDC_FILE": {
+                        "value": "@{first(split(pipeline().parameters.FileName,'.'))}",
+                        "type": "Expression"
+                      },
+                      "COLUMN_NAMES": {
+                        "value": "@item().COLUMN_NAMES",
+                        "type": "Expression"
+                      },
+                      "CDC_TABLE_NAME": {
+                        "value": "@item().CDC_TABLE_NAME",
+                        "type": "Expression"
+                      },
+                      "LAST_PROCESSED_FILE_NAME": {
+                        "value": "@item().LAST_PROCESSED_FILE_NAME",
+                        "type": "Expression"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "parameters": {
+          "FolderPath": {
+            "type": "string"
+          },
+          "FileName": {
+            "type": "string"
+          },
+          "TABLE_SCHEMA": {
+            "type": "string",
+            "defaultValue": "DBO"
+          }
+        },
+        "folder": {
+          "name": "DataLakeToSQL/EventBased"
+        },
+        "annotations": [],
+        "lastPublishTime": "2021-02-28T12:57:47Z"
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/datasets/Dest_SQL_Query')]",
+        "[concat(variables('factoryId'), '/pipelines/IncrementalExport_SQL')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/IncrementalExport_Scheduled')]",
+      "type": "Microsoft.DataFactory/factories/pipelines",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "activities": [
+          {
+            "name": "GetChangedTable",
+            "type": "Lookup",
+            "dependsOn": [],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "source": {
+                "type": "AzureSqlSource",
+                "sqlReaderQuery": {
+                  "value": "SELECT [TABLE_NAME]\n      ,[CDC_TABLE_NAME]\n      ,[COLUMN_NAMES]\n      ,[LAST_PROCESSED_FILE_NAME]\n      ,[LAST_UPDATED_CDC_FILE]\n  FROM [dbo].[SynapseToSQLUpdatedTables]",
+                  "type": "Expression"
+                },
+                "queryTimeout": "02:00:00",
+                "partitionOption": "None"
+              },
+              "dataset": {
+                "referenceName": "Dest_SQL_Query",
+                "type": "DatasetReference",
+                "parameters": {}
+              },
+              "firstRowOnly": false
+            }
+          },
+          {
+            "name": "ForEachTable",
+            "type": "ForEach",
+            "dependsOn": [
+              {
+                "activity": "GetChangedTable",
+                "dependencyConditions": [
+                  "Succeeded"
+                ]
+              }
+            ],
+            "userProperties": [],
+            "typeProperties": {
+              "items": {
+                "value": "@activity('GetChangedTable').output.value",
+                "type": "Expression"
+              },
+              "isSequential": false,
+              "activities": [
+                {
+                  "name": "ExecuteIncremental",
+                  "type": "ExecutePipeline",
+                  "dependsOn": [],
+                  "userProperties": [],
+                  "typeProperties": {
+                    "pipeline": {
+                      "referenceName": "IncrementalExport_SQL",
+                      "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                      "TABLE_NAME": {
+                        "value": "@item().TABLE_NAME",
+                        "type": "Expression"
+                      },
+                      "LAST_UPDATED_CDC_FILE": {
+                        "value": "@item().LAST_UPDATED_CDC_FILE",
+                        "type": "Expression"
+                      },
+                      "COLUMN_NAMES": {
+                        "value": "@item().COLUMN_NAMES",
+                        "type": "Expression"
+                      },
+                      "CDC_TABLE_NAME": {
+                        "value": "@item().CDC_TABLE_NAME",
+                        "type": "Expression"
+                      },
+                      "LAST_PROCESSED_FILE_NAME": {
+                        "value": "@item().LAST_PROCESSED_FILE_NAME",
+                        "type": "Expression"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "folder": {
+          "name": "DataLakeToSQL/Scheduled"
+        },
+        "annotations": [],
+        "lastPublishTime": "2021-02-28T12:58:57Z"
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/datasets/Dest_SQL_Query')]",
+        "[concat(variables('factoryId'), '/pipelines/IncrementalExport_SQL')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/FullExport_SQL_EventBased')]",
+      "type": "Microsoft.DataFactory/factories/pipelines",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "activities": [
+          {
+            "name": "ExecuteFullExportSQL",
+            "type": "ExecutePipeline",
+            "dependsOn": [],
+            "userProperties": [],
+            "typeProperties": {
+              "pipeline": {
+                "referenceName": "FullExport_SQL",
+                "type": "PipelineReference"
+              },
+              "waitOnCompletion": true,
+              "parameters": {
+                "TABLE_NAME": {
+                  "value": "@{first(split(pipeline().parameters.FileName,'.'))}",
+                  "type": "Expression"
+                },
+                "TABLE_SCHEMA": {
+                  "value": "@pipeline().parameters.TABLE_SCHEMA",
+                  "type": "Expression"
+                },
+                "CDC_SCHEMA": {
+                  "value": "@pipeline().parameters.CDC_SCHEMA",
+                  "type": "Expression"
+                },
+                "PRIMARY_TABLE_NAME": {
+                  "value": "@{pipeline().parameters.TABLE_SCHEMA}.@{first(split(pipeline().parameters.FileName,'.'))}",
+                  "type": "Expression"
+                }
+              }
+            }
+          }
+        ],
+        "parameters": {
+          "FileName": {
+            "type": "string",
+            "defaultValue": "CustGroup.cdm.json"
+          },
+          "TABLE_SCHEMA": {
+            "type": "string",
+            "defaultValue": "DBO"
+          },
+          "CDC_SCHEMA": {
+            "type": "string",
+            "defaultValue": "CDC"
+          },
+          "FolderPath": {
+            "type": "string"
+          }
+        },
+        "folder": {
+          "name": "DataLakeToSQL/EventBased"
+        },
+        "annotations": [],
+        "lastPublishTime": "2021-02-28T12:57:08Z"
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/pipelines/FullExport_SQL')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/FullExport_SQL_Schedule')]",
+      "type": "Microsoft.DataFactory/factories/pipelines",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "activities": [
+          {
+            "name": "ForEachTable",
+            "type": "ForEach",
+            "dependsOn": [],
+            "userProperties": [],
+            "typeProperties": {
+              "items": {
+                "value": "@split(pipeline().parameters.Tables,',')",
+                "type": "Expression"
+              },
+              "activities": [
+                {
+                  "name": "ExecuteFullExportSQL",
+                  "type": "ExecutePipeline",
+                  "dependsOn": [],
+                  "userProperties": [],
+                  "typeProperties": {
+                    "pipeline": {
+                      "referenceName": "FullExport_SQL",
+                      "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                      "TABLE_NAME": {
+                        "value": "@item()",
+                        "type": "Expression"
+                      },
+                      "TABLE_SCHEMA": {
+                        "value": "@pipeline().parameters.TABLE_SCHEMA",
+                        "type": "Expression"
+                      },
+                      "CDC_SCHEMA": {
+                        "value": "@pipeline().parameters.CDC_SCHEMA",
+                        "type": "Expression"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "parameters": {
+          "Tables": {
+            "type": "string",
+            "defaultValue": "CustGroup,CustTable"
+          },
+          "TABLE_SCHEMA": {
+            "type": "string",
+            "defaultValue": "DBO"
+          },
+          "CDC_SCHEMA": {
+            "type": "string",
+            "defaultValue": "CDC"
+          }
+        },
+        "folder": {
+          "name": "DataLakeToSQL/Scheduled"
+        },
+        "annotations": [],
+        "lastPublishTime": "2021-02-28T12:58:19Z"
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/pipelines/FullExport_SQL')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/Dest_SQL_Table')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "DestinationSQLDB",
+          "type": "LinkedServiceReference"
+        },
+        "parameters": {
+          "Schema": {
+            "type": "string",
+            "defaultValue": "dbo"
+          },
+          "Table": {
+            "type": "string"
+          }
+        },
+        "folder": {
+          "name": "Dest_SQL_AzureSQL"
+        },
+        "annotations": [],
+        "type": "AzureSqlTable",
+        "schema": [],
+        "typeProperties": {
+          "schema": {
+            "value": "@dataset().Schema",
+            "type": "Expression"
+          },
+          "table": {
+            "value": "@dataset().Table",
+            "type": "Expression"
+          }
+        }
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/linkedServices/DestinationSQLDB')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/Dest_SQL_Query')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "DestinationSQLDB",
+          "type": "LinkedServiceReference"
+        },
+        "folder": {
+          "name": "Dest_SQL_AzureSQL"
+        },
+        "annotations": [],
+        "type": "AzureSqlTable",
+        "schema": [],
+        "typeProperties": {}
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/linkedServices/DestinationSQLDB')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/Source_SQL_Table')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "SourceSqlDB",
+          "type": "LinkedServiceReference"
+        },
+        "parameters": {
+          "Schema": {
+            "type": "string"
+          },
+          "TableName": {
+            "type": "string"
+          }
+        },
+        "folder": {
+          "name": "Source_SQL_Serverless"
+        },
+        "annotations": [],
+        "type": "AzureSqlTable",
+        "schema": [],
+        "typeProperties": {
+          "schema": {
+            "value": "@dataset().Schema",
+            "type": "Expression"
+          },
+          "table": {
+            "value": "@dataset().TableName",
+            "type": "Expression"
+          }
+        }
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/linkedServices/SourceSqlDB')]"
+      ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/Source_SQL_Query')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "SourceSqlDB",
+          "type": "LinkedServiceReference"
+        },
+        "folder": {
+          "name": "Source_SQL_Serverless"
+        },
+        "annotations": [],
+        "type": "AzureSqlTable",
+        "schema": [],
+        "typeProperties": {
+          "schema": ""
+        }
+      },
+      "dependsOn": [
+        "[concat(variables('factoryId'), '/linkedServices/SourceSqlDB')]"
+      ]
+    }
+  ]
+}
