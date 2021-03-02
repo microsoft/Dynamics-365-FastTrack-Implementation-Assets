@@ -33,6 +33,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 | `Dual-write`      | Dymamics 365 Dual-write guides             |
 | `SCM`      		    | Tools for SCM and WHS solutions            |
 | `Cloud security`  | Dynamics 365 Cloud security guides         |
+| `Integration`     | Dynamics 365 integration samples           |
 | `.gitignore`      | Define what to ignore at commit time.      |
 | `CHANGELOG.md`    | List of changes to the sample.             |
 | `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
@@ -57,6 +58,9 @@ Outline the file contents of the repository. It helps users navigate the codebas
 
 ### Cloud Security
 - [Conditional access](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/CloudSecurity/ConditionalAccess/readme.md) 
+
+### Integration
+- [Integration](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Integration)
 
 ## Contributing
 
