@@ -25,7 +25,7 @@ You will need to add the Connected service as described at https://docs.microsof
 | `README.md` | This README file. |
 | `ODataCoreConsoleApp.csproj` | Visual Studio 2019 project definition. |
 | `AuthenticationConfig.cs` | Utility class for AAD authentication using the web application (AAD client ID + secret) flow. |
-| `Program.cs` | Main console application perfromaing some CRUD operations via OData. |
+| `Program.cs` | Main console application performing some CRUD operations via OData. |
 | `appsettings.json` | Settings template file to be edited for target F&O environment. Must be present in the same folder as the executable console application. |
 
 
