@@ -60,7 +60,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 - [Conditional access](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/CloudSecurity/ConditionalAccess/readme.md) 
 
 ### Integration
-- [Integration](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Integration)
+- [Integration](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Integration) Dynamics 365 integration samples.
 
 ## Contributing
 
