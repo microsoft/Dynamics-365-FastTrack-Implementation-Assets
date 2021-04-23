@@ -7,7 +7,7 @@ This is a sample ADF and SQL based generic solution template that can be used to
 ## Setup Source and Destination Database
 1. Identify Source and Destination database
 2. Connect to source database and execute [Source SQL Script](SQLToSQLCopy_Source.sql)
-3. Connect to destination database and execute [Source SQL Script](SQLToSQLCopy_Source.sql)
+3. Connect to destination database and execute [Destination SQL Script](SQLToSQLCopy_Source.sql)
 
 ## Create and deploy Azure Data Factory Template 
 1. Create a Azure Data Factory Resource in Azure Subscription 
