@@ -1,4 +1,4 @@
-# SQL To SQL COPY 
+# Azure SQL to SQL Pipeline  
 
 This is a sample ADF and SQL based generic solution template that can be used to copy incremental data from one SQL server database to another. Solution uses SQL ChangeTracking feature on the source database to identify incremental changes and export incremental changes to destination database and merge it.
 
