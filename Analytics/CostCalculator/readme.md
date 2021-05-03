@@ -1,16 +1,16 @@
-# TCO calculator : From BYOD to Data Lake Storage Gen 2 with Synapse SQL-OD
+# TCO calculator : From BYOD to Data Lake Storage Gen 2 with Synapse Serverless 
 
 ## Scenario covered
 Customer leverages BYOD export to extract data and then hydrates an enterprise DW or reports on top of BYOD tables (e.g using PBI import mode or Direct query)
 Customer wants to have this shift absolutely transparent from data consumption perpsective and wants to have a SQL endpoint to interact with data in the lake.
 ### Question we aim to answer :  
-what will be customer cost impact or savings to move from BYOD to Azure SQL + SynapseSQL-OD ?
+what will be customer cost impact or savings to move from BYOD to Azure SQL + Synapse SQL Serverless ?
 To arrive at that number, use the sheets in this workbook in order.  Fields highlighted in green are input fields, intended for you to populate.
 Worksheet cells legend is described above 
 
 
 ### Who is this aimed at ?
-This is aimed at D365 It professionals, customers or partners working on a D365 FO/ Commerce /HR implementation or live project and wants to have a total cost of ownership estimation to leverage Data Lake Storage Gen2 and Synapse SQl On Demand
+This is aimed at D365 It professionals, customers or partners working on a D365 FO/ Commerce /HR implementation or live project and wants to have a total cost of ownership estimation to leverage Data Lake Storage Gen2 and Synapse SQl Serverless
 
 
 ## Prerequisites
