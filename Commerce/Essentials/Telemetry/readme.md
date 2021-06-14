@@ -1,19 +1,4 @@
 ---
-# required metadata
-
-title: FastTrack Implementation Assets / Commerce / Essentials / Monitoring and Telemetry
-description: This document describes an approach to enhancing the Monitoring and Telemetry platform features and provides a sample extension for building operational metrics.
-author: RobBertram 
-manager: 
-ms.date: 11/17/2020
-ms.topic: blog
-
-# ms.search.form: 
-# ROBOTS: 
-audience: Developer
-# ms.devlang: 
-ms.reviewer: 
-ms.search.scope: Operations, Commerce,Retail 
 
 # ms.tgt_pltfrm: 
 ms.custom: 
