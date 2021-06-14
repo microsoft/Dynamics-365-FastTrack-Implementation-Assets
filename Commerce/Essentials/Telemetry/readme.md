@@ -1,14 +1,5 @@
 ---
 
-# ms.tgt_pltfrm: 
-ms.custom: 
-ms.assetid: 
-ms.search.region: global
-ms.search.industry: Operations, Commerce, Retail
-ms.author: RobBertram
-ms.search.validFrom: 2020-11-17
-ms.dyn365.ops.version: 10.0.14
-
 ---
 # Monitoring and Telemetry
 
