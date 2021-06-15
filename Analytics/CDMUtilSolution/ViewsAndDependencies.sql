@@ -1,3 +1,5 @@
+--Tips : in SSMS, Tools -> Options -> Query Results -> SQL Server -> Results to grid -> check the boc "Retail CR/LF on copy or save"
+
 -- ***************************************************Part 1 recursion************************************* 
 -----------------------------------------------BEGIN Recursive section ---------------------------------------
 With allviews (nodeId, parentNodeId, nodeIdType, rootNode, depth) AS (
