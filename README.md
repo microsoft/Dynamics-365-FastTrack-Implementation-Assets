@@ -32,6 +32,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 | `SQL Maintenance` | Indexes & statistics maintenance script    |
 | `Dual-write`      | Dymamics 365 Dual-write guides             |
 | `SCM`      		    | Tools for SCM and WHS solutions            |
+| `ScheduleAPI`	    | Project Operations - Schedule API example  |
 | `Cloud security`  | Dynamics 365 Cloud security guides         |
 | `Integration`     | Dynamics 365 integration samples           |
 | `.gitignore`      | Define what to ignore at commit time.      |
