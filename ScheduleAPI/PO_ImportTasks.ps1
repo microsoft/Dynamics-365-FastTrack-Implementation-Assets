@@ -13,7 +13,7 @@ $environment = "https://po-demo2.crm.dynamics.com"
 $projectFile = "ProjectTasks.xlsx"
 
 #project parameters
-$projectName    = "MDD_TestPS_06"
+$projectName    = "MDD_TestPS_01"
 $companyName    = "USPM"
 $customerName   = "Adatum Corporation"
 $calendarName   = "Default Work Template"
