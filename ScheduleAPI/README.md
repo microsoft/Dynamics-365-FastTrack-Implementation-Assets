@@ -15,6 +15,6 @@ The main program uses modules
   * LIB_Task
 ( This modules need to be copied or linked under "This PC > Documents > PowerShell > Modules")
 
-PowerShell was chosing because it is available on any Windows10 computer without the need of installing additional development tools.
+PowerShell was chosen because it is available on any Windows10 computer without the need of installing additional development tools.
 Just start "Windows PowerShell ISE" and open file "PO_CreateProject.ps1" and you can start modifying parameters and run/debug the program. 
 
