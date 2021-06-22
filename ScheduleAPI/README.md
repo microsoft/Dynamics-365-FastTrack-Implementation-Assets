@@ -14,8 +14,22 @@ The main program uses modules
   * LIB_Project
   * LIB_Task
 
-( These modules need to be copied or linked under "This PC > Documents > PowerShell > Modules")
+( These modules need to be copied or linked under "This PC > Documents > WindowsPowerShell > Modules" )
 
 PowerShell was chosen because it is available on any Windows10 computer without the need of installing additional development tools.
-Just start "Windows PowerShell ISE" and open file "PO_CreateProject.ps1" and you can start modifying parameters and run/debug the program. 
+Just start "Windows PowerShell ISE" 
+First step is to setup Authentication as described in README.md in LIB_Odata
+Afterwrds open file "PO_CreateProject.ps1" and you can start modifying parameters 
 
+Please verify 
+
+Environment parameters
+ * tenant
+ * environment : 
+
+Project parameters
+ * project name
+ * company name
+ * customer name 
+ * calendar name
+ * project manager
