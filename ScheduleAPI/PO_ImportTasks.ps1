@@ -12,6 +12,9 @@ $environment = "https://po-demo2.crm.dynamics.com"
 #data file
 $projectFile = "ProjectTasks.xlsx"
 
+#Show RestAPI calls
+$showRestAPI = $true
+
 #project parameters
 $projectName    = "MDD_TestPS_01"
 $companyName    = "USPM"
@@ -29,7 +32,10 @@ if ($project.id -eq '')
    $project.projectManager = $projectManager
    $project.CreateProject()
 }
-
+else
+{
+   Write-Host 'Add to existing project' $projectName
+}
 
 Write-Host 'Read file' $projectFile
 [TaskList] $taskList = [TaskList]::new($PSSCriptRoot + ".\" + $projectFile )
