@@ -1,7 +1,7 @@
 # Powershell example for Project Operations Schedule API
 
 ### Purpose
-The docs article https://docs.microsoft.com/en-us/dynamics365/project-operations/project-management/schedule-api-preview describes how the Schedule API provide the ablitlity to perform create, update and delete opeations with Scheduding entities. These entities are managed through the Scheduling engine in Project for Web. 
+The docs article https://docs.microsoft.com/en-us/dynamics365/project-operations/project-management/schedule-api-preview describes how the Schedule API provide the ability to perform create, update and delete operations with Scheduling entities. These entities are managed through the Scheduling engine in Project for Web. 
 The article also describes a console application.
 With this Powershell example we demonstrate the RestAPI calls so that it easily can be used as basis in other middleware software. 
 
