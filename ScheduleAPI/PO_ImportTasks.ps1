@@ -23,6 +23,7 @@ $calendarName   = "Default Work Template"
 $projectManager = "SA Solutions Architect"
 
 [Project] $project = [Project]::new($projectName,$tenant,$environment)
+$project.request.Debug = $showRestAPI
 if ($project.id -eq '')
 {
    Write-Host 'Create project' $projectName
@@ -55,7 +56,7 @@ foreach ($task in $taskList.tasks)
 
 Write-Host 'Create tasks'
 [OperationSet] $operationSet = [OperationSet]::new($projectName,$project.id,$tenant,$environment)
-$operationSet.request.Native = $true
+$operationSet.request.Debug = $showRestAPI
 for ([int] $i = 0; $i -lt $taskList.tasks.Count; $i++)
 {
    $taskEntity = $taskList.CreateTaskEntity($i,$project.id,$project.GetDefaultBucket())
@@ -74,7 +75,7 @@ $operationSet.Execute()
 
 write-Host 'Create dependencies'
 [OperationSet] $operationSet = [OperationSet]::new($projectName,$project.id,$tenant,$environment)
-$operationSet.request.Native = $true
+$operationSet.request.Debug = $showRestAPI
 for ([int] $i = 0; $i -lt $taskList.tasks.Count; $i++)
 {
    if ($taskList.tasks[$i].dependency -gt -1)
