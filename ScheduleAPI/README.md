@@ -18,10 +18,11 @@ The main program uses modules
 
 PowerShell was chosen because it is available on any Windows10 computer without the need of installing additional development tools.
 Just start "Windows PowerShell ISE" 
-First step is to setup Authentication as described in README.md in LIB_Odata
-Afterwrds open file "PO_CreateProject.ps1" and you can start modifying parameters 
 
-Please verify 
+First step is to setup Authentication as described in README.md in LIB_Odata
+Afterwards open file "PO_CreateProject.ps1" and you can start modifying parameters 
+
+Please verify before running the program
 
 Environment parameters
  * tenant
