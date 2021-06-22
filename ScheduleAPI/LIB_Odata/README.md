@@ -1,31 +1,14 @@
-LIB_ODATA implements Authentication and Get, Post, Patch, Delete RestAPI calls. 
+LIB_ODATA implements two classes. 
 
-Authentication can be done via ClientId and ClientSecret or UserName, Password and ClientId.
-
-The library has a file "secure.txt" where you store the encrypted values of these authenthication keys. 
-
-The library has a method encrypt that you use to encrypt the keys and write them to the file secret.txt
-For ClientId and ClientSecret you can use following code
-
-using module LIB_OData
-cls
-
-[string] $file = "<directory>\secure.txt"
-$key = encrypt ""
-$value = encrypt ""
-
-Out-File $file
-($key+'-'+$value) | Add-Content $file
+Class HttpRequest ( to execute Get, Post, Patch, Delete RestAPI calls)
+methods:
+  * new ( <tenant>, <environment URL>)
+  * Authenticate() 
+  * WebCall()
   
- For Username and Passowrd : 
+Before using the HttpRequest you need to setup the Authentication as described in https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/services-home-page
   
-using module LIB_OData
-cls
+Authentication can be done via ClientId and ClientSecret (WebApplication) or UserName, Password and ClientId (Native).
 
-[string] $file = "<directory>\secure.txt"
-$key = encrypt ""
-$value = encrypt ""
-
-Out-File $file
-($key+'-'+$value+'-'+$clientid) | Add-Content $file
-
+The library has a PowerShell script (EncryptCredentials.ps1) to create the file "secure.txt" where you store the encrypted values of these authenthication keys. 
+Open this file in ISE, replace the values between <> with your values and run the script to create the secure file. 
