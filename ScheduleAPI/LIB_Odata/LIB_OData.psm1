@@ -38,27 +38,6 @@ class HttpRequest
 
    }
 
-   [void] Authenticate ([string] $nameOrId)
-   {
-     $this.Native = $nameOrId.Contains('@')
-     $this.Credentials = [Credentials]::new($nameOrId)
-     $this.AADLogin()
-   }
-
-   [void] TrackChanges()
-   {
-      $authorization = $this.Header.Authorization
-      $this.Header = @{ Authorization = $authorization
-                        Prefer = "odata.track-changes" }
-
-   }
-
-   SetDeltaLink ([string] $deltaLink)
-   {
-       $pos = $deltaLink.IndexOf("api/")
-       $this.Command = $deltaLink.Substring($pos,$deltaLink.length - $pos )
-   }
-
    [object] WebCall ()
    {
       $response = $null
@@ -123,24 +102,6 @@ class Credentials
    [string] $Value 
 
    [string] $filename = $PSScriptRoot + "\secure.txt"
-
-   Credentials ([string] $nameOrId)
-   {
-      $list = Get-Content $this.filename
-      $found = $false
-      foreach ($element in $list)
-      {
-         if ($found -eq $false)
-         {
-            [string[]] $segment = $element.Split('-')
-            if ( (decrypt $segment[0]) -eq $nameOrId)
-            {
-               $this.ReadKey($element)
-               $found = $true
-            }
-         }
-      }
-   }
 
    Credentials ([boolean] $native)
    {
