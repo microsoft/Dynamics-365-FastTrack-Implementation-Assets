@@ -133,7 +133,7 @@ you need to create **Self-Hosted integration runtime** for your Azure data facto
 Note that Self-Service database connections are only valid for 8 hours. So you have to updated the database crededential in the Data factory connection before excutin
 
 ## Execute pipelines 
-Once Azure data factory template deployed successfully, navigate to Azure Data Factory solution and execute pipelines
+Once Azure data factory template deployed successfully, navigate to Azure Data Factory solution and execute pipelines. Find your Azure Data Factory in the Azure portal, and select the Author & Monitor tile.
 1. Execute pipeline SQLTablesToADLS to exort data create CDM metadata files. 
 ![Execute](/Analytics/ExecutePipeline.png)
 2. Validate the CDM folder structure and metadata. 
