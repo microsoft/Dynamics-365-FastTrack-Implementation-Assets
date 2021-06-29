@@ -1,0 +1,13 @@
+{
+  "settings": {
+    "documentationRules": {
+      "companyName": "Microsoft Corporation",
+      "copyrightText": "------------------------------------------------------------------------------\nCopyright (c) {companyName}. All rights reserved.\n------------------------------------------------------------------------------",
+      "xmlHeader": false,
+      "fileNamingConvention": "metadata"
+    },
+    "layoutRules": {
+      "newlineAtEndOfFile": "require"
+    }
+  }
+}

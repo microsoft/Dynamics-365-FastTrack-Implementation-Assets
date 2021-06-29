@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "EntityStoreToSynapse": {
+      "commandName": "Project",
+      "commandLineArgs": "-p \"C:\\code\\entity-store\\rolex\\metadata\\RLXBILedgeCube.zip\" -c \"Server=tcp:synapsews-dev-westus2-c30d4-ondemand.sql.azuresynapse.net,1433;Initial Catalog=master;Persist Security Info=False;User ID=sqladmin;Password=dynamics!365;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;\""
+    }
+  }
+}
