@@ -1,0 +1,65 @@
+<Project>
+  
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
+    <Platform Condition="'$(Platform)'==''">x64</Platform>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Platforms>x64</Platforms>
+
+    <RepoBaseDir>$(MSBuildThisFileDirectory)</RepoBaseDir>
+
+    <Authors>Microsoft Corporation</Authors>
+    <Company>Microsoft Corporation</Company>
+    <Product>Microsoft Dynamics Financials and Operations</Product>
+    <Copyright>(c) Microsoft Corporation. All rights reserved.</Copyright>
+
+    <!-- NuGet -->
+    <IsPackable>false</IsPackable>
+    <PackageTags>Dynamics;D365;</PackageTags>
+    <PackageProjectUrl>http://www.microsoft.com</PackageProjectUrl>
+    <PackageLicenseUrl>http://www.microsoft.com/license</PackageLicenseUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <WarnOnPackingNonPackableProject>false</WarnOnPackingNonPackableProject>
+
+    <!-- This is required until this fix is available: https://github.com/Microsoft/msbuild/issues/2912 -->
+    <HighEntropyVA>true</HighEntropyVA>
+
+    <!-- Build Output -->
+    <OutputType>library</OutputType>
+    <DebugSymbols>true</DebugSymbols>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+
+    <!-- Signing -->
+    <SignAssembly>false</SignAssembly>
+
+    <!-- Style -->
+    <NoWarn>$(NoWarn);IDE0001;NU5125;NETSDK1071;SA1515;NU1608;NU1605</NoWarn>
+    <CodeAnalysisRuleSet>$(RepoBaseDir)\.build\codeanalysis.ruleset</CodeAnalysisRuleSet>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+  </PropertyGroup>
+
+    <!-- Suppress auto generated version attributes when using the CDPx supplied file -->
+  <PropertyGroup Condition="Exists('$(PipelineAssemblyInfo)')">
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+  </PropertyGroup>
+
+  <ItemGroup Condition="Exists('$(PipelineAssemblyInfo)')">
+    <Compile Include="$(PipelineAssemblyInfo)" Link="PipelineAssemblyInfo.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="$(RepoBaseDir)\.build\stylecop.json">
+      <Visible>false</Visible>
+    </AdditionalFiles>
+
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>

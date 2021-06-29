@@ -1,0 +1,55 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AOSBinPath Condition="'$(AOSBinPath)' == '' ">C:\AosService\PackagesLocalDirectory\bin</AOSBinPath>
+    <AssemblyName>EntityStoreMetadataExporter</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Common\Common.csproj" />
+  </ItemGroup>
+  
+  
+  <ItemGroup>
+    <Reference Include="Microsoft.Dynamics.AX.Data.Core">
+      <HintPath>$(AOSBinPath)\Microsoft.Dynamics.AX.Data.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamics.AX.Data.Core">
+      <HintPath>$(AOSBinPath)\Microsoft.Dynamics.AX.Data.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamics.AX.Framework.Linq.Data">
+      <HintPath>$(AOSBinPath)\Microsoft.Dynamics.AX.Framework.Linq.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamics.AX.Framework.Linq.Data.Interface">
+      <HintPath>$(AOSBinPath)\Microsoft.Dynamics.AX.Framework.Linq.Data.Interface.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamics.AX.Framework.Linq.Data.Msil">
+      <HintPath>$(AOSBinPath)\Microsoft.Dynamics.AX.Framework.Linq.Data.Msil.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamics.AX.Metadata">
+      <HintPath>$(AOSBinPath)\Microsoft.Dynamics.AX.Metadata.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamics.AX.Metadata.Core">
+      <HintPath>$(AOSBinPath)\Microsoft.Dynamics.AX.Metadata.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamics.AX.Metadata.Storage">
+      <HintPath>$(AOSBinPath)\Microsoft.Dynamics.AX.Metadata.Storage.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamics.AX.Xpp.Support">
+      <HintPath>$(AOSBinPath)\Microsoft.Dynamics.AX.Xpp.Support.dll</HintPath>
+    </Reference>
+
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
