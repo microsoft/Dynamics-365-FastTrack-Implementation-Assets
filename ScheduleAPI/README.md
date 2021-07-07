@@ -22,7 +22,7 @@ PowerShell was chosen because it is available on any Windows10 computer without 
 
 1) Download the zip file via the green button "Code" on Dynamics-365-FastTrack-Implementation-Assets
 2) Extract files make (sure the set switch "Unblock" on the properties from the zip file)
-3) Move the directories LIB_OData, LIB_OperationSet, LIB_Project and LIB_TASK from ScheduleAPI under ThisPC > Documents > WindowsPowerShell > Modules 
+3) Move the directories LIB_OData, LIB_OperationSet, LIB_Project and LIB_TASK from ScheduleAPI under ThisPC > Documents > WindowsPowerShell > Modules. You can manually create directory WindowsPowerShell and/or Modules if these directories are not on your machine.
 4) File PO_ImportTasks.ps1 can be saved to any location
 5) Setup authentication as described in the README.md file in LIB_Odata
 6) Use "Windows PowerShell ISE" program to open file "PO_CreateProject.ps1" and you start verifying / modifying parameters 
@@ -38,4 +38,4 @@ PowerShell was chosen because it is available on any Windows10 computer without 
     * project manager
    
    Data File 
-    * project File (if you want to have different sample files)
+    * project File (if you want to have different sample files). Please review data adn update in your project file (e.g. resource, start and end dates).
