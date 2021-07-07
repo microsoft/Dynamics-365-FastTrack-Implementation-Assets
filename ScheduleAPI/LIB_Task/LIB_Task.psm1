@@ -41,17 +41,12 @@ class Task
 
    [Object] CreateResourceAssignment ([string] $projectId)
    {
-      $start = Get-Date
-      $finish = ($start  + (New-TimeSpan -Days 1)) 
-
-      $resourceAssignment = @{
+       $resourceAssignment = @{
          "@odata.type" = "Microsoft.Dynamics.CRM.msdyn_resourceassignment"
          "msdyn_projectid@odata.bind" = "/msdyn_projects(" + $projectId + ")"
          "msdyn_taskid@odata.bind" = "/msdyn_projecttasks(" + $this.taskId + ")"
          "msdyn_projectteamid@odata.bind" = "/msdyn_resourceassignments(" + $this.teamMemberId + ")"
          "msdyn_name" = $this.resource
-         "msdyn_start" = $start.ToString("yyyy-MM-dd")
-         "msdyn_finish" = $finish.ToString("yyyy-MM-dd")
       }   
       return $resourceAssignment
    }
