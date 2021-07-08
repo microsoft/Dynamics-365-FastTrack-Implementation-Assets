@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "EntityStoreMetadataExporter": {
+      "commandName": "Project",
+      "commandLineArgs": "-m \"FMAggregateMeasurements\" -o \"D:\\temp\" -c \"Server=localhost;Database=AxDbRain;Trusted_Connection=True\""
+    }
+  }
+}

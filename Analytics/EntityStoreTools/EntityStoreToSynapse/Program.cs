@@ -52,7 +52,7 @@ namespace EntityStoreToSynapse
                     {
                         // Finds the root measurement metadata
                         var entryList = zip.Entries.ToList();
-                        var measurementEntry = entryList.FirstOrDefault(e => e.FullName == "measurement.json");
+                        var measurementEntry = entryList.FirstOrDefault(e => e.FullName == "measure.json");
 
                         if (measurementEntry == null)
                         {
@@ -74,10 +74,10 @@ namespace EntityStoreToSynapse
                             /*
                             * Step 2: Create AxViews on Azure Synapse
                             */
-                            var viewMetadataEntry = entryList.FirstOrDefault(e => e.FullName == "views/views.csv");
+                            var viewMetadataEntry = entryList.FirstOrDefault(e => e.FullName == "views/dependencies.csv");
                             if (viewMetadataEntry == null)
                             {
-                                throw new Exception($"Cannot find view metadata file 'views/views.csv' in file {options.MetadataPath}");
+                                throw new Exception($"Cannot find view metadata file 'views/dependencies.csv' in file {options.MetadataPath}");
                             }
 
                             var errorList = await CreateAxViewsAsync(viewMetadataEntry, sqlProvider);
@@ -92,9 +92,7 @@ namespace EntityStoreToSynapse
                             }
                             else
                             {
-                                Console.ForegroundColor = ConsoleColor.DarkGreen;
-                                Console.WriteLine($"All views were created successfully.");
-                                Console.ResetColor();
+                                ColorConsole.WriteSuccess($"All views were created successfully.");
                             }
                         }
                     }
@@ -161,18 +159,14 @@ namespace EntityStoreToSynapse
                         {
                             await sqlProvider.RunSqlStatementAsync(axViewMetadata.Definition);
 
-                            Console.ForegroundColor = ConsoleColor.DarkGreen;
-                            Console.WriteLine($"Created '{axViewMetadata.ViewName}'\n");
-                            Console.ResetColor();
+                            ColorConsole.WriteSuccess($"Created '{axViewMetadata.ViewName}'\n");
                         }
                         catch (SqlException e)
                         {
                             var errorMessage = $"Could not create view '{axViewMetadata.ViewName}': {e.Message}";
                             errorList.Add(errorMessage);
 
-                            Console.ForegroundColor = ConsoleColor.DarkRed;
-                            Console.WriteLine(errorMessage);
-                            Console.ResetColor();
+                            ColorConsole.WriteError(errorMessage);
                         }
                         finally
                         {
