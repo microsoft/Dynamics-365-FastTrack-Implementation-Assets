@@ -213,7 +213,7 @@ Select * into #myEntitiestree from allviews ;
 ------------------------------------------------End recursive section -------------------------------
 
 ";
-            string selectstatement = @"select 
+            string selectStatement = @"select 
        v.name as view_name, 	   
        rootnode,
 	   parentnodeid,
@@ -239,18 +239,18 @@ order by rootNode asc, depth desc
                 SqlCommand command = new SqlCommand(queryString, connection);
                 command.Connection.Open();
                 int nbrecords = command.ExecuteNonQuery();
-                command.CommandText = selectstatement;
-                SqlDataReader datareader = command.ExecuteReader();
+                command.CommandText = selectStatement;
+                SqlDataReader dataReader = command.ExecuteReader();
 
                 var viewDependenciesPath = Path.Combine(viewsPath, "dependencies.csv");
                 File.WriteAllText(viewDependenciesPath, string.Format("ViewName,RootViewName,ParentViewName,Definition" + Environment.NewLine));
 
-                while (datareader.Read())
+                while (dataReader.Read())
                 {
-                    var viewName = datareader[0];
+                    var viewName = dataReader[0];
                     viewDependencies.Add(viewName.ToString());
 
-                    string record = string.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\"", datareader[0], datareader[1], datareader[2], datareader[3]);
+                    string record = string.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\"", dataReader[0], dataReader[1], dataReader[2], dataReader[3]);
 
                     File.AppendAllText(viewDependenciesPath, record + Environment.NewLine);
                 }

@@ -96,25 +96,6 @@ namespace EntityStoreToSynapse
                             }
                         }
                     }
-
-                    /* string viewMetadataPath = @"\views\views.csv";
-                     string metadataRootPath = @"C:\code\entity-store\rolex\jsonfiles and list of views\RLXBILedgeCube";
-                     string measureName = "RLXBILedgerCube";
-
-                     *//*
-                     * Step 1: Validate Metadata Artifacts
-                     *//*
-
-                     // ValidateMeasureMetadata(measureName, metadataRootPath);
-
-                     *//*
-                     * Step 2: Create AxViews on Azure Synapse
-                     *//*
-
-                     string sqlConnectionString = "Server=tcp:synapsews-dev-westus2-c30d4-ondemand.sql.azuresynapse.net,1433;Initial Catalog=master;Persist Security Info=False;User ID=sqladmin;Password=dynamics!365;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
-                     var sqlProvider = new SynapseSqlProvider(sqlConnectionString);
-
-                     await CreateAxViewsAsync(viewMetadataPath, sqlProvider);*/
                 });
         }
 
