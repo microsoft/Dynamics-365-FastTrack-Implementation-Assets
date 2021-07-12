@@ -21,6 +21,11 @@ namespace Common.Providers
         /// <param name="database">The database.</param>
         public SqlProviderBase(string host, string user, string password, string database)
         {
+            ContractValidator.MustNotBeEmpty(host, "host");
+            ContractValidator.MustNotBeEmpty(user, "user");
+            ContractValidator.MustNotBeEmpty(password, "password");
+            ContractValidator.MustNotBeEmpty(database, "database");
+
             SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
             builder.DataSource = host;
             builder.UserID = user;
@@ -30,15 +35,28 @@ namespace Common.Providers
             this.ConnectionString = builder.ConnectionString;
         }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="connectionString">The SQL connection string.</param>
         public SqlProviderBase(string connectionString)
         {
+            ContractValidator.MustNotBeEmpty(connectionString, "connectionString");
+
             this.ConnectionString = connectionString;
         }
 
         private string ConnectionString { get; set; }
 
+        /// <summary>
+        /// Executes a non-query statement.
+        /// </summary>
+        /// <param name="statement">The SQL statement.</param>
+        /// <returns>A task corresponding to the asynchronous execution of this method.</returns>
         public async Task RunSqlStatementAsync(string statement)
         {
+            ContractValidator.MustNotBeEmpty(statement, "statement");
+
             using (SqlConnection connection = new SqlConnection(this.ConnectionString))
             {
                 using (SqlCommand command = new SqlCommand(statement, connection))
