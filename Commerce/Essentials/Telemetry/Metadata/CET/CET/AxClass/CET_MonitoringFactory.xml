@@ -258,9 +258,6 @@ class CET_MonitoringFactory
 					fieldValue = _rec.(dictField.id());
 	            }
 
-                CET_MonitoringFactory::helperAddValue(helper, fieldName, fieldValue, dictField.baseType());
-
-
 
                 if (dictField.enumId() != 0)
                 {
@@ -270,8 +267,7 @@ class CET_MonitoringFactory
                 else
                 {
                     // All other data types should be handled correctly: numeric, date, string
-                    
-                    helper.add(fieldName, fieldValue);
+                    CET_MonitoringFactory::helperAddValue(helper, fieldName, fieldValue, dictField.baseType());
                 }
             }
 
@@ -309,6 +305,7 @@ class CET_MonitoringFactory
         {
             case Types::Container:
                 fieldValue = CET_MonitoringFactory::serializeContainer(_value, _name);
+                break;
 
             case Types::UtcDateTime:
                 // convert from X++ to string because the JSON serializer does not know how to handle.
