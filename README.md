@@ -47,6 +47,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 
 ### Analytics guides 
 - [SQL to data lake export](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/README.md)
+- [Export & Process Entity Store Measures in Azure Synapse](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Analytics/EntityStoreTools/README.md)
 
 ### SQL Maintenance
 - [SQL maintenance script](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/SQL%20Maintenance)
