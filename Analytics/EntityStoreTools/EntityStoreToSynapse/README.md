@@ -6,6 +6,17 @@ This tool reads Aggregate Measurement metadata published by the Entity Store Met
 
 All tables used in this Aggregate Measurement metadata should have been created in the target Azure Synapse database. This process is typically done in two steps: 1) in Dynamics Finance & Operations navigate to Data Lake > Export using Tables; Once the required tables are exported to the lake you can run the [CDMUtil](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets) tool to create these tables in Azure Synapse.
 
+# Publishing the binaries
+
+Run the ```dotnet publish``` command below at the root of the project folder:
+
+```
+dotnet publish -r win10-x64 --self-contained true
+```
+
+For other operating systems, please consult the [runtime identifier catalog](https://docs.microsoft.com/en-us/dotnet/core/rid-catalog).
+
+
 # Usage
 
 Using connection string:
