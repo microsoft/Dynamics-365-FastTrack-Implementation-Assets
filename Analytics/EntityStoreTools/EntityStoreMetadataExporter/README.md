@@ -12,6 +12,16 @@ This project can only be built in AX VMs. Please set the path to your AOS binari
 
 msbuild *.sln /p:AOSBinPath="K:\AosService\PackagesLocalDirectory\bin"
 
+# Publishing the binaries
+
+Run the ```dotnet publish``` command below at the root of the project folder:
+
+```
+dotnet publish -r win10-x64 --self-contained true
+```
+
+For other operating systems, please consult the [runtime identifier catalog](https://docs.microsoft.com/en-us/dotnet/core/rid-catalog).
+
 # Run
 
 You can run the tool as following:
