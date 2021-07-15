@@ -1,8 +1,4 @@
-﻿// ------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// ------------------------------------------------------------------------------
-
-namespace Common.Contracts
+﻿namespace Common.Contracts
 {
     using System;
     using System.Collections.Generic;

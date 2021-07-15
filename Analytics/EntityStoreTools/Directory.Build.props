@@ -37,7 +37,7 @@
     <SignAssembly>false</SignAssembly>
 
     <!-- Style -->
-    <NoWarn>$(NoWarn);IDE0001;NU5125;NETSDK1071;SA1515;NU1608;NU1605</NoWarn>
+    <NoWarn>$(NoWarn);IDE0001;NU5125;NETSDK1071;SA1515;NU1608;NU1605;SA1633</NoWarn>
     <CodeAnalysisRuleSet>$(RepoBaseDir)\.build\codeanalysis.ruleset</CodeAnalysisRuleSet>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 

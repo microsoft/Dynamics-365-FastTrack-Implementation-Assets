@@ -1,8 +1,4 @@
-﻿// ------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// ------------------------------------------------------------------------------
-
-namespace EntityStoreMetadataExporter.Utils
+﻿namespace EntityStoreMetadataExporter.Utils
 {
     using System;
     using System.Collections.Generic;

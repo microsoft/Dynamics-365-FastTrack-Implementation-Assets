@@ -1,8 +1,4 @@
-﻿// ------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// ------------------------------------------------------------------------------
-
-namespace EntityStoreMetadataExporter
+﻿namespace EntityStoreMetadataExporter
 {
     using System;
     using System.Data.SqlClient;

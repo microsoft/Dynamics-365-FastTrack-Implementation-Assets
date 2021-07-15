@@ -1,8 +1,4 @@
-﻿// ------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// ------------------------------------------------------------------------------
-
-namespace Common.Providers
+﻿namespace Common.Providers
 {
     using System;
     using System.Collections.Generic;
