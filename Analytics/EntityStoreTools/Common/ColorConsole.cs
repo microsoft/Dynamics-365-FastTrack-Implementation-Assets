@@ -1,8 +1,4 @@
-﻿// ------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// ------------------------------------------------------------------------------
-
-namespace Common
+﻿namespace Common
 {
     using System;
 
