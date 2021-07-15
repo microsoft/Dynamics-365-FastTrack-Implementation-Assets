@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="Common diagnostic rules for test projects" Description="This file contains diagnostic settings used by all projects. Projects that need specific settings should have their own rule set that Include this one, and then make the necessary adjustments." ToolsVersion="15.0">
+  <Include Path="codeanalysis.ruleset" Action="Default" />
+  <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
+    <!-- File May Only Contain A Single Type -->
+    <Rule Id="SA1402" Action="None" />
+    
+    <!-- File Name Must Match Type Name -->
+    <Rule Id="SA1649" Action="None" />
+
+    <!-- Elements must appear in the correct order -->
+    <Rule Id="SA1201" Action="None" />
+
+    <!-- Elements must ordered by access -->
+    <Rule Id="SA1202" Action="None" />
+
+    <!-- Constants must appear before fields -->
+    <Rule Id="SA1203" Action="None" />
+
+    <!-- Static elements must appear before instance elements -->
+    <Rule Id="SA1204" Action="None" />
+
+    <!-- Readonly fields should appear before non-readonly fields -->
+    <Rule Id="SA1214" Action="None" />
+  </Rules>
+</RuleSet>

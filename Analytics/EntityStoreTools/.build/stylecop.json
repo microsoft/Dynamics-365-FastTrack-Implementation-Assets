@@ -1,0 +1,7 @@
+{
+  "settings": {
+    "layoutRules": {
+      "newlineAtEndOfFile": "require"
+    }
+  }
+}
