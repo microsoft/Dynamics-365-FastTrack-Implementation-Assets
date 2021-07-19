@@ -57,10 +57,13 @@
                 var measure = WriteAggregateMeasurement(measureName, metadataProvider, tempPath);
 
                 Console.WriteLine($"Writing aggregate dimension metadata...");
-                var dimensionViews = WriteAggregateDimensions(measure, metadataProvider, tempPath);
+                var dimensionElements = WriteAggregateDimensions(measure, metadataProvider, tempPath);
+
+                Console.WriteLine($"Writing table metadata for '{measureName}'");
+                WriteTables(dimensionElements.DimensionTables, measureName, metadataProvider, tempPath);
 
                 Console.WriteLine($"Writing view metadata for '{measureName}'");
-                WriteViews(dimensionViews, metadataProvider, axDbSqlConnectionString, tempPath);
+                WriteViews(dimensionElements.DimensionViews, metadataProvider, axDbSqlConnectionString, tempPath);
             }
 
             // generate zip file
@@ -98,7 +101,7 @@
             return measure;
         }
 
-        private static ISet<string> WriteAggregateDimensions(AxAggregateMeasurement measure, IMetadataProvider metadataProvider, string outputPath)
+        private static AggregateDimensionElements WriteAggregateDimensions(AxAggregateMeasurement measure, IMetadataProvider metadataProvider, string outputPath)
         {
             var dimensionsPath = Path.Combine(outputPath, "dimensions");
             if (!Directory.Exists(dimensionsPath))
@@ -107,6 +110,7 @@
             }
 
             var dimensionsViews = new HashSet<string>();
+            var dimensionsTables = new HashSet<string>();
             var visitedElements = new HashSet<string>();
             List<AxMeasureGroup> axmgs = measure.MeasureGroups.ToList();
             foreach (AxMeasureGroup axmg in axmgs)
@@ -120,6 +124,7 @@
 
                     AxAggregateDimension dimension = metadataProvider.AggregateDimensions.Read(dimensionName);
 
+                    // skip visited elements
                     if (visitedElements.Contains(dimension.Table))
                     {
                         continue;
@@ -132,17 +137,28 @@
                     var dimensionMetadataPath = Path.Combine(dimensionsPath, $"{dimensionName}.json");
                     File.WriteAllText(dimensionMetadataPath, JsonConvert.SerializeObject(dimension, Formatting.Indented));
 
-                    ColorConsole.WriteInfo($"\tAdded dimension '{dimensionName}'");
-
                     if (metadataProvider.Views.Exists(dimension.Table))
                     {
-                        ColorConsole.WriteInfo($"\tIdentified dimension '{dimensionName}' as view '{dimension.Table.ToUpperInvariant()}'");
+                        ColorConsole.WriteInfo($"\tAdded dimension '{dimensionName}' as view '{dimension.Table.ToUpperInvariant()}'");
                         dimensionsViews.Add(dimension.Table);
+                    }
+                    else if (metadataProvider.Tables.Exists(dimension.Table))
+                    {
+                        ColorConsole.WriteInfo($"\tAdded dimension '{dimensionName}' as 'table '{dimension.Table.ToUpperInvariant()}'");
+                        dimensionsTables.Add(dimension.Table);
+                    }
+                    else
+                    {
+                        ColorConsole.WriteWarning($"\tDimension '{dimensionName}' with table '{dimension.Table.ToUpperInvariant()}' cannot be identified as either view or table.");
                     }
                 }
             }
 
-            return dimensionsViews;
+            return new AggregateDimensionElements
+            {
+                DimensionTables = dimensionsTables,
+                DimensionViews = dimensionsViews,
+            };
         }
 
         private static void WriteViews(ISet<string> aggregateDimensionViews, IMetadataProvider metadataProvider, string axDbConnectionString, string outputPath)
@@ -163,6 +179,53 @@
                 File.WriteAllText(viewMetadataPath, JsonConvert.SerializeObject(view, Formatting.Indented));
 
                 ColorConsole.WriteInfo($"\tAdded view '{viewName}'");
+            }
+        }
+
+        private static void WriteTables(ISet<string> aggregateDimensionTables, string measureName, IMetadataProvider metadataProvider, string outputPath)
+        {
+            var tablesPath = Path.Combine(outputPath, "tables");
+            if (!Directory.Exists(tablesPath))
+            {
+                Directory.CreateDirectory(tablesPath);
+            }
+
+            var allTables = new HashSet<string>(aggregateDimensionTables);
+
+            // add aggregate measure tables
+            AxAggregateMeasurement measure = metadataProvider.AggregateMeasurements.Read(measureName);
+            List<AxMeasureGroup> axmgs = measure.MeasureGroups.ToList();
+            foreach (AxMeasureGroup axmg in axmgs)
+            {
+                string tableName = axmg.Table.ToString();
+                if (metadataProvider.Tables.Exists(tableName))
+                {
+                    allTables.Add(tableName);
+                }
+            }
+
+            // write all table metadata
+
+            // writes a list of table names in tables.csv
+            var tableListPath = Path.Combine(tablesPath, "tables.csv");
+            File.WriteAllText(tableListPath, "TableName" + Environment.NewLine); // write header
+            foreach (var tableName in allTables)
+            {
+                File.AppendAllText(tableListPath, tableName + Environment.NewLine);
+
+                if (metadataProvider.Tables.Exists(tableName))
+                {
+                    AxTable tableMetadata = metadataProvider.Tables.Read(tableName);
+
+                    var tableMetadataPath = Path.Combine(tablesPath, $"{tableName}.json");
+                    File.WriteAllText(tableMetadataPath, JsonConvert.SerializeObject(tableMetadata, Formatting.Indented));
+
+                    ColorConsole.WriteInfo($"\tAdded table '{tableName}'");
+                }
+                else
+                {
+                    ColorConsole.WriteWarning($"\tTable metadata not found for '{tableName}'");
+                }
             }
         }
 
@@ -253,6 +316,13 @@ order by rootNode asc, depth desc
             }
 
             return viewDependencies;
+        }
+
+        private class AggregateDimensionElements
+        {
+            public ISet<string> DimensionTables { get; set; }
+
+            public ISet<string> DimensionViews { get; set; }
         }
     }
 }
