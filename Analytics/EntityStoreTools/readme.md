@@ -12,7 +12,7 @@ Notice that this process is different from [Making Entity Store Available in the
 
 ## Step-by-step Process
 
-![Images](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Analytics/EntityStoreTools/.wiki/images/EntityStoreToAzureSynapse.png)
+![Images](.wiki/images/EntityStoreToAzureSynapse.png)
 
 ### Step 1. Export Tables in Dynamics F&O
 
