@@ -1,10 +1,11 @@
 {
   "ExpandedNodes": [
     "",
-    "\\AzureDataFactoryARMTemplates",
-    "\\CDMUtilSolution",
-    "\\CDMUtilSolution\\CDMUtil_ConsoleApp"
+    "\\CDMUtilSolution\\CDMUtil",
+    "\\CDMUtilSolution\\CDMUtil\\Manifest",
+    "\\CDMUtilSolution\\CDMUtil_ConsoleApp",
+    "\\SynapseToSQL_ADF"
   ],
-  "SelectedNode": "\\CDMUtilSolution\\Microsoft.CommonDataModel.sln",
+  "SelectedNode": "\\SynapseToSQL_ADF",
   "PreviewInSolutionExplorer": false
 }

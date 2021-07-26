@@ -62,6 +62,8 @@ namespace CDMUtil.Context.ObjectDefinitions
     public class SQLStatement
     {
         public string Statement;
+        public string DataLocation;
+        public string ColumnNames;
         public bool Created;
         public string Detail;
     }
@@ -71,6 +73,10 @@ namespace CDMUtil.Context.ObjectDefinitions
         public string columnNames;
         public string columnDefinition;
         public string dataLocation;
+        public string viewDefinition;
+        public string dataFilePath;
+        public string metadataFilePath;
+        public string cdcDataFileFilePath;
     }
     public class SQLStatements
     {
@@ -80,5 +86,14 @@ namespace CDMUtil.Context.ObjectDefinitions
     {
         public string ManifestName;
         public bool IsManifestCreated;
+    }
+    public class EntityReferenceValues
+    {
+        public List<EntityReference> EntityReference;
+    }
+    public class EntityReference
+    {
+        public string entityShape { get; set; }
+        public List<string> constantValues { get; set; }
     }
 }
