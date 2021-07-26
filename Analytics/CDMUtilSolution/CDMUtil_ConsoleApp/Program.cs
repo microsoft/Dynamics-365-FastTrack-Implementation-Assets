@@ -25,7 +25,8 @@ namespace ManifestToSQLView
             string DDLType              = ConfigurationManager.AppSettings.Get("DDLType");//"SynapseExternalTable";
             string schema               = ConfigurationManager.AppSettings.Get("Schema");//"ChangeFeed";
             string fileFormat           = ConfigurationManager.AppSettings.Get("FileFormat"); //"CSV";
-            string convertToDateTimeStr    = ConfigurationManager.AppSettings.Get("CovertDateTime"); //"CSV";
+            string DateTimeAsString = ConfigurationManager.AppSettings.Get("DateTimeAsString"); //"CSV";
+            string ConvertDateTime = ConfigurationManager.AppSettings.Get("ConvertDateTime"); //"CSV";
             string TableNames =     ConfigurationManager.AppSettings.Get("TableNames"); //"CSV";
 
 
@@ -64,24 +65,23 @@ namespace ManifestToSQLView
             // Read Manifest metadata
             Console.WriteLine($"Reading Manifest metadata https://{storageAccount}{rootFolder}{manifestFilePath}" );
 
-            bool convertDateTime = false;
-            if (convertToDateTimeStr.ToLower() == "true")
-            {
-                convertDateTime = true;
-            }
-            List <SQLMetadata> metadataList = new List<SQLMetadata>();
-            ManifestHandler.manifestToSQLMetadata(adlsContext, manifestName, localFolder, metadataList, convertDateTime);
+            List<SQLMetadata> metadataList = new List<SQLMetadata>();
+
+            bool convertDateTime = ConvertDateTime.ToLower() == "true" ? true : false;
+            bool dateTimeAsString = DateTimeAsString.ToLower() == "true" ? true : false;
+            List<string> tableList =  String.IsNullOrEmpty(TableNames) ? new List<string>(){ "*" } : new List<string>(TableNames.Split(','));
+
+            ManifestReader.manifestToSQLMetadata(adlsContext, manifestName, localFolder, metadataList, dateTimeAsString, convertDateTime, tableList);
 
           
             // convert metadata to DDL
             Console.WriteLine("Converting metadata to DDL");
-            var statementsList =  ManifestHandler.SQLMetadataToDDL(metadataList, DDLType,schema,fileFormat, dataSourceName, TableNames);
-            
+            var statementsList = SQLHandler.SQLMetadataToDDL(metadataList, DDLType,schema,fileFormat, dataSourceName);
 
             // Execute DDL
             Console.WriteLine("Executing DDL");
             SQLHandler sQLHandler = new SQLHandler(targetDbConnectionString, tenantId);
-            var statements = new SQLStatements { Statements = statementsList.Result};
+            SQLStatements statements = new SQLStatements { Statements = statementsList.Result};
             try
             {
                 sQLHandler.executeStatements(statements);

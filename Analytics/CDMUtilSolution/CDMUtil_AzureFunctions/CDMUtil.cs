@@ -28,7 +28,7 @@ namespace CDMUtil
             
             var path = System.IO.Path.Combine(context.FunctionDirectory, "..\\Manifest\\Artifacts.json");
 
-            var mds = await ManifestHandler.getManifestDefinition(path, tableList);
+            var mds = await ManifestWriter.getManifestDefinition(path, tableList);
 
             return new OkObjectResult(JsonConvert.SerializeObject(mds));
             
@@ -63,11 +63,11 @@ namespace CDMUtil
             // Read Manifest metadata
             log.Log(LogLevel.Information, "Reading Manifest metadata");
             List<SQLMetadata> metadataList = new List<SQLMetadata>();
-            await ManifestHandler.manifestToSQLMetadata(adlsContext, manifestName, localFolder, metadataList);
+            await ManifestReader.manifestToSQLMetadata(adlsContext, manifestName, localFolder, metadataList);
            
             // convert metadata to DDL
             log.Log(LogLevel.Information, "Converting metadata to DDL");
-            var statementsList = await ManifestHandler.SQLMetadataToDDL(metadataList, DDLType, schema, fileFormat, dataSourceName);
+            var statementsList = await SQLHandler.SQLMetadataToDDL(metadataList, DDLType, schema, fileFormat, dataSourceName);
 
             // Execute DDL
             log.Log(LogLevel.Information, "Executing DDL");
@@ -102,7 +102,7 @@ namespace CDMUtil
             // Read Manifest metadata
             log.Log(LogLevel.Information, "Reading Manifest metadata");
           
-            ManifestHandler manifestHandler = new ManifestHandler(adlsContext, localFolder);
+            ManifestWriter manifestHandler = new ManifestWriter(adlsContext, localFolder);
 
             bool created = await manifestHandler.manifestToModelJson(adlsContext, manifestName, localFolder);
 
@@ -136,11 +136,11 @@ namespace CDMUtil
             // Read Manifest metadata
             log.Log(LogLevel.Information, "Reading Manifest metadata");
             List<SQLMetadata> metadataList = new List<SQLMetadata>();
-            await ManifestHandler.manifestToSQLMetadata(adlsContext, manifestName, localFolder, metadataList);
+            await ManifestReader.manifestToSQLMetadata(adlsContext, manifestName, localFolder, metadataList);
            
             // convert metadata to DDL
             log.Log(LogLevel.Information, "Converting metadata to DDL");
-            var statementsList = await ManifestHandler.SQLMetadataToDDL(metadataList, DDLType, dataSourceName: dataSourceName);
+            var statementsList = await SQLHandler.SQLMetadataToDDL(metadataList, DDLType, dataSourceName: dataSourceName);
 
             // Execute DDL
             log.Log(LogLevel.Information, "Converting metadata to DDL");
@@ -178,11 +178,11 @@ namespace CDMUtil
             // Read Manifest metadata
             log.Log(LogLevel.Information, "Reading Manifest metadata");
             List<SQLMetadata> metadataList = new List<SQLMetadata>();
-            await ManifestHandler.manifestToSQLMetadata(adlsContext, manifestName, localFolder, metadataList);
+            await ManifestReader.manifestToSQLMetadata(adlsContext, manifestName, localFolder, metadataList);
 
             // convert metadata to DDL
             log.Log(LogLevel.Information, "Converting metadata to DDL");
-            var statementsList = await ManifestHandler.SQLMetadataToDDL(metadataList, DDLType, schema, fileFormat, dataSourceName);
+            var statementsList = await SQLHandler.SQLMetadataToDDL(metadataList, DDLType, schema, fileFormat, dataSourceName);
 
             return new OkObjectResult(JsonConvert.SerializeObject(statementsList));
         }
@@ -211,7 +211,7 @@ namespace CDMUtil
                 TenantId = tenantId
             };
 
-            ManifestHandler manifestHandler = new ManifestHandler(adlsContext, localFolder);
+            ManifestWriter manifestHandler = new ManifestWriter(adlsContext, localFolder);
             bool createModel = false;
             if (createModelJson != null && createModelJson.Equals("true", StringComparison.OrdinalIgnoreCase))
             {
@@ -230,7 +230,7 @@ namespace CDMUtil
                 var nextFolder = subFolders[i + 1];
                 localFolderPath = $"{localFolderPath}/{currentFolder}";
 
-                ManifestHandler SubManifestHandler = new ManifestHandler(adlsContext, localFolderPath);
+                ManifestWriter SubManifestHandler = new ManifestWriter(adlsContext, localFolderPath);
                 await SubManifestHandler.createSubManifest(currentFolder, nextFolder);
             }
 
