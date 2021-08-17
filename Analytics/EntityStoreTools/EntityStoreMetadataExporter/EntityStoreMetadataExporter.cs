@@ -94,7 +94,7 @@
         {
             AxAggregateMeasurement measure = metadataProvider.AggregateMeasurements.Read(measureName);
 
-            File.WriteAllText(Path.Combine(outputPath, "measure.json"), JsonConvert.SerializeObject(measure, Formatting.Indented));
+            File.WriteAllText(Path.Combine(outputPath, "measurement.json"), JsonConvert.SerializeObject(measure, Formatting.Indented));
 
             ColorConsole.WriteInfo($"\tAdded measure '{measureName}'");
 
@@ -137,7 +137,7 @@
                     var dimensionMetadataPath = Path.Combine(dimensionsPath, $"{dimensionName}.json");
                     File.WriteAllText(dimensionMetadataPath, JsonConvert.SerializeObject(dimension, Formatting.Indented));
 
-                    if (metadataProvider.Views.Exists(dimension.Table))
+                    if (metadataProvider.Views.Exists(dimension.Table) || metadataProvider.DataEntityViews.Exists(dimension.Table))
                     {
                         ColorConsole.WriteInfo($"\tAdded dimension '{dimensionName}' as view '{dimension.Table.ToUpperInvariant()}'");
                         dimensionsViews.Add(dimension.Table);
@@ -174,9 +174,10 @@
             foreach (string viewName in allViewDependencies)
             {
                 AxView view = metadataProvider.Views.Read(viewName);
+                AxDataEntity dataEntity = metadataProvider.DataEntityViews.Read(viewName);
 
                 var viewMetadataPath = Path.Combine(viewsPath, $"{viewName}.json");
-                File.WriteAllText(viewMetadataPath, JsonConvert.SerializeObject(view, Formatting.Indented));
+                File.WriteAllText(viewMetadataPath, JsonConvert.SerializeObject(view ?? dataEntity, Formatting.Indented));
 
                 ColorConsole.WriteInfo($"\tAdded view '{viewName}'");
             }
