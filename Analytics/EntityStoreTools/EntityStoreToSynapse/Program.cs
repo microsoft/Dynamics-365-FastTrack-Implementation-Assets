@@ -106,6 +106,7 @@
             var aggregateMeasurementName = measurementMetadata.Name;
             var measureGroups = measurementMetadata.MeasureGroups;
             HashSet<string> dimensionTables = new HashSet<string>();
+            List<string> errorList = new List<string>();
 
             foreach (var measureGroup in measureGroups)
             {
@@ -113,7 +114,7 @@
 
                 var createMeasureGroupQuery = $"CREATE OR ALTER VIEW {measureGroupTableName} AS SELECT * FROM (";
 
-                List<string> errorList = await CreateDimensionTablesAsync(entryList, aggregateMeasurementName, measureGroup.Dimensions, dimensionTables, sqlProvider);
+                errorList = await CreateDimensionTablesAsync(entryList, aggregateMeasurementName, measureGroup.Dimensions, dimensionTables, sqlProvider);
 
                 if (errorList.Any())
                 {
@@ -134,6 +135,7 @@
                     var dimensionTableName = aggregateMeasurementName + "_" + dimension.Name;
 
                     createMeasureGroupQuery += $"SELECT {AddMeasureGroupAttributes(measureGroup.Attributes, counter)}";
+                    createMeasureGroupQuery = AttachCommonColumns(createMeasureGroupQuery);
                     createMeasureGroupQuery += $"T{counter}.{dimension.DimensionRelations[0].DimensionAttribute} AS {dimension.DimensionRelations[0].DimensionAttribute}";
                     createMeasureGroupQuery += $" FROM {dimensionTableName} T{counter} UNION ALL ";
                     counter++;
@@ -153,6 +155,7 @@
                 catch (SqlException e)
                 {
                     var errorMessage = $"Could not create MeasureGroup '{createMeasureGroupQuery}': {e.Message}";
+                    errorList.Add(errorMessage);
 
                     ColorConsole.WriteError(errorMessage);
                 }
@@ -161,6 +164,19 @@
                     // delay the running of the next statement to prevent DoS
                     await Task.Delay(100);
                 }
+            }
+
+            if (errorList.Any())
+            {
+                Console.WriteLine($"\n\n{errorList.Count} measure groups could not be created. " +
+                     $"Check if the dependent table(s) are synchronized in the lake and the table(s)/views(s) were created in Azure Synapse. " +
+                     $"Errors:\n{string.Join('\n', errorList)}");
+
+                Environment.Exit(1);
+            }
+            else
+            {
+                ColorConsole.WriteSuccess($"All measure groups were created successfully for aggregate measurement: {aggregateMeasurementName}.");
             }
         }
 
