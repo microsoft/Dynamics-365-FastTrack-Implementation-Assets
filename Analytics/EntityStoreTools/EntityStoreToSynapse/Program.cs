@@ -111,7 +111,7 @@
             {
                 var measureGroupTableName = aggregateMeasurementName + "_" + measureGroup.Name;
 
-                var createMeasureGroupQuery = $"CREATE OR ALTER VIEW {measureGroupTableName}";
+                var createMeasureGroupQuery = $"CREATE OR ALTER VIEW {measureGroupTableName} AS SELECT * FROM (";
 
                 List<string> errorList = await CreateDimensionTablesAsync(entryList, aggregateMeasurementName, measureGroup.Dimensions, dimensionTables, sqlProvider);
 
@@ -127,7 +127,53 @@
                 {
                     ColorConsole.WriteSuccess($"Dimensions were created (or exists) successfully for MeasureGroup {measureGroup.Name}.");
                 }
+
+                int counter = 1;
+                foreach (var dimension in measureGroup.Dimensions)
+                {
+                    var dimensionTableName = aggregateMeasurementName + "_" + dimension.Name;
+
+                    createMeasureGroupQuery += $"SELECT {AddMeasureGroupAttributes(measureGroup.Attributes, counter)}";
+                    createMeasureGroupQuery += $"T{counter}.{dimension.DimensionRelations[0].DimensionAttribute} AS {dimension.DimensionRelations[0].DimensionAttribute}";
+                    createMeasureGroupQuery += $" FROM {dimensionTableName} T{counter} UNION ALL ";
+                    counter++;
+                }
+
+                createMeasureGroupQuery = createMeasureGroupQuery.Remove(createMeasureGroupQuery.Length - 10);
+                createMeasureGroupQuery += ") AM";
+
+                Console.WriteLine($"Creating measure group '{measureGroupTableName}' with statement:\t{createMeasureGroupQuery}\n");
+
+                try
+                {
+                    await sqlProvider.RunSqlStatementAsync(createMeasureGroupQuery);
+
+                    ColorConsole.WriteSuccess($"Created '{measureGroupTableName}'\n");
+                }
+                catch (SqlException e)
+                {
+                    var errorMessage = $"Could not create MeasureGroup '{createMeasureGroupQuery}': {e.Message}";
+
+                    ColorConsole.WriteError(errorMessage);
+                }
+                finally
+                {
+                    // delay the running of the next statement to prevent DoS
+                    await Task.Delay(100);
+                }
             }
+        }
+
+        private static object AddMeasureGroupAttributes(dynamic attributes, int counter)
+        {
+            dynamic result = string.Empty;
+
+            foreach (var attr in attributes)
+            {
+                result += $"'T{counter}.{attr.Name}' {attr.Name},";
+            }
+
+            return result;
         }
 
         private static async Task<IList<string>> CreateDimensionTablesAsync(List<ZipArchiveEntry> entryList, dynamic aggregateMeasurementName, dynamic dimensions, HashSet<string> dimensionTables, SynapseSqlProvider sqlProvider)
