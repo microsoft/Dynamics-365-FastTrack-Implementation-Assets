@@ -48,7 +48,7 @@
                     {
                         // Finds the root measurement metadata
                         var entryList = zip.Entries.ToList();
-                        var measurementEntry = entryList.FirstOrDefault(e => e.FullName == "measure.json");
+                        var measurementEntry = entryList.FirstOrDefault(e => e.FullName == "measurement.json");
 
                         if (measurementEntry == null)
                         {
@@ -70,7 +70,7 @@
                             /*
                             * Step 2: Create AxViews on Azure Synapse
                             */
-                            var viewMetadataEntry = entryList.FirstOrDefault(e => e.FullName == "views/dependencies.csv");
+                            var viewMetadataEntry = entryList.FirstOrDefault(e => e.FullName == "views\\dependencies.csv");
                             if (viewMetadataEntry == null)
                             {
                                 throw new Exception($"Cannot find view metadata file 'views/dependencies.csv' in file {options.MetadataPath}");
