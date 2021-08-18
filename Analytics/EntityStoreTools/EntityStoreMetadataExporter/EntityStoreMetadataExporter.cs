@@ -13,6 +13,7 @@
     using Microsoft.Dynamics.AX.Metadata.Storage;
     using Microsoft.Dynamics.AX.Metadata.Storage.Runtime;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// The Entity Store Metadata Exporter class.
@@ -59,11 +60,11 @@
                 Console.WriteLine($"Writing aggregate dimension metadata...");
                 var dimensionElements = WriteAggregateDimensions(measure, metadataProvider, tempPath);
 
+                Console.WriteLine($"Writing view metadata for '{measureName}'");
+                WriteViews(dimensionElements, metadataProvider, axDbSqlConnectionString, tempPath);
+
                 Console.WriteLine($"Writing table metadata for '{measureName}'");
                 WriteTables(dimensionElements.DimensionTables, measureName, metadataProvider, tempPath);
-
-                Console.WriteLine($"Writing view metadata for '{measureName}'");
-                WriteViews(dimensionElements.DimensionViews, metadataProvider, axDbSqlConnectionString, tempPath);
             }
 
             // generate zip file
@@ -153,13 +154,17 @@
         {
             if (metadataProvider.Views.Exists(element) || metadataProvider.DataEntityViews.Exists(element))
             {
-                ColorConsole.WriteInfo($"\tAdded element as view '{element.ToUpperInvariant()}'");
-                dimensionsViews.Add(element);
+                if (dimensionsViews.Add(element))
+                {
+                    ColorConsole.WriteInfo($"\tAdded element as view '{element.ToUpperInvariant()}'");
+                }
             }
             else if (metadataProvider.Tables.Exists(element))
             {
-                ColorConsole.WriteInfo($"\tAdded element as 'table '{element.ToUpperInvariant()}'");
-                dimensionsTables.Add(element);
+                if (dimensionsTables.Add(element))
+                {
+                    ColorConsole.WriteInfo($"\tAdded element as 'table '{element.ToUpperInvariant()}'");
+                }
             }
             else
             {
@@ -167,20 +172,41 @@
             }
         }
 
-        private static void WriteViews(ISet<string> aggregateDimensionViews, IMetadataProvider metadataProvider, string axDbConnectionString, string outputPath)
+        private static void WriteViews(AggregateDimensionElements aggregateDimensionElements, IMetadataProvider metadataProvider, string axDbConnectionString, string outputPath)
         {
+            HashSet<string> aggregateDimensionViews = aggregateDimensionElements.DimensionViews;
+            HashSet<string> aggregateDimensionTables = aggregateDimensionElements.DimensionTables;
+            HashSet<string> dataSources = new HashSet<string>();
+
             var viewsPath = Path.Combine(outputPath, "views");
             if (!Directory.Exists(viewsPath))
             {
                 Directory.CreateDirectory(viewsPath);
             }
 
-            var allViewDependencies = EntityStoreMetadataExporter.RetrieveViewDependencies(aggregateDimensionViews, axDbConnectionString, viewsPath);
+            var allViewDependencies = RetrieveViewDependencies(aggregateDimensionViews, axDbConnectionString, viewsPath);
 
             foreach (string viewName in allViewDependencies)
             {
                 AxView view = metadataProvider.Views.Read(viewName);
                 AxDataEntity dataEntity = metadataProvider.DataEntityViews.Read(viewName);
+
+                var json = JsonConvert.SerializeObject(view ?? dataEntity, Formatting.Indented);
+                using (TextReader sr = new StringReader(json))
+                {
+                    using (var jsonTextReader = new JsonTextReader(sr))
+                    {
+                        dynamic definition = JObject.Load(jsonTextReader);
+
+                        foreach (var fields in definition.Fields)
+                        {
+                            if (fields.DataSource != null && dataSources.Add(fields.DataSource.ToString()))
+                            {
+                                SeparateTablesAndViews(metadataProvider, aggregateDimensionTables, aggregateDimensionViews, fields.DataSource.ToString());
+                            }
+                        }
+                    }
+                }
 
                 var viewMetadataPath = Path.Combine(viewsPath, $"{viewName}.json");
                 File.WriteAllText(viewMetadataPath, JsonConvert.SerializeObject(view ?? dataEntity, Formatting.Indented));
@@ -327,9 +353,9 @@ order by rootNode asc, depth desc
 
         private class AggregateDimensionElements
         {
-            public ISet<string> DimensionTables { get; set; }
+            public HashSet<string> DimensionTables { get; set; }
 
-            public ISet<string> DimensionViews { get; set; }
+            public HashSet<string> DimensionViews { get; set; }
         }
     }
 }
