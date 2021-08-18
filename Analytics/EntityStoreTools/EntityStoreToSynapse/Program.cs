@@ -154,7 +154,7 @@
                 }
                 catch (SqlException e)
                 {
-                    var errorMessage = $"Could not create MeasureGroup '{createMeasureGroupQuery}': {e.Message}";
+                    var errorMessage = $"Could not create MeasureGroup '{createMeasureGroupQuery}': {e.Message}\n";
                     errorList.Add(errorMessage);
 
                     ColorConsole.WriteError(errorMessage);
@@ -224,6 +224,20 @@
 
                             foreach (var attribute in dimensionMetadata.Attributes)
                             {
+                                // Add ROW_UNIQUEKEY column.
+                                if ((int)attribute.Usage == 1 && attribute.KeyFields.Count > 1)
+                                {
+                                    string rowUniqueKeyColumnName = "ROW_UNIQUEKEY";
+                                    foreach (var field in attribute.KeyFields)
+                                    {
+                                        createDimensionQuery += $"ISNULL({field.DimensionField}, '')_";
+                                    }
+
+                                    createDimensionQuery = createDimensionQuery.Remove(createDimensionQuery.Length - 1);
+                                    createDimensionQuery += $" AS {rowUniqueKeyColumnName},";
+                                    columns.Add(rowUniqueKeyColumnName);
+                                }
+
                                 if (attribute.KeyFields.Count == 1)
                                 {
                                     if (commonColumns.Contains(attribute.KeyFields[0].DimensionField.ToString().ToUpper()))
@@ -231,6 +245,7 @@
                                         commonColumns.Remove(attribute.KeyFields[0].DimensionField.ToString().ToUpper());
                                     }
 
+                                    columns.Add(attribute.Name.ToString());
                                     createDimensionQuery += $"{attribute.KeyFields[0].DimensionField} AS {attribute.Name},";
                                 }
                                 else
@@ -257,7 +272,7 @@
                         }
                     }
 
-                    Console.WriteLine($"Creating view '{dimension.Name}' with statement:\t{createDimensionQuery}\n");
+                    Console.WriteLine($"Creating dimension '{dimension.Name}' with statement:\t{createDimensionQuery}\n");
 
                     try
                     {
@@ -267,7 +282,7 @@
                     }
                     catch (SqlException e)
                     {
-                        var errorMessage = $"Could not create view '{dimensionTableName}': {e.Message}";
+                        var errorMessage = $"Could not create dimension '{dimensionTableName}': {e.Message}\n";
                         errorList.Add(errorMessage);
 
                         ColorConsole.WriteError(errorMessage);
@@ -355,7 +370,7 @@
                         }
                         catch (SqlException e)
                         {
-                            var errorMessage = $"Could not create view '{axViewMetadata.ViewName}': {e.Message}";
+                            var errorMessage = $"Could not create view '{axViewMetadata.ViewName}': {e.Message}\n";
                             errorList.Add(errorMessage);
 
                             ColorConsole.WriteError(errorMessage);
