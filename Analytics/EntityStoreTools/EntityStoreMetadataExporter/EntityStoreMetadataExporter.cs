@@ -116,6 +116,7 @@
             foreach (AxMeasureGroup axmg in axmgs)
             {
                 string tablename = axmg.Table.ToString();
+                SeparateTablesAndViews(metadataProvider, dimensionsTables, dimensionsViews, tablename);
 
                 List<AxDimension> axads = axmg.Dimensions.ToList();
                 foreach (AxDimension axad in axads)
@@ -137,20 +138,7 @@
                     var dimensionMetadataPath = Path.Combine(dimensionsPath, $"{dimensionName}.json");
                     File.WriteAllText(dimensionMetadataPath, JsonConvert.SerializeObject(dimension, Formatting.Indented));
 
-                    if (metadataProvider.Views.Exists(dimension.Table) || metadataProvider.DataEntityViews.Exists(dimension.Table))
-                    {
-                        ColorConsole.WriteInfo($"\tAdded dimension '{dimensionName}' as view '{dimension.Table.ToUpperInvariant()}'");
-                        dimensionsViews.Add(dimension.Table);
-                    }
-                    else if (metadataProvider.Tables.Exists(dimension.Table))
-                    {
-                        ColorConsole.WriteInfo($"\tAdded dimension '{dimensionName}' as 'table '{dimension.Table.ToUpperInvariant()}'");
-                        dimensionsTables.Add(dimension.Table);
-                    }
-                    else
-                    {
-                        ColorConsole.WriteWarning($"\tDimension '{dimensionName}' with table '{dimension.Table.ToUpperInvariant()}' cannot be identified as either view or table.");
-                    }
+                    SeparateTablesAndViews(metadataProvider, dimensionsTables, dimensionsViews, dimension.Table);
                 }
             }
 
@@ -159,6 +147,24 @@
                 DimensionTables = dimensionsTables,
                 DimensionViews = dimensionsViews,
             };
+        }
+
+        private static void SeparateTablesAndViews(IMetadataProvider metadataProvider, HashSet<string> dimensionsTables, HashSet<string> dimensionsViews, string element)
+        {
+            if (metadataProvider.Views.Exists(element) || metadataProvider.DataEntityViews.Exists(element))
+            {
+                ColorConsole.WriteInfo($"\tAdded element as view '{element.ToUpperInvariant()}'");
+                dimensionsViews.Add(element);
+            }
+            else if (metadataProvider.Tables.Exists(element))
+            {
+                ColorConsole.WriteInfo($"\tAdded element as 'table '{element.ToUpperInvariant()}'");
+                dimensionsTables.Add(element);
+            }
+            else
+            {
+                ColorConsole.WriteWarning($"\tElement '{element.ToUpperInvariant()}' cannot be identified as either view or table.");
+            }
         }
 
         private static void WriteViews(ISet<string> aggregateDimensionViews, IMetadataProvider metadataProvider, string axDbConnectionString, string outputPath)
