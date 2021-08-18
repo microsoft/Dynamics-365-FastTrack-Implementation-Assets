@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Dynamics.AX.Data.Core">
       <HintPath>$(AOSBinPath)\Microsoft.Dynamics.AX.Data.Core.dll</HintPath>
     </Reference>
