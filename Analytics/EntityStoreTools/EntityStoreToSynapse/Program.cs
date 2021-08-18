@@ -220,31 +220,37 @@
                         using (var jsonTextReader = new JsonTextReader(sr))
                         {
                             dynamic dimensionMetadata = JObject.Load(jsonTextReader);
+                            var commonColumns = GetCommonColumns();
 
                             foreach (var attribute in dimensionMetadata.Attributes)
                             {
                                 if (attribute.KeyFields.Count == 1)
                                 {
+                                    if (commonColumns.Contains(attribute.KeyFields[0].DimensionField.ToString().ToUpper()))
+                                    {
+                                        commonColumns.Remove(attribute.KeyFields[0].DimensionField.ToString().ToUpper());
+                                    }
+
                                     createDimensionQuery += $"{attribute.KeyFields[0].DimensionField} AS {attribute.Name},";
                                 }
                                 else
                                 {
                                     foreach (var field in attribute.KeyFields)
                                     {
-                                        if (columns.Add(field.DimensionField.ToString()))
+                                        if (field.DimensionField.ToString().Equals(attribute.NameField.ToString()))
+                                        {
+                                            columns.Add(attribute.Name.ToString());
+                                            createDimensionQuery += $"{field.DimensionField} AS {attribute.Name},";
+                                        }
+                                        else if (columns.Add(field.DimensionField.ToString()))
                                         {
                                             createDimensionQuery += $"{field.DimensionField},";
                                         }
                                     }
-
-                                    if (columns.Add(attribute.Name.ToString()))
-                                    {
-                                        createDimensionQuery += $"'{attribute.Name}' {attribute.Name},";
-                                    }
                                 }
                             }
 
-                            createDimensionQuery = AttachCommonColumns(createDimensionQuery);
+                            createDimensionQuery = AttachCommonColumns(createDimensionQuery, commonColumns);
                             createDimensionQuery = createDimensionQuery.Remove(createDimensionQuery.Length - 1);
 
                             createDimensionQuery += $" FROM {dimensionMetadata.Table}";
@@ -277,14 +283,23 @@
             return errorList;
         }
 
-        private static string AttachCommonColumns(string createDimensionQuery)
+        private static HashSet<string> GetCommonColumns()
         {
-            List<string> commonColumns = new List<string>()
+            HashSet<string> commonColumns = new HashSet<string>()
             {
                 "RECID",
-                "PARTITIONID",
-                "DATAAREAID",
+                "PARTITION",
             };
+
+            return commonColumns;
+        }
+
+        private static string AttachCommonColumns(string createDimensionQuery, HashSet<string> commonColumns = null)
+        {
+            if (commonColumns == null)
+            {
+                commonColumns = GetCommonColumns();
+            }
 
             foreach (var column in commonColumns)
             {
