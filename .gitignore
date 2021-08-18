@@ -306,3 +306,5 @@ __pycache__/
 # Local runs of background scheduler?
 **/EVTStorage.db
 
+/Analytics/EntityStoreTools/EntityStoreMetadataExporter/Properties/launchSettings.json
+/Analytics/EntityStoreTools/EntityStoreToSynapse/Properties/launchSettings.json
