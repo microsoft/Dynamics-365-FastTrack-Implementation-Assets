@@ -1,6 +1,8 @@
 
 # Export & Process Entity Store Measures in Azure Synapse 
 
+Entity store is an Operational data warehouse built into Dynamics 365 Finance and Operations applications.  
+
 Processing Aggregate Measurements in the Entity Store is compute-intensive and will not scale for large datasets. The process below is intendend to make this process scalable by running it on Apache Spark clusters in Azure Synapse.
 
 Notice that this process is different from [Making Entity Store Available in the Data Lake](https://docs.microsoft.com/en-us/azure/synapse-analytics/get-started-create-workspace), in that the steps below allow distributing the Entity Store *processing* across several tens of nodes and thus being able to handle large volumes of data. 
