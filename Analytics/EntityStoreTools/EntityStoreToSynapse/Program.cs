@@ -279,7 +279,10 @@
                                     }
 
                                     columns.Add(attribute.Name.ToString());
-                                    createDimensionQuery += $"{attribute.KeyFields[0].DimensionField} AS {attribute.Name},";
+                                    if (!CheckReservedWord(attribute.KeyFields[0].DimensionField, attribute.Name, createDimensionQuery))
+                                    {
+                                        createDimensionQuery += $"{attribute.KeyFields[0].DimensionField} AS {attribute.Name},";
+                                    }
                                 }
                                 else
                                 {
@@ -288,11 +291,17 @@
                                         if (field.DimensionField.ToString().Equals(attribute.NameField.ToString()))
                                         {
                                             columns.Add(attribute.Name.ToString());
-                                            createDimensionQuery += $"{field.DimensionField} AS {attribute.Name},";
+                                            if (!CheckReservedWord(field.DimensionField, attribute.Name, createDimensionQuery))
+                                            {
+                                                createDimensionQuery += $"{field.DimensionField} AS {attribute.Name},";
+                                            }
                                         }
                                         else if (columns.Add(field.DimensionField.ToString()))
                                         {
-                                            createDimensionQuery += $"{field.DimensionField},";
+                                            if (!CheckReservedWord(field.DimensionField, field.DimensionField, createDimensionQuery))
+                                            {
+                                                createDimensionQuery += $"{field.DimensionField},";
+                                            }
                                         }
                                     }
                                 }
@@ -307,28 +316,60 @@
 
                     Console.WriteLine($"Creating dimension '{dimension.Name}' with statement:\t{createDimensionQuery}\n");
 
-                    try
+                    while (true)
                     {
-                        await sqlProvider.RunSqlStatementAsync(createDimensionQuery);
+                        try
+                        {
+                            await sqlProvider.RunSqlStatementAsync(createDimensionQuery);
 
-                        ColorConsole.WriteSuccess($"Created '{dimensionTableName}'\n");
-                    }
-                    catch (SqlException e)
-                    {
-                        var errorMessage = $"Could not create dimension '{dimensionTableName}': {e.Message}\n";
-                        errorList.Add(errorMessage);
+                            ColorConsole.WriteSuccess($"Created '{dimensionTableName}'\n");
+                        }
+                        catch (SqlException e)
+                        {
+                            if (e.Message.Contains($"Invalid column name 'PARTITION'"))
+                            {
+                                createDimensionQuery = RemovePartitionColumn(createDimensionQuery);
+                                continue;
+                            }
 
-                        ColorConsole.WriteError(errorMessage);
-                    }
-                    finally
-                    {
-                        // delay the running of the next statement to prevent DoS
-                        await Task.Delay(100);
+                            var errorMessage = $"Could not create dimension '{dimensionTableName}': {e.Message}\n";
+                            errorList.Add(errorMessage);
+
+                            ColorConsole.WriteError(errorMessage);
+                        }
+                        finally
+                        {
+                            // delay the running of the next statement to prevent DoS
+                            await Task.Delay(100);
+                        }
+
+                        break;
                     }
                 }
             }
 
             return errorList;
+        }
+
+        private static string RemovePartitionColumn(string createDimensionQuery)
+        {
+            return createDimensionQuery.Replace(",PARTITION", string.Empty);
+        }
+
+        private static bool CheckReservedWord(dynamic dimensionField, dynamic dimensionName, string createDimensionQuery)
+        {
+            HashSet<string> reservedWords = new HashSet<string>()
+            {
+                "KEY",
+            };
+
+            if (reservedWords.Contains(dimensionField.ToString().ToUpper()) || reservedWords.Contains(dimensionName.ToString().ToUpper()))
+            {
+                createDimensionQuery += $"{dimensionField}_ AS {dimensionName}_,";
+                return true;
+            }
+
+            return false;
         }
 
         private static HashSet<string> GetCommonColumns()

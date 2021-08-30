@@ -156,6 +156,8 @@
             {
                 if (dimensionsViews.Add(element))
                 {
+                    RecursivelyAddDataSourcesFromQuery(metadataProvider, dimensionsTables, dimensionsViews, element);
+
                     ColorConsole.WriteInfo($"\tAdded element as view '{element.ToUpperInvariant()}'");
                 }
             }
@@ -169,6 +171,30 @@
             else
             {
                 ColorConsole.WriteWarning($"\tElement '{element.ToUpperInvariant()}' cannot be identified as either view or table.");
+            }
+        }
+
+        private static void RecursivelyAddDataSourcesFromQuery(IMetadataProvider metadataProvider, HashSet<string> dimensionsTables, HashSet<string> dimensionsViews, string element)
+        {
+            AxView view = metadataProvider.Views.Read(element);
+
+            if (view != null && !string.IsNullOrEmpty(view.Query))
+            {
+                AxQuery axQuery = metadataProvider.Queries.Read(view.Query);
+
+                var json = JsonConvert.SerializeObject(axQuery, Formatting.Indented);
+                using (TextReader sr = new StringReader(json))
+                {
+                    using (var jsonTextReader = new JsonTextReader(sr))
+                    {
+                        dynamic queryObject = JObject.Load(jsonTextReader);
+
+                        foreach (var dataSources in queryObject.DataSources)
+                        {
+                            SeparateTablesAndViews(metadataProvider, dimensionsTables, dimensionsViews, dataSources.Table.ToString());
+                        }
+                    }
+                }
             }
         }
 
