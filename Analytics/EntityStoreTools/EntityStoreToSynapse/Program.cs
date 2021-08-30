@@ -363,9 +363,23 @@
                 "KEY",
             };
 
-            if (reservedWords.Contains(dimensionField.ToString().ToUpper()) || reservedWords.Contains(dimensionName.ToString().ToUpper()))
+            if (reservedWords.Contains(dimensionField.ToString().ToUpper()))
             {
-                createDimensionQuery += $"{dimensionField}_ AS {dimensionName}_,";
+                if (reservedWords.Contains(dimensionName.ToString().ToUpper()))
+                {
+                    createDimensionQuery += $"{dimensionField}_ AS {dimensionName}_,";
+                }
+                else
+                {
+                    createDimensionQuery += $"{dimensionField}_ AS {dimensionName},";
+                }
+
+                return true;
+            }
+            else if (reservedWords.Contains(dimensionName.ToString().ToUpper()))
+            {
+                createDimensionQuery += $"{dimensionField} AS {dimensionName}_,";
+
                 return true;
             }
 
