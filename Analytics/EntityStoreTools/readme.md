@@ -15,6 +15,7 @@ Notice that this process is different from [Making Entity Store Available in the
 
 - Dynamics 365 Environment with [Export to Data Lake](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/configure-export-data-lake) enabled
 - [Azure Synapse Analytics workspace](https://docs.microsoft.com/en-us/azure/synapse-analytics/get-started-create-workspace)
+- [Setup KeyVault Linked Service](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Analytics/EntityStoreTools/LinkedService.md)
 
 ## Step-by-step Process
 
@@ -37,7 +38,7 @@ Use [ESYN Tool](https://github.com/microsoft/Dynamics-365-FastTrack-Implementati
 
 ### Step 5. Process Measurement
 
-Using Spark Notebooks and Entity Store SDK, load Entity Store metadata and process tables and views on Azure Synapse. Store the aggregate measurements back in Azure Synapse. [Import](https://docs.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-development-using-notebooks?tabs=classical#create-a-notebook) the following Notebook into your Azure Synapse workspace: [Processing AggregateMeasurements On Azure Synapse.ipynb](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Analytics/EntityStoreTools/EntityStoreTransforms/Processing_AggregateMeasurements_On_Azure_Synapse.ipynb).
+Using Spark Notebooks and Entity Store SDK, load Entity Store metadata and process tables and views on Azure Synapse. Store the aggregate measurements back in Azure Synapse. [Import](https://docs.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-development-using-notebooks?tabs=classical#create-a-notebook) the following Notebook into your Azure Synapse workspace: [Processing AggregateMeasurements On Azure Synapse.ipynb](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Analytics/EntityStoreTools/EntityStoreNotebooks/Processing_AggregateMeasurements_On_Azure_Synapse.ipynb).
 
 ### Step 6. Consume Measurement
 
