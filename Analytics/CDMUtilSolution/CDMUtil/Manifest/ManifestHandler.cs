@@ -10,6 +10,7 @@ using System.Linq;
 using CDMUtil.Context.ADLS;
 using CDMUtil.Context.ObjectDefinitions;
 using System.Text.RegularExpressions;
+using CDMUtil.SQL;
 
 namespace CDMUtil.Manifest
 {
@@ -18,8 +19,16 @@ namespace CDMUtil.Manifest
         public ManifestReader(AdlsContext adlsContext, string currentFolder) : base(adlsContext, currentFolder)
         {
         }
-        public async static Task<bool> manifestToSQLMetadata(AdlsContext adlsContext, string manifestName, string localRoot, List<SQLMetadata> metadataList, bool dateTimeAsString = false, bool convertDateTime = false,  List<string> tableList = null)
+        public async static Task<bool> manifestToSQLMetadata(AppConfigurations c, List<SQLMetadata> metadataList)
         {
+            AdlsContext adlsContext = c.AdlsContext;
+            string manifestName = c.manifestName;
+            string localRoot = c.rootFolder;
+            bool dateTimeAsString = c.synapseOptions.DateTimeAsString;
+            bool convertDateTime = c.synapseOptions.ConvertDateTime;
+            bool translateEnum = c.synapseOptions.TranslateEnum;
+            List<string> tableList = c.tableList;
+
             ManifestReader manifestHandler = new ManifestReader(adlsContext, localRoot);
 
             if (manifestName != "model.json" && manifestName.EndsWith(".manifest.cdm.json") == false)
@@ -44,7 +53,10 @@ namespace CDMUtil.Manifest
                     string subManifestName = submanifest.ManifestName;
                     string subManifestRoot = localRoot.EndsWith('/') ? localRoot + subManifestName: localRoot + '/' + subManifestName;
                     Console.WriteLine($"Reading Sub-Manifest:{subManifestRoot}");
-                    await manifestToSQLMetadata(adlsContext, subManifestName, subManifestRoot, metadataList, dateTimeAsString, convertDateTime, tableList);
+                    c.manifestName = subManifestName;
+                    c.rootFolder = subManifestRoot;
+
+                    await manifestToSQLMetadata(c, metadataList);
                 }
                 
                 Console.WriteLine($"Reading Manifest:{manifest.Name}");
@@ -52,13 +64,16 @@ namespace CDMUtil.Manifest
                 foreach (CdmEntityDeclarationDefinition eDef in manifest.Entities)
                 {
                     string entityName = eDef.EntityName;
-                
-                    if (tableList != null && tableList.Count == 0)
-                        break;
-                    else if (tableList.First() != "*" && !tableList.Contains(entityName))
-                        continue;
-                    else
-                        tableList.Remove(entityName);
+
+                    if (tableList != null)
+                    {
+                        if (tableList.Count == 0)
+                            break;
+                        else if (tableList.First() != "*" && !tableList.Contains(entityName))
+                            continue;
+                        else
+                            tableList.Remove(entityName);
+                    }
 
                     var entSelected =  manifestHandler.cdmCorpus.FetchObjectAsync<CdmEntityDefinition>(eDef.EntityPath, manifest).Result;
 
@@ -72,6 +87,8 @@ namespace CDMUtil.Manifest
 
                         if (cdmTrait != null)
                         {
+                            
+
                             string viewDefinition = cdmTrait.Arguments.First().Value;
 
                             metadataList.Add(new SQLMetadata()
@@ -90,9 +107,11 @@ namespace CDMUtil.Manifest
                         string metadataFilePath = "https://" + Regex.Replace($"{adlsContext.StorageAccount}/{adlsContext.FileSytemName}/{localRoot}/{localRoot.Remove(localRoot.Length - 1).Split('/').Last()}.manifest.cdm.json", @"/+", @"/");
                         string cdcDataFileFilePath = "https://" + Regex.Replace($"{adlsContext.StorageAccount}/{adlsContext.FileSytemName}/ChangeFeed/{entityName}/*.csv", @"/+", @"/");
 
-                        string columnDef = string.Join(", ", entSelected.Attributes.Select(i => CdmTypeToSQl((CdmTypeAttributeDefinition)i, dateTimeAsString)));
+                        IEnumerable<Artifacts> sourceColumnProperties = getSourceColumnProperties(entityName, c);
 
-                        string  columnNames = string.Join(", ", entSelected.Attributes.Select(i => CdmAttributeToColumnNames((CdmTypeAttributeDefinition)i, convertDateTime)));
+                        string columnDef = string.Join(", ", entSelected.Attributes.Select(i => CdmTypeToSQl((CdmTypeAttributeDefinition)i, dateTimeAsString, sourceColumnProperties)));
+
+                        string  columnNames = string.Join(", ", entSelected.Attributes.Select(i => CdmAttributeToColumnNames((CdmTypeAttributeDefinition)i, convertDateTime, translateEnum)));
                  
                         metadataList.Add(new SQLMetadata()
                         {
@@ -105,8 +124,6 @@ namespace CDMUtil.Manifest
                             cdcDataFileFilePath = cdcDataFileFilePath
                         });
                     }
-
-
                 }
             }
             catch (Exception e)
@@ -116,6 +133,35 @@ namespace CDMUtil.Manifest
             }
             return true;
             
+        }
+        static IEnumerable<Artifacts> getSourceColumnProperties (string entityName, AppConfigurations c)
+        {
+            IEnumerable<Artifacts> SourceColumnProperties = null;
+
+            if (String.IsNullOrEmpty(c.AXDBConnectionString))
+            {
+                if (String.IsNullOrEmpty(c.SourceColumnProperties) == false && File.Exists(c.SourceColumnProperties))
+                {
+                    string artifactsStr = File.ReadAllText(c.SourceColumnProperties);
+                    SourceColumnProperties = JsonConvert.DeserializeObject<IEnumerable<Artifacts>>(artifactsStr);
+
+                    if (SourceColumnProperties != null)
+                    {
+                        SourceColumnProperties = SourceColumnProperties.Where(x => x.Key.ToLower().StartsWith(entityName.ToLower() + "."));
+                    }
+                }
+
+            }
+            else
+            {
+                SQLHandler sQLHandler = new SQLHandler(c.AXDBConnectionString, "");
+                string exceptionJson = sQLHandler.getTableMaxFieldLenght(entityName);
+
+                if (String.IsNullOrEmpty(exceptionJson) == false)
+                    SourceColumnProperties = JsonConvert.DeserializeObject<List<Artifacts>>(exceptionJson);
+
+            }
+            return SourceColumnProperties;
         }
         static string getDataLocation(CdmEntityDeclarationDefinition eDef, string localRoot)
         {
@@ -179,7 +225,6 @@ namespace CDMUtil.Manifest
                 case "date":
                 case "datetime":
                 case "datetime2":
-
                     if (dateTimeAsString)
                     {
                         sqlDataType = "nvarchar(30)";
@@ -213,11 +258,10 @@ namespace CDMUtil.Manifest
             return sqlDataType;
 
         }
-        static string CdmTypeToSQl(CdmTypeAttributeDefinition typeAttributeDefinition, bool dateTimeAsString = false)
+        static string CdmTypeToSQl(CdmTypeAttributeDefinition typeAttributeDefinition, bool dateTimeAsString = false, IEnumerable<Artifacts> maxLenghException =null)
         {
             string sqlColumnDef;
             string dataType;
-
 
             if (typeAttributeDefinition.DataType == null)
             {
@@ -227,7 +271,6 @@ namespace CDMUtil.Manifest
             {
                 dataType = typeAttributeDefinition.DataType.NamedReference.ToLower();
             }
-
 
             int maximumLenght = DefaultMaxLength; 
             
@@ -246,7 +289,7 @@ namespace CDMUtil.Manifest
             {
                 maximumLenght = 5;
             }
-           
+            
             string decimalPrecisionScale = $"({DefaultPrecison}, {DefaultScale})";
 
             switch (dataType)
@@ -261,6 +304,16 @@ namespace CDMUtil.Manifest
                         {
                             maximumLenght = 4000;
                         }
+                        //exce
+                        if (maxLenghException != null)
+                        {
+                            Artifacts TableLenghtException = maxLenghException.Where(x => x.Key.ToLower().EndsWith("." + typeAttributeDefinition.Name.ToLower())).FirstOrDefault();
+                            if (TableLenghtException != null)
+                            {
+                                maximumLenght = Convert.ToInt32(TableLenghtException.Value);
+                            }
+                        }
+                        
                     }
 
                     sqlColumnDef = $"{typeAttributeDefinition.Name} nvarchar({maximumLenght})";
@@ -294,7 +347,7 @@ namespace CDMUtil.Manifest
 
             return sqlColumnDef;
         }
-        static string CdmAttributeToColumnNames(CdmTypeAttributeDefinition typeAttributeDefinition, bool convertDatetime = false)
+        static string CdmAttributeToColumnNames(CdmTypeAttributeDefinition typeAttributeDefinition, bool convertDatetime = false, bool translateEnum = false)
         {
             string sqlColumnNames;
             string dataType;
@@ -315,7 +368,7 @@ namespace CDMUtil.Manifest
                 case "datetime2":
                     if (convertDatetime)
                     {
-                        sqlColumnNames = $" TRY_CONVERT(DATETIME2, {typeAttributeDefinition.Name}, 102) as {typeAttributeDefinition.Name}";
+                        sqlColumnNames = $"Cast({typeAttributeDefinition.Name} AS DATETIME2) as {typeAttributeDefinition.Name}";
                     }
                     else
                     {
@@ -323,11 +376,20 @@ namespace CDMUtil.Manifest
                     }
                     break;
                 case  "string":
-                    sqlColumnNames = $"{typeAttributeDefinition.Name}";
+                case "unknown":
+                    if (convertDatetime && (typeAttributeDefinition.Name.ToLower() == "validfrom" ||
+                                            typeAttributeDefinition.Name.ToLower() == "validto"))
+                    {
+                        sqlColumnNames = $"Cast({typeAttributeDefinition.Name} AS DATETIME2) as {typeAttributeDefinition.Name}";
+                    }
+                    else
+                    {
+                        sqlColumnNames = $"{typeAttributeDefinition.Name}";
+                    }
                     // Custom traits sqlViewDefinition exists
                     var traitsCollection = typeAttributeDefinition.AppliedTraits;
 
-                    if (traitsCollection.Where(x => x.NamedReference == "is.constrainedList.wellKnown").Count()>0)
+                    if (translateEnum == true && traitsCollection.Where(x => x.NamedReference == "is.constrainedList.wellKnown").Count()>0)
                     {
                         
                        CdmTraitReference trait = typeAttributeDefinition.AppliedTraits.Where(x => x.NamedReference == "is.constrainedList.wellKnown").First() as CdmTraitReference;
@@ -344,7 +406,6 @@ namespace CDMUtil.Manifest
                             }
                             sqlColumnNames += $" END AS {typeAttributeDefinition.Name}";
                         }
-                       
                     }
 
                     break;
@@ -356,7 +417,7 @@ namespace CDMUtil.Manifest
 
             return sqlColumnNames;
         }
-
+        
         
     }
     public class ManifestWriter : ManifestBase
@@ -758,11 +819,9 @@ namespace CDMUtil.Manifest
         }
         static CdmTypeAttributeDefinition sqlToCDMAttribute(CdmCorpusDefinition cdmCorpus, dynamic columnAttribute)
         {
-
             CdmTypeAttributeDefinition entityAttribute;
             string name = System.Convert.ToString(columnAttribute.name);
             string dataType = System.Convert.ToString(columnAttribute.dataType);
-
 
             if (System.Convert.ToInt32(columnAttribute.IsPrimaryKey) == 1)
             {
@@ -813,9 +872,6 @@ namespace CDMUtil.Manifest
 
             return entityAttribute;
         }
-
-
-
     }
     public class ManifestBase
     {
@@ -891,7 +947,7 @@ namespace CDMUtil.Manifest
               adlsContext.SharedKey
                 ));
             }
-
+            
             cdmCorpus.Storage.DefaultNamespace = "adls"; // local is our default. so any paths that start out navigating without a device tag will assume local
         }
      
