@@ -1,0 +1,18 @@
+[
+  {
+    "Key": "SalesTable.DeliveryName",
+    "Value": "100"
+  },
+  {
+    "Key": "SalesTable.ShipCarrierName",
+    "Value": "100"
+  },
+  {
+    "Key": "SalesLine.DeliveryName",
+    "Value": "100"
+  },
+  {
+    "Key": "SalesLine.ShipCarrierName",
+    "Value": "100"
+  }
+]

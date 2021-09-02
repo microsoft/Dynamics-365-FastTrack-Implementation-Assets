@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Data.SqlClient;
+using System.IO;
+using CDMUtil.Context.ADLS;
 
 namespace CDMUtil.Context.ObjectDefinitions
 {
@@ -61,6 +63,7 @@ namespace CDMUtil.Context.ObjectDefinitions
     }
     public class SQLStatement
     {
+        public string EntityName;
         public string Statement;
         public string DataLocation;
         public string ColumnNames;
@@ -95,5 +98,115 @@ namespace CDMUtil.Context.ObjectDefinitions
     {
         public string entityShape { get; set; }
         public List<string> constantValues { get; set; }
+    }
+    public class AppConfigurations
+    {
+        public string tenantId;
+        public string rootFolder;
+        public string manifestName;
+      
+        public string AXDBConnectionString;
+        public List<string> tableList;
+        public AdlsContext AdlsContext;
+        public SynapseDBOptions synapseOptions;
+        public string SourceColumnProperties;
+        public string ReplaceViewSyntax;
+
+        public AppConfigurations()
+        { }
+        public AppConfigurations(string tenant, string manifestURL,string accessKey, string targetConnectionString, string ddlType)
+        {
+            tenantId = tenant;
+            Uri manifestURI = new Uri(manifestURL);
+            string storageAccount = manifestURI.Host.Replace(".blob.", ".dfs.");
+
+            string[] segments = manifestURI.Segments;
+            string localFolder = segments[1] + segments[2];
+            string environmentName = localFolder.Replace(".operations.dynamics.com", "").Replace("/", "_").Replace("-", "_").Replace(".", "_");
+            string rootLocation = $"https://{storageAccount}/{segments[1]}{segments[2]}";
+            environmentName = environmentName.Remove(environmentName.Length - 1);
+            string lastSegment = segments[segments.Length - 1];
+            if (lastSegment.EndsWith(".manifest.cdm.json"))
+            {
+                manifestName = lastSegment;
+            }
+            else
+            {
+                manifestName = segments[segments.Length - 2].StartsWith("resolved/") ? segments[segments.Length - 3] : segments[segments.Length - 2];
+                manifestName = manifestName.Replace("/", ".manifest.cdm.json");
+                
+                tableList = new List<string>();
+                tableList.Add(lastSegment.Replace(".cdm.json", ""));
+            }
+            for (int i = 3; i < segments.Length - 1; i++)
+            {
+                rootFolder += segments[i];
+            }
+            rootFolder = rootFolder.Replace("/resolved/", "/");
+            synapseOptions = new SynapseDBOptions(targetConnectionString, environmentName, rootLocation, ddlType);
+            AdlsContext = new AdlsContext()
+            {
+                StorageAccount = storageAccount,
+                FileSytemName = segments[1]+segments[2],
+                MSIAuth = String.IsNullOrEmpty(accessKey) ? true : false,
+                TenantId = tenant,
+                SharedKey = accessKey
+            };
+        }
+    }
+    public class SynapseDBOptions
+    {
+        public string targetDbConnectionString;
+        public string masterDbConnectionString;
+        public string servername;
+        public string dbName;
+        public string masterKey = Guid.NewGuid().ToString();
+        public string credentialName;
+        public string external_data_source;
+        public string location;
+        public string fileFormatName;
+        public string DDLType = "SynapseView";
+        public string schema = "dbo";
+        public bool DateTimeAsString = false;
+        public bool ConvertDateTime = false;
+        public bool TranslateEnum = false;
+        public SynapseDBOptions()
+        { }
+        public SynapseDBOptions(string targetDBConnectionString, string environmentName, string rootLocation, string ddlType)
+        {
+            SqlConnectionStringBuilder connectionStringBuilder = new SqlConnectionStringBuilder(targetDBConnectionString);
+
+            servername = connectionStringBuilder.DataSource;
+            if (String.IsNullOrEmpty(connectionStringBuilder.InitialCatalog))
+            {
+                connectionStringBuilder.InitialCatalog = environmentName;
+                dbName = connectionStringBuilder.InitialCatalog;
+                targetDbConnectionString = connectionStringBuilder.ConnectionString;
+            }
+            else
+            {
+                servername = connectionStringBuilder.DataSource;
+                dbName = connectionStringBuilder.InitialCatalog;
+                targetDbConnectionString = connectionStringBuilder.ConnectionString;
+            }
+
+            // default Synapse Serverless settings 
+            if (connectionStringBuilder.DataSource.EndsWith("-ondemand.sql.azuresynapse.net"))
+            { 
+                external_data_source = $"{environmentName}_EDS";
+                fileFormatName = $"{environmentName}_FF";
+                masterKey = environmentName;
+                credentialName = environmentName;
+                location = rootLocation;
+                DateTimeAsString = true;
+                ConvertDateTime = true;
+            }
+            if (ddlType != null)
+                DDLType = ddlType;
+
+            connectionStringBuilder.InitialCatalog = "master";
+            masterDbConnectionString = connectionStringBuilder.ConnectionString;
+
+        }
     }
 }

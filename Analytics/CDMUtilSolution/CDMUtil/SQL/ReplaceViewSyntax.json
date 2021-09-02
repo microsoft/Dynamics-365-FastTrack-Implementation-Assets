@@ -1,0 +1,39 @@
+[
+  {
+    "Key": "STUFF(\r\n                            (SELECT\r\n                                    -- Prepend with delimiter and escape internal delimiters\r\n                                    DIMENSIONSEGMENTDELIMITER + COALESCE(\r\n                                        REPLACE(REPLACE(DIMLIST.DISPLAYVALUE, '\\', '\\\\'),\r\n                                                DIMENSIONSEGMENTDELIMITER,\r\n                                                DIMENSIONSEGMENTDELIMITERESCAPED),\r\n                                        '')",
+    "Value": " (SELECT Replace(STRING_AGG (COALESCE(REPLACE(DIMLIST.DISPLAYVALUE, '\\', '\\\\'),''), '@#@#@!£$') within group (order by DHL.DIMENSIONHIERARCHY, DHL.LEVEL_),'@#@#@!£$',DIMENSIONSEGMENTDELIMITER)"
+  },
+  {
+    "Key": "ORDER BY DHL.DIMENSIONHIERARCHY, DHL.LEVEL_\r\n                                FOR XML PATH(''), TYPE\r\n                            ).value('(./text())[1]', 'NVARCHAR(MAX)'),\r\n                            1, LEN(DIMENSIONSEGMENTDELIMITER), ''",
+    "Value": ""
+  },
+  {
+    "Key": "STUFF(\r\n                                            (SELECT\r\n                                                -- Prepend with delimiter and escape internal delimiters\r\n                                                DIMENSIONSEGMENTDELIMITER + COALESCE(\r\n                                                        REPLACE(REPLACE(DIMLIST.COLUMNVALUE, '\\', '\\\\'),\r\n                                                        DIMENSIONSEGMENTDELIMITER,\r\n                                                        DIMENSIONSEGMENTDELIMITERESCAPED),\r\n                                                    '')",
+    "Value": " (SELECT Replace(STRING_AGG (COALESCE(REPLACE(DIMLIST.COLUMNVALUE, '\\', '\\\\'),''), '@#@#@!£$') within group (order by DHL.DIMENSIONHIERARCHY, DHL.LEVEL_),'@#@#@!£$',DIMENSIONSEGMENTDELIMITER)"
+  },
+  {
+    "Key": "ORDER BY DHL.DIMENSIONHIERARCHY, DHL.LEVEL_\r\n                                                FOR XML PATH('')\r\n                                            ),\r\n                                            1, LEN(DIMENSIONSEGMENTDELIMITER), ''",
+    "Value": ""
+  },
+  {
+    "Key": "CREATE VIEW ",
+    "Value": "CREATE OR ALTER VIEW "
+  },
+  {
+    "Key": "[dbo].GetValidFromInContextInfo()",
+    "Value": "GETUTCDATE()"
+  },
+  {
+    "Key": "[dbo].GetValidToInContextInfo()",
+    "Value": "GETUTCDATE()"
+  },
+  {
+    "Key": ", T1.MEMO AS SALESMEMO",
+    "Value": ""
+  },
+  {
+    "Key": ", T1.CREDMANNOTES AS CREDMANNOTES",
+    "Value": ""
+  }
+ 
+]
