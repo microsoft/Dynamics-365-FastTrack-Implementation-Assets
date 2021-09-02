@@ -119,16 +119,18 @@ For simple POC scenario you can execute the CDM Util solution as a Console Appli
 <configuration>
   <appSettings>
    <add key="TenantId" value="00000000-86f1-41af-91ab-0000000" />
-    <add key="StorageAccount" value="mylake.dfs.core.windows.net" />
     <add key="AccessKey" value="YourStorageAccountAccessKey" />
-     <add key="RootFolder" value="/dynamics365-financeandoperations/Yourenvironmentfolder.dynamics.com" />
-    <add key="ManifestFilePath" value="/Tables/Tables.manifest.cdm.json" />
-    <add key="TargetDbConnectionString" value="Server=yoursynapse-ondemand.sql.azuresynapse.net;Database=YourDB;Uid=sqluser;Pwd=Password" />
-    <add key="DataSourceName" value="yourdatasourcename" />
+    <add key="ManifestURL" value="https://youradls.blob.core.windows.net/dynamics365-financeandoperations/yourenvvi.sandbox.operations.dynamics.com/Tables/Tables.manifest.cdm.json" />
+    <add key="TargetDbConnectionString" value="Server=yoursynapseworkspace-ondemand.sql.azuresynapse.net;Database=dbname;Uid=youruser;Pwd=yourpassword" />
+    <!--add key="DataSourceName" value="d365folabanalytics_analytics" />
     <add key="DDLType" value="SynapseView" />
     <add key="Schema" value="dbo" />
     <add key="FileFormat" value="CSV" />
-    <add key="CovertDateTime" value ="false"/>
+    <add key="DateTimeAsString" value ="true"/>
+    <add key="ConvertDateTime" value ="true"/>
+    <add key="TranslateEnum" value ="false"/>
+    <add key="TableNames" value ="SalesTable"/>
+    <add key="AXDBConnectionString" value ="Server=DBServer;Database=AXDB;Uid=youruser;Pwd=yourpassword"/-->
   </appSettings>
 </configuration>
 ```
