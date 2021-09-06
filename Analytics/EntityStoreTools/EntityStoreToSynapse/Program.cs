@@ -378,6 +378,7 @@
             HashSet<string> reservedWords = new HashSet<string>()
             {
                 "KEY",
+                "DATE",
             };
 
             if (reservedWords.Contains(dimensionField.ToString().ToUpper()))
