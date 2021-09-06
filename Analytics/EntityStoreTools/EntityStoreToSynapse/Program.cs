@@ -38,6 +38,8 @@
                         sqlProvider = new SynapseSqlProvider(options.ConnectionString);
                     }
 
+                    Console.WriteLine($"Entity Store to Synapse Tool (EntityStoreTools Version 2.1)\n");
+
                     if (!File.Exists(options.MetadataPath))
                     {
                         throw new Exception($"File doesn't exist: {options.MetadataPath}");
@@ -279,9 +281,14 @@
                                     }
 
                                     columns.Add(attribute.Name.ToString());
-                                    if (!CheckReservedWord(attribute.KeyFields[0].DimensionField, attribute.Name, createDimensionQuery))
+                                    var reservedColumn = CheckReservedWord(attribute.KeyFields[0].DimensionField, attribute.Name, createDimensionQuery);
+                                    if (!reservedColumn.Item1)
                                     {
                                         createDimensionQuery += $"{attribute.KeyFields[0].DimensionField} AS {attribute.Name},";
+                                    }
+                                    else
+                                    {
+                                        createDimensionQuery = reservedColumn.Item2;
                                     }
                                 }
                                 else
@@ -291,16 +298,26 @@
                                         if (field.DimensionField.ToString().Equals(attribute.NameField.ToString()))
                                         {
                                             columns.Add(attribute.Name.ToString());
-                                            if (!CheckReservedWord(field.DimensionField, attribute.Name, createDimensionQuery))
+                                            var reservedColumn = CheckReservedWord(field.DimensionField, attribute.Name, createDimensionQuery);
+                                            if (!reservedColumn.Item1)
                                             {
                                                 createDimensionQuery += $"{field.DimensionField} AS {attribute.Name},";
+                                            }
+                                            else
+                                            {
+                                                createDimensionQuery = reservedColumn.Item2;
                                             }
                                         }
                                         else if (columns.Add(field.DimensionField.ToString()))
                                         {
-                                            if (!CheckReservedWord(field.DimensionField, field.DimensionField, createDimensionQuery))
+                                            var reservedColumn = CheckReservedWord(field.DimensionField, field.DimensionField, createDimensionQuery);
+                                            if (!reservedColumn.Item1)
                                             {
                                                 createDimensionQuery += $"{field.DimensionField},";
+                                            }
+                                            else
+                                            {
+                                                createDimensionQuery = reservedColumn.Item2;
                                             }
                                         }
                                     }
@@ -314,10 +331,10 @@
                         }
                     }
 
-                    Console.WriteLine($"Creating dimension '{dimension.Name}' with statement:\t{createDimensionQuery}\n");
-
                     while (true)
                     {
+                        Console.WriteLine($"Creating dimension '{dimension.Name}' with statement:\t{createDimensionQuery}\n");
+
                         try
                         {
                             await sqlProvider.RunSqlStatementAsync(createDimensionQuery);
@@ -356,7 +373,7 @@
             return createDimensionQuery.Replace(",PARTITION", string.Empty);
         }
 
-        private static bool CheckReservedWord(dynamic dimensionField, dynamic dimensionName, string createDimensionQuery)
+        private static (bool, string) CheckReservedWord(dynamic dimensionField, dynamic dimensionName, string createDimensionQuery)
         {
             HashSet<string> reservedWords = new HashSet<string>()
             {
@@ -374,16 +391,16 @@
                     createDimensionQuery += $"{dimensionField}_ AS {dimensionName},";
                 }
 
-                return true;
+                return (true, createDimensionQuery);
             }
             else if (reservedWords.Contains(dimensionName.ToString().ToUpper()))
             {
                 createDimensionQuery += $"{dimensionField} AS {dimensionName}_,";
 
-                return true;
+                return (true, createDimensionQuery);
             }
 
-            return false;
+            return (false, createDimensionQuery);
         }
 
         private static HashSet<string> GetCommonColumns()
