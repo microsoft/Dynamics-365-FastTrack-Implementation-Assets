@@ -470,7 +470,7 @@
                         try
                         {
                             await sqlProvider.RunSqlStatementAsync(processedQuery);
-                            
+
                             ColorConsole.WriteSuccess($"Created '{axViewMetadata.ViewName}'\n");
                         }
                         catch (SqlException e)
