@@ -29,6 +29,8 @@
         /// <param name="outputPath">The output directory path.</param>
         public static void ExportMetadata(string measureName, string packagePath, string axDbSqlConnectionString, string outputPath)
         {
+            Console.WriteLine($"Entity Store Metadata Exporter Tool (EntityStoreTools Version 2.1)\n");
+
             ContractValidator.MustNotBeEmpty(measureName, nameof(measureName));
             ContractValidator.MustNotBeEmpty(packagePath, nameof(packagePath));
             ContractValidator.MustNotBeEmpty(axDbSqlConnectionString, nameof(axDbSqlConnectionString));
