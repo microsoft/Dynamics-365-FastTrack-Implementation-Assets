@@ -19,7 +19,7 @@ urlFragment: "jmeter-aci-terraform"
 
 This project is a Commerce load testing pipeline that leverages [Apache JMeter](https://jmeter.apache.org/) as an open source load and performance testing tool and [Terraform](https://www.terraform.io/) to dynamically provision and destroy the required infrastructure on Azure.
 
-## Commerce perf test suite result
+## Sample test suite result
 
 ![Statistics](./docs/img/Statistics.PNG)
 
