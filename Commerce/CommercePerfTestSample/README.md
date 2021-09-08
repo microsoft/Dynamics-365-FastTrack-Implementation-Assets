@@ -179,7 +179,7 @@ APITestEcommerce.jmx contains the series of steps below which are executed when 
 
 ![Test plan](./docs/img/Test-plan.PNG)
 
-The JMX file contains a test definition for performing HTTP requests on `azure.microsoft.com` endpoint through the `443` port. You can simply update the it with the test definition of your preference.
+The JMX file contains a test definition for performing HTTP requests on CSU endpoint.
 
 Update test plan variables
 ![Test plan variables](./docs/img/Test-plan-variables.PNG)
