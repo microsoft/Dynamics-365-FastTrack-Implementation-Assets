@@ -134,7 +134,7 @@
 
                 foreach (var attribute in measureGroup.Attributes)
                 {
-                    if (factTableColumns.Add(attribute.Name.ToString()))
+                    if (factTableColumns.Add(attribute.Name.ToString().ToUpper()))
                     {
                         createMeasureGroupQuery += $"{attribute.KeyFields[0].DimensionField} AS {attribute.Name},";
                     }
@@ -155,7 +155,7 @@
 
                         foreach (var contraint in relation.Constraints)
                         {
-                            if (factTableColumns.Add(contraint.RelatedField.ToString()))
+                            if (factTableColumns.Add(contraint.RelatedField.ToString().ToUpper()))
                             {
                                 createMeasureGroupQuery += $"{contraint.RelatedField} AS {contraint.Name},";
                             }
@@ -280,15 +280,17 @@
                                         commonColumns.Remove(attribute.KeyFields[0].DimensionField.ToString().ToUpper());
                                     }
 
-                                    columns.Add(attribute.Name.ToString());
-                                    var reservedColumn = CheckReservedWord(attribute.KeyFields[0].DimensionField, attribute.Name, createDimensionQuery);
-                                    if (!reservedColumn.Item1)
+                                    if (columns.Add(attribute.Name.ToString().ToUpper()))
                                     {
-                                        createDimensionQuery += $"{attribute.KeyFields[0].DimensionField} AS {attribute.Name},";
-                                    }
-                                    else
-                                    {
-                                        createDimensionQuery = reservedColumn.Item2;
+                                        var reservedColumn = CheckReservedWord(attribute.KeyFields[0].DimensionField, attribute.Name, createDimensionQuery);
+                                        if (!reservedColumn.Item1)
+                                        {
+                                            createDimensionQuery += $"{attribute.KeyFields[0].DimensionField} AS {attribute.Name},";
+                                        }
+                                        else
+                                        {
+                                            createDimensionQuery = reservedColumn.Item2;
+                                        }
                                     }
                                 }
                                 else
@@ -297,18 +299,20 @@
                                     {
                                         if (field.DimensionField.ToString().Equals(attribute.NameField.ToString()))
                                         {
-                                            columns.Add(attribute.Name.ToString());
-                                            var reservedColumn = CheckReservedWord(field.DimensionField, attribute.Name, createDimensionQuery);
-                                            if (!reservedColumn.Item1)
+                                            if (columns.Add(attribute.Name.ToString().ToUpper()))
                                             {
-                                                createDimensionQuery += $"{field.DimensionField} AS {attribute.Name},";
-                                            }
-                                            else
-                                            {
-                                                createDimensionQuery = reservedColumn.Item2;
+                                                var reservedColumn = CheckReservedWord(field.DimensionField, attribute.Name, createDimensionQuery);
+                                                if (!reservedColumn.Item1)
+                                                {
+                                                    createDimensionQuery += $"{field.DimensionField} AS {attribute.Name},";
+                                                }
+                                                else
+                                                {
+                                                    createDimensionQuery = reservedColumn.Item2;
+                                                }
                                             }
                                         }
-                                        else if (columns.Add(field.DimensionField.ToString()))
+                                        else if (columns.Add(field.DimensionField.ToString().ToUpper()))
                                         {
                                             var reservedColumn = CheckReservedWord(field.DimensionField, field.DimensionField, createDimensionQuery);
                                             if (!reservedColumn.Item1)
