@@ -179,10 +179,30 @@
         private static void RecursivelyAddDataSourcesFromQuery(IMetadataProvider metadataProvider, HashSet<string> dimensionsTables, HashSet<string> dimensionsViews, string element)
         {
             AxView view = metadataProvider.Views.Read(element);
+            AxDataEntity dataEntity = metadataProvider.DataEntityViews.Read(element);
 
             if (view != null && !string.IsNullOrEmpty(view.Query))
             {
                 AxQuery axQuery = metadataProvider.Queries.Read(view.Query);
+
+                var json = JsonConvert.SerializeObject(axQuery, Formatting.Indented);
+                using (TextReader sr = new StringReader(json))
+                {
+                    using (var jsonTextReader = new JsonTextReader(sr))
+                    {
+                        dynamic queryObject = JObject.Load(jsonTextReader);
+
+                        foreach (var dataSources in queryObject.DataSources)
+                        {
+                            SeparateTablesAndViews(metadataProvider, dimensionsTables, dimensionsViews, dataSources.Table.ToString());
+                        }
+                    }
+                }
+            }
+
+            if (dataEntity != null && !string.IsNullOrEmpty(dataEntity.Query))
+            {
+                AxQuery axQuery = metadataProvider.Queries.Read(dataEntity.Query);
 
                 var json = JsonConvert.SerializeObject(axQuery, Formatting.Indented);
                 using (TextReader sr = new StringReader(json))
