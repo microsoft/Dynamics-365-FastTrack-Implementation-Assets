@@ -21,7 +21,7 @@ This project is a Commerce load testing pipeline that leverages [Apache JMeter](
 
 ## Commerce perf test suite result
 
-![Statistics](./docs/img/Statistics.png)
+![Statistics](./docs/img/Statistics.PNG)
 
 ## Key concepts
 
@@ -177,12 +177,12 @@ APITestEcommerce.jmx contains the series of steps below which are executed when 
 
 (Open jmx file with Jmeter for UI steps)
 
-![Test plan](./docs/img/Test-plan.png)
+![Test plan](./docs/img/Test-plan.PNG)
 
 The JMX file contains a test definition for performing HTTP requests on `azure.microsoft.com` endpoint through the `443` port. You can simply update the it with the test definition of your preference.
 
 Update test plan variables
-![Test plan variables](./docs/img/Test-plan-variables.png)
+![Test plan variables](./docs/img/Test-plan-variables.PNG)
 
 ### 7. Manually Running the JMeter Pipeline
 
