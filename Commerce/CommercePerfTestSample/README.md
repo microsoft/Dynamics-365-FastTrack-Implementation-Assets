@@ -87,8 +87,8 @@ az devops configure --defaults organization=$ORGANIZATION_URL project=$PROJECT_N
 Import this repository on your Azure DevOps project:
 
 ```shell
-REPOSITORY_NAME=jmeter-load-test
-REPOSITORY_URL=https://github.com/Azure-Samples/jmeter-aci-terraform
+REPOSITORY_NAME=CommercePerfTestSample
+REPOSITORY_URL=https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Commerce/CommercePerfTestSample
 
 az repos create --name $REPOSITORY_NAME
 az repos import create --git-source-url $REPOSITORY_URL --repository $REPOSITORY_NAME
