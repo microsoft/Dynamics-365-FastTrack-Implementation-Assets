@@ -1,0 +1,62 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net452</TargetFramework>
+    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AOSBinPath Condition="'$(AOSBinPath)' == '' ">C:\AosService\PackagesLocalDirectory\bin</AOSBinPath>
+    <AssemblyName>EntityStoreMetadataExporter</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Dynamics.AX.Data.Core">
+      <HintPath>$(AOSBinPath)\Microsoft.Dynamics.AX.Data.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamics.AX.Data.Core">
+      <HintPath>$(AOSBinPath)\Microsoft.Dynamics.AX.Data.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamics.AX.Framework.Linq.Data">
+      <HintPath>$(AOSBinPath)\Microsoft.Dynamics.AX.Framework.Linq.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamics.AX.Framework.Linq.Data.Interface">
+      <HintPath>$(AOSBinPath)\Microsoft.Dynamics.AX.Framework.Linq.Data.Interface.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamics.AX.Framework.Linq.Data.Msil">
+      <HintPath>$(AOSBinPath)\Microsoft.Dynamics.AX.Framework.Linq.Data.Msil.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamics.AX.Metadata">
+      <HintPath>$(AOSBinPath)\Microsoft.Dynamics.AX.Metadata.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamics.AX.Metadata.Core">
+      <HintPath>$(AOSBinPath)\Microsoft.Dynamics.AX.Metadata.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamics.AX.Metadata.Storage">
+      <HintPath>$(AOSBinPath)\Microsoft.Dynamics.AX.Metadata.Storage.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamics.AX.Xpp.Support">
+      <HintPath>$(AOSBinPath)\Microsoft.Dynamics.AX.Xpp.Support.dll</HintPath>
+    </Reference>
+
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+</Project>

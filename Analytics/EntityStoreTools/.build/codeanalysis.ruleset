@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="Common diagnostic rules for all projects" Description="This file contains diagnostic settings used by all projects. Projects that need specific settings should have their own rule set that Include this one, and then make the necessary adjustments." ToolsVersion="15.0">
+  <Include Path="allrules.ruleset" Action="Default" />  
+  <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp" RuleNamespace="Microsoft.CodeAnalysis.CSharp">
+    <!-- Missing XML comment for publicly visible type or member 'Type_or_Member' -->
+    <Rule Id="CS1591" Action="None" />
+  </Rules>
+  <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
+    <!-- Prefix local calls with this -->
+    <Rule Id="SA1101" Action="None" />
+
+    <!-- Elements must be documented -->
+    <Rule Id="SA1600" Action="None" />
+
+    <!-- Partial elements must be documented -->
+    <Rule Id="SA1601" Action="Info" />
+
+    <!-- Enumeration items must be documented -->
+    <Rule Id="SA1602" Action="Info" />
+
+    <!-- Constructor summary documentation must begin with standard text -->
+    <Rule Id="SA1642" Action="Info" />
+
+    <!-- The documentation for parameter 'x' is missing -->
+    <Rule Id="SA1611" Action="Info" />
+
+    <!-- Return value must be documented -->
+    <Rule Id="SA1615" Action="Info" />
+
+    <!-- The documentation for type parameter 'x' is missing -->
+    <Rule Id="SA1618" Action="Info" />
+  </Rules>
+</RuleSet>

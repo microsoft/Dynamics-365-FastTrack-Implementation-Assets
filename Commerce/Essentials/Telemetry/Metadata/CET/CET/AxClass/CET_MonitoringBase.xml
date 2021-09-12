@@ -220,9 +220,8 @@ public class CET_MonitoringBase
     public void logMetric(int _contractParameterIndex, CET_EventMetricValue _value, CET_EventData _data = '')
     {
         CET_EventName eventName = contract.getParmValueStr(_contractParameterIndex);
-        SysGlobalTelemetry::logMetric(eventName, _value);
 
-        CET_MonitoringBase::saveEventData(eventName, _data, _value);
+        CET_MonitoringFactory::logMetric(eventName, _value, _data);
     }
 
 ]]></Source>
@@ -239,9 +238,8 @@ public class CET_MonitoringBase
     {
         CET_EventName eventName = contract.getParmValueStr(_contractParameterIndex);
 
-        SysGlobalTelemetry::logEvent(eventName);
+        CET_MonitoringFactory::logEvent(eventName, _data);
 
-        CET_MonitoringBase::saveEventData(eventName, _data);
     }
 
 ]]></Source>
@@ -255,7 +253,7 @@ public class CET_MonitoringBase
     /// <param name = "_eventName">Name of the metric or event</param>
     /// <param name = "_value">Optional:  Metric value to track</param>
     /// <param name = "_data">payload</param>
-    public static void saveEventData(CET_EventName _eventName, CET_EventData _data, CET_EventMetricValue _value = 0)
+    public static void saveEventData(CET_EventName _eventName, CET_EventData _data, CET_EventMetricValue _value = 0) 
     {
         CET_MonitoringLog monitoringLog;
 
@@ -264,16 +262,7 @@ public class CET_MonitoringBase
             // Both need to be provided.
             return;
         }
-
-        // Log event data.
-        monitoringLog.initValue();
-        monitoringLog.Name = _eventName;
-        monitoringLog.Data = _data;
-        monitoringLog.MetricValue = _value;
-        monitoringLog.insert();
-
-        // Call the businiess event service.
-        monitoringLog.sendEvent();
+        CET_MonitoringFactory::saveEventData(_eventName, _data, _value);
     }
 
 ]]></Source>

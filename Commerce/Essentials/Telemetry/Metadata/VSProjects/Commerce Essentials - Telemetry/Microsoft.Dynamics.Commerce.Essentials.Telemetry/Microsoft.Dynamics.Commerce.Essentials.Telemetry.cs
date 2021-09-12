@@ -19,6 +19,8 @@ namespace Microsoft.Dynamics.Commerce.Essentials.Telemetry
     {
         dynamic expObj;
 
+        public dynamic ExpObj {get {return expObj;} }
+
         public TelemetryHelper()
         {
             expObj = new System.Dynamic.ExpandoObject();
