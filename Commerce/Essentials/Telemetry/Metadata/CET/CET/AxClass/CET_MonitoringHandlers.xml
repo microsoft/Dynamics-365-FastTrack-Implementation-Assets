@@ -12,12 +12,22 @@
 * NO TECHNICAL SUPPORT IS PROVIDED.  YOU MAY NOT DISTRIBUTE THIS CODE UNLESS YOU HAVE A LICENSE AGREEMENT WITH MICROSOFT THAT ALLOWS YOU TO DO SO.
 */
 
+using System.Diagnostics;
+
+
 /// <summary>
 /// A collection of form event handlers where users can enable/disable 
 /// features that may impact the system.
 /// </summary>
 public final class CET_MonitoringHandlers
 {
+    private static const str BatchStartEvent = @"BatchEvent_Start";
+    private static const str BatchEndEvent = @"BatchEvent_End";
+    private static const str BatchExceptionEvent = @"BatchEvent_Exception";
+    private static const str BatchCanceledEvent = @"BatchEvent_Canceled";
+    private static const str BatchDurationEvent = @"BatchEvent_Duration";
+    private static const str Delimiter = @"_";
+    private static const int SlowEventLimitMilliseconds = 10000; // 10 seconds
 
 }
 ]]></Declaration>
@@ -139,6 +149,140 @@ public final class CET_MonitoringHandlers
         str featureName = _sender.formRun().design().caption();
         SysGlobalTelemetry::logEvent(strFmt("@CETM:MonitoringFeatureScheduled", featureName, enabledate));
     
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>emitBatchJobBusinessEventsDelegate</Name>
+				<Source><![CDATA[
+    // Released in 10.0.17
+    // Emit batch failed, finished, canceled, started business events
+    // This delegate is expected to be called inside a transaction and we send the business events immediately and rely on business events
+    // framework to not send those if the transaction aborts
+    [SubscribesTo(classstr(BatchRunBusinessEvents), delegatestr(BatchRunBusinessEvents, emitBatchJobBusinessEventsDelegate))]
+    static void emitBatchJobBusinessEventsDelegate()
+    {
+        Stopwatch stopwatch = Stopwatch::StartNew();
+
+		// Process failed batch jobs.
+        stopwatch.Restart();
+        CET_MonitoringHandlers::processBatchJobEvents();
+        stopwatch.Stop();
+
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>batchJobEventName</Name>
+				<Source><![CDATA[
+	static str batchJobEventName(str _eventName, BatchJob _batchJob)
+    {
+        return strFmt(@"%1%4%2%4%3", _eventName, _batchJob.RecId, _batchJob.Caption, Delimiter);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processBatchJobEvents</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Emits business events for jobs marked failed in this transaction.
+    /// </summary>
+    /// <returns>
+    ///    The number of failed jobs
+    /// </returns>
+    static int processBatchJobEvents()
+    {
+        BatchJob batchjob;
+        str eventName, strJobContext;
+
+        int failedJobs = 0;
+        boolean finished;
+
+        // batchJob.Finishing is set to 1 inside the transaction and is set to 0 before the transaction commit
+        // this allows us to pick up only the jobs that were marked as failed in this transaction
+        while select *
+            from batchJob
+            where batchJob.Finishing == 1
+       {
+            eventName = '';
+            finished = false;
+
+            strJobContext = CET_MonitoringFactory::Record2JSON(batchjob);
+			switch (batchjob.Status)
+            {
+                case BatchStatus::Error:
+                    ++failedJobs;
+                    eventName = BatchExceptionEvent; // Exception
+                    break;
+                case BatchStatus::Executing:
+                    eventName = BatchStartEvent; // Started
+                    break;
+                case BatchStatus::Finished:
+                    finished = true;
+                    eventName = BatchEndEvent; // Completed
+                    break;
+                case BatchStatus::Canceled:
+                    eventName = BatchCanceledEvent; // Canceled
+                    break;
+            }
+
+			// Ship this data to the App Insights
+            eventName = CET_MonitoringHandlers::batchJobEventName(eventName, batchjob); // Bundle batch job data into the event name.
+            CET_MonitoringFactory::logEvent(eventName, strJobContext);
+
+			if (finished)
+            {
+                eventName = CET_MonitoringHandlers::batchJobEventName(BatchDurationEvent, batchjob);
+                CET_MonitoringFactory::logMetric(eventName, DateTimeUtil::getDifference(batchjob.EndDateTime, batchjob.StartDateTime), strJobContext);
+            }
+        }
+        return failedJobs;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>emitJobEndBusinessEventsUsingBatchJobUpdateTmpDelegate</Name>
+				<Source><![CDATA[
+    // Emit batch failed, finished, canceled business events for the jobs found in given BatchJobUpdateTmp
+    // This delegate is expected to be called inside a transaction and we send the business events immediately and rely on business events
+    // framework to not send those if the transaction aborts
+    [SubscribesTo(classstr(BatchRunBusinessEvents), delegatestr(BatchRunBusinessEvents, emitJobEndBusinessEventsUsingBatchJobUpdateTmpDelegate))]
+    internal static void emitJobEndBusinessEventsUsingBatchJobUpdateTmpDelegate(BatchJobUpdateTmp jobsToUpdate)
+    {
+        Stopwatch stopwatch = Stopwatch::StartNew();
+
+        stopwatch.Restart();
+        int failedJobs = CET_MonitoringHandlers::processFailedJobEventsUsingBatchJobUpdateTmp(jobsToUpdate);
+        stopwatch.Stop();
+        // log an event if the above takes more than threshold
+        stopwatch.Restart();
+        int jobs = CET_MonitoringHandlers::processCanceledFinishedJobEventsUsingBatchJobUpdateTmp(jobsToUpdate);
+        stopwatch.Stop();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processFailedJobEventsUsingBatchJobUpdateTmp</Name>
+				<Source><![CDATA[
+    static int processFailedJobEventsUsingBatchJobUpdateTmp(BatchJobUpdateTmp jobsToUpdate)
+    {
+        return 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processCanceledFinishedJobEventsUsingBatchJobUpdateTmp</Name>
+				<Source><![CDATA[
+    static int processCanceledFinishedJobEventsUsingBatchJobUpdateTmp(BatchJobUpdateTmp jobsToUpdate)
+    {
+        return 0;
     }
 
 ]]></Source>

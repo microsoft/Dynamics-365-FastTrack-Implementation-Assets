@@ -1,0 +1,740 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "factoryName": {
+            "type": "string",
+            "metadata": "Data Factory name",
+            "defaultValue": "SQLTOSQLCopy"
+        },
+        "SOURCE_SQL_SERVER_connectionString": {
+            "type": "secureString",
+            "metadata": "Secure string for 'connectionString' of 'SOURCE_SQL_SERVER'"
+        },
+        "DEST_SQL_SERVER_connectionString": {
+            "type": "secureString",
+            "metadata": "Secure string for 'connectionString' of 'DEST_SQL_SERVER'"
+        }
+    },
+    "variables": {
+        "factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+    },
+    "resources": [
+        {
+            "name": "[concat(parameters('factoryName'), '/DEST_SQL_QUERY')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "DEST_SQL_SERVER",
+                    "type": "LinkedServiceReference"
+                },
+                "folder": {
+                    "name": "SQL_SERVER"
+                },
+                "annotations": [],
+                "type": "SqlServerTable",
+                "schema": [],
+                "typeProperties": {}
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/DEST_SQL_SERVER')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/SOURCE_SQL_QUERY')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "SOURCE_SQL_SERVER",
+                    "type": "LinkedServiceReference"
+                },
+                "folder": {
+                    "name": "SQL_SERVER"
+                },
+                "annotations": [],
+                "type": "SqlServerTable",
+                "schema": [],
+                "typeProperties": {}
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/SOURCE_SQL_SERVER')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/DEST_SQL_TABLE')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "DEST_SQL_SERVER",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "TABLE_NAME": {
+                        "type": "string"
+                    },
+                    "SCHEMA": {
+                        "type": "string"
+                    }
+                },
+                "folder": {
+                    "name": "SQL_SERVER"
+                },
+                "annotations": [],
+                "type": "SqlServerTable",
+                "schema": [],
+                "typeProperties": {
+                    "schema": {
+                        "value": "@dataset().SCHEMA",
+                        "type": "Expression"
+                    },
+                    "table": {
+                        "value": "@dataset().TABLE_NAME",
+                        "type": "Expression"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/DEST_SQL_SERVER')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ScheduledIncrementalExportTrigger')]",
+            "type": "Microsoft.DataFactory/factories/triggers",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "Scheduled Incremental Export Trigger",
+                "annotations": [],
+                "runtimeState": "Started",
+                "pipelines": [
+                    {
+                        "pipelineReference": {
+                            "referenceName": "INCREMENTAL_SQL_TO_SQL",
+                            "type": "PipelineReference"
+                        },
+                        "parameters": {}
+                    }
+                ],
+                "type": "ScheduleTrigger",
+                "typeProperties": {
+                    "recurrence": {
+                        "frequency": "Minute",
+                        "interval": 15,
+                        "startTime": "2021-04-05T15:00:00Z",
+                        "timeZone": "UTC"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/pipelines/INCREMENTAL_SQL_TO_SQL')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/INCREMENTAL_SQL_TO_SQL')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "GET_UPDATED_TABLES",
+                        "type": "Lookup",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "SqlServerSource",
+                                "sqlReaderStoredProcedureName": "[[sqltosql].[GetUpdatedTables]",
+                                "queryTimeout": "02:00:00",
+                                "partitionOption": "None"
+                            },
+                            "dataset": {
+                                "referenceName": "SOURCE_SQL_QUERY",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            },
+                            "firstRowOnly": false
+                        }
+                    },
+                    {
+                        "name": "ForEachTable",
+                        "type": "ForEach",
+                        "dependsOn": [
+                            {
+                                "activity": "GET_UPDATED_TABLES",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "items": {
+                                "value": "@activity('GET_UPDATED_TABLES').output.value",
+                                "type": "Expression"
+                            },
+                            "activities": [
+                                {
+                                    "name": "CopyIncrementalData",
+                                    "type": "Copy",
+                                    "dependsOn": [
+                                        {
+                                            "activity": "UpdateStatusInProgress",
+                                            "dependencyConditions": [
+                                                "Succeeded"
+                                            ]
+                                        }
+                                    ],
+                                    "policy": {
+                                        "timeout": "7.00:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "source": {
+                                            "type": "SqlServerSource",
+                                            "sqlReaderQuery": {
+                                                "value": "@item().INCREMENTAL_EXPORT_SCRIPT",
+                                                "type": "Expression"
+                                            },
+                                            "queryTimeout": "02:00:00",
+                                            "partitionOption": "None"
+                                        },
+                                        "sink": {
+                                            "type": "SqlServerSink",
+                                            "tableOption": "autoCreate"
+                                        },
+                                        "enableStaging": false,
+                                        "translator": {
+                                            "type": "TabularTranslator",
+                                            "typeConversion": true,
+                                            "typeConversionSettings": {
+                                                "allowDataTruncation": true,
+                                                "treatBooleanAsNumber": false
+                                            }
+                                        }
+                                    },
+                                    "inputs": [
+                                        {
+                                            "referenceName": "SOURCE_SQL_QUERY",
+                                            "type": "DatasetReference",
+                                            "parameters": {}
+                                        }
+                                    ],
+                                    "outputs": [
+                                        {
+                                            "referenceName": "DEST_SQL_TABLE",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "TABLE_NAME": {
+                                                    "value": "@{item().TARGET_TABLENAME}_@{pipeline().RunId}",
+                                                    "type": "Expression"
+                                                },
+                                                "SCHEMA": {
+                                                    "value": "@item().TARGET_SCHEMA",
+                                                    "type": "Expression"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "MERGE_CT",
+                                    "type": "SqlServerStoredProcedure",
+                                    "dependsOn": [
+                                        {
+                                            "activity": "CopyIncrementalData",
+                                            "dependencyConditions": [
+                                                "Succeeded"
+                                            ]
+                                        }
+                                    ],
+                                    "policy": {
+                                        "timeout": "7.00:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "storedProcedureName": "[[sqltosql].[MERGECT]",
+                                        "storedProcedureParameters": {
+                                            "CDCTable": {
+                                                "value": {
+                                                    "value": "@{item().TARGET_SCHEMA}.[@{item().TARGET_TABLENAME}_@{pipeline().RunId}]",
+                                                    "type": "Expression"
+                                                },
+                                                "type": "String"
+                                            },
+                                            "TargetTable": {
+                                                "value": {
+                                                    "value": "@{item().TARGET_SCHEMA}.@{item().TARGET_TABLENAME}",
+                                                    "type": "Expression"
+                                                },
+                                                "type": "String"
+                                            }
+                                        }
+                                    },
+                                    "linkedServiceName": {
+                                        "referenceName": "DEST_SQL_SERVER",
+                                        "type": "LinkedServiceReference"
+                                    }
+                                },
+                                {
+                                    "name": "UpdateStatusInProgress",
+                                    "type": "SqlServerStoredProcedure",
+                                    "dependsOn": [],
+                                    "policy": {
+                                        "timeout": "7.00:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "storedProcedureName": "[[sqltosql].[SQLToSQL_UpdateStatusInProcess]",
+                                        "storedProcedureParameters": {
+                                            "TableName": {
+                                                "value": {
+                                                    "value": "@item().TABLENAME",
+                                                    "type": "Expression"
+                                                },
+                                                "type": "String"
+                                            }
+                                        }
+                                    },
+                                    "linkedServiceName": {
+                                        "referenceName": "SOURCE_SQL_SERVER",
+                                        "type": "LinkedServiceReference"
+                                    }
+                                },
+                                {
+                                    "name": "UpdateMarker",
+                                    "type": "SqlServerStoredProcedure",
+                                    "dependsOn": [
+                                        {
+                                            "activity": "MERGE_CT",
+                                            "dependencyConditions": [
+                                                "Succeeded"
+                                            ]
+                                        }
+                                    ],
+                                    "policy": {
+                                        "timeout": "7.00:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "storedProcedureName": "[[sqltosql].[SQLToSQL_UpdateLastSyncVersion]",
+                                        "storedProcedureParameters": {
+                                            "LastSyncVersion": {
+                                                "value": {
+                                                    "value": "@item().CURRENT_SYNC_VERSION",
+                                                    "type": "Expression"
+                                                },
+                                                "type": "Int64"
+                                            },
+                                            "TableName": {
+                                                "value": {
+                                                    "value": "@item().TABLENAME",
+                                                    "type": "Expression"
+                                                },
+                                                "type": "String"
+                                            }
+                                        }
+                                    },
+                                    "linkedServiceName": {
+                                        "referenceName": "SOURCE_SQL_SERVER",
+                                        "type": "LinkedServiceReference"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "folder": {
+                    "name": "SQLToSQL"
+                },
+                "annotations": [],
+                "lastPublishTime": "2021-03-30T21:09:29Z"
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/SOURCE_SQL_QUERY')]",
+                "[concat(variables('factoryId'), '/datasets/DEST_SQL_TABLE')]",
+                "[concat(variables('factoryId'), '/linkedServices/DEST_SQL_SERVER')]",
+                "[concat(variables('factoryId'), '/linkedServices/SOURCE_SQL_SERVER')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/FULL_EXPORT_SQL_TO_SQL')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "Export full data",
+                "activities": [
+                    {
+                        "name": "FullExport",
+                        "type": "Copy",
+                        "dependsOn": [
+                            {
+                                "activity": "GetTableDefinition",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "SqlServerSource",
+                                "sqlReaderQuery": {
+                                    "value": "@activity('GetTableDefinition').output.firstRow.FULLEXPORTSCRIPT",
+                                    "type": "Expression"
+                                },
+                                "queryTimeout": "02:00:00",
+                                "partitionOption": "None"
+                            },
+                            "sink": {
+                                "type": "SqlServerSink",
+                                "preCopyScript": {
+                                    "value": "IF OBJECT_ID(N'@{pipeline().parameters.TargetSchema}.@{pipeline().parameters.TableName}', N'U') IS NOT NULL  \n   DROP TABLE @{pipeline().parameters.TargetSchema}.@{pipeline().parameters.TableName};",
+                                    "type": "Expression"
+                                },
+                                "tableOption": "autoCreate"
+                            },
+                            "enableStaging": false
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "SOURCE_SQL_QUERY",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "DEST_SQL_TABLE",
+                                "type": "DatasetReference",
+                                "parameters": {
+                                    "TABLE_NAME": {
+                                        "value": "@pipeline().parameters.TableName",
+                                        "type": "Expression"
+                                    },
+                                    "SCHEMA": {
+                                        "value": "@pipeline().parameters.TargetSchema",
+                                        "type": "Expression"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "PublishTable",
+                        "type": "SqlServerStoredProcedure",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "storedProcedureName": "[[sqltosql].[SQLToSQL_PublishTable]",
+                            "storedProcedureParameters": {
+                                "SourceTableName": {
+                                    "value": {
+                                        "value": "@{pipeline().parameters.SourceSchema}.@{pipeline().parameters.TableName}",
+                                        "type": "Expression"
+                                    },
+                                    "type": "String"
+                                },
+                                "TargetTableName": {
+                                    "value": {
+                                        "value": "@{pipeline().parameters.TargetSchema}.@{pipeline().parameters.TableName}",
+                                        "type": "Expression"
+                                    },
+                                    "type": "String"
+                                }
+                            }
+                        },
+                        "linkedServiceName": {
+                            "referenceName": "SOURCE_SQL_SERVER",
+                            "type": "LinkedServiceReference"
+                        }
+                    },
+                    {
+                        "name": "GetTableDefinition",
+                        "type": "Lookup",
+                        "dependsOn": [
+                            {
+                                "activity": "PublishTable",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "SqlServerSource",
+                                "sqlReaderQuery": {
+                                    "value": "Select FULLEXPORTSCRIPT, PRIMARYINDEXCOLUMNS from  [sqltosql].[SQLToSQLDATASYNCSETUP]\nwhere TABLENAME = '@{pipeline().parameters.SourceSchema}.@{pipeline().parameters.TableName}'",
+                                    "type": "Expression"
+                                },
+                                "queryTimeout": "02:00:00",
+                                "partitionOption": "None"
+                            },
+                            "dataset": {
+                                "referenceName": "SOURCE_SQL_QUERY",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        }
+                    },
+                    {
+                        "name": "UpdateStatus",
+                        "type": "SqlServerStoredProcedure",
+                        "dependsOn": [
+                            {
+                                "activity": "CreatePrimaryIndex",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "storedProcedureName": "[[sqltosql].[SQLToSQL_UpdatePublished]",
+                            "storedProcedureParameters": {
+                                "TableName": {
+                                    "value": {
+                                        "value": "@{pipeline().parameters.SourceSchema}.@{pipeline().parameters.TableName}",
+                                        "type": "Expression"
+                                    },
+                                    "type": "String"
+                                }
+                            }
+                        },
+                        "linkedServiceName": {
+                            "referenceName": "SOURCE_SQL_SERVER",
+                            "type": "LinkedServiceReference"
+                        }
+                    },
+                    {
+                        "name": "CreatePrimaryIndex",
+                        "type": "SqlServerStoredProcedure",
+                        "dependsOn": [
+                            {
+                                "activity": "FullExport",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "storedProcedureName": "[[sqltosql].[SQLToSQL_CreatePrimaryIndex]",
+                            "storedProcedureParameters": {
+                                "primaryIndexColumns": {
+                                    "value": {
+                                        "value": "@activity('GetTableDefinition').output.firstRow.PRIMARYINDEXCOLUMNS",
+                                        "type": "Expression"
+                                    },
+                                    "type": "String"
+                                },
+                                "Schema": {
+                                    "value": {
+                                        "value": "@pipeline().parameters.TargetSchema",
+                                        "type": "Expression"
+                                    },
+                                    "type": "String"
+                                },
+                                "TableName": {
+                                    "value": {
+                                        "value": "@pipeline().parameters.TableName",
+                                        "type": "Expression"
+                                    },
+                                    "type": "String"
+                                }
+                            }
+                        },
+                        "linkedServiceName": {
+                            "referenceName": "DEST_SQL_SERVER",
+                            "type": "LinkedServiceReference"
+                        }
+                    }
+                ],
+                "parameters": {
+                    "TableName": {
+                        "type": "string",
+                        "defaultValue": "CustGroup"
+                    },
+                    "SourceSchema": {
+                        "type": "string",
+                        "defaultValue": "dbo"
+                    },
+                    "TargetSchema": {
+                        "type": "string",
+                        "defaultValue": "dbo"
+                    }
+                },
+                "folder": {
+                    "name": "SQLToSQL"
+                },
+                "annotations": [],
+                "lastPublishTime": "2021-04-05T18:58:06Z"
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/SOURCE_SQL_QUERY')]",
+                "[concat(variables('factoryId'), '/datasets/DEST_SQL_TABLE')]",
+                "[concat(variables('factoryId'), '/linkedServices/SOURCE_SQL_SERVER')]",
+                "[concat(variables('factoryId'), '/linkedServices/DEST_SQL_SERVER')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/SOURCE_SQL_SERVER')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "SqlServer",
+                "typeProperties": {
+                    "connectionString": "[parameters('SOURCE_SQL_SERVER_connectionString')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/DEST_SQL_SERVER')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "SqlServer",
+                "typeProperties": {
+                    "connectionString": "[parameters('DEST_SQL_SERVER_connectionString')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/FULL_EXPORT_SCHEDULE')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "FullExportEachTable",
+                        "type": "ForEach",
+                        "dependsOn": [],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "items": {
+                                "value": "@split(pipeline().parameters.TABLE_NAMES, ',')",
+                                "type": "Expression"
+                            },
+                            "isSequential": false,
+                            "batchCount": 10,
+                            "activities": [
+                                {
+                                    "name": "Full_Export_SQL_TO_SQL",
+                                    "type": "ExecutePipeline",
+                                    "dependsOn": [],
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "pipeline": {
+                                            "referenceName": "FULL_EXPORT_SQL_TO_SQL",
+                                            "type": "PipelineReference"
+                                        },
+                                        "waitOnCompletion": true,
+                                        "parameters": {
+                                            "TableName": {
+                                                "value": "@item()",
+                                                "type": "Expression"
+                                            },
+                                            "SourceSchema": {
+                                                "value": "@pipeline().parameters.SOURCE_SCHEMA",
+                                                "type": "Expression"
+                                            },
+                                            "TargetSchema": {
+                                                "value": "@pipeline().parameters.DEST_SCHEMA",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "parameters": {
+                    "TABLE_NAMES": {
+                        "type": "string",
+                        "defaultValue": "Student,Student2"
+                    },
+                    "SOURCE_SCHEMA": {
+                        "type": "string",
+                        "defaultValue": "dbo"
+                    },
+                    "DEST_SCHEMA": {
+                        "type": "string",
+                        "defaultValue": "dbo"
+                    }
+                },
+                "folder": {
+                    "name": "SQLToSQL"
+                },
+                "annotations": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/pipelines/FULL_EXPORT_SQL_TO_SQL')]"
+            ]
+        }
+    ]
+}
