@@ -1,6 +1,5 @@
 # Overview 
-CDMUtil solution is client tool based on [CDM SDK](https://github.com/microsoft/CDM/tree/master/objectModel/CSharp) to read and convert CDM metadata as TSQL DDL statements for Synapse Analytics. 
-It can also convert SQL Server Table metadata as CDM metadata in Azure Data lake. CDMUtil can be deployed as Azure Function App or local console app to help with following scenarios:
+CDMUtil solution is client tool based on [CDM SDK](https://github.com/microsoft/CDM/tree/master/objectModel/CSharp) to read and convert CDM metadata as TSQL DDL statements for Synapse Analytics. It can also convert SQL Server Table metadata as CDM metadata in Azure Data lake. CDMUtil can be deployed as Azure Function App or local console app to help with following scenarios:
 
 ## Create T-SQL metadata on Synapse Analytics from CDM metadata: 
 Convert CDM metadata to TSQL DDL statements and execute DDL on Synapse Analytics. You can use CDMUtil reader functions to read the CDM metadata created by Dynamics 365 Export to Data Lake feature to automatically create view or external tables on Synapse Analytics. 
