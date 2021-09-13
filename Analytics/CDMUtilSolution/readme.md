@@ -11,75 +11,19 @@ Convert SQL server table metadata into CDM format and write cdm.json and manifes
 
 ![Cdmwriter](cdmwriter.png)
 
-# Deploy CDMUtil as Function App 
-To atomate reading and writing of CDM metadata, CDMUtil can be deployed as function App. Follow the steps bellow to deploy and configure
+# CDMUTIL Usage Scenarios
 
-## Prerequisites
-To deploy and use the CDMUtil solution to Azure, following pre-requisites are required
-1. Azure subscription. You will require contributor access to an existing Azure subscription. If you don't have an Azure subscription, create a free Azure account before you begin.
-2. Install Visual Studio 2019: to build and deploy C# solution as Azure function App (Download and .NET46 framework install https://dotnet.microsoft.com/download/dotnet-framework/thank-you/net462-developer-pack-offline-installer)
-3. Create Synapse Analytics Workspace** [create synapse workspace](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-create-workspace) 
+CDMUtil can be used in following scenarios 
 
-## Deployment steps
-Deploy the CDMUtil solution as Azure function to automate end to end process of creating or updating metadata on Synapse Analytics. 
-1. **Install Visual Studio 2019**: to build C# solution you need to Download and Install Visual Studio 2019 and .NET46 framework install https://dotnet.microsoft.com/download/dotnet-framework/thank-you/net462-developer-pack-offline-installer)
-2.	Clone the repository [Dynamics-365-FastTrack-Implementation-Assets](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets)
-![Clone](/Analytics/CloneRepository.PNG)
-3. Open C# solution Microsoft.CommonDataModel.sln in Visual Studio 2019 and build
-4.	Publish the CDMUtil_AzureFunctions Project as Azure function 
-    1. Right-click on the project CDMUtil_AzureFunctions from Solution Explorer and select "Publish". 
-    2. Select Azure as Target and selct Azure Function Apps ( Windows) 
-    3. Click Create new Azure Function App and select subscription and resource group to create Azure function app 
-    4. Click Publish ![Publish Azure Function](/Analytics/DeployAzureFunction.gif)
-
-## Configuration and access control 
-### Enable MSI
-1. Open Azure Portal and locate Azure Function App created.
-2. ***Enable MSI*** go to Identity tab enable [System managed identity](/Analytics/EnableMSI.PNG) 
-
-### Update configuration 
-1. In Azure portal, function app click on configuration and add following new application settings  a
-
-| Name           |Description |Example Value  |
-| ----------------- |:---|:--------------|
-|TenantId          |Azure active directory tenant Id |979fd422-22c4-4a36-bea6-xxxxx|
-|SQLEndPoint    |Synapse SQL Pool endpoint connection string. If Database name is not specified - create new database, if userid and password are not specified - MSI authentication will be used.   |Server=ftd365synapseanalytics-ondemand.sql.azuresynapse.net; 
-
-![Applicationsetting](applicationsetting.png)
-
-2. (Optional) additional optional configuration that can be provided to overide the default values can be found under CDMUTIL parameters details section bellow   
-
-### Grant access control 
-#### Storage account 
-To Read and Write CDM metadata to storage account, function app must have Blob Data Reader and Blob Data Contributor access.
-1. In Azure portal, go to Storage account and grant Blob Data Contributor and Blob Data Reader access to current user 
-2. In case solution is Deployed as Azure Function Apps, you must enable ***System managed identity*** and grant MSI app Blob Data Contributor and Blob Data Reader access 
-![Storage Access](/Analytics/AADAppStorageAccountAccess.PNG)
-
-#### Synapse Analytics 
-To execute DDL statement on synapse analytics, you can either use sql user authentication or MSI authentication. To use MSI authentical, connect to Synapse Analytics and run following script 
-```SQL
--- MSI user can only be added when you are connected to Synapse SQL Pool Endpoint using AAD login 
-
---Option 1: Grant MSI Server level access on Synapse Analytics SQL Pool 
-CREATE LOGIN YourFunctionAppName FROM EXTERNAL PROVIDER;
-ALTER SERVER ROLE  sysadmin  ADD MEMBER [YourFunctionAppName];
-
---Option 2 :Grant MSI DB level access on Synapse Analytics SQL Pool. 
---If you grant DB level access then you must create DB and specify Databasename in the FunctionApp configuration  
-use YourDBName
-Create user [YourFunctionAppName] FROM EXTERNAL PROVIDER;
-alter role db_owner Add member [YourFunctionAppName]
-```
-
-# Using CDMUTIL
-
-CDMUtil can be used in following way
-
-## 1. Azure function App with integrated storage events (EventGrid) 
+## 1. Azure function App with integrated storage events (EventGrid) - 
 For complete automation, CDMUtil EventGrid triiger can be used to react on blob created (cdm.json) and create views/external table on Synapse Analytics. 
- 
-### Create storage event subscription
+
+> **_NOTE:_**  This is applicable for scenarios when export to data lake add-in available in your sandbox environment or exporting Tables data using ADF Solution from tier 1 enviromentment.
+
+### Deploy:CDMUtil as Azure Function App
+[Deploy CDMUtil as Azure Function App](deploycdmutil.md) as per the instruction.
+
+### Configure: Storage event subscription
 1. In Azure portal, go to storage account , click on Events > + Event Subscription to create a new event subscription
 2. Give a name and select Azure function app eventGrid_CDMToSynapseView as endpoint.
 ![Create Event Subscription](createEventSubscription.png)
@@ -94,27 +38,24 @@ For complete automation, CDMUtil EventGrid triiger can be used to react on blob 
   
 ![Events Filters](EventsFilters.png)
 
-4. Using Finance and Operations, add tables to Export to data lake service. 
-5. Cdm.json files gets created, storage event trigers the Function App 
-6. Function app reads the CDM metadata and generate and execute TSQL DDL on Synapse.   
+### Execute:
 
-## 2. Azure function App with HTTP Events or localy using Visual Studio 
-CDMUtil function app HTTP events can be triggered from client application such as ADF/Synapse pipeline, LogicApp, Power Automate or PostMan 
-Following HTTP events are available.
+1. Using Finance and Operations, add tables to Export to data lake service. 
+2. Cdm.json files gets created, storage event trigers the Function App 
+3. Function app reads the CDM metadata and generate and execute TSQL DDL on Synapse.   
 
-|Function name| Description           
-|--| ----------------- |
-|manifestToSQL| Read cdm metadata, generate TSQL and execute on Synapse endpoint  |
-|manifestToSQLDDL| Read cdm metadata, generate TSQL and return metadata  |
-|getManifestDefinition|generate manifest definition path |
-|createManifest|create CDM metadata |
+## 2. CDMUtil Console App 
+For simple POC scenario you can execute the CDMUtil solution as a Console Application and create view or external table on Synapse Serverless SQL Pool. 
 
+> **_NOTE:_**  This is applicable for scenarios when export to data lake add-in available in your sandbox environment or exporting Tables data using ADF Solution from tier 1 enviromentment.
 
-## 3. CDMUtil Console App 
-For simple POC scenario you can execute the CDMUtil solution as a Console Application and create view or external table on Synapse Serverless SQL Pool.
+### Deploy: Console App
 1. Download the Console Application executable [CDMUtilConsoleApp.zip](/Analytics/CDMUtilSolution/CDMUtilConsoleApp.zip)
 2. Extract the zip file and extract to local folder 
-3. Open CDMUtil_ConsoleApp.dll.config file and update the parameters as per your setup
+
+### Configure: Console App Parameters
+
+1. Open CDMUtil_ConsoleApp.dll.config file and update the parameters as per your setup
 
 ```XML
 <?xml version="1.0" encoding="utf-8" ?>
@@ -137,10 +78,42 @@ For simple POC scenario you can execute the CDMUtil solution as a Console Applic
   </appSettings>
 </configuration>
 ```
-4. Console application will use AccessKey to read cdm files from data lake and use sql login to execute DDL on synapse sql pool.
-5. To use AAD authentication with current windows user you can remove AccessKey and user id and password from connection string.
-4. Run CDMUtil_ConsoleApp.exe
 
+2. Console application will use AccessKey to read cdm files from data lake and use sql login to execute DDL on synapse sql pool.
+3. To use AAD authentication with current windows user you can remove AccessKey and user id and password from connection string.
+
+### Execute : Console App 
+Run CDMUtil_ConsoleApp.exe and monitor the result 
+
+
+## 3. Azure function App with HTTP Events
+CDMUtil function app HTTP events can be triggered from client application such as ADF/Synapse pipeline, LogicApp, Power Automate or PostMan. 
+
+> **_NOTE:_**  This is primarly applicable for scenarios to create CDM metadata using ADF Solution to export data from cloud hosted environments
+
+### Deploy: CDMUtil as Azure Function App
+[Deploy CDMUtil as Azure Function App](deploycdmutil.md) as per the instruction.
+
+### Configure: Client application
+Configure client application such as ADF, Logic App or Power Automate  or postman to call Functions with Function App URL and parameters
+
+Following HTTP events are available as HTTP Events 
+
+|Function name| Description           
+|--| ----------------- |
+|manifestToSQL| Read cdm metadata, generate TSQL and execute on Synapse endpoint  |
+|manifestToSQLDDL| Read cdm metadata, generate TSQL and return metadata  |
+|getManifestDefinition|generate manifest definition path |
+|createManifest|create CDM metadata |
+
+Using PostMan as Client Application 
+1. User must have Storage Blob Data Contributor and Storage Blob Data Reader access on the Storage account and AAD access on the SQL-On-Demand endpoint
+2. Download and install [Postman](https://www.postman.com/downloads/) if you dont have it already.
+3. Import [PostmanCollection](/Analytics/CDMUtilSolution/CDMUtil.postman_collection)
+4. Collection contains request for all methods with sample header value 
+
+### Execute: Client application 
+Execute client application and monitor the response
 
 # Additional References
 
