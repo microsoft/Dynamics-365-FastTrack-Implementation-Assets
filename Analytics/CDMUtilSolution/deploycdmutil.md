@@ -1,22 +1,22 @@
 # Deploy CDMUtil as Function App 
-To atomate reading and writing of CDM metadata, CDMUtil can be deployed as function App. Follow the steps bellow to deploy and configure
+To atomate reading and writing of CDM metadata, CDMUtil can be deployed as an Azure Function App. Follow the steps below to deploy and configure.
 
 ## Prerequisites
-To deploy and use the CDMUtil solution to Azure, following pre-requisites are required
+To deploy and use the CDMUtil solution to Azure, the following pre-requisites are required:
 1. Azure subscription. You will require contributor access to an existing Azure subscription. If you don't have an Azure subscription, create a free Azure account before you begin.
 2. Install Visual Studio 2019: to build and deploy C# solution as Azure function App (Download and .NET46 framework install https://dotnet.microsoft.com/download/dotnet-framework/thank-you/net462-developer-pack-offline-installer)
-3. Create Synapse Analytics Workspace** [create synapse workspace](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-create-workspace) 
+3. Create a Synapse Analytics Workspace** [create synapse workspace](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-create-workspace) 
 
 ## Deployment steps
-Deploy the CDMUtil solution as Azure function to automate end to end process of creating or updating metadata on Synapse Analytics. 
+Deploy the CDMUtil solution as an Azure Function to automate end to end process of creating or updating metadata on Synapse Analytics. 
 1. **Install Visual Studio 2019**: to build C# solution you need to Download and Install Visual Studio 2019 and .NET46 framework install https://dotnet.microsoft.com/download/dotnet-framework/thank-you/net462-developer-pack-offline-installer)
 2.	Clone the repository [Dynamics-365-FastTrack-Implementation-Assets](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets)
 ![Clone](/Analytics/CloneRepository.PNG)
 3. Open C# solution Microsoft.CommonDataModel.sln in Visual Studio 2019 and build
 4.	Publish the CDMUtil_AzureFunctions Project as Azure function 
     1. Right-click on the project CDMUtil_AzureFunctions from Solution Explorer and select "Publish". 
-    2. Select Azure as Target and selct Azure Function Apps ( Windows) 
-    3. Click Create new Azure Function App and select subscription and resource group to create Azure function app 
+    2. Select Azure as Target and selct Azure Function Apps (Windows) 
+    3. Click Create new Azure Function App and select subscription and resource group to create Azure Function App 
     4. Click Publish ![Publish Azure Function](/Analytics/DeployAzureFunction.gif)
 
 ## Configuration and access control 
@@ -25,7 +25,7 @@ Deploy the CDMUtil solution as Azure function to automate end to end process of 
 2. ***Enable MSI*** go to Identity tab enable [System managed identity](/Analytics/EnableMSI.PNG) 
 
 ### Update configuration 
-1. In Azure portal, function app click on configuration and add following new application settings  a
+1. In Azure portal, function app click on configuration and add following new application settings:
 
 | Name           |Description |Example Value  |
 | ----------------- |:---|:--------------|
@@ -34,17 +34,17 @@ Deploy the CDMUtil solution as Azure function to automate end to end process of 
 
 ![Applicationsetting](applicationsetting.png)
 
-2. (Optional) additional optional configuration that can be provided to overide the default values can be found under CDMUTIL parameters details section bellow   
+2. (Optional) additional optional configuration that can be provided to overide the default values can be found under CDMUTIL parameters details section below   
 
 ### Grant access control 
 #### Storage account 
-To Read and Write CDM metadata to storage account, function app must have Blob Data Reader and Blob Data Contributor access.
+To Read and Write CDM metadata to storage account, Function App must have Blob Data Reader and Blob Data Contributor access.
 1. In Azure portal, go to Storage account and grant Blob Data Contributor and Blob Data Reader access to current user 
-2. In case solution is Deployed as Azure Function Apps, you must enable ***System managed identity*** and grant MSI app Blob Data Contributor and Blob Data Reader access 
+2. In case solution is Deployed as Azure Function App, you must enable ***System managed identity*** and grant MSI app Blob Data Contributor and Blob Data Reader access 
 ![Storage Access](/Analytics/AADAppStorageAccountAccess.PNG)
 
 #### Synapse Analytics 
-To execute DDL statement on synapse analytics, you can either use sql user authentication or MSI authentication. To use MSI authentical, connect to Synapse Analytics and run following script 
+To execute DDL statement on Synapse Analytics, you can either use SQL user authentication or MSI authentication. To use MSI authentical, connect to Synapse Analytics and run following script 
 ```SQL
 -- MSI user can only be added when you are connected to Synapse SQL Pool Endpoint using AAD login 
 
