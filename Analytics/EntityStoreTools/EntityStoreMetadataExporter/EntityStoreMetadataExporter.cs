@@ -29,7 +29,7 @@
         /// <param name="outputPath">The output directory path.</param>
         public static void ExportMetadata(string measureName, string packagePath, string axDbSqlConnectionString, string outputPath)
         {
-            Console.WriteLine($"Entity Store Metadata Exporter Tool (EntityStoreTools Version 2.1)\n");
+            Console.WriteLine($"Entity Store Metadata Exporter Tool (EntityStoreTools Version 2.3)\n");
 
             ContractValidator.MustNotBeEmpty(measureName, nameof(measureName));
             ContractValidator.MustNotBeEmpty(packagePath, nameof(packagePath));
@@ -179,7 +179,6 @@
         private static void RecursivelyAddDataSourcesFromQuery(IMetadataProvider metadataProvider, HashSet<string> dimensionsTables, HashSet<string> dimensionsViews, string element)
         {
             AxView view = metadataProvider.Views.Read(element);
-            AxDataEntity dataEntity = metadataProvider.DataEntityViews.Read(element);
 
             if (view != null && !string.IsNullOrEmpty(view.Query))
             {
@@ -192,31 +191,24 @@
                     {
                         dynamic queryObject = JObject.Load(jsonTextReader);
 
-                        foreach (var dataSources in queryObject.DataSources)
+                        foreach (var dataSource in queryObject.DataSources)
                         {
-                            SeparateTablesAndViews(metadataProvider, dimensionsTables, dimensionsViews, dataSources.Table.ToString());
+                            SeparateTablesAndViews(metadataProvider, dimensionsTables, dimensionsViews, dataSource.Table.ToString());
+
+                            RecursivelyAddDataSourcesFromDataSource(metadataProvider, dimensionsTables, dimensionsViews, dataSource);
                         }
                     }
                 }
             }
+        }
 
-            if (dataEntity != null && !string.IsNullOrEmpty(dataEntity.Query))
+        private static void RecursivelyAddDataSourcesFromDataSource(IMetadataProvider metadataProvider, HashSet<string> dimensionsTables, HashSet<string> dimensionsViews, dynamic dataSource)
+        {
+            foreach (var source in dataSource.DataSources)
             {
-                AxQuery axQuery = metadataProvider.Queries.Read(dataEntity.Query);
+                SeparateTablesAndViews(metadataProvider, dimensionsTables, dimensionsViews, source.Table.ToString());
 
-                var json = JsonConvert.SerializeObject(axQuery, Formatting.Indented);
-                using (TextReader sr = new StringReader(json))
-                {
-                    using (var jsonTextReader = new JsonTextReader(sr))
-                    {
-                        dynamic queryObject = JObject.Load(jsonTextReader);
-
-                        foreach (var dataSources in queryObject.DataSources)
-                        {
-                            SeparateTablesAndViews(metadataProvider, dimensionsTables, dimensionsViews, dataSources.Table.ToString());
-                        }
-                    }
-                }
+                RecursivelyAddDataSourcesFromDataSource(metadataProvider, dimensionsTables, dimensionsViews, source);
             }
         }
 
