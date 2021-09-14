@@ -1,32 +1,32 @@
 # Overview 
-CDMUtil solution is client tool based on [CDM SDK](https://github.com/microsoft/CDM/tree/master/objectModel/CSharp) to read and convert CDM metadata as TSQL DDL statements for Synapse Analytics. It can also convert SQL Server Table metadata as CDM metadata in Azure Data lake. CDMUtil can be deployed as Azure Function App or local console app to help with following scenarios:
+CDMUtil solution is a client tool based on [CDM SDK](https://github.com/microsoft/CDM/tree/master/objectModel/CSharp) to read and convert CDM metadata as TSQL DDL statements for Synapse Analytics. It can also convert SQL Server Table metadata as CDM metadata in Azure Data Lake. CDMUtil can be deployed as an Azure Function App or local console app to help with following scenarios:
 
 ## Create T-SQL metadata on Synapse Analytics from CDM metadata: 
-Convert CDM metadata to TSQL DDL statements and execute DDL on Synapse Analytics. You can use CDMUtil reader functions to read the CDM metadata created by Dynamics 365 Export to Data Lake feature to automatically create view or external tables on Synapse Analytics. 
+Convert CDM metadata to TSQL DDL statements and execute DDL on Synapse Analytics. You can use CDMUtil reader functions to read the CDM metadata created by Dynamics 365 Export to Azure Data Lake feature to automatically create views or external tables on Synapse Analytics. 
 Following diagram shows high level concept of the scenario.  
  ![Cdmreader](cdmreader.png)
-## Export SQL server tables data to Azure data lake in CDM format:
-Convert SQL server table metadata into CDM format and write cdm.json and manifest.cdm.json into Azure data lake. You can utilize CDMUtil writer functions with Azure data factory/Synapse pipeline to Export SQL Server tables data to data lake in CDM format (Use copy activity to copy table data and CDMUtil to create CDM metadata).
+## Export SQL server tables data to Azure Data Lake in CDM format:
+Convert SQL server table metadata into CDM format and write cdm.json and manifest.cdm.json into Azure Data Lake. You can utilize CDMUtil writer functions with Azure Data Factory/Synapse pipeline to Export SQL Server tables data to data lake in CDM format (Use copy activity to copy table data and CDMUtil to create CDM metadata).
 
 ![Cdmwriter](cdmwriter.png)
 
 # CDMUTIL Usage Scenarios
 
-CDMUtil can be used in following scenarios 
+CDMUtil can be used in the following scenarios: 
 
-## 1. Azure function App with integrated storage events (EventGrid) - 
+## 1. Azure Function App with integrated storage events (EventGrid) - 
 For complete automation, CDMUtil EventGrid triiger can be used to react on blob created (cdm.json) and create views/external table on Synapse Analytics. 
 
-> **_NOTE:_**  This is applicable for scenarios when export to data lake add-in available in your sandbox environment or exporting Tables data using ADF Solution from tier 1 enviromentment.
+> **_NOTE:_**  This is applicable for scenarios when the Export to Azure Data Lake add-in is available in your sandbox environment, or when exporting tables data using ADF Solution from a Tier 1 enviromentment.
 
 ### Deploy:CDMUtil as Azure Function App
 [Deploy CDMUtil as Azure Function App](deploycdmutil.md) as per the instruction.
 
 ### Configure: Storage event subscription
-1. In Azure portal, go to storage account , click on Events > + Event Subscription to create a new event subscription
-2. Give a name and select Azure function app eventGrid_CDMToSynapseView as endpoint.
+1. In Azure portal, go to storage account, click on Events > + Event Subscription to create a new event subscription
+2. Give a name and select Azure Function App eventGrid_CDMToSynapseView as endpoint.
 ![Create Event Subscription](createEventSubscription.png)
-3. Click of Filters and update event filters as following 
+3. Click on Filters and update event filters as following 
   a.  Enable subject filters
   * **Subject begin with**: /blobServices/default/containers/dynamics365-financeandoperations/blobs/***environment***.sandbox.operations.dynamics.com/Tables
   * **Subject ends with**: .cdm.json
@@ -39,14 +39,14 @@ For complete automation, CDMUtil EventGrid triiger can be used to react on blob 
 
 ### Execute:
 
-1. Using Finance and Operations, add tables to Export to data lake service. 
+1. Using Finance and Operations, add tables to the Export to Azure Data Lake service. 
 2. Cdm.json files gets created, storage event trigers the Function App 
-3. Function app reads the CDM metadata and generate and execute TSQL DDL on Synapse.   
+3. Function App reads the CDM metadata and generate and execute TSQL DDL on Synapse.   
 
 ## 2. CDMUtil Console App 
 For simple POC scenario you can execute the CDMUtil solution as a Console Application and create view or external table on Synapse Serverless SQL Pool. 
 
-> **_NOTE:_**  This is applicable for scenarios when export to data lake add-in available in your sandbox environment or exporting Tables data using ADF Solution from tier 1 enviromentment.
+> **_NOTE:_**  This is applicable for scenarios when the Export to Azure Data Lake add-in is available in your sandbox environment, or when exporting tables data using ADF Solution from a Tier 1 enviromentment.
 
 ### Deploy: Console App
 1. Download the Console Application executable [CDMUtilConsoleApp.zip](/Analytics/CDMUtilSolution/CDMUtilConsoleApp.zip)
@@ -88,13 +88,13 @@ Run CDMUtil_ConsoleApp.exe and monitor the result
 ## 3. Azure function App with HTTP Events
 CDMUtil function app HTTP events can be triggered from client application such as ADF/Synapse pipeline, LogicApp, Power Automate or PostMan. 
 
-> **_NOTE:_**  This is primarly applicable for scenarios to create CDM metadata using ADF Solution to export data from cloud hosted environments
+> **_NOTE:_**  This is primarly applicable for scenarios in which you create CDM metadata using ADF Solution to export data from cloud hosted environments (Tier 1)
 
 ### Deploy: CDMUtil as Azure Function App
 [Deploy CDMUtil as Azure Function App](deploycdmutil.md) as per the instruction.
 
 ### Configure: Client application
-Configure client application such as ADF, Logic App or Power Automate  or postman to call Functions with Function App URL and parameters
+Configure client application such as ADF, Logic App, or Power Automate  or postman to call Functions with Function App URL and parameters.
 
 Following HTTP events are available as HTTP Events 
 
@@ -151,8 +151,8 @@ When Finance and Operations Metadata add-inis  enables and "select tables using 
  3. **Syntax dependecy**: Some data entities or views may have syntax that are not supported in synapse. CDMUtil contain ReplaceViewSyntax.json file to replace some such known syntax changes. Additional replacement can be added in the file if required.        
 
 ### Metadata add-in not enabled 
-Once you have created Tables as view or external table. You can create additional view on Synapse Serverless. Customer that are using BYOD for reporting and BI scenarios with Dynamics 365 for Finance and Operations Apps, may wants to create BYOD Statging table or Data Entity Schema as view so that their reports and solution can work without much of change. As you might know that Data entities in AXDB are nothing but views, so you can copy the view definition and create that on Synapse SQL Serveless to get the same schema as you have in BYOD. 
-Once tables views are present you can copy the view definition of Data entities from AXDB and create view on synapse. Sometime entities may have several level of dependencies on tables or views and help with that you can use bellow script that you can execute on the AXDB and get the view definition with dependencies 
+Once you have created Tables as view or external table, you can create additional view on Synapse Serverless. Customers that are using BYOD for reporting and BI scenarios with Dynamics 365 for Finance and Operations Apps, may want to create BYOD Statging table or Data Entity Schema as view so that their reports and solution can work without much change. As you might know, data entities in AXDB are nothing but views, so you can copy the view definition and create that on Synapse SQL Serveless to get the same schema as you have in BYOD. 
+Once tables views are present you can copy the view definition of data entities from AXDB and create view on Synapse. Sometimes entities may have several level of dependencies on tables or views, and to help with that you can use the below script that you can execute on the AXDB and get the view definition with dependencies: 
 
 ![View Definition and Dependency](/Analytics/CDMUtilSolution/ViewsAndDependencies.sql)
 
