@@ -38,7 +38,7 @@
                         sqlProvider = new SynapseSqlProvider(options.ConnectionString);
                     }
 
-                    Console.WriteLine($"Entity Store to Synapse Tool (EntityStoreTools Version 2.3)\n");
+                    Console.WriteLine($"Entity Store to Synapse Tool (EntityStoreTools Version 2.4)\n");
 
                     if (!File.Exists(options.MetadataPath))
                     {
@@ -136,7 +136,7 @@
                 {
                     if (factTableColumns.Add(attribute.Name.ToString().ToUpper()))
                     {
-                        createMeasureGroupQuery += $"{attribute.KeyFields[0].DimensionField} AS {attribute.Name},";
+                        createMeasureGroupQuery += $"{attribute.KeyFields[0].DimensionField} AS {attribute.Name.ToString().ToUpper()},";
                     }
                 }
 
@@ -157,7 +157,7 @@
                         {
                             if (factTableColumns.Add(contraint.RelatedField.ToString().ToUpper()))
                             {
-                                createMeasureGroupQuery += $"{contraint.RelatedField} AS {contraint.Name},";
+                                createMeasureGroupQuery += $"{contraint.RelatedField} AS {contraint.Name.ToString().ToUpper()},";
                             }
 
                             if (fkFlag)
@@ -220,7 +220,7 @@
 
             foreach (var attr in attributes)
             {
-                result += $"'T{counter}.{attr.Name}' {attr.Name},";
+                result += $"'T{counter}.{attr.Name}' {attr.Name.ToString().ToUpper()},";
             }
 
             return result;
@@ -285,7 +285,7 @@
                                         var reservedColumn = CheckReservedWord(attribute.KeyFields[0].DimensionField, attribute.Name, createDimensionQuery);
                                         if (!reservedColumn.Item1)
                                         {
-                                            createDimensionQuery += $"{attribute.KeyFields[0].DimensionField} AS {attribute.Name},";
+                                            createDimensionQuery += $"{attribute.KeyFields[0].DimensionField} AS {attribute.Name.ToString().ToUpper()},";
                                         }
                                         else
                                         {
@@ -304,7 +304,7 @@
                                                 var reservedColumn = CheckReservedWord(field.DimensionField, attribute.Name, createDimensionQuery);
                                                 if (!reservedColumn.Item1)
                                                 {
-                                                    createDimensionQuery += $"{field.DimensionField} AS {attribute.Name},";
+                                                    createDimensionQuery += $"{field.DimensionField} AS {attribute.Name.ToString().ToUpper()},";
                                                 }
                                                 else
                                                 {
@@ -317,7 +317,7 @@
                                             var reservedColumn = CheckReservedWord(field.DimensionField, field.DimensionField, createDimensionQuery);
                                             if (!reservedColumn.Item1)
                                             {
-                                                createDimensionQuery += $"{field.DimensionField},";
+                                                createDimensionQuery += $"{field.DimensionField.ToString().ToUpper()},";
                                             }
                                             else
                                             {
@@ -388,18 +388,18 @@
             {
                 if (reservedWords.Contains(dimensionName.ToString().ToUpper()))
                 {
-                    createDimensionQuery += $"{dimensionField}_ AS {dimensionName}_,";
+                    createDimensionQuery += $"{dimensionField}_ AS {dimensionName.ToString().ToUpper()}_,";
                 }
                 else
                 {
-                    createDimensionQuery += $"{dimensionField}_ AS {dimensionName},";
+                    createDimensionQuery += $"{dimensionField}_ AS {dimensionName.ToString().ToUpper()},";
                 }
 
                 return (true, createDimensionQuery);
             }
             else if (reservedWords.Contains(dimensionName.ToString().ToUpper()))
             {
-                createDimensionQuery += $"{dimensionField} AS {dimensionName}_,";
+                createDimensionQuery += $"{dimensionField} AS {dimensionName.ToString().ToUpper()}_,";
 
                 return (true, createDimensionQuery);
             }
@@ -427,7 +427,7 @@
 
             foreach (var column in commonColumns)
             {
-                createDimensionQuery += $"{column},";
+                createDimensionQuery += $"{column.ToString().ToUpper()},";
             }
 
             return createDimensionQuery;
