@@ -38,7 +38,7 @@
                         sqlProvider = new SynapseSqlProvider(options.ConnectionString);
                     }
 
-                    Console.WriteLine($"Entity Store to Synapse Tool (EntityStoreTools Version 2.4)\n");
+                    Console.WriteLine($"Entity Store to Synapse Tool (EntityStoreTools Version 2.5)\n");
 
                     if (!File.Exists(options.MetadataPath))
                     {
