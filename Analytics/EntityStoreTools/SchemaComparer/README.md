@@ -1,10 +1,10 @@
 ﻿# Description
 
-This tool compares table schemas in two databases based on the Aggregate Measurement metadata file.
+This tool compares MeasureGroup and Dimension Table schemas in two databases based on the Aggregate Measurement metadata file.
 
 # Requirements
 
-All tables used in this Aggregate Measurement metadata should have been created in the target Azure Synapse database. This process is typically done in two steps: 1) in Dynamics Finance & Operations navigate to Data Lake > Export using Tables; Once the required tables are exported to the lake you can run the [CDMUtil](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets) tool to create these tables in Azure Synapse.
+All tables used in this Aggregate Measurement metadata should have been created in both the databases.
 
 # Publishing the binaries
 
@@ -21,13 +21,13 @@ For other operating systems, please consult the [runtime identifier catalog](htt
 
 Using connection string:
 ```
- .\SchemaComparer.exe --path <metadata_file_path> --connection-string "Server=tcp:<sql_pool_name>.sql.azuresynapse.net,1433;Initial Catalog=master;Persist Security Info=False;User ID=<username>;Password=<password>;"
+ .\SchemaComparer.exe --path <metadata_file_path> --connection-string "Server=tcp:<sql_pool_name>.sql.azuresynapse.net,1433;Initial Catalog=master;Persist Security Info=False;User ID=<username>;Password=<password>;" --ax-connection-string "<connection_string_to_axdw>"
 ```
 
 Alternatively, you can pass user credentials and server address:
 
 ```
- .\SchemaComparer.exe --path <metadata_file_path> --server "<sql_pool_name>.sql.azuresynapse.net" --username <usename> --password <password> --database <database>
+ .\SchemaComparer.exe --path <metadata_file_path>  --server "<sql_pool_name>.sql.azuresynapse.net" --username <synapseusename> --password <synapsepassword> --database <synapsedatabase> --ax-server "<axdwserver>" --ax-username <axdwusename> --ax-password <axdwpassword> --ax-database <axdwdatabase>
 ```
 
 If you want to use Azure Active Directory authentication you can use a connection string as detailed on this page: [Using Azure Active Directory authentication with SqlClient](https://docs.microsoft.com/en-us/sql/connect/ado-net/sql/azure-active-directory-authentication?view=sql-server-ver15).

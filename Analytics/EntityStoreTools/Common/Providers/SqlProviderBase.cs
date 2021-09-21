@@ -62,5 +62,31 @@
                 }
             }
         }
+
+        public List<string> ReadSqlStatement(string statement)
+        {
+            ContractValidator.MustNotBeEmpty(statement, "statement");
+            List<string> columnsList = new List<string>();
+
+            using (SqlConnection connection = new SqlConnection(this.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand(statement, connection))
+                {
+                    connection.Open();
+
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            columnsList.Add(reader["column_name"].ToString());
+                        }
+
+                        connection.Close();
+                    }
+                }
+            }
+
+            return columnsList;
+        }
     }
 }
