@@ -139,7 +139,8 @@ Once Azure data factory template deployed successfully, navigate to Azure Data F
 2. Validate the CDM folder structure and metadata. 
 ![CDMFolder](/Analytics/CDMFolder.PNG)
 
-***If you are missing the manifest files, most likely Azure function failed to authenticate to Storage account. To troubleshoot, validate the Azure function configuration and Storage account access control. You can [debug Azure function locally in Visual studio] (https://dotnetthoughts.net/developing-functions-locally/). Postman collection template can be found under /SQLToADLSFullExport/CDMUtil.postman_collection  ***
+***If you are missing the manifest files, most likely Azure function failed to authenticate to Storage account. To troubleshoot, validate the Azure function configuration and Storage account access control. You can [debug Azure function locally in Visual studio](https://dotnetthoughts.net/developing-functions-locally/). Postman collection template can be found under /SQLToADLSFullExport/CDMUtil.postman_collection***
+
 3. Execute pipeline CreateView to create the views.
 ![CreateView](/Analytics/ExecuteCreateView.PNG)
 4. Validate view created on Synapse SQL-On-Demand
