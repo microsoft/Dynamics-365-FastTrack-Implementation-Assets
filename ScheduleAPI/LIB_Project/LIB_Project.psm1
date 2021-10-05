@@ -9,6 +9,7 @@ class Project
    [string]      $calendar
    [string]      $company 
    [string]      $projectManager
+   [string]      $startDate
 
    Project ([string] $projectName,$tenant,$environment)
    {
@@ -19,6 +20,7 @@ class Project
       $this.customerName = ""
       $this.calendar = ""
       $this.projectManager = ""
+      $this.startDate = ""
    }
 
    [void] GetProjectId ()
@@ -60,6 +62,10 @@ class Project
           $projectManagerRef = $this.request.WebCall().value.systemuserid
           $project."msdyn_projectmanager@odata.bind"   = "/systemusers(" + $projectManagerRef +")"
       }
+      if ($this.startDate -ne "")
+      {
+         $project.msdyn_scheduledstart = $this.startDate
+      }
       $this.request.Command = 'api/data/v9.1/msdyn_CreateProjectV1'
       $this.request.Body = @{ Project = $project }
       $this.request.Method = 'POST'
@@ -91,7 +97,6 @@ class Project
       }
       return $teamMemberId
    }
-
 
    [string] CreateTeamMember ([string] $teamMemberName)
    {
