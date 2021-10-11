@@ -66,7 +66,7 @@ Prerequisites
 
 -   **Azure storage account** -  If you don\'t have a storage account,
     see [Create an Azure storage
-    account](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-create?tabs=azure-portal#create-a-storage-account)Â for
+    account](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-create?tabs=azure-portal#create-a-storage-account) for
     steps to create one.
 
 -   **Azure data factory** - Create an Azure Data Factory resource
