@@ -6,7 +6,7 @@ The article also describes a console application.
 With this Powershell example we demonstrate the RestAPI calls so that it easily can be used as basis in other middleware software. 
 
 ### Components
-The main program, PO_ImportTasks.ps1, creates in the specified project the tasks which are describe in the data file. If the project doesn't exist it creates the project with parameters projectName, companyName, customerName, calendarName and projectManager.
+The main program, PO_ImportTasks.ps1, creates in the specified project the tasks which are described in the data file. If the project doesn't exist it creates the project with parameters projectName, companyName, customerName, calendarName and projectManager.
 
 The sample data file, ProjectTasks.xlsx, contains a simple WBS with one parent task and two sub taskes which are assigned to a resource. The second subtask has a dependency on the first sub task. 
 
