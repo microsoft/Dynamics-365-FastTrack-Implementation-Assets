@@ -215,7 +215,7 @@ namespace CDMUtil
         {
             string ConfigValue;
             
-            if (req != null && String.IsNullOrEmpty(req.Headers[token]))
+            if (req != null && !String.IsNullOrEmpty(req.Headers[token]))
             {
                 ConfigValue = req.Headers[token];
             }
