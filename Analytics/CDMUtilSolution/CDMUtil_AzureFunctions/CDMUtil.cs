@@ -211,13 +211,25 @@ namespace CDMUtil
             var statements = new SQLStatements { Statements = statementsList };
             sQLHandler.executeStatements(statements);
         }
-        public static string getConfigurationValue(HttpRequest req, string token)
+        public static string getConfigurationValue(HttpRequest req, string token, string url = null)
         {
             string ConfigValue;
             
             if (req != null && !String.IsNullOrEmpty(req.Headers[token]))
             {
                 ConfigValue = req.Headers[token];
+            }
+            else if (!String.IsNullOrEmpty(url))
+            {
+                var urlParts = url.Split('/');
+                var storageAccount = urlParts.Length >= 3 ? urlParts[2].Split('.')[0] : null;
+                var container = urlParts.Length >= 4 ? urlParts[3] : null;
+                var environment = urlParts.Length >= 5 ? urlParts[4] : null;
+                var folder = urlParts.Length >= 6 ? urlParts[5] : null;
+                ConfigValue = Environment.GetEnvironmentVariable($"{storageAccount}:{container}:{environment}:{folder}:{token}")
+                    ?? Environment.GetEnvironmentVariable($"{storageAccount}:{container}:{environment}:{token}")
+                    ?? Environment.GetEnvironmentVariable($"{storageAccount}:{container}:{token}")
+                    ?? Environment.GetEnvironmentVariable($"{storageAccount}:{token}");
             }
             else
             {
@@ -246,33 +258,33 @@ namespace CDMUtil
                 throw new Exception($"Invalid manifest URL:{ManifestURL}");
             }
 
-            string tenantId = getConfigurationValue(req, "TenantId");
-            string connectionString = getConfigurationValue(req, "SQLEndpoint");
-            string DDLType = getConfigurationValue(req, "DDLType");
+            string tenantId = getConfigurationValue(req, "TenantId", ManifestURL);
+            string connectionString = getConfigurationValue(req, "SQLEndpoint", ManifestURL);
+            string DDLType = getConfigurationValue(req, "DDLType", ManifestURL);
             
             AppConfigurations AppConfiguration = new AppConfigurations(tenantId, ManifestURL, null, connectionString, DDLType);
 
-            string dataSourceName = getConfigurationValue(req, "DataSourceName");
+            string dataSourceName = getConfigurationValue(req, "DataSourceName", ManifestURL);
             if (dataSourceName != null)
                 AppConfiguration.synapseOptions.external_data_source = dataSourceName;
 
-            string schema = getConfigurationValue(req, "Schema");
+            string schema = getConfigurationValue(req, "Schema", ManifestURL);
             if (schema != null)
                 AppConfiguration.synapseOptions.schema = schema;
 
-            string fileFormat = getConfigurationValue(req, "FileFormat");
+            string fileFormat = getConfigurationValue(req, "FileFormat", ManifestURL);
             if (fileFormat != null)
                 AppConfiguration.synapseOptions.fileFormatName = fileFormat;
             
-            string DateTimeAsString = getConfigurationValue(req, "DateTimeAsString");            
+            string DateTimeAsString = getConfigurationValue(req, "DateTimeAsString", ManifestURL);            
             if (DateTimeAsString != null)
                 AppConfiguration.synapseOptions.DateTimeAsString = bool.Parse(DateTimeAsString);
             
-            string ConvertDateTime = getConfigurationValue(req, "ConvertDateTime");
+            string ConvertDateTime = getConfigurationValue(req, "ConvertDateTime", ManifestURL);
             if (ConvertDateTime != null)
                 AppConfiguration.synapseOptions.ConvertDateTime = bool.Parse(ConvertDateTime);
 
-            string TranslateEnum = getConfigurationValue(req, "TranslateEnum");
+            string TranslateEnum = getConfigurationValue(req, "TranslateEnum", ManifestURL);
             if (TranslateEnum != null)
                 AppConfiguration.synapseOptions.TranslateEnum = bool.Parse(TranslateEnum);
 
