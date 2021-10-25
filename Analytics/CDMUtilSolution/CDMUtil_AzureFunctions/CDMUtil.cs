@@ -224,10 +224,10 @@ namespace CDMUtil
             {
                 var uri = new Uri(url);
                 var storageAccount = uri.Host.Split('.')[0];
-                var pathSegments = uri.AbsolutePath.Split('/');
-                var n = pathSegments.Length;
-                while (n > 1 && ConfigValue == null) // because of the leading /, the first entry will always be blank and we can disregard it
-                    ConfigValue = Environment.GetEnvironmentVariable($"{storageAccount}:{String.Join(":", pathSegments.Take(n--))}:{token}");
+                var pathSegments = uri.AbsolutePath.Split('/').Skip(1); // because of the leading /, the first entry will always be blank and we can disregard it
+                var n = pathSegments.Count();
+                while (n > 0 && ConfigValue == null)
+                    ConfigValue = System.Environment.GetEnvironmentVariable($"{storageAccount}:{String.Join(":", pathSegments.Take(n--))}:{token}");
             }
             else
             {
