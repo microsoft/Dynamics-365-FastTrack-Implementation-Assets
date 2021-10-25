@@ -14,6 +14,7 @@ using System;
 using CDMUtil.SQL;
 using Microsoft.Azure.WebJobs.Extensions.EventGrid;
 using Microsoft.Azure.EventGrid.Models;
+using System.Linq;
 
 namespace CDMUtil
 {
@@ -213,23 +214,20 @@ namespace CDMUtil
         }
         public static string getConfigurationValue(HttpRequest req, string token, string url = null)
         {
-            string ConfigValue;
-            
+            string ConfigValue = null;
+
             if (req != null && !String.IsNullOrEmpty(req.Headers[token]))
             {
                 ConfigValue = req.Headers[token];
             }
             else if (!String.IsNullOrEmpty(url))
             {
-                var urlParts = url.Split('/');
-                var storageAccount = urlParts.Length >= 3 ? urlParts[2].Split('.')[0] : null;
-                var container = urlParts.Length >= 4 ? urlParts[3] : null;
-                var environment = urlParts.Length >= 5 ? urlParts[4] : null;
-                var folder = urlParts.Length >= 6 ? urlParts[5] : null;
-                ConfigValue = Environment.GetEnvironmentVariable($"{storageAccount}:{container}:{environment}:{folder}:{token}")
-                    ?? Environment.GetEnvironmentVariable($"{storageAccount}:{container}:{environment}:{token}")
-                    ?? Environment.GetEnvironmentVariable($"{storageAccount}:{container}:{token}")
-                    ?? Environment.GetEnvironmentVariable($"{storageAccount}:{token}");
+                var uri = new Uri(url);
+                var storageAccount = uri.Host.Split('.')[0];
+                var pathSegments = uri.AbsolutePath.Split('/');
+                var n = pathSegments.Length;
+                while (n > 1 && ConfigValue == null) // because of the leading /, the first entry will always be blank and we can disregard it
+                    ConfigValue = Environment.GetEnvironmentVariable($"{storageAccount}:{String.Join(":", pathSegments.Take(n--))}:{token}");
             }
             else
             {
