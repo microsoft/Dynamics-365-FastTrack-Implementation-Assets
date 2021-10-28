@@ -226,8 +226,8 @@ namespace CDMUtil
                 var storageAccount = uri.Host.Split('.')[0];
                 var pathSegments = uri.AbsolutePath.Split('/').Skip(1); // because of the leading /, the first entry will always be blank and we can disregard it
                 var n = pathSegments.Count();
-                while (n > 0 && ConfigValue == null)
-                    ConfigValue = System.Environment.GetEnvironmentVariable($"{storageAccount}:{String.Join(":", pathSegments.Take(n--))}:{token}");
+                while (n >= 0 && ConfigValue == null)
+                    ConfigValue = System.Environment.GetEnvironmentVariable($"{storageAccount}:{String.Join(":", pathSegments.Take(n--))}{(n > 0 ? ":" : "")}{token}");
             }
             else
             {
