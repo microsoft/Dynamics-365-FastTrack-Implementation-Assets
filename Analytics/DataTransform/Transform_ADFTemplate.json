@@ -1,0 +1,756 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "factoryName": {
+      "type": "string",
+      "metadata": "Data Factory name",
+      "defaultValue": "[concat('datatransform', uniqueString(resourceGroup().id))]"
+    },
+    "TARGET_STORAGE_url": {
+      "type": "string",
+      "defaultValue": "https://d365folabanalytics.dfs.core.windows.net"
+    },
+    "TARGET_STORAGE_accountKey": {
+      "type": "secureString",
+      "metadata": "Secure string for 'accountKey' of 'DESTINATION_STORAGE'"
+    },
+    "Transform_TargetFile_System_materialized": {
+      "type": "string",
+      "defaultValue": "enterprise-data-model"
+    },
+    "SYNAPSE_SERVERLESS_connectionString": {
+      "type": "secureString",
+      "metadata": "Secure string for 'connectionString' of 'SOURCE_SYNAPSE_SERVERLESS', remove database name from connection string when using seperate database for source and target"
+    },
+    "Transform_Source_Synapse_DB": {
+      "type": "string",
+      "defaultValue": "AnalyticsLab_EnterpriseDataModel",
+      "metadata": "Source synapse db -the database that contains the logical view definition"
+    },
+    "Transform_Target_Synapse_DB": {
+      "type": "string",
+      "defaultValue": "AnalyticsLab_Materialized",
+      "metadata": "Target synapse db -the database to create view for materialized data. Target database can be same database as source."
+    },
+    "Transform_Target_ExternalDataSource": {
+      "type": "string",
+      "defaultValue": "enterprise-data-model",
+      "metadata": "Target external datasource to create view for materialized data."
+    }
+
+  },
+  "variables": {
+    "factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.DataFactory/factories",
+      "apiVersion": "2018-06-01",
+      "name": "[parameters('factoryName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {},
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "resources": [
+        {
+          "name": "[concat(parameters('factoryName'), '/Source_SQL_Query')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "SOURCE_SYNAPSE_SERVERLESS",
+              "type": "LinkedServiceReference",
+              "parameters": {
+                "Database_Name": {
+                  "value": "@dataset().Database_Name",
+                  "type": "Expression"
+                }
+              }
+            },
+            "parameters": {
+              "Database_Name": {
+                "type": "string"
+              }
+            },
+            "folder": {
+              "name": "Source_SQL_Serverless"
+            },
+            "annotations": [],
+            "type": "AzureSqlTable",
+            "schema": [],
+            "typeProperties": {
+              "schema": ""
+            }
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/SOURCE_SYNAPSE_SERVERLESS')]",
+            "[parameters('FactoryName')]"
+          ]
+        },
+        {
+          "name": "[concat(parameters('factoryName'), '/Destination_Parquet_Folder')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "DESTINATION_STORAGE",
+              "type": "LinkedServiceReference"
+            },
+            "parameters": {
+              "FileSystem": {
+                "type": "string"
+              },
+              "Directory": {
+                "type": "string"
+              }
+            },
+            "folder": {
+              "name": "Dest_File_Parquet"
+            },
+            "annotations": [],
+            "type": "Parquet",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobFSLocation",
+                "folderPath": {
+                  "value": "@dataset().Directory",
+                  "type": "Expression"
+                },
+                "fileSystem": {
+                  "value": "@dataset().FileSystem",
+                  "type": "Expression"
+                }
+              },
+              "compressionCodec": "snappy"
+            },
+            "schema": []
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/DESTINATION_STORAGE')]",
+            "[parameters('FactoryName')]"
+          ]
+        },
+        {
+          "name": "[concat(parameters('factoryName'), '/Destination_SQL_Query')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "SOURCE_SYNAPSE_SERVERLESS",
+              "type": "LinkedServiceReference",
+              "parameters": {
+                "Database_Name": {
+                  "value": "@dataset().Database_Name",
+                  "type": "Expression"
+                }
+              }
+            },
+            "parameters": {
+              "Database_Name": {
+                "type": "string"
+              }
+            },
+            "folder": {
+              "name": "Destination_SQL_Serverless"
+            },
+            "annotations": [],
+            "type": "AzureSqlTable",
+            "schema": [],
+            "typeProperties": {
+              "schema": ""
+            }
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/SOURCE_SYNAPSE_SERVERLESS')]",
+            "[parameters('FactoryName')]"
+          ]
+        },
+        {
+          "name": "[concat(parameters('factoryName'), '/Destination_Parquet_File')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "DESTINATION_STORAGE",
+              "type": "LinkedServiceReference"
+            },
+            "parameters": {
+              "Container": {
+                "type": "string"
+              },
+              "Directory": {
+                "type": "string"
+              },
+              "FileName": {
+                "type": "string"
+              }
+            },
+            "folder": {
+              "name": "Dest_File_Parquet"
+            },
+            "annotations": [],
+            "type": "Parquet",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobFSLocation",
+                "fileName": {
+                  "value": "@dataset().FileName",
+                  "type": "Expression"
+                },
+                "folderPath": {
+                  "value": "@dataset().Directory",
+                  "type": "Expression"
+                },
+                "fileSystem": {
+                  "value": "@dataset().Container",
+                  "type": "Expression"
+                }
+              },
+              "compressionCodec": "snappy"
+            },
+            "schema": []
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/DESTINATION_STORAGE')]",
+            "[parameters('FactoryName')]"
+          ]
+        },
+        {
+          "name": "[concat(parameters('factoryName'), '/SOURCE_SYNAPSE_SERVERLESS')]",
+          "type": "Microsoft.DataFactory/factories/linkedServices",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "parameters": {
+              "Database_Name": {
+                "type": "string",
+                "defaultValue": "AnalyticsLab_EnterpriseDataModel"
+              }
+            },
+            "annotations": [],
+            "type": "AzureSqlDatabase",
+            "typeProperties": {
+              "connectionString": "[parameters('SYNAPSE_SERVERLESS_connectionString')]"
+            }
+          },
+          "dependsOn": [
+            "[parameters('FactoryName')]"
+          ]
+        },
+        {
+          "name": "[concat(parameters('factoryName'), '/DESTINATION_STORAGE')]",
+          "type": "Microsoft.DataFactory/factories/linkedServices",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "annotations": [],
+            "type": "AzureBlobFS",
+            "typeProperties": {
+              "url": "[parameters('TARGET_STORAGE_url')]",
+              "accountKey": {
+                "type": "SecureString",
+                "value": "[parameters('TARGET_STORAGE_accountKey')]"
+              }
+            }
+          },
+          "dependsOn": [
+            "[parameters('FactoryName')]"
+          ]
+        },
+        {
+          "name": "[concat(parameters('factoryName'), '/FactTableCopy')]",
+          "type": "Microsoft.DataFactory/factories/pipelines",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "activities": [
+              {
+                "name": "TargetExist",
+                "type": "Lookup",
+                "dependsOn": [],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "source": {
+                    "type": "AzureSqlSource",
+                    "sqlReaderQuery": {
+                      "value": "\tDeclare @viewExist bit = 0;\n\tDeclare @TargetTableName nvarchar(100)= '@{pipeline().parameters.Target_Table}';    \n\tDeclare @Schema nvarchar(100) ;\n\tDeclare @TableName nvarchar(100) ;\n\n\tset @Schema = left(@TargetTableName,CHARINDEX('.', @TargetTableName)-1)\n\tset @TableName = right(@TargetTableName,len(@TargetTableName) - CHARINDEX('.',@TargetTableName))\n\n\tIF EXISTS(select 1 FROM INFORMATION_SCHEMA.VIEWS where TABLE_NAME = @TableName and TABLE_SCHEMA = @Schema)\n\tBEGIN\n\t\tset @ViewExist = 1 ;\n\tEND \n\tselect @viewExist as TargetViewStatus\n\n   ",
+                      "type": "Expression"
+                    },
+                    "queryTimeout": "02:00:00",
+                    "partitionOption": "None"
+                  },
+                  "dataset": {
+                    "referenceName": "Destination_SQL_Query",
+                    "type": "DatasetReference",
+                    "parameters": {
+                      "Database_Name": {
+                        "value": "@pipeline().parameters.Target_Serverless_DB",
+                        "type": "Expression"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "name": "CreateUpdateTargetView",
+                "type": "SqlServerStoredProcedure",
+                "dependsOn": [
+                  {
+                    "activity": "FactTransform",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "storedProcedureName": "[[dbo].[CREATEVIEWPARQUET]",
+                  "storedProcedureParameters": {
+                    "DataSource": {
+                      "value": {
+                        "value": "@pipeline().parameters.External_DataSource",
+                        "type": "Expression"
+                      },
+                      "type": "String"
+                    },
+                    "Location": {
+                      "value": {
+                        "value": "@{pipeline().parameters.Target_Directory}/@{replace(pipeline().parameters.Target_Table, '.', '_')}/*/*/*.parquet",
+                        "type": "Expression"
+                      },
+                      "type": "String"
+                    },
+                    "TargetViewName": {
+                      "value": {
+                        "value": "@pipeline().parameters.Target_Table",
+                        "type": "Expression"
+                      },
+                      "type": "String"
+                    }
+                  }
+                },
+                "linkedServiceName": {
+                  "referenceName": "SOURCE_SYNAPSE_SERVERLESS",
+                  "type": "LinkedServiceReference",
+                  "parameters": {
+                    "Database_Name": {
+                      "value": "@pipeline().parameters.Target_Serverless_DB",
+                      "type": "Expression"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "FactTransform",
+                "type": "ExecuteDataFlow",
+                "dependsOn": [
+                  {
+                    "activity": "TargetExist",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "1.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "dataflow": {
+                    "referenceName": "FactTable_Transform",
+                    "type": "DataFlowReference",
+                    "parameters": {
+                      "SOURCE_TABLE_QUERY": {
+                        "value": "'SELECT * FROM @{pipeline().parameters.Source_Table} '",
+                        "type": "Expression"
+                      },
+                      "PARTITION_DATE_COLUMN": {
+                        "value": "'@{pipeline().parameters.Partition_Date_Column}'",
+                        "type": "Expression"
+                      },
+                      "IS_INCREMENTAL": {
+                        "value": "@bool(activity('TargetExist').output.firstRow.TargetViewStatus)",
+                        "type": "Expression"
+                      },
+                      "REPLACE_MONTH": {
+                        "value": "@pipeline().parameters.Partition_Months_Replace",
+                        "type": "Expression"
+                      }
+                    },
+                    "datasetParameters": {
+                      "SourceTable": {
+                        "Database_Name": {
+                          "value": "@pipeline().parameters.Source_Serverless_DB",
+                          "type": "Expression"
+                        }
+                      },
+                      "DestinationParquet": {
+                        "FileSystem": {
+                          "value": "@pipeline().parameters.Target_FileSystem",
+                          "type": "Expression"
+                        },
+                        "Directory": {
+                          "value": "@{pipeline().parameters.Target_Directory}/@{replace(pipeline().parameters.Target_Table, '.', '_')}",
+                          "type": "Expression"
+                        }
+                      }
+                    }
+                  },
+                  "staging": {},
+                  "compute": {
+                    "coreCount": 8,
+                    "computeType": "General"
+                  },
+                  "traceLevel": "Fine"
+                }
+              }
+            ],
+            "parameters": {
+              "Source_Table": {
+                "type": "string",
+                "defaultValue": "SalesAndProfitability.SalesCube_CustomerInvoiceLines"
+              },
+              "Target_Table": {
+                "type": "string",
+                "defaultValue": "sales.SalesCube_CustomerInvoiceLines"
+              },
+              "Target_FileSystem": {
+                "type": "string",
+                "defaultValue": "[parameters('Transform_Target_ExternalDataSource')]"
+              },
+              "Target_Directory": {
+                "type": "string",
+                "defaultValue": "SalesAndProfitability"
+              },
+              "Partition_Date_Column": {
+                "type": "string",
+                "defaultValue": "INVOICEDATE"
+              },
+              "Partition_Months_Replace": {
+                "type": "int",
+                "defaultValue": 12
+              },
+              "External_DataSource": {
+                "type": "string",
+                "defaultValue": "[parameters('Transform_Target_ExternalDataSource')]"
+              },
+              "Target_Serverless_DB": {
+                "type": "string",
+                "defaultValue": "[parameters('Transform_Target_Synapse_DB')]"
+              },
+              "Source_Serverless_DB": {
+                "type": "string",
+                "defaultValue": "[parameters('Transform_Source_Synapse_DB')]"
+              }
+            },
+            "folder": {
+              "name": "Transform"
+            },
+            "annotations": [],
+            "lastPublishTime": "2021-06-29T13:01:02Z"
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/datasets/Destination_SQL_Query')]",
+            "[concat(variables('factoryId'), '/linkedServices/SOURCE_SYNAPSE_SERVERLESS')]",
+            "[concat(variables('factoryId'), '/dataflows/FactTable_Transform')]",
+            "[parameters('FactoryName')]"
+          ]
+        },
+        {
+          "name": "[concat(parameters('factoryName'), '/FactTable_Transform')]",
+          "type": "Microsoft.DataFactory/factories/dataflows",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "type": "MappingDataFlow",
+            "typeProperties": {
+              "sources": [
+                {
+                  "dataset": {
+                    "referenceName": "Source_SQL_Query",
+                    "type": "DatasetReference"
+                  },
+                  "name": "SourceTable"
+                }
+              ],
+              "sinks": [
+                {
+                  "dataset": {
+                    "referenceName": "Destination_Parquet_Folder",
+                    "type": "DatasetReference"
+                  },
+                  "name": "DestinationParquet"
+                }
+              ],
+              "transformations": [
+                {
+                  "name": "DateColumns"
+                }
+              ],
+              "script": "parameters{\n\tSOURCE_TABLE_QUERY as string,\n\tPARTITION_DATE_COLUMN as string,\n\tIS_INCREMENTAL as boolean (toBoolean('true')),\n\tREPLACE_MONTH as integer (12)\n}\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: ($SOURCE_TABLE_QUERY + iif($IS_INCREMENTAL, \" WHERE \" + $PARTITION_DATE_COLUMN + \" >= '\" + toString(addMonths(currentUTC(), ($REPLACE_MONTH * -1))) + \"'\", \"\")),\n\tformat: 'query') ~> SourceTable\nSourceTable derive(Year = year(toDate(byName($PARTITION_DATE_COLUMN))),\n\t\tMonth = month(toDate(byName($PARTITION_DATE_COLUMN))),\n\t\tFileName = toString(month(toDate(byName($PARTITION_DATE_COLUMN))))+ '.parquet') ~> DateColumns\nDateColumns sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tfilePattern:('DataFile[n].parquet'),\n\ttruncate: (not($IS_INCREMENTAL)),\n\tumask: 0022,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('key',\n\t\t0,\n\t\tYear,\n\t\tMonth\n\t)) ~> DestinationParquet"
+            }
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/datasets/Source_SQL_Query')]",
+            "[concat(variables('factoryId'), '/datasets/Destination_Parquet_Folder')]",
+            "[parameters('FactoryName')]"
+          ]
+        },
+        {
+          "name": "[concat(parameters('factoryName'), '/DimTableCopy')]",
+          "type": "Microsoft.DataFactory/factories/pipelines",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "activities": [
+              {
+                "name": "CreateUpdateTargetView",
+                "type": "SqlServerStoredProcedure",
+                "dependsOn": [
+                  {
+                    "activity": "CopyParquet",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "storedProcedureName": "[[dbo].[CREATEVIEWPARQUET]",
+                  "storedProcedureParameters": {
+                    "DataSource": {
+                      "value": {
+                        "value": "@pipeline().parameters.Target_DataSource",
+                        "type": "Expression"
+                      },
+                      "type": "String"
+                    },
+                    "Location": {
+                      "value": {
+                        "value": "@{pipeline().parameters.Target_Directory}/@{replace(pipeline().parameters.Target_Table, '.', '_')}",
+                        "type": "Expression"
+                      },
+                      "type": "String"
+                    },
+                    "TargetViewName": {
+                      "value": {
+                        "value": "@pipeline().parameters.Target_Table",
+                        "type": "Expression"
+                      },
+                      "type": "String"
+                    }
+                  }
+                },
+                "linkedServiceName": {
+                  "referenceName": "SOURCE_SYNAPSE_SERVERLESS",
+                  "type": "LinkedServiceReference",
+                  "parameters": {
+                    "Database_Name": {
+                      "value": "@pipeline().parameters.Target_Serverless_DB",
+                      "type": "Expression"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "LookupMetadata",
+                "type": "Lookup",
+                "dependsOn": [],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "source": {
+                    "type": "AzureSqlSource",
+                    "sqlReaderStoredProcedureName": "[[dbo].[GetMetadata]",
+                    "storedProcedureParameters": {
+                      "TargetTableName": {
+                        "type": "String",
+                        "value": {
+                          "value": "@pipeline().parameters.Source_Table",
+                          "type": "Expression"
+                        }
+                      }
+                    },
+                    "queryTimeout": "02:00:00",
+                    "partitionOption": "None"
+                  },
+                  "dataset": {
+                    "referenceName": "Source_SQL_Query",
+                    "type": "DatasetReference",
+                    "parameters": {
+                      "Database_Name": {
+                        "value": "@pipeline().parameters.Source_Serverless_DB",
+                        "type": "Expression"
+                      }
+                    }
+                  },
+                  "firstRowOnly": true
+                }
+              },
+              {
+                "name": "CopyParquet",
+                "type": "Copy",
+                "dependsOn": [
+                  {
+                    "activity": "LookupMetadata",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "source": {
+                    "type": "AzureSqlSource",
+                    "additionalColumns": [
+                      {
+                        "name": "ImportDateTime",
+                        "value": {
+                          "value": "@utcnow()",
+                          "type": "Expression"
+                        }
+                      }
+                    ],
+                    "sqlReaderQuery": {
+                      "value": "SELECT @{activity('LookupMetadata').output.firstRow.COLUMN_NAME} FROM @{pipeline().parameters.Source_Table}",
+                      "type": "Expression"
+                    },
+                    "queryTimeout": "02:00:00",
+                    "partitionOption": "None"
+                  },
+                  "sink": {
+                    "type": "ParquetSink",
+                    "storeSettings": {
+                      "type": "AzureBlobFSWriteSettings"
+                    },
+                    "formatSettings": {
+                      "type": "ParquetWriteSettings"
+                    }
+                  },
+                  "enableStaging": false,
+                  "translator": {
+                    "type": "TabularTranslator",
+                    "typeConversion": true,
+                    "typeConversionSettings": {
+                      "allowDataTruncation": true,
+                      "treatBooleanAsNumber": false
+                    }
+                  }
+                },
+                "inputs": [
+                  {
+                    "referenceName": "Source_SQL_Query",
+                    "type": "DatasetReference",
+                    "parameters": {
+                      "Database_Name": {
+                        "value": "@pipeline().parameters.Source_Serverless_DB",
+                        "type": "Expression"
+                      }
+                    }
+                  }
+                ],
+                "outputs": [
+                  {
+                    "referenceName": "Destination_Parquet_File",
+                    "type": "DatasetReference",
+                    "parameters": {
+                      "Container": {
+                        "value": "@pipeline().parameters.Target_FileSystem",
+                        "type": "Expression"
+                      },
+                      "Directory": {
+                        "value": "@{pipeline().parameters.Target_Directory}/@{replace(pipeline().parameters.Target_Table, '.', '_')}",
+                        "type": "Expression"
+                      },
+                      "FileName": {
+                        "value": "@{replace(pipeline().parameters.Target_Table, '.', '_')}.parquet",
+                        "type": "Expression"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "parameters": {
+              "Source_Table": {
+                "type": "string",
+                "defaultValue": "SalesAndProfitability.SalesCube_Customer"
+              },
+              "Target_Table": {
+                "type": "string",
+                "defaultValue": "sales.SalesCube_Customer"
+              },
+              "Target_FileSystem": {
+                "type": "string",
+                "defaultValue": "[parameters('Transform_TargetFile_System_materialized')]"
+              },
+              "Target_Directory": {
+                "type": "string",
+                "defaultValue": "SalesAndProfitability"
+              },
+              "Target_DataSource": {
+                "type": "string",
+                "defaultValue": "[parameters('Transform_Target_ExternalDataSource')]"
+              },
+              "Target_Serverless_DB": {
+                "type": "string",
+                "defaultValue": "[parameters('Transform_Target_Synapse_DB')]"
+              },
+              "Source_Serverless_DB": {
+                "type": "string",
+                "defaultValue": "[parameters('Transform_Source_Synapse_DB')]"
+              }
+            },
+            "folder": {
+              "name": "Transform"
+            },
+            "annotations": [],
+            "lastPublishTime": "2021-06-29T13:00:37Z"
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/SOURCE_SYNAPSE_SERVERLESS')]",
+            "[concat(variables('factoryId'), '/datasets/Source_SQL_Query')]",
+            "[concat(variables('factoryId'), '/datasets/Destination_Parquet_File')]",
+            "[parameters('FactoryName')]"
+          ]
+        }
+      ]
+    }
+      ]
+    
+}
