@@ -38,7 +38,7 @@
                         sqlProvider = new SynapseSqlProvider(options.ConnectionString);
                     }
 
-                    Console.WriteLine($"Entity Store to Synapse Tool (EntityStoreTools Version 2.5)\n");
+                    Console.WriteLine($"Entity Store to Synapse Tool (EntityStoreTools Version 2.6)\n");
 
                     if (!File.Exists(options.MetadataPath))
                     {
@@ -382,6 +382,7 @@
             HashSet<string> reservedWords = new HashSet<string>()
             {
                 "KEY",
+                "COMMENT",
             };
 
             if (reservedWords.Contains(dimensionField.ToString().ToUpper()))
