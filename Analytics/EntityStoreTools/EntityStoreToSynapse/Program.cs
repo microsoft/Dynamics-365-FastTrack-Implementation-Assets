@@ -38,7 +38,7 @@
                         sqlProvider = new SynapseSqlProvider(options.ConnectionString);
                     }
 
-                    Console.WriteLine($"Entity Store to Synapse Tool (EntityStoreTools Version 2.6)\n");
+                    Console.WriteLine($"Entity Store to Synapse Tool (EntityStoreTools Version {Constants.ToolsVersion})\n");
 
                     if (!File.Exists(options.MetadataPath))
                     {
@@ -137,6 +137,14 @@
                     if (factTableColumns.Add(attribute.Name.ToString().ToUpper()))
                     {
                         createMeasureGroupQuery += $"{attribute.KeyFields[0].DimensionField} AS {attribute.Name.ToString().ToUpper()},";
+                    }
+                }
+
+                foreach (var measure in measureGroup.Measures)
+                {
+                    if (factTableColumns.Add(measure.Name.ToString().ToUpper()))
+                    {
+                        createMeasureGroupQuery += $"{measure.Field} AS {measure.Name.ToString().ToUpper()},";
                     }
                 }
 
