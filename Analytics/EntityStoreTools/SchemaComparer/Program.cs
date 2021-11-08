@@ -50,7 +50,7 @@
                         sqlProvider = new SynapseSqlProvider(options.AXConnectionString);
                     }
 
-                    Console.WriteLine($"Schema Comparer Tool (EntityStoreTools Version 2.5)\n");
+                    Console.WriteLine($"Schema Comparer Tool (EntityStoreTools Version {Constants.ToolsVersion})\n");
 
                     if (!File.Exists(options.MetadataPath))
                     {
