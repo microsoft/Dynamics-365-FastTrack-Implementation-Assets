@@ -157,7 +157,14 @@
                     {
                         if (!reservedColumn.Item1)
                         {
-                            createMeasureGroupQuery += $"{measure.Field} AS {measure.Name.ToString().ToUpper()},";
+                            if (string.IsNullOrEmpty(measure.Field.ToString().Trim()))
+                            {
+                                createMeasureGroupQuery += $"{measure.Name.ToString().ToUpper()},";
+                            }
+                            else
+                            {
+                                createMeasureGroupQuery += $"{measure.Field} AS {measure.Name.ToString().ToUpper()},";
+                            }
                         }
                         else
                         {
