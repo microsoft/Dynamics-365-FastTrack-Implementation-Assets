@@ -134,17 +134,35 @@
 
                 foreach (var attribute in measureGroup.Attributes)
                 {
+                    var reservedColumn = CheckReservedWord(attribute.KeyFields[0].DimensionField, attribute.Name, createMeasureGroupQuery);
+
                     if (factTableColumns.Add(attribute.Name.ToString().ToUpper()))
                     {
-                        createMeasureGroupQuery += $"{attribute.KeyFields[0].DimensionField} AS {attribute.Name.ToString().ToUpper()},";
+                        if (!reservedColumn.Item1)
+                        {
+                            createMeasureGroupQuery += $"{attribute.KeyFields[0].DimensionField} AS {attribute.Name.ToString().ToUpper()},";
+                        }
+                        else
+                        {
+                            createMeasureGroupQuery = reservedColumn.Item2;
+                        }
                     }
                 }
 
                 foreach (var measure in measureGroup.Measures)
                 {
+                    var reservedColumn = CheckReservedWord(measure.Field, measure.Name, createMeasureGroupQuery);
+
                     if (factTableColumns.Add(measure.Name.ToString().ToUpper()))
                     {
-                        createMeasureGroupQuery += $"{measure.Field} AS {measure.Name.ToString().ToUpper()},";
+                        if (!reservedColumn.Item1)
+                        {
+                            createMeasureGroupQuery += $"{measure.Field} AS {measure.Name.ToString().ToUpper()},";
+                        }
+                        else
+                        {
+                            createMeasureGroupQuery = reservedColumn.Item2;
+                        }
                     }
                 }
 
