@@ -151,6 +151,13 @@
 
                 foreach (var measure in measureGroup.Measures)
                 {
+                    if (measure.Field == null || measure.Name == null)
+                    {
+                        string measureField = measure.Field == null ? measure.Name.ToString() : measure.Field.ToString();
+                        createMeasureGroupQuery += $"{measureField.ToUpper()},";
+                        continue;
+                    }
+
                     var reservedColumn = CheckReservedWord(measure.Field, measure.Name, createMeasureGroupQuery);
 
                     if (factTableColumns.Add(measure.Name.ToString().ToUpper()))
@@ -417,6 +424,11 @@
                 "KEY",
                 "COMMENT",
             };
+
+            if (dimensionField == null || dimensionName == null)
+            {
+                return (false, createDimensionQuery);
+            }
 
             if (reservedWords.Contains(dimensionField.ToString().ToUpper()))
             {
