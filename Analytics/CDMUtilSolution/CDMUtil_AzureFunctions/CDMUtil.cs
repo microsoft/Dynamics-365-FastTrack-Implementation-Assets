@@ -14,6 +14,7 @@ using System;
 using CDMUtil.SQL;
 using Microsoft.Azure.WebJobs.Extensions.EventGrid;
 using Microsoft.Azure.EventGrid.Models;
+using System.Linq;
 
 namespace CDMUtil
 {
@@ -211,13 +212,22 @@ namespace CDMUtil
             var statements = new SQLStatements { Statements = statementsList };
             sQLHandler.executeStatements(statements);
         }
-        public static string getConfigurationValue(HttpRequest req, string token)
+        public static string getConfigurationValue(HttpRequest req, string token, string url = null)
         {
-            string ConfigValue;
-            
+            string ConfigValue = null;
+
             if (req != null && !String.IsNullOrEmpty(req.Headers[token]))
             {
                 ConfigValue = req.Headers[token];
+            }
+            else if (!String.IsNullOrEmpty(url))
+            {
+                var uri = new Uri(url);
+                var storageAccount = uri.Host.Split('.')[0];
+                var pathSegments = uri.AbsolutePath.Split('/').Skip(1); // because of the leading /, the first entry will always be blank and we can disregard it
+                var n = pathSegments.Count();
+                while (n >= 0 && ConfigValue == null)
+                    ConfigValue = System.Environment.GetEnvironmentVariable($"{storageAccount}:{String.Join(":", pathSegments.Take(n--))}{(n > 0 ? ":" : "")}{token}");
             }
             else
             {
@@ -246,33 +256,33 @@ namespace CDMUtil
                 throw new Exception($"Invalid manifest URL:{ManifestURL}");
             }
 
-            string tenantId = getConfigurationValue(req, "TenantId");
-            string connectionString = getConfigurationValue(req, "SQLEndpoint");
-            string DDLType = getConfigurationValue(req, "DDLType");
+            string tenantId = getConfigurationValue(req, "TenantId", ManifestURL);
+            string connectionString = getConfigurationValue(req, "SQLEndpoint", ManifestURL);
+            string DDLType = getConfigurationValue(req, "DDLType", ManifestURL);
             
             AppConfigurations AppConfiguration = new AppConfigurations(tenantId, ManifestURL, null, connectionString, DDLType);
 
-            string dataSourceName = getConfigurationValue(req, "DataSourceName");
+            string dataSourceName = getConfigurationValue(req, "DataSourceName", ManifestURL);
             if (dataSourceName != null)
                 AppConfiguration.synapseOptions.external_data_source = dataSourceName;
 
-            string schema = getConfigurationValue(req, "Schema");
+            string schema = getConfigurationValue(req, "Schema", ManifestURL);
             if (schema != null)
                 AppConfiguration.synapseOptions.schema = schema;
 
-            string fileFormat = getConfigurationValue(req, "FileFormat");
+            string fileFormat = getConfigurationValue(req, "FileFormat", ManifestURL);
             if (fileFormat != null)
                 AppConfiguration.synapseOptions.fileFormatName = fileFormat;
             
-            string DateTimeAsString = getConfigurationValue(req, "DateTimeAsString");            
+            string DateTimeAsString = getConfigurationValue(req, "DateTimeAsString", ManifestURL);            
             if (DateTimeAsString != null)
                 AppConfiguration.synapseOptions.DateTimeAsString = bool.Parse(DateTimeAsString);
             
-            string ConvertDateTime = getConfigurationValue(req, "ConvertDateTime");
+            string ConvertDateTime = getConfigurationValue(req, "ConvertDateTime", ManifestURL);
             if (ConvertDateTime != null)
                 AppConfiguration.synapseOptions.ConvertDateTime = bool.Parse(ConvertDateTime);
 
-            string TranslateEnum = getConfigurationValue(req, "TranslateEnum");
+            string TranslateEnum = getConfigurationValue(req, "TranslateEnum", ManifestURL);
             if (TranslateEnum != null)
                 AppConfiguration.synapseOptions.TranslateEnum = bool.Parse(TranslateEnum);
 
