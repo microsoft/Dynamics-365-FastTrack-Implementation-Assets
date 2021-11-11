@@ -158,23 +158,6 @@
                             continue;
                         }
 
-                        var reservedColumnCheck = CheckReservedWord(measure.Field, measure.Field, createMeasureGroupQuery);
-                        if (factTableColumns.Add(measure.Field.ToString().ToUpper()))
-                        {
-                            if (reservedColumnCheck.Item1)
-                            {
-                                createMeasureGroupQuery += $"1 AS {measure.Field.ToString().ToUpper()}_,";
-                            }
-                            else
-                            {
-                                createMeasureGroupQuery += $"1 AS {measure.Field.ToString().ToUpper()},";
-                            }
-                        }
-
-                        continue;
-                    }
-                    else if (measure.Name == null)
-                    {
                         var reservedColumnCheck = CheckReservedWord(measure.Name, measure.Name, createMeasureGroupQuery);
                         if (factTableColumns.Add(measure.Name.ToString().ToUpper()))
                         {
@@ -185,6 +168,23 @@
                             else
                             {
                                 createMeasureGroupQuery += $"1 AS {measure.Name.ToString().ToUpper()},";
+                            }
+                        }
+
+                        continue;
+                    }
+                    else if (measure.Name == null)
+                    {
+                        var reservedColumnCheck = CheckReservedWord(measure.Field, measure.Field, createMeasureGroupQuery);
+                        if (factTableColumns.Add(measure.Field.ToString().ToUpper()))
+                        {
+                            if (reservedColumnCheck.Item1)
+                            {
+                                createMeasureGroupQuery += $"1 AS {measure.Field.ToString().ToUpper()}_,";
+                            }
+                            else
+                            {
+                                createMeasureGroupQuery += $"1 AS {measure.Field.ToString().ToUpper()},";
                             }
                         }
 
