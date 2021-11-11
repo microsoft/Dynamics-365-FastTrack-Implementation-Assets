@@ -151,10 +151,43 @@
 
                 foreach (var measure in measureGroup.Measures)
                 {
-                    if (measure.Field == null || measure.Name == null)
+                    if (measure.Field == null)
                     {
-                        string measureField = measure.Field == null ? measure.Name.ToString() : measure.Field.ToString();
-                        createMeasureGroupQuery += $"{measureField.ToUpper()},";
+                        if (measure.Name == null)
+                        {
+                            continue;
+                        }
+
+                        var reservedColumnCheck = CheckReservedWord(measure.Field, measure.Field, createMeasureGroupQuery);
+                        if (factTableColumns.Add(measure.Field.ToString().ToUpper()))
+                        {
+                            if (reservedColumnCheck.Item1)
+                            {
+                                createMeasureGroupQuery += $"1 AS {measure.Field.ToString().ToUpper()}_,";
+                            }
+                            else
+                            {
+                                createMeasureGroupQuery += $"1 AS {measure.Field.ToString().ToUpper()},";
+                            }
+                        }
+
+                        continue;
+                    }
+                    else if (measure.Name == null)
+                    {
+                        var reservedColumnCheck = CheckReservedWord(measure.Name, measure.Name, createMeasureGroupQuery);
+                        if (factTableColumns.Add(measure.Name.ToString().ToUpper()))
+                        {
+                            if (reservedColumnCheck.Item1)
+                            {
+                                createMeasureGroupQuery += $"1 AS {measure.Name.ToString().ToUpper()}_,";
+                            }
+                            else
+                            {
+                                createMeasureGroupQuery += $"1 AS {measure.Name.ToString().ToUpper()},";
+                            }
+                        }
+
                         continue;
                     }
 
@@ -423,6 +456,7 @@
             {
                 "KEY",
                 "COMMENT",
+                "COUNT",
             };
 
             if (dimensionField == null || dimensionName == null)
