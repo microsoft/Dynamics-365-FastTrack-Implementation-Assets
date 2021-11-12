@@ -18,10 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Common\Common.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Dynamics.AX.Data.Core">
       <HintPath>$(AOSBinPath)\Microsoft.Dynamics.AX.Data.Core.dll</HintPath>
