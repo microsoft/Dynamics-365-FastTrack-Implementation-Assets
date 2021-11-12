@@ -103,6 +103,47 @@
                 });
         }
 
+        private static string GenerateEnumTranslationsQuery(List<ZipArchiveEntry> entryList, HashSet<string> columnNames)
+        {
+            string enumTranslationQuery = string.Empty;
+
+            foreach (var column in columnNames)
+            {
+                enumTranslationQuery += AppendEnumTranslation(entryList, column);
+            }
+
+            return enumTranslationQuery;
+        }
+
+        private static string AppendEnumTranslation(List<ZipArchiveEntry> entryList, string enumName)
+        {
+            var enumEntry = entryList.FirstOrDefault(e => e.FullName == $"enums\\{enumName}.csv");
+
+            if (enumEntry == null)
+            {
+                return string.Empty;
+            }
+
+            string enumQuery = " CASE ";
+            using (var stream = enumEntry.Open())
+            {
+                using (var reader = new StreamReader(stream))
+                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                {
+                    var records = csv.GetRecords<AxEnumMetadata>();
+
+                    foreach (var record in records)
+                    {
+                        enumQuery += $"WHEN {enumName} = '{record.EnumKey}' THEN '{record.EnumValue}' ";
+                    }
+
+                    enumQuery += $"END AS {enumName.ToUpper()}_VALUE,";
+                }
+            }
+
+            return enumQuery;
+        }
+
         private static async Task CreateFactAndDimensionTablesAsync(List<ZipArchiveEntry> entryList, dynamic measurementMetadata, SynapseSqlProvider sqlProvider)
         {
             var aggregateMeasurementName = measurementMetadata.Name;
@@ -275,6 +316,7 @@
                 }
 
                 createMeasureGroupQuery = AttachCommonColumns(createMeasureGroupQuery, commonColumns);
+                createMeasureGroupQuery += GenerateEnumTranslationsQuery(entryList, factTableColumns);
                 createMeasureGroupQuery = createMeasureGroupQuery.Remove(createMeasureGroupQuery.Length - 1);
                 createMeasureGroupQuery += $" FROM {measureGroup.Table}";
 
@@ -446,6 +488,7 @@
                             }
 
                             createDimensionQuery = AttachCommonColumns(createDimensionQuery, commonColumns);
+                            createDimensionQuery += GenerateEnumTranslationsQuery(entryList, columns);
                             createDimensionQuery = createDimensionQuery.Remove(createDimensionQuery.Length - 1);
 
                             createDimensionQuery += $" FROM {dimensionMetadata.Table}";

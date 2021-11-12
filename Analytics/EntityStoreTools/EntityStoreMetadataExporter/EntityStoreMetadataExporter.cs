@@ -32,7 +32,7 @@
         /// <param name="outputPath">The output directory path.</param>
         public static void ExportMetadata(string measureName, string packagePath, string axDbSqlConnectionString, string outputPath)
         {
-            Console.WriteLine($"Entity Store Metadata Exporter Tool (EntityStoreTools Version 2.7)\n");
+            Console.WriteLine($"Entity Store Metadata Exporter Tool (EntityStoreTools Version 2.8)\n");
 
             ContractValidator.MustNotBeEmpty(measureName, nameof(measureName));
             ContractValidator.MustNotBeEmpty(packagePath, nameof(packagePath));
@@ -119,7 +119,7 @@
                             }
 
                             ColorConsole.WriteInfo($"\nWriting enum file: '{field.Name}'");
-                            File.WriteAllText(enumDependenciesPath, string.Format("EnumKey, EnumValue") + Environment.NewLine);
+                            File.WriteAllText(enumDependenciesPath, string.Format("EnumKey,EnumValue") + Environment.NewLine);
                             File.AppendAllText(enumDependenciesPath, csv);
                         }
                     }
