@@ -113,6 +113,7 @@
             foreach (var measureGroup in measureGroups)
             {
                 HashSet<string> factTableColumns = new HashSet<string>();
+                var commonColumns = GetCommonColumns();
                 var measureGroupTableName = aggregateMeasurementName + "_" + measureGroup.Name;
 
                 var createMeasureGroupQuery = $"CREATE OR ALTER VIEW {measureGroupTableName} AS SELECT ";
@@ -134,6 +135,11 @@
 
                 foreach (var attribute in measureGroup.Attributes)
                 {
+                    if (commonColumns.Contains(attribute.Name.ToString().ToUpper()))
+                    {
+                        commonColumns.Remove(attribute.Name.ToString().ToUpper());
+                    }
+
                     var reservedColumn = CheckReservedWord(attribute.KeyFields[0].DimensionField, attribute.Name, createMeasureGroupQuery);
 
                     if (factTableColumns.Add(attribute.Name.ToString().ToUpper()))
@@ -158,6 +164,11 @@
                             continue;
                         }
 
+                        if (commonColumns.Contains(measure.Name.ToString().ToUpper()))
+                        {
+                            commonColumns.Remove(measure.Name.ToString().ToUpper());
+                        }
+
                         var reservedColumnCheck = CheckReservedWord(measure.Name, measure.Name, createMeasureGroupQuery);
                         if (factTableColumns.Add(measure.Name.ToString().ToUpper()))
                         {
@@ -175,6 +186,11 @@
                     }
                     else if (measure.Name == null)
                     {
+                        if (commonColumns.Contains(measure.Field.ToString().ToUpper()))
+                        {
+                            commonColumns.Remove(measure.Field.ToString().ToUpper());
+                        }
+
                         var reservedColumnCheck = CheckReservedWord(measure.Field, measure.Field, createMeasureGroupQuery);
                         if (factTableColumns.Add(measure.Field.ToString().ToUpper()))
                         {
@@ -189,6 +205,11 @@
                         }
 
                         continue;
+                    }
+
+                    if (commonColumns.Contains(measure.Name.ToString().ToUpper()))
+                    {
+                        commonColumns.Remove(measure.Name.ToString().ToUpper());
                     }
 
                     var reservedColumn = CheckReservedWord(measure.Field, measure.Name, createMeasureGroupQuery);
@@ -228,6 +249,11 @@
 
                         foreach (var contraint in relation.Constraints)
                         {
+                            if (commonColumns.Contains(contraint.RelatedField.ToString().ToUpper()))
+                            {
+                                commonColumns.Remove(contraint.RelatedField.ToString().ToUpper());
+                            }
+
                             if (factTableColumns.Add(contraint.RelatedField.ToString().ToUpper()))
                             {
                                 createMeasureGroupQuery += $"{contraint.RelatedField} AS {contraint.Name.ToString().ToUpper()},";
@@ -248,28 +274,46 @@
                     }
                 }
 
+                createMeasureGroupQuery = AttachCommonColumns(createMeasureGroupQuery, commonColumns);
                 createMeasureGroupQuery = createMeasureGroupQuery.Remove(createMeasureGroupQuery.Length - 1);
                 createMeasureGroupQuery += $" FROM {measureGroup.Table}";
 
-                Console.WriteLine($"Creating measure group '{measureGroupTableName}' with statement:\t{createMeasureGroupQuery}\n");
-
-                try
+                while (true)
                 {
-                    await sqlProvider.RunSqlStatementAsync(createMeasureGroupQuery);
+                    Console.WriteLine($"Creating measure group '{measureGroupTableName}' with statement:\t{createMeasureGroupQuery}\n");
 
-                    ColorConsole.WriteSuccess($"Created '{measureGroupTableName}'\n");
-                }
-                catch (SqlException e)
-                {
-                    var errorMessage = $"Could not create MeasureGroup '{createMeasureGroupQuery}': {e.Message}\n";
-                    errorList.Add(errorMessage);
+                    try
+                    {
+                        await sqlProvider.RunSqlStatementAsync(createMeasureGroupQuery);
 
-                    ColorConsole.WriteError(errorMessage);
-                }
-                finally
-                {
-                    // delay the running of the next statement to prevent DoS
-                    await Task.Delay(100);
+                        ColorConsole.WriteSuccess($"Created '{measureGroupTableName}'\n");
+                    }
+                    catch (SqlException e)
+                    {
+                        if (e.Message.Contains($"Invalid column name 'PARTITION'"))
+                        {
+                            createMeasureGroupQuery = DefaultPartitionColumn(createMeasureGroupQuery);
+                            continue;
+                        }
+
+                        if (e.Message.Contains($"Invalid column name 'DATAAREAID'"))
+                        {
+                            createMeasureGroupQuery = DefaultDataAreaIdColumn(createMeasureGroupQuery);
+                            continue;
+                        }
+
+                        var errorMessage = $"Could not create MeasureGroup '{createMeasureGroupQuery}': {e.Message}\n";
+                        errorList.Add(errorMessage);
+
+                        ColorConsole.WriteError(errorMessage);
+                    }
+                    finally
+                    {
+                        // delay the running of the next statement to prevent DoS
+                        await Task.Delay(100);
+                    }
+
+                    break;
                 }
             }
 
@@ -422,7 +466,13 @@
                         {
                             if (e.Message.Contains($"Invalid column name 'PARTITION'"))
                             {
-                                createDimensionQuery = RemovePartitionColumn(createDimensionQuery);
+                                createDimensionQuery = DefaultPartitionColumn(createDimensionQuery);
+                                continue;
+                            }
+
+                            if (e.Message.Contains($"Invalid column name 'DATAAREAID'"))
+                            {
+                                createDimensionQuery = DefaultDataAreaIdColumn(createDimensionQuery);
                                 continue;
                             }
 
@@ -445,9 +495,14 @@
             return errorList;
         }
 
-        private static string RemovePartitionColumn(string createDimensionQuery)
+        private static string DefaultPartitionColumn(string createDimensionQuery)
         {
-            return createDimensionQuery.Replace(",PARTITION", string.Empty);
+            return createDimensionQuery.Replace(",PARTITION", ",1 AS PARTITION");
+        }
+
+        private static string DefaultDataAreaIdColumn(string createDimensionQuery)
+        {
+            return createDimensionQuery.Replace(",DATAAREAID", ",'demo' AS DATAAREAID");
         }
 
         private static (bool, string) CheckReservedWord(dynamic dimensionField, dynamic dimensionName, string createDimensionQuery)
@@ -493,6 +548,7 @@
             {
                 "RECID",
                 "PARTITION",
+                "DATAAREAID",
             };
 
             return commonColumns;
