@@ -134,7 +134,7 @@
 
                     foreach (var record in records)
                     {
-                        enumQuery += $"WHEN '{record.EnumKey}' THEN '{record.EnumValue}' ";
+                        enumQuery += $"WHEN {enumName} = '{record.EnumKey}' THEN '{record.EnumValue}' ";
                     }
 
                     enumQuery += $"END AS {enumName.ToUpper()}_VALUE,";
