@@ -119,7 +119,7 @@
                             }
 
                             ColorConsole.WriteInfo($"\nWriting enum file: '{field.Name}'");
-                            File.WriteAllText(enumDependenciesPath, string.Format("EnumKey, EnumValue") + Environment.NewLine);
+                            File.WriteAllText(enumDependenciesPath, string.Format("EnumKey,EnumValue") + Environment.NewLine);
                             File.AppendAllText(enumDependenciesPath, csv);
                         }
                     }
