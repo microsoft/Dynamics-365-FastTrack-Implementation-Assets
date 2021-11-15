@@ -32,7 +32,9 @@ Outline the file contents of the repository. It helps users navigate the codebas
 | `SQL Maintenance` | Indexes & statistics maintenance script    |
 | `Dual-write`      | Dymamics 365 Dual-write guides             |
 | `SCM`      		    | Tools for SCM and WHS solutions            |
+| `ScheduleAPI`	    | Project Operations - Schedule API example  |
 | `Cloud security`  | Dynamics 365 Cloud security guides         |
+| `Integration`     | Dynamics 365 integration samples           |
 | `.gitignore`      | Define what to ignore at commit time.      |
 | `CHANGELOG.md`    | List of changes to the sample.             |
 | `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
@@ -45,6 +47,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 
 ### Analytics guides 
 - [SQL to data lake export](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/README.md)
+- [Export & Process Entity Store Measures in Azure Synapse](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Analytics/EntityStoreTools/README.md)
 
 ### SQL Maintenance
 - [SQL maintenance script](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/SQL%20Maintenance)
@@ -55,8 +58,14 @@ Outline the file contents of the repository. It helps users navigate the codebas
 ### SCM Tools
 - [Small Parcel Shipping Tools](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/SCM/SPS) A sample TMS DLL is included for testing SPS scenarios without a live connection to a carrier.
 
+### Project Operations - Schedule API
+- [Schedule API](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/ScheduleAPI) PO_ImportFile.ps1.
+
 ### Cloud Security
 - [Conditional access](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/CloudSecurity/ConditionalAccess/readme.md) 
+
+### Integration
+- [Integration](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Integration) Dynamics 365 integration samples.
 
 ## Contributing
 

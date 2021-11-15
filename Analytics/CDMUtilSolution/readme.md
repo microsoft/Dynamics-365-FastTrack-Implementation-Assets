@@ -47,7 +47,7 @@ Deploy the CDMUtil solution as Azure function to automate end to end process of 
 
 ![Applicationsetting](applicationsetting.png)
 
-2. (Optional) additional optional configuration that can be provided to overide the default values can be found here   
+2. (Optional) additional optional configuration that can be provided to overide the default values can be found under CDMUTIL parameters details section bellow   
 
 ### Grant access control 
 #### Storage account 
