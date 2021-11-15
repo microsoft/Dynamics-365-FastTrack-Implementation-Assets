@@ -22,18 +22,6 @@ namespace CDMUtil.Context.ObjectDefinitions
         public List<dynamic> attributes { get; set; } // this will be the actually list. 
     }
 
-    public class ColumnAttribute
-    {
-        public string name;
-        public string dataType;
-        public int maximumLenght;
-        public int precision;
-        public int scale;
-        public string characterSet;
-        public string collation;
-        public bool isPrimaryKey;
-    }
-
     public class Artifacts
     {
         public string Key { get; set; }
@@ -77,9 +65,20 @@ namespace CDMUtil.Context.ObjectDefinitions
         public string columnDefinition;
         public string dataLocation;
         public string viewDefinition;
+        public string dependentTables;
         public string dataFilePath;
         public string metadataFilePath;
         public string cdcDataFileFilePath;
+        public string columnDefinitionSpark;
+        public List<ColumnAttribute> columnAttributes;
+    }
+    public class ColumnAttribute
+    {
+        public string name;
+        public string description;
+        public string dataType;
+        public int maximumLength;
+        public dynamic constantValueList;
     }
     public class SQLStatements
     {
@@ -111,10 +110,12 @@ namespace CDMUtil.Context.ObjectDefinitions
         public SynapseDBOptions synapseOptions;
         public string SourceColumnProperties;
         public string ReplaceViewSyntax;
+        public bool ProcessEntities;
+        public string ProcessEntitiesFilePath;
 
         public AppConfigurations()
         { }
-        public AppConfigurations(string tenant, string manifestURL,string accessKey, string targetConnectionString, string ddlType)
+        public AppConfigurations(string tenant, string manifestURL,string accessKey, string targetConnectionString="", string ddlType="", string targetSparkConnection ="")
         {
             tenantId = tenant;
             Uri manifestURI = new Uri(manifestURL);
@@ -143,7 +144,15 @@ namespace CDMUtil.Context.ObjectDefinitions
                 rootFolder += segments[i];
             }
             rootFolder = rootFolder.Replace("/resolved/", "/");
-            synapseOptions = new SynapseDBOptions(targetConnectionString, environmentName, rootLocation, ddlType);
+
+            if (!String.IsNullOrEmpty(targetSparkConnection))
+            {
+                synapseOptions = new SynapseDBOptions(targetSparkConnection,environmentName);
+            }
+            else
+            {
+                synapseOptions = new SynapseDBOptions(targetConnectionString, environmentName, rootLocation, ddlType);
+            }
             AdlsContext = new AdlsContext()
             {
                 StorageAccount = storageAccount,
@@ -160,6 +169,8 @@ namespace CDMUtil.Context.ObjectDefinitions
         public string masterDbConnectionString;
         public string servername;
         public string dbName;
+        public string targetSparkEndpoint;
+        public string targetSparkPool;
         public string masterKey = Guid.NewGuid().ToString();
         public string credentialName;
         public string external_data_source;
@@ -167,13 +178,27 @@ namespace CDMUtil.Context.ObjectDefinitions
         public string fileFormatName;
         public string DDLType = "SynapseView";
         public string schema = "dbo";
+        public int DefaultStringLenght = 100;
         public bool DateTimeAsString = false;
         public bool ConvertDateTime = false;
         public bool TranslateEnum = false;
+       
         public SynapseDBOptions()
         { }
+        public SynapseDBOptions(string sparkConnection, string environmentName)
+        {
+            var sparkConfig = sparkConnection.Split("@");
+            if (sparkConfig.Length >= 2)
+            {
+                targetSparkEndpoint = sparkConfig[0];
+                targetSparkPool = sparkConfig[1];
+                dbName = sparkConfig.Length > 2? sparkConfig[2] : environmentName;
+            }
+        }
+
         public SynapseDBOptions(string targetDBConnectionString, string environmentName, string rootLocation, string ddlType)
         {
+            
             SqlConnectionStringBuilder connectionStringBuilder = new SqlConnectionStringBuilder(targetDBConnectionString);
 
             servername = connectionStringBuilder.DataSource;
@@ -192,7 +217,7 @@ namespace CDMUtil.Context.ObjectDefinitions
 
             // default Synapse Serverless settings 
             if (connectionStringBuilder.DataSource.EndsWith("-ondemand.sql.azuresynapse.net"))
-            { 
+            {
                 external_data_source = $"{environmentName}_EDS";
                 fileFormatName = $"{environmentName}_FF";
                 masterKey = environmentName;
@@ -206,7 +231,7 @@ namespace CDMUtil.Context.ObjectDefinitions
 
             connectionStringBuilder.InitialCatalog = "master";
             masterDbConnectionString = connectionStringBuilder.ConnectionString;
-
+            
         }
     }
 }
