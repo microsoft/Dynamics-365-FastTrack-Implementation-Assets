@@ -20,6 +20,9 @@
     /// </summary>
     public class EntityStoreMetadataExporter
     {
+        private static string tempPath;
+        private static HashSet<string> enumSet;
+
         /// <summary>
         /// Publishes a zip file containing all metadata for a given aggregate measurement name.
         /// </summary>
@@ -29,7 +32,7 @@
         /// <param name="outputPath">The output directory path.</param>
         public static void ExportMetadata(string measureName, string packagePath, string axDbSqlConnectionString, string outputPath)
         {
-            Console.WriteLine($"Entity Store Metadata Exporter Tool (EntityStoreTools Version 2.1)\n");
+            Console.WriteLine($"Entity Store Metadata Exporter Tool (EntityStoreTools Version 2.8)\n");
 
             ContractValidator.MustNotBeEmpty(measureName, nameof(measureName));
             ContractValidator.MustNotBeEmpty(packagePath, nameof(packagePath));
@@ -41,7 +44,8 @@
                 Directory.CreateDirectory(outputPath);
             }
 
-            var tempPath = Path.Combine(Path.GetTempPath(), "EntityStoreMetadataExporter", DateTime.Now.ToString("yyyyMMddHmmssFFFFFF"));
+            tempPath = Path.Combine(Path.GetTempPath(), "EntityStoreMetadataExporter", DateTime.Now.ToString("yyyyMMddHmmssFFFFFF"));
+            enumSet = new HashSet<string>();
 
             Directory.CreateDirectory(tempPath);
 
@@ -79,6 +83,48 @@
             ZipFile.CreateFromDirectory(tempPath, destinationFile);
 
             ColorConsole.WriteSuccess($"Metadata exported to '{destinationFile}'");
+        }
+
+        private static void WriteEnums(IMetadataProvider metadataProvider, dynamic axObject)
+        {
+            var json = JsonConvert.SerializeObject(axObject, Formatting.Indented);
+            using (TextReader sr = new StringReader(json))
+            {
+                using (var jsonTextReader = new JsonTextReader(sr))
+                {
+                    dynamic entityObject = JObject.Load(jsonTextReader);
+
+                    foreach (var field in entityObject.Fields)
+                    {
+                        if (field.DataField == null)
+                        {
+                            continue;
+                        }
+
+                        string enumName = field.DataField.Value.ToString();
+                        var enumField = metadataProvider.Enums.Read(enumName);
+                        if (enumField != null && enumSet.Add(field.Name.ToString()))
+                        {
+                            var enumValues = enumField.EnumValues;
+                            var enumsPath = Path.Combine(tempPath, "enums");
+                            var enumDependenciesPath = Path.Combine(enumsPath, $"{field.Name}.csv");
+
+                            string csv = string.Join(
+                                Environment.NewLine,
+                                enumValues.Select(d => $"{d.getKey()},{d.Value}"));
+
+                            if (!Directory.Exists(enumsPath))
+                            {
+                                Directory.CreateDirectory(enumsPath);
+                            }
+
+                            ColorConsole.WriteInfo($"\nWriting enum file: '{field.Name}'");
+                            File.WriteAllText(enumDependenciesPath, string.Format("EnumKey,EnumValue") + Environment.NewLine);
+                            File.AppendAllText(enumDependenciesPath, csv);
+                        }
+                    }
+                }
+            }
         }
 
         private static void WriteManifest(string measureName, string outputPath)
@@ -160,6 +206,15 @@
                 {
                     RecursivelyAddDataSourcesFromQuery(metadataProvider, dimensionsTables, dimensionsViews, element);
 
+                    if (metadataProvider.Views.Exists(element))
+                    {
+                        WriteEnums(metadataProvider, metadataProvider.Views.Read(element));
+                    }
+                    else
+                    {
+                        WriteEnums(metadataProvider, metadataProvider.DataEntityViews.Read(element));
+                    }
+
                     ColorConsole.WriteInfo($"\tAdded element as view '{element.ToUpperInvariant()}'");
                 }
             }
@@ -167,6 +222,8 @@
             {
                 if (dimensionsTables.Add(element))
                 {
+                    WriteEnums(metadataProvider, metadataProvider.Tables.Read(element));
+
                     ColorConsole.WriteInfo($"\tAdded element as 'table '{element.ToUpperInvariant()}'");
                 }
             }
@@ -179,7 +236,6 @@
         private static void RecursivelyAddDataSourcesFromQuery(IMetadataProvider metadataProvider, HashSet<string> dimensionsTables, HashSet<string> dimensionsViews, string element)
         {
             AxView view = metadataProvider.Views.Read(element);
-            AxDataEntity dataEntity = metadataProvider.DataEntityViews.Read(element);
 
             if (view != null && !string.IsNullOrEmpty(view.Query))
             {
@@ -192,31 +248,24 @@
                     {
                         dynamic queryObject = JObject.Load(jsonTextReader);
 
-                        foreach (var dataSources in queryObject.DataSources)
+                        foreach (var dataSource in queryObject.DataSources)
                         {
-                            SeparateTablesAndViews(metadataProvider, dimensionsTables, dimensionsViews, dataSources.Table.ToString());
+                            SeparateTablesAndViews(metadataProvider, dimensionsTables, dimensionsViews, dataSource.Table.ToString());
+
+                            RecursivelyAddDataSourcesFromDataSource(metadataProvider, dimensionsTables, dimensionsViews, dataSource);
                         }
                     }
                 }
             }
+        }
 
-            if (dataEntity != null && !string.IsNullOrEmpty(dataEntity.Query))
+        private static void RecursivelyAddDataSourcesFromDataSource(IMetadataProvider metadataProvider, HashSet<string> dimensionsTables, HashSet<string> dimensionsViews, dynamic dataSource)
+        {
+            foreach (var source in dataSource.DataSources)
             {
-                AxQuery axQuery = metadataProvider.Queries.Read(dataEntity.Query);
+                SeparateTablesAndViews(metadataProvider, dimensionsTables, dimensionsViews, source.Table.ToString());
 
-                var json = JsonConvert.SerializeObject(axQuery, Formatting.Indented);
-                using (TextReader sr = new StringReader(json))
-                {
-                    using (var jsonTextReader = new JsonTextReader(sr))
-                    {
-                        dynamic queryObject = JObject.Load(jsonTextReader);
-
-                        foreach (var dataSources in queryObject.DataSources)
-                        {
-                            SeparateTablesAndViews(metadataProvider, dimensionsTables, dimensionsViews, dataSources.Table.ToString());
-                        }
-                    }
-                }
+                RecursivelyAddDataSourcesFromDataSource(metadataProvider, dimensionsTables, dimensionsViews, source);
             }
         }
 
