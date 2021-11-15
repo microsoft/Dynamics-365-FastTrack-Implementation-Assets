@@ -23,6 +23,9 @@
     <None Include="..\CDMUtil\Manifest\SourceColumnProperties.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="..\CDMUtil\Manifest\EntityList.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\CDMUtil\SQL\ReplaceViewSyntax.json">
@@ -32,4 +35,7 @@
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
+  <PropertyGroup>
+    <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
+  </PropertyGroup>
 </Project>
