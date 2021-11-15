@@ -211,7 +211,7 @@ compliant'
 
 ![04.GrantPolicyMFA](/CloudSecurity/ConditionalAccess/04.GrantPolicyMFA.png)
 
-### Scenario c: Block all user to login except from all locations except from few selected locations/IP and enforce MFA & Device compliance to grant access.
+### Scenario c: Block all user to login from all locations except from few selected locations/IP and enforce MFA & Device compliance to grant access.
 
 This requires two policies (BlockPolicy & GrantPolicy):
 

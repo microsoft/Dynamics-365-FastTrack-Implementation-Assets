@@ -1,3 +1,5 @@
+--Tips : in SSMS, Tools -> Options -> Query Results -> SQL Server -> Results to grid -> check the boc "Retail CR/LF on copy or save"
+
 -- ***************************************************Part 1 recursion************************************* 
 -----------------------------------------------BEGIN Recursive section ---------------------------------------
 With allviews (nodeId, parentNodeId, nodeIdType, rootNode, depth) AS (
@@ -98,14 +100,10 @@ join (Select * from #myEntitiestree mytree
 where mytree.nodeIdType = 'VIEW' and exists 
 (  -- replace this section by selection of your list of tables in the lake
 	Select 
-	#myEntitiestree.rootNode, 
-	max(ISNULL(dfdt.status, 3)) status 
+	#myEntitiestree.rootNode 
 	from #myEntitiestree 
-	left outer join DATAFEEDSTABLECATALOG dftc on #myEntitiestree.nodeId = dftc.tableobjectName
-	left outer join DATAFEEDSDEFINITIONTABLE dfdt on dftc.tableidvalue = dfdt.dataentityid 
-	where parentNodeId is not null and mytree.rootNode = #myEntitiestree .rootNode
-	group by rootNode 
-	having min(ISNULL(dfdt.enabled, 0)) = 1
+	where parentNodeId is not null and mytree.rootNode = #myEntitiestree.rootNode
+	group by rootNode
 ) ) as orderedViews
 on orderedViews.nodeId = v.name
 order by rootNode asc, depth desc

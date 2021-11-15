@@ -223,6 +223,7 @@ class CET_MonitoringFactory
 
         int i;
         str retVal = '';
+		
 
         TelemetryHelper                    helper;
         InteropPermission                permission;
@@ -233,10 +234,12 @@ class CET_MonitoringFactory
             permission.assert();
 
             helper = new TelemetryHelper();            
-            dictTable = new DictTable(_rec.TableId);
+            dictTable = new DictTable(_rec.TableId);            
+            str		fieldName;
 
             for (i = 1; i<= dictTable.fieldCnt(); i++)
             {
+                anytype fieldValue;
                 dictField = new DictField(_rec.TableId, dictTable.fieldCnt2Id(i));
                 if (dictField.isSystem() && _includeSysFields == false)
                 {
@@ -244,15 +247,27 @@ class CET_MonitoringFactory
                     continue;
                 }
 
+                fieldName = dictField.name();
                 if (dictField.enumId() != 0)
                 {
                     // This is an enum field, convert from integer value to symbol.
-                    helper.add(dictField.name(), enum2Symbol(dictField.enumId(), _rec.(dictField.id())));
+                    fieldValue = enum2Symbol(dictField.enumId(), _rec.(dictField.id()));
+                }
+                else
+				{
+					fieldValue = _rec.(dictField.id());
+	            }
+
+
+                if (dictField.enumId() != 0)
+                {
+                    // This is an enum field, convert from integer value to symbol.
+                    helper.add(fieldName, enum2Symbol(dictField.enumId(), fieldValue));
                 }
                 else
                 {
                     // All other data types should be handled correctly: numeric, date, string
-                    helper.add(dictField.name(), _rec.(dictField.id()));
+                    CET_MonitoringFactory::helperAddValue(helper, fieldName, fieldValue, dictField.baseType());
                 }
             }
 
@@ -268,6 +283,144 @@ class CET_MonitoringFactory
         CodeAccessPermission::revertAssert();
 
         return retVal;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>helperAddValue</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Helper method used in serializing container/record data.
+    /// </summary>
+    /// <param name = "_helper">Helper class instance</param>
+    /// <param name = "_name">Name of the field/element</param>
+    /// <param name = "_value">Value to serialize</param>
+    /// <param name = "_type">Type of parameter</param>
+    protected static void helperAddValue(TelemetryHelper _helper, str _name, anytype _value, Types _type) 
+    {
+        anytype fieldValue;
+        
+        switch (_type)
+        {
+            case Types::Container:
+                fieldValue = CET_MonitoringFactory::serializeContainer(_value, _name);
+                break;
+
+            case Types::UtcDateTime:
+                // convert from X++ to string because the JSON serializer does not know how to handle.
+                fieldValue = utcDateTime2SystemDateTime(_value);
+                break;
+
+            case Types::Date:
+                fieldValue = utcDateTime2SystemDateTime(DateTimeUtil::newDateTime(_value,0));
+                break;
+            default:
+                fieldValue = _value;
+        }
+        _helper.add(_name, fieldValue);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>serializeContainer</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Serialize a container object.
+    /// </summary>
+    /// <param name = "_con">Container to serialize</param>
+    /// <param name = "_name">Name to use in the serialization</param>
+    /// <returns>Expando object of the serialized container</returns>
+    public static System.Dynamic.ExpandoObject serializeContainer(container _con, str _name) 
+    {
+        int									i;
+        str									fieldName;
+
+        TelemetryHelper						helper;
+        anytype								fieldValue;
+        InteropPermission					permission;
+
+        permission = new InteropPermission(InteropKind::ClrInterop);
+        permission.assert();
+
+        helper = new TelemetryHelper();
+
+        for (i = 1; i <= conLen(_con); i++)
+        {
+            fieldValue = conPeek(_con, i);
+            fieldName = strFmt(@"%1_%2", _name, i);
+            CET_MonitoringFactory::helperAddValue(helper, fieldName, fieldValue, typeOf(fieldValue));
+        }
+
+        return helper.get_ExpObj();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>logMetric</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Log a metric to telemetry and save a payload if included.
+    /// </summary>
+    /// <param name = "_eventName">Name of metric</param>
+    /// <param name = "_value">Metric value to track</param>
+    /// <param name = "_data">Optional:  payload</param>
+    public static void logMetric(CET_EventName _eventName, CET_EventMetricValue _value, CET_EventData _data = '')
+    {
+        SysGlobalTelemetry::logMetric(_eventName, _value);
+
+        CET_MonitoringFactory::saveEventData(_eventName, _data, _value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>logEvent</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Log an event to telemetry and save a payload if included.
+    /// </summary>
+    /// <param name = "_eventName">Name of event to log</param>
+    /// <param name = "_data">Optional:  payload</param>
+    public static void logEvent(CET_EventName _eventName, CET_EventData _data = '')
+    {
+        SysGlobalTelemetry::logEvent(_eventName);
+
+        CET_MonitoringFactory::saveEventData(_eventName, _data);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveEventData</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Save a payload that was included with a metric.
+    /// </summary>
+    /// <param name = "_eventName">Name of the metric or event</param>
+    /// <param name = "_data">payload</param>
+    /// <param name = "_value">Optional:  Metric value to track</param>
+    public static void saveEventData(CET_EventName _eventName, CET_EventData _data, CET_EventMetricValue _value = 0)
+    {
+        CET_MonitoringLog monitoringLog;
+
+        if (_eventName == '' || _data == '')
+        {
+            // Both need to be provided.
+            return;
+        }
+
+        // Log event data.
+        monitoringLog.initValue();
+        monitoringLog.Name = _eventName;
+        monitoringLog.Data = _data;
+        monitoringLog.MetricValue = _value;
+        monitoringLog.insert();
+
+        // Call the businiess event service.
+        monitoringLog.sendEvent();
     }
 
 ]]></Source>
