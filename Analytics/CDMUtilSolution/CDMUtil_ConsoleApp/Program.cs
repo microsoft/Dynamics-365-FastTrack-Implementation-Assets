@@ -1,69 +1,55 @@
 ﻿using System;
 using System.Collections.Generic;
-using CDMUtil.Context.ADLS;
 using CDMUtil.Context.ObjectDefinitions;
 using CDMUtil.Manifest;
 using CDMUtil.SQL;
+using CDMUtil.Spark;
 using System.Configuration;
 using System.Collections.Specialized;
 using System.IO;
+using Microsoft.Extensions.Logging.Console;
+using Microsoft.Extensions.Logging;
 
-namespace ManifestToSQL
+namespace CDMUtil
 {
-    class Program
+    class ConsoleApp
     {
         static void Main(string[] args)
         {
-            AppConfigurations c = loadConfigurations();
+            using ILoggerFactory loggerFactory =
+              LoggerFactory.Create(builder =>
+                  builder.AddSimpleConsole(options =>
+                  {
+                      options.IncludeScopes = false;
+                      options.SingleLine = true;
+                      options.TimestampFormat = "hh:mm:ss ";
+                  }));
+
+            ILogger<ConsoleApp> logger = loggerFactory.CreateLogger<ConsoleApp>();
+        
+            AppConfigurations c = loadConfigurations(logger);
 
             // Read Manifest metadata
-            Console.WriteLine($"Reading Manifest metadata https://{c.AdlsContext.StorageAccount}{c.rootFolder}{c.manifestName}");
+            logger.LogInformation($"Reading Manifest metadata https://{c.AdlsContext.StorageAccount}{c.rootFolder}{c.manifestName}");
             List<SQLMetadata> metadataList = new List<SQLMetadata>();
 
-            ManifestReader.manifestToSQLMetadata(c, metadataList).Wait();
+            ManifestReader.manifestToSQLMetadata(c, metadataList, logger, c.rootFolder).Wait();
 
-            // convert metadata to DDL
-            Console.WriteLine("Converting metadata to DDL");
-            var statementsList = SQLHandler.SQLMetadataToDDL(metadataList, c);
-
-            Console.WriteLine($"Count of entities:{metadataList.Count}");
-
-            Console.WriteLine("Preparing DB");
-            // prep DB 
-            if (c.synapseOptions.targetDbConnectionString != null)
-            {
-                 SQLHandler.dbSetup(c.synapseOptions, c.tenantId);
-            }
-
-            // Execute DDL
-            Console.WriteLine("Executing DDL");
-            SQLStatements statements = new SQLStatements { Statements = statementsList.Result };
+            logger.LogInformation($"Count of entities:{metadataList.Count}");
             
-            try
+            logger.LogInformation("Preparing DB");
+
+            if (!String.IsNullOrEmpty(c.synapseOptions.targetSparkEndpoint))
             {
-                SQLHandler sQLHandler = new SQLHandler(c.synapseOptions.targetDbConnectionString, c.tenantId);
-                sQLHandler.executeStatements(statements);
-                foreach (var statement in statements.Statements)
-                {
-                    Console.WriteLine(statement.Statement);
-                    Console.WriteLine("Status:" + statement.Created);
-                    Console.WriteLine("Detail:" + statement.Detail);
-                }
+                SparkHandler.executeSpark(c, metadataList,logger);
             }
-            catch (Exception e)
+            else
             {
-                Console.WriteLine("ERROR executing SQL");
-                foreach (var statement in statements.Statements)
-                {
-                    Console.WriteLine(statement.Statement);
-                }
-                Console.WriteLine(e.Message);
+                SQLHandler.executeSQL(c, metadataList, logger);
             }
-            Console.WriteLine("Press any key to exit");
-            Console.ReadLine();
         }
 
-        static AppConfigurations loadConfigurations()
+        static AppConfigurations loadConfigurations(ILogger logger)
         {
             //get data from config 
             string tenantId = ConfigurationManager.AppSettings.Get("TenantId");
@@ -71,14 +57,22 @@ namespace ManifestToSQL
             string accessKey = ConfigurationManager.AppSettings.Get("AccessKey");
             string DDLType = ConfigurationManager.AppSettings.Get("DDLType");
             string targetDbConnectionString = ConfigurationManager.AppSettings.Get("TargetDbConnectionString");
-           
+            string targetSparkConnection = ConfigurationManager.AppSettings.Get("TargetSparkConnection");
+
             NameValueCollection sAll = ConfigurationManager.AppSettings;
             foreach (string s in sAll.AllKeys)
             {
-                Console.WriteLine("Key: " + s + " Value: " + sAll.Get(s));
+                if (s.Contains("AccessKey") || s.Contains("ConnectionString"))
+                {
+                    logger.LogInformation("Key: " + s + " Value:***");
+                }
+                else
+                {
+                    logger.LogInformation("Key: " + s + " Value: " + sAll.Get(s));
+                }
             }
 
-            AppConfigurations AppConfiguration = new AppConfigurations(tenantId, ManifestURL, accessKey, targetDbConnectionString, DDLType);
+            AppConfigurations AppConfiguration = new AppConfigurations(tenantId, ManifestURL, accessKey, targetDbConnectionString, DDLType, targetSparkConnection);
 
             //Optional parameters overide 
             if (AppConfiguration.tableList == null)
@@ -86,7 +80,7 @@ namespace ManifestToSQL
                 string TableNames = ConfigurationManager.AppSettings.Get("TableNames");
                 AppConfiguration.tableList = String.IsNullOrEmpty(TableNames) ? new List<string>() { "*" } : new List<string>(TableNames.Split(','));
             }
-            
+
             if (ConfigurationManager.AppSettings.Get("TranslateEnum") != null)
             {
                 AppConfiguration.synapseOptions.TranslateEnum = bool.Parse(ConfigurationManager.AppSettings.Get("TranslateEnum"));
@@ -117,11 +111,22 @@ namespace ManifestToSQL
             {
                 AppConfiguration.AXDBConnectionString = ConfigurationManager.AppSettings.Get("AXDBConnectionString");
             }
-            
+            if (ConfigurationManager.AppSettings.Get("DefaultStringLenght") != null)
+            {
+                AppConfiguration.synapseOptions.DefaultStringLenght = Int16.Parse(ConfigurationManager.AppSettings.Get("DefaultStringLenght"));
+            }
+            if (ConfigurationManager.AppSettings.Get("ProcessEntities") != null )
+            {
+                if (bool.Parse(ConfigurationManager.AppSettings.Get("ProcessEntities")))
+                {
+                    AppConfiguration.ProcessEntities = true;
+                    AppConfiguration.ProcessEntitiesFilePath = Path.Combine(Environment.CurrentDirectory, "Manifest", "EntityList.json");
+                }
+            }
+
             AppConfiguration.SourceColumnProperties = Path.Combine(Environment.CurrentDirectory, "Manifest", "SourceColumnProperties.json");
             AppConfiguration.ReplaceViewSyntax = Path.Combine(Environment.CurrentDirectory, "SQL", "ReplaceViewSyntax.json");
-            
-           
+                       
             return AppConfiguration;
         }
     }

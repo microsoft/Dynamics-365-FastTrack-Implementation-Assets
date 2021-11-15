@@ -7,6 +7,9 @@ using System.Data;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.IO;
+using Microsoft.SqlServer.TransactSql.ScriptDom;
+using System.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace CDMUtil.SQL
 {
@@ -14,14 +17,47 @@ namespace CDMUtil.SQL
     {
         private string SQLConnectionStr;
         private string Tenant;
+        ILogger logger;
 
-        public SQLHandler(string SqlConnectionStr, string Tenant)
+        public SQLHandler(string SqlConnectionStr, string Tenant, ILogger Logger)
         {
             this.SQLConnectionStr = SqlConnectionStr;
             this.Tenant = Tenant;
+            this.logger = Logger;
 
         }
 
+        public static SQLStatements executeSQL(AppConfigurations c, List<SQLMetadata> metadataList, ILogger log)
+        {
+            // convert metadata to DDL
+            log.Log(LogLevel.Information,"Converting metadata to DDL");
+            var statementsList = SQLHandler.sqlMetadataToDDL(metadataList, c, log);
+            // prep DB
+            if (c.synapseOptions.targetDbConnectionString != null)
+            {
+                SQLHandler.dbSetup(c.synapseOptions, c.tenantId, log);
+            }
+
+            // Execute DDL
+            log.Log(LogLevel.Information, "Executing DDL");
+            SQLStatements statements = new SQLStatements { Statements = statementsList.Result };
+
+            try
+            {
+                SQLHandler sQLHandler = new SQLHandler(c.synapseOptions.targetDbConnectionString, c.tenantId, log);
+                sQLHandler.executeStatements(statements);
+            }
+            catch (Exception e)
+            {
+                log.Log(LogLevel.Error, "ERROR executing SQL");
+                foreach (var statement in statements.Statements)
+                {
+                    log.LogError(statement.Statement);
+                }
+                log.Log(LogLevel.Error, e.Message);
+            }
+            return statements;
+        }
         public string getTableMaxFieldLenght(string TableName)
         {
             string sqlQuery = String.Format(@"Select (TABLE_NAME + '.' + COLUMN_NAME) as [Key], CHARACTER_MAXIMUM_LENGTH as [Value] 
@@ -79,29 +115,40 @@ namespace CDMUtil.SQL
                 {
                     conn.AccessToken = (new AzureServiceTokenProvider()).GetAccessTokenAsync("https://database.windows.net/", Tenant).Result;
                 }
-
-                conn.Open();
-                foreach (var s in sqlStatements.Statements)
+                try
                 {
-                    using (var command = new SqlCommand(s.Statement, conn))
+                    conn.Open();
+                    foreach (var s in sqlStatements.Statements)
                     {
-                        try
+                        using (var command = new SqlCommand(s.Statement, conn))
                         {
-                            command.ExecuteNonQuery();
-                            s.Created = true;
-                        }
-                        catch (SqlException ex)
-                        {
-                            Console.WriteLine(command.CommandText);
-                            s.Created = false;
-                            s.Detail = ex.Message;
+                            try
+                            {
+                                if (s.EntityName != null)
+                                    logger.LogInformation($"Executing Entity:{s.EntityName}");
+                                logger.LogInformation($"Statement:{s.Statement}");
+                                command.ExecuteNonQuery();
+                                logger.LogInformation($"Status:Created");
+                                s.Created = true;
+                            }
+                            catch (SqlException ex)
+                            {
+                                logger.LogError(ex.Message);
+                                logger.LogError($"Status:Failed");
+                                s.Created = false;
+                                s.Detail = ex.Message;
+                            }
                         }
                     }
+                    conn.Close();
                 }
-                conn.Close();
+                catch (SqlException e)
+                {
+                    logger.LogError($"Connection error:{ e.Message}");
+                }
             }
         }
-        public async static Task<List<SQLStatement>> SQLMetadataToDDL(List<SQLMetadata> metadataList, AppConfigurations c)
+        public async static Task<List<SQLStatement>> sqlMetadataToDDL(List<SQLMetadata> metadataList, AppConfigurations c, ILogger logger)
         {
 
             List<SQLStatement> sqlStatements = new List<SQLStatement>();
@@ -135,16 +182,20 @@ namespace CDMUtil.SQL
             {
                 string sql = "";
 
+                logger.LogInformation($"Converting {metadata.entityName} metadata to SQLDDL {c.synapseOptions.DDLType} ");
                 if (string.IsNullOrEmpty(metadata.viewDefinition))
                 {
+                    string columnDefSQL = string.Join(", ", metadata.columnAttributes.Select(i => attributeToSQlType((ColumnAttribute)i, c.synapseOptions.DateTimeAsString)));
+                    string columnNames = string.Join(", ", metadata.columnAttributes.Select(i => attributeToColumnNames((ColumnAttribute)i, c.synapseOptions.ConvertDateTime, c.synapseOptions.TranslateEnum)));
+
                     sql = string.Format(template,
                                          c.synapseOptions.schema, //0 
                                          metadata.entityName, //1
-                                         metadata.columnDefinition, //2
+                                         columnDefSQL, //2
                                          metadata.dataLocation, //3
                                          c.synapseOptions.external_data_source, //4
                                          c.synapseOptions.fileFormatName, //5
-                                         metadata.columnNames, //6
+                                         columnNames, //6
                                          metadata.viewDefinition, //7
                                          metadata.dataFilePath, //8
                                          metadata.metadataFilePath,//9
@@ -154,14 +205,7 @@ namespace CDMUtil.SQL
                 }
                 else
                 {
-                    if (String.IsNullOrEmpty(c.AXDBConnectionString) == false)
-                    {
-                        UpdateViewDependencies(metadata.entityName, sqlStatements, c.AXDBConnectionString, c.ReplaceViewSyntax);
-                    }
-                    else
-                    {
-                        sql = ReplaceViewSyntax(metadata.viewDefinition, c.ReplaceViewSyntax);
-                    }
+                    sql = replaceViewSyntax(metadata.viewDefinition, c);
                 }
 
                 if (sqlStatements.Exists(x => x.EntityName.ToLower() == metadata.entityName.ToLower()))
@@ -172,29 +216,136 @@ namespace CDMUtil.SQL
 
             return sqlStatements;
         }
-        public static void UpdateViewDependencies(string entityName, List<SQLStatement> sqlStatements, string AXDBConnectionStr, string replaceViewSyntaxFile)
+        public static string attributeToColumnNames(ColumnAttribute attribute, bool convertDatetime = false, bool translateEnum = false)
         {
-            SQLHandler sQLHandler = new SQLHandler(AXDBConnectionStr, "");
-            List<SQLMetadata> viewDependencices = sQLHandler.RetrieveViewDependencies(entityName);
+            string sqlColumnNames;
 
-            foreach (var dependency in viewDependencices)
+            switch (attribute.dataType.ToLower())
             {
-                string viewsDef = ReplaceViewSyntax(dependency.viewDefinition, replaceViewSyntaxFile);
-                sqlStatements.Add(new SQLStatement()
-                {
-                    EntityName = entityName,
-                    Statement = viewsDef
-                });
+                case "date":
+                case "datetime":
+                case "datetime2":
+                    if (convertDatetime)
+                    {
+                        sqlColumnNames = $"Cast({attribute.name} AS DATETIME2) as {attribute.name}";
+                    }
+                    else
+                    {
+                        sqlColumnNames = $"{attribute.name}";
+                    }
+                    break;
+                case "string":
+                case "unknown":
+                    if (convertDatetime && (attribute.name.ToLower() == "validfrom" ||
+                                            attribute.name.ToLower() == "validto"))
+                    {
+                        sqlColumnNames = $"Cast({attribute.name} AS DATETIME2) as {attribute.name}";
+                    }
+                    else
+                    {
+                        sqlColumnNames = $"{attribute.name}";
+                    }
+                    
+                    if (translateEnum == true )
+                    { 
+                        foreach (List<string> constantValueList in attribute.constantValueList)
+                        {
+                            sqlColumnNames += $"{ " When " + constantValueList[3] + " Then '" + constantValueList[2]}'";
+                        }
+                        sqlColumnNames += $" END AS {attribute.name}";
+                    }
+                    break;
+                default:
+                    sqlColumnNames = $"{attribute.name}";
+                    break;
             }
+
+            return sqlColumnNames;
         }
 
-        static string ReplaceViewSyntax(string inputString, string replaceViewSyntaxFile)
+        static public string attributeToSQlType(ColumnAttribute attribute, bool dateTimeAsString = false)
+        {
+            string sqlColumnDef;
+          
+            switch (attribute.dataType.ToLower())
+            {
+                case "string":
+                    sqlColumnDef = $"{attribute.name} nvarchar({attribute.maximumLength})";
+                    break;
+                case "decimal":
+                case "double":
+                    sqlColumnDef = $"{attribute.name} decimal";
+                    break;
+                case "biginteger":
+                case "int64":
+                case "bigint":
+                    sqlColumnDef = $"{attribute.name} bigInt";
+                    break;
+                case "smallinteger":
+                case "int":
+                case "int32":
+                    sqlColumnDef = $"{attribute.name} int";
+                    break;
+                case "date":
+                case "datetime":
+                case "datetime2":
+                    if (dateTimeAsString)
+                    {
+                        sqlColumnDef = $"{attribute.name} nvarchar(30)";
+                    }
+                    else
+                    {
+                        sqlColumnDef = $"{attribute.name} datetime2";
+                    }
+                    break;
+               
+                case "boolean":
+                    sqlColumnDef = $"{attribute.name} tinyint";
+                    break;
+                case "guid":
+                    sqlColumnDef = $"{attribute.name} uniqueidentifier";
+                    break;
+               
+                default:
+                    sqlColumnDef = $"{attribute.name} nvarchar({attribute.maximumLength})";
+                    break;
+            }
+
+            return sqlColumnDef;
+        }
+
+        public static string replaceViewSyntax(string inputString, AppConfigurations c)
         {
             string outputString = inputString;
-
-            if (String.IsNullOrEmpty(replaceViewSyntaxFile) == false && File.Exists(replaceViewSyntaxFile))
+            
+            using (var rdr = new StringReader(outputString))
             {
-                string artifactsStr = File.ReadAllText(replaceViewSyntaxFile);
+                IList<ParseError> errors = null;
+                var parser = new TSql150Parser(true, SqlEngineType.All);
+                var tree = parser.Parse(rdr, out errors);
+                tree.Accept(new TSqlSyntaxHandler(c));
+
+                var scrGen = new Sql150ScriptGenerator();
+                scrGen.GenerateScript(tree, out outputString);
+            }
+
+            // Create View to Create or Alter
+            if (!String.IsNullOrEmpty(c.synapseOptions.targetSparkEndpoint))
+            {
+                outputString = outputString.Replace("CREATE VIEW ", "CREATE OR REPLACE VIEW ");
+                outputString = outputString.Replace("[", "");
+                outputString = outputString.Replace("]", "");
+                outputString = outputString.Replace(";", "");
+            }
+            else
+            {
+                outputString = outputString.Replace("CREATE VIEW ", "CREATE OR ALTER VIEW ");
+            }
+            
+            //Other replacements
+            if (String.IsNullOrEmpty(c.ReplaceViewSyntax) == false && File.Exists(c.ReplaceViewSyntax))
+            {
+                string artifactsStr = File.ReadAllText(c.ReplaceViewSyntax);
                 IEnumerable<Artifacts> replaceViewSyntax = JsonConvert.DeserializeObject<IEnumerable<Artifacts>>(artifactsStr);
 
                 foreach (Artifacts a in replaceViewSyntax)
@@ -202,9 +353,10 @@ namespace CDMUtil.SQL
                     outputString = outputString.Replace(a.Key, a.Value);
                 }
             }
+           // Console.WriteLine(outputString);
             return outputString;
         }
-        public List<SQLMetadata> RetrieveViewDependencies(string entityName)
+        public List<SQLMetadata> retrieveViewDependencies(string entityName)
         {
             List<SQLMetadata> viewDependencies = new List<SQLMetadata>();
             string queryString = @"
@@ -241,12 +393,16 @@ With allviews (nodeId, parentNodeId, nodeIdType, rootNode, depth) AS (
 )
 --4 inserts the results in a temporary table for ease of use
 Select * into #myEntitiestree from allviews ;
+DECLARE @TablesList VARCHAR(MAX)  ;
+select @TablesList =COALESCE(@TablesList + ',', '') + nodeId from #myEntitiestree where nodeIdType = 'USER_TABLE'
+
 ------------------------------------------------End recursive section -------------------------------
 select 
        v.name as view_name, 	   
        rootnode,
 	   parentnodeid,
-       m.definition as definitions
+       m.definition as definitions,
+       @TablesList as TableList
 from sys.views v
 join sys.sql_modules m 
      on m.object_id = v.object_id
@@ -270,24 +426,27 @@ order by rootNode asc, depth desc
             {
                 var viewName = dataReader[0];
                 var viewDef = dataReader[3];
+                var tableDependencies = dataReader[4];
                 viewDependencies.Add(new SQLMetadata { entityName = viewName.ToString(),
-                    viewDefinition = viewDef.ToString() });
+                    viewDefinition = viewDef.ToString(),
+                    dependentTables = tableDependencies.ToString()
+                });
             }
             return viewDependencies;
 
         }
-        public static void dbSetup(SynapseDBOptions options, string tenantId)
+        public static void dbSetup(SynapseDBOptions options, string tenantId, ILogger log)
         {
             var createDbStatement = createDBSQL(options.dbName);
-            SQLHandler createDB = new SQLHandler(options.masterDbConnectionString, tenantId);
+            SQLHandler createDB = new SQLHandler(options.masterDbConnectionString, tenantId, log);
             createDB.executeStatements(createDbStatement);
 
             var masterKeyStatement = createMasterKey(options);
-            SQLHandler masterKeySQL = new SQLHandler(options.targetDbConnectionString, tenantId);
+            SQLHandler masterKeySQL = new SQLHandler(options.targetDbConnectionString, tenantId, log);
             masterKeySQL.executeStatements(masterKeyStatement);
 
             var prepareDbStatement = prepSynapseDBSQL(options);
-            SQLHandler sQLHandler = new SQLHandler(options.targetDbConnectionString, tenantId);
+            SQLHandler sQLHandler = new SQLHandler(options.targetDbConnectionString, tenantId,log);
             sQLHandler.executeStatements(prepareDbStatement);
         }
         public static SQLStatements createDBSQL(string dbName)
@@ -353,4 +512,73 @@ order by rootNode asc, depth desc
         }
 
     }
+    public class TSqlSyntaxHandler : TSqlFragmentVisitor
+    {
+        public bool sparkSQL;
+        public string dbName; 
+        public string schema; 
+        public TSqlSyntaxHandler(AppConfigurations c)
+        {
+            sparkSQL = (String.IsNullOrEmpty(c.synapseOptions.targetSparkEndpoint)) ? false : true;
+            dbName   = c.synapseOptions.dbName;
+            schema   = c.synapseOptions.schema;
+        }
+        public override void ExplicitVisit(CreateViewStatement node)
+        {
+            if (node.SchemaObjectName != null)
+            {
+                node.SchemaObjectName.SchemaIdentifier.Value = sparkSQL ? dbName : schema;
+            }
+            base.ExplicitVisit(node);
+        }
+        public override void ExplicitVisit(BooleanParenthesisExpression node)
+        {
+            var expression = node.Expression as BooleanComparisonExpression;
+            if (expression != null)
+            {
+                ColumnReferenceExpression fristExpression = expression.FirstExpression as ColumnReferenceExpression;
+                ColumnReferenceExpression secondExpression = expression.SecondExpression as ColumnReferenceExpression;
+                
+                if (fristExpression != null && secondExpression != null && fristExpression.MultiPartIdentifier[1].Value == "PARTITION" && secondExpression.MultiPartIdentifier[1].Value == "PARTITION")
+                {
+                    var equal = new BooleanComparisonExpression();
+                    var one = new IntegerLiteral();
+                    one.Value = "1";
+                    equal.FirstExpression = one;
+                    equal.SecondExpression = one;
+                    node.Expression = equal;
+                }
+            }
+
+            base.ExplicitVisit(node);
+        }
+        public override void ExplicitVisit(QuerySpecification node)
+        {
+            for (int i = 1; i < node.SelectElements.Count; i++)
+            {
+                SelectScalarExpression element = node.SelectElements[i] as SelectScalarExpression;
+                if (element.ColumnName != null && element.ColumnName.Value.Contains("#"))
+                {
+                    node.SelectElements.Remove(element);
+                    i--;
+                }
+            }
+            base.ExplicitVisit(node);
+        }
+
+        public override void ExplicitVisit(NamedTableReference table)
+        {
+            if (sparkSQL)
+            {
+                table.SchemaObject.BaseIdentifier.Value = dbName + "." + table.SchemaObject.BaseIdentifier.Value;
+            }
+            else
+            {
+                table.SchemaObject.BaseIdentifier.Value = schema + "." + table.SchemaObject.BaseIdentifier.Value;
+            }
+
+            base.ExplicitVisit(table);
+        }
+       
     }
+}

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.CommonDataModel.ObjectModel.Utilities.Network;
 
@@ -17,16 +14,16 @@ namespace CDMUtil.Manifest
             Tenant = tenant;
         }
         public string GetToken()
-            {
-                string token = this.GetAccessTokenAsync().Result;
-                return $"Bearer {token}";
-            }
-            private async Task<string> GetAccessTokenAsync()
-            {
-                var tokenProvider = new AzureServiceTokenProvider();
-                string token = await tokenProvider.GetAccessTokenAsync(Resource, Tenant);
-
-                return token;
-            }
+        {
+            string token = this.GetAccessTokenAsync().Result;
+            return $"Bearer {token}";
         }
+        private async Task<string> GetAccessTokenAsync()
+        {
+            var tokenProvider = new AzureServiceTokenProvider();
+            string token = await tokenProvider.GetAccessTokenAsync(Resource, Tenant);
+
+            return token;
+        }
+    }
 }
