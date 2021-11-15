@@ -21,6 +21,7 @@ $companyName    = "USPM"
 $customerName   = "Adatum Corporation"
 $calendarName   = "Default Work Template"
 $projectManager = "SA Solutions Architect"
+$startDate      = "2021-10-01"
 
 [Project] $project = [Project]::new($projectName,$tenant,$environment)
 $project.request.Debug = $showRestAPI
@@ -31,6 +32,7 @@ if ($project.id -eq '')
    $project.calendar = $calendarName
    $project.company = $companyName
    $project.projectManager = $projectManager
+   $project.startDate = $startDate
    $project.CreateProject()
 }
 else

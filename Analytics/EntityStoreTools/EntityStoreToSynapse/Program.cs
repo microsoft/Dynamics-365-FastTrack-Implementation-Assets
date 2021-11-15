@@ -38,7 +38,7 @@
                         sqlProvider = new SynapseSqlProvider(options.ConnectionString);
                     }
 
-                    Console.WriteLine($"Entity Store to Synapse Tool (EntityStoreTools Version 2.1)\n");
+                    Console.WriteLine($"Entity Store to Synapse Tool (EntityStoreTools Version {Constants.ToolsVersion})\n");
 
                     if (!File.Exists(options.MetadataPath))
                     {
@@ -103,6 +103,47 @@
                 });
         }
 
+        private static string GenerateEnumTranslationsQuery(List<ZipArchiveEntry> entryList, HashSet<string> columnNames)
+        {
+            string enumTranslationQuery = string.Empty;
+
+            foreach (var column in columnNames)
+            {
+                enumTranslationQuery += AppendEnumTranslation(entryList, column);
+            }
+
+            return enumTranslationQuery;
+        }
+
+        private static string AppendEnumTranslation(List<ZipArchiveEntry> entryList, string enumName)
+        {
+            var enumEntry = entryList.FirstOrDefault(e => e.FullName == $"enums\\{enumName}.csv");
+
+            if (enumEntry == null)
+            {
+                return string.Empty;
+            }
+
+            string enumQuery = " CASE ";
+            using (var stream = enumEntry.Open())
+            {
+                using (var reader = new StreamReader(stream))
+                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                {
+                    var records = csv.GetRecords<AxEnumMetadata>();
+
+                    foreach (var record in records)
+                    {
+                        enumQuery += $"WHEN {enumName} = '{record.EnumKey}' THEN '{record.EnumValue}' ";
+                    }
+
+                    enumQuery += $"END AS {enumName.ToUpper()}_VALUE,";
+                }
+            }
+
+            return enumQuery;
+        }
+
         private static async Task CreateFactAndDimensionTablesAsync(List<ZipArchiveEntry> entryList, dynamic measurementMetadata, SynapseSqlProvider sqlProvider)
         {
             var aggregateMeasurementName = measurementMetadata.Name;
@@ -113,6 +154,7 @@
             foreach (var measureGroup in measureGroups)
             {
                 HashSet<string> factTableColumns = new HashSet<string>();
+                var commonColumns = GetCommonColumns();
                 var measureGroupTableName = aggregateMeasurementName + "_" + measureGroup.Name;
 
                 var createMeasureGroupQuery = $"CREATE OR ALTER VIEW {measureGroupTableName} AS SELECT ";
@@ -134,9 +176,102 @@
 
                 foreach (var attribute in measureGroup.Attributes)
                 {
+                    if (commonColumns.Contains(attribute.Name.ToString().ToUpper()))
+                    {
+                        commonColumns.Remove(attribute.Name.ToString().ToUpper());
+                    }
+
+                    var reservedColumn = CheckReservedWord(attribute.KeyFields[0].DimensionField, attribute.Name, createMeasureGroupQuery);
+
                     if (factTableColumns.Add(attribute.Name.ToString().ToUpper()))
                     {
-                        createMeasureGroupQuery += $"{attribute.KeyFields[0].DimensionField} AS {attribute.Name},";
+                        if (!reservedColumn.Item1)
+                        {
+                            createMeasureGroupQuery += $"{attribute.KeyFields[0].DimensionField} AS {attribute.Name.ToString().ToUpper()},";
+                        }
+                        else
+                        {
+                            createMeasureGroupQuery = reservedColumn.Item2;
+                        }
+                    }
+                }
+
+                foreach (var measure in measureGroup.Measures)
+                {
+                    if (measure.Field == null)
+                    {
+                        if (measure.Name == null)
+                        {
+                            continue;
+                        }
+
+                        if (commonColumns.Contains(measure.Name.ToString().ToUpper()))
+                        {
+                            commonColumns.Remove(measure.Name.ToString().ToUpper());
+                        }
+
+                        var reservedColumnCheck = CheckReservedWord(measure.Name, measure.Name, createMeasureGroupQuery);
+                        if (factTableColumns.Add(measure.Name.ToString().ToUpper()))
+                        {
+                            if (reservedColumnCheck.Item1)
+                            {
+                                createMeasureGroupQuery += $"1 AS {measure.Name.ToString().ToUpper()}_,";
+                            }
+                            else
+                            {
+                                createMeasureGroupQuery += $"1 AS {measure.Name.ToString().ToUpper()},";
+                            }
+                        }
+
+                        continue;
+                    }
+                    else if (measure.Name == null)
+                    {
+                        if (commonColumns.Contains(measure.Field.ToString().ToUpper()))
+                        {
+                            commonColumns.Remove(measure.Field.ToString().ToUpper());
+                        }
+
+                        var reservedColumnCheck = CheckReservedWord(measure.Field, measure.Field, createMeasureGroupQuery);
+                        if (factTableColumns.Add(measure.Field.ToString().ToUpper()))
+                        {
+                            if (reservedColumnCheck.Item1)
+                            {
+                                createMeasureGroupQuery += $"1 AS {measure.Field.ToString().ToUpper()}_,";
+                            }
+                            else
+                            {
+                                createMeasureGroupQuery += $"1 AS {measure.Field.ToString().ToUpper()},";
+                            }
+                        }
+
+                        continue;
+                    }
+
+                    if (commonColumns.Contains(measure.Name.ToString().ToUpper()))
+                    {
+                        commonColumns.Remove(measure.Name.ToString().ToUpper());
+                    }
+
+                    var reservedColumn = CheckReservedWord(measure.Field, measure.Name, createMeasureGroupQuery);
+
+                    if (factTableColumns.Add(measure.Name.ToString().ToUpper()))
+                    {
+                        if (!reservedColumn.Item1)
+                        {
+                            if (string.IsNullOrEmpty(measure.Field.ToString().Trim()))
+                            {
+                                createMeasureGroupQuery += $"{measure.Name.ToString().ToUpper()},";
+                            }
+                            else
+                            {
+                                createMeasureGroupQuery += $"{measure.Field} AS {measure.Name.ToString().ToUpper()},";
+                            }
+                        }
+                        else
+                        {
+                            createMeasureGroupQuery = reservedColumn.Item2;
+                        }
                     }
                 }
 
@@ -155,9 +290,14 @@
 
                         foreach (var contraint in relation.Constraints)
                         {
+                            if (commonColumns.Contains(contraint.RelatedField.ToString().ToUpper()))
+                            {
+                                commonColumns.Remove(contraint.RelatedField.ToString().ToUpper());
+                            }
+
                             if (factTableColumns.Add(contraint.RelatedField.ToString().ToUpper()))
                             {
-                                createMeasureGroupQuery += $"{contraint.RelatedField} AS {contraint.Name},";
+                                createMeasureGroupQuery += $"{contraint.RelatedField} AS {contraint.Name.ToString().ToUpper()},";
                             }
 
                             if (fkFlag)
@@ -175,28 +315,47 @@
                     }
                 }
 
+                createMeasureGroupQuery = AttachCommonColumns(createMeasureGroupQuery, commonColumns);
+                createMeasureGroupQuery += GenerateEnumTranslationsQuery(entryList, factTableColumns);
                 createMeasureGroupQuery = createMeasureGroupQuery.Remove(createMeasureGroupQuery.Length - 1);
                 createMeasureGroupQuery += $" FROM {measureGroup.Table}";
 
-                Console.WriteLine($"Creating measure group '{measureGroupTableName}' with statement:\t{createMeasureGroupQuery}\n");
-
-                try
+                while (true)
                 {
-                    await sqlProvider.RunSqlStatementAsync(createMeasureGroupQuery);
+                    Console.WriteLine($"Creating measure group '{measureGroupTableName}' with statement:\t{createMeasureGroupQuery}\n");
 
-                    ColorConsole.WriteSuccess($"Created '{measureGroupTableName}'\n");
-                }
-                catch (SqlException e)
-                {
-                    var errorMessage = $"Could not create MeasureGroup '{createMeasureGroupQuery}': {e.Message}\n";
-                    errorList.Add(errorMessage);
+                    try
+                    {
+                        await sqlProvider.RunSqlStatementAsync(createMeasureGroupQuery);
 
-                    ColorConsole.WriteError(errorMessage);
-                }
-                finally
-                {
-                    // delay the running of the next statement to prevent DoS
-                    await Task.Delay(100);
+                        ColorConsole.WriteSuccess($"Created '{measureGroupTableName}'\n");
+                    }
+                    catch (SqlException e)
+                    {
+                        if (e.Message.Contains($"Invalid column name 'PARTITION'"))
+                        {
+                            createMeasureGroupQuery = DefaultPartitionColumn(createMeasureGroupQuery);
+                            continue;
+                        }
+
+                        if (e.Message.Contains($"Invalid column name 'DATAAREAID'"))
+                        {
+                            createMeasureGroupQuery = DefaultDataAreaIdColumn(createMeasureGroupQuery);
+                            continue;
+                        }
+
+                        var errorMessage = $"Could not create MeasureGroup '{createMeasureGroupQuery}': {e.Message}\n";
+                        errorList.Add(errorMessage);
+
+                        ColorConsole.WriteError(errorMessage);
+                    }
+                    finally
+                    {
+                        // delay the running of the next statement to prevent DoS
+                        await Task.Delay(100);
+                    }
+
+                    break;
                 }
             }
 
@@ -220,7 +379,7 @@
 
             foreach (var attr in attributes)
             {
-                result += $"'T{counter}.{attr.Name}' {attr.Name},";
+                result += $"'T{counter}.{attr.Name}' {attr.Name.ToString().ToUpper()},";
             }
 
             return result;
@@ -285,7 +444,7 @@
                                         var reservedColumn = CheckReservedWord(attribute.KeyFields[0].DimensionField, attribute.Name, createDimensionQuery);
                                         if (!reservedColumn.Item1)
                                         {
-                                            createDimensionQuery += $"{attribute.KeyFields[0].DimensionField} AS {attribute.Name},";
+                                            createDimensionQuery += $"{attribute.KeyFields[0].DimensionField} AS {attribute.Name.ToString().ToUpper()},";
                                         }
                                         else
                                         {
@@ -304,7 +463,7 @@
                                                 var reservedColumn = CheckReservedWord(field.DimensionField, attribute.Name, createDimensionQuery);
                                                 if (!reservedColumn.Item1)
                                                 {
-                                                    createDimensionQuery += $"{field.DimensionField} AS {attribute.Name},";
+                                                    createDimensionQuery += $"{field.DimensionField} AS {attribute.Name.ToString().ToUpper()},";
                                                 }
                                                 else
                                                 {
@@ -317,7 +476,7 @@
                                             var reservedColumn = CheckReservedWord(field.DimensionField, field.DimensionField, createDimensionQuery);
                                             if (!reservedColumn.Item1)
                                             {
-                                                createDimensionQuery += $"{field.DimensionField},";
+                                                createDimensionQuery += $"{field.DimensionField.ToString().ToUpper()},";
                                             }
                                             else
                                             {
@@ -329,6 +488,7 @@
                             }
 
                             createDimensionQuery = AttachCommonColumns(createDimensionQuery, commonColumns);
+                            createDimensionQuery += GenerateEnumTranslationsQuery(entryList, columns);
                             createDimensionQuery = createDimensionQuery.Remove(createDimensionQuery.Length - 1);
 
                             createDimensionQuery += $" FROM {dimensionMetadata.Table}";
@@ -349,7 +509,13 @@
                         {
                             if (e.Message.Contains($"Invalid column name 'PARTITION'"))
                             {
-                                createDimensionQuery = RemovePartitionColumn(createDimensionQuery);
+                                createDimensionQuery = DefaultPartitionColumn(createDimensionQuery);
+                                continue;
+                            }
+
+                            if (e.Message.Contains($"Invalid column name 'DATAAREAID'"))
+                            {
+                                createDimensionQuery = DefaultDataAreaIdColumn(createDimensionQuery);
                                 continue;
                             }
 
@@ -372,9 +538,14 @@
             return errorList;
         }
 
-        private static string RemovePartitionColumn(string createDimensionQuery)
+        private static string DefaultPartitionColumn(string createDimensionQuery)
         {
-            return createDimensionQuery.Replace(",PARTITION", string.Empty);
+            return createDimensionQuery.Replace(",PARTITION", ",1 AS PARTITION");
+        }
+
+        private static string DefaultDataAreaIdColumn(string createDimensionQuery)
+        {
+            return createDimensionQuery.Replace(",DATAAREAID", ",'demo' AS DATAAREAID");
         }
 
         private static (bool, string) CheckReservedWord(dynamic dimensionField, dynamic dimensionName, string createDimensionQuery)
@@ -382,25 +553,31 @@
             HashSet<string> reservedWords = new HashSet<string>()
             {
                 "KEY",
-                "DATE",
+                "COMMENT",
+                "COUNT",
             };
+
+            if (dimensionField == null || dimensionName == null)
+            {
+                return (false, createDimensionQuery);
+            }
 
             if (reservedWords.Contains(dimensionField.ToString().ToUpper()))
             {
                 if (reservedWords.Contains(dimensionName.ToString().ToUpper()))
                 {
-                    createDimensionQuery += $"{dimensionField}_ AS {dimensionName}_,";
+                    createDimensionQuery += $"{dimensionField}_ AS {dimensionName.ToString().ToUpper()}_,";
                 }
                 else
                 {
-                    createDimensionQuery += $"{dimensionField}_ AS {dimensionName},";
+                    createDimensionQuery += $"{dimensionField}_ AS {dimensionName.ToString().ToUpper()},";
                 }
 
                 return (true, createDimensionQuery);
             }
             else if (reservedWords.Contains(dimensionName.ToString().ToUpper()))
             {
-                createDimensionQuery += $"{dimensionField} AS {dimensionName}_,";
+                createDimensionQuery += $"{dimensionField} AS {dimensionName.ToString().ToUpper()}_,";
 
                 return (true, createDimensionQuery);
             }
@@ -414,6 +591,7 @@
             {
                 "RECID",
                 "PARTITION",
+                "DATAAREAID",
             };
 
             return commonColumns;
@@ -428,7 +606,7 @@
 
             foreach (var column in commonColumns)
             {
-                createDimensionQuery += $"{column},";
+                createDimensionQuery += $"{column.ToString().ToUpper()},";
             }
 
             return createDimensionQuery;
