@@ -1,0 +1,16 @@
+
+[
+  {
+    "Key": "DIMENSIONCOMBINATIONENTITY",
+    "Value": "CREATE VIEW [DBO].[DIMENSIONCOMBINATIONENTITY] AS SELECT  T1.MAINACCOUNTVALUE AS MAINACCOUNT FROM DIMENSIONATTRIBUTEVALUECOMBINATION T1"
+  },
+  {
+    "Key": "CustomerView",
+    "Value": "CREATE VIEW [DBO].[CustomerView] AS SELECT  T1.AccountNum AS AccountNum FROM CustTable T1"
+  },
+  {
+    "Key": "CustomerView",
+    "Value": ""
+  }
+]
+
