@@ -6,6 +6,6 @@
 
     public class Constants
     {
-        public const string ToolsVersion = "2.7";
+        public const string ToolsVersion = "2.8";
     }
 }

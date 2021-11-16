@@ -15,6 +15,7 @@ using CDMUtil.SQL;
 using Microsoft.Azure.WebJobs.Extensions.EventGrid;
 using Microsoft.Azure.EventGrid.Models;
 using System.Linq;
+using CDMUtil.Spark;
 
 namespace CDMUtil
 {
@@ -61,7 +62,7 @@ namespace CDMUtil
             // Read Manifest metadata
             log.Log(LogLevel.Information, "Reading Manifest metadata");
 
-            ManifestWriter manifestHandler = new ManifestWriter(adlsContext, localFolder);
+            ManifestWriter manifestHandler = new ManifestWriter(adlsContext, localFolder, log);
 
             bool created = await manifestHandler.manifestToModelJson(adlsContext, manifestName, localFolder);
 
@@ -91,7 +92,7 @@ namespace CDMUtil
                 TenantId = tenantId
             };
 
-            ManifestWriter manifestHandler = new ManifestWriter(adlsContext, localFolder);
+            ManifestWriter manifestHandler = new ManifestWriter(adlsContext, localFolder, log);
             bool createModel = false;
             if (createModelJson != null && createModelJson.Equals("true", StringComparison.OrdinalIgnoreCase))
             {
@@ -110,7 +111,7 @@ namespace CDMUtil
                 var nextFolder = subFolders[i + 1];
                 localFolderPath = $"{localFolderPath}/{currentFolder}";
 
-                ManifestWriter SubManifestHandler = new ManifestWriter(adlsContext, localFolderPath);
+                ManifestWriter SubManifestHandler = new ManifestWriter(adlsContext, localFolderPath, log);
                 await SubManifestHandler.createSubManifest(currentFolder, nextFolder);
             }
 
@@ -128,7 +129,7 @@ namespace CDMUtil
           [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
           ILogger log, ExecutionContext context)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
+            log.LogInformation("HTTP trigger manifestToSQL...");
 
             //get configurations data 
             AppConfigurations c = GetAppConfigurations(req, context);
@@ -136,25 +137,19 @@ namespace CDMUtil
             // Read Manifest metadata
             log.Log(LogLevel.Information, "Reading Manifest metadata");
             List<SQLMetadata> metadataList = new List<SQLMetadata>();
-            await ManifestReader.manifestToSQLMetadata(c, metadataList);
-           
-            // convert metadata to DDL
-            log.Log(LogLevel.Information, "Converting metadata to DDL");
-            var statementsList = await SQLHandler.SQLMetadataToDDL(metadataList, c);
+            await ManifestReader.manifestToSQLMetadata(c, metadataList, log, c.rootFolder);
 
-            log.Log(LogLevel.Information, "Preparing DB");
-            // prep DB 
-            if (c.synapseOptions.targetDbConnectionString != null)
+            SQLStatements statements;
+
+            if (!String.IsNullOrEmpty(c.synapseOptions.targetSparkEndpoint))
             {
-                SQLHandler.dbSetup(c.synapseOptions, c.tenantId);
+                statements = SparkHandler.executeSpark(c, metadataList, log);
             }
-            
-            // Execute DDL
-            log.Log(LogLevel.Information, "Executing DDL");
-            SQLHandler sQLHandler = new SQLHandler(c.synapseOptions.targetDbConnectionString, c.tenantId);
-            var statements = new SQLStatements { Statements = statementsList };
-            sQLHandler.executeStatements(statements);
-                             
+            else
+            {
+                statements = SQLHandler.executeSQL(c, metadataList, log);
+            }
+                 
             return new OkObjectResult(JsonConvert.SerializeObject(statements));
         }
         
@@ -171,11 +166,21 @@ namespace CDMUtil
             // Read Manifest metadata
             log.Log(LogLevel.Information, "Reading Manifest metadata");
             List<SQLMetadata> metadataList = new List<SQLMetadata>();
-            await ManifestReader.manifestToSQLMetadata(c, metadataList);
+            await ManifestReader.manifestToSQLMetadata(c, metadataList, log, c.rootFolder);
 
             // convert metadata to DDL
             log.Log(LogLevel.Information, "Converting metadata to DDL");
-            var statementsList = await SQLHandler.SQLMetadataToDDL(metadataList, c);
+            List<SQLStatement> statementsList;
+
+            if (!String.IsNullOrEmpty(c.synapseOptions.targetSparkEndpoint))
+            {
+                statementsList = await SQLHandler.sqlMetadataToDDL(metadataList, c,log);
+            }
+            else
+            {
+                statementsList =  SparkHandler.metadataToSparkStmt(metadataList, c, log);
+            }
+             
 
             return new OkObjectResult(JsonConvert.SerializeObject(statementsList));
         }
@@ -193,24 +198,17 @@ namespace CDMUtil
             // Read Manifest metadata
             log.Log(LogLevel.Information, "Reading Manifest metadata");
             List<SQLMetadata> metadataList = new List<SQLMetadata>();
-            ManifestReader.manifestToSQLMetadata(c, metadataList);
 
-            // convert metadata to DDL
-            log.Log(LogLevel.Information, "Converting metadata to DDL");
-            var statementsList = SQLHandler.SQLMetadataToDDL(metadataList, c).Result;
+            ManifestReader.manifestToSQLMetadata(c, metadataList, log, c.rootFolder);
 
-            log.Log(LogLevel.Information, "Preparing DB");
-            // prep DB 
-            if (c.synapseOptions.targetDbConnectionString != null)
+            if (!String.IsNullOrEmpty(c.synapseOptions.targetSparkEndpoint))
             {
-                SQLHandler.dbSetup(c.synapseOptions, c.tenantId);
+                SparkHandler.executeSpark(c, metadataList, log);
             }
-
-            // Execute DDL
-            log.Log(LogLevel.Information, "Executing DDL");
-            SQLHandler sQLHandler = new SQLHandler(c.synapseOptions.targetDbConnectionString, c.tenantId);
-            var statements = new SQLStatements { Statements = statementsList };
-            sQLHandler.executeStatements(statements);
+            else
+            {
+                SQLHandler.executeSQL(c, metadataList, log);
+            }
         }
         public static string getConfigurationValue(HttpRequest req, string token, string url = null)
         {
@@ -259,8 +257,10 @@ namespace CDMUtil
             string tenantId = getConfigurationValue(req, "TenantId", ManifestURL);
             string connectionString = getConfigurationValue(req, "SQLEndpoint", ManifestURL);
             string DDLType = getConfigurationValue(req, "DDLType", ManifestURL);
-            
-            AppConfigurations AppConfiguration = new AppConfigurations(tenantId, ManifestURL, null, connectionString, DDLType);
+
+            string targetSparkConnection = getConfigurationValue(req, "TargetSparkConnection", ManifestURL);
+
+            AppConfigurations AppConfiguration = new AppConfigurations(tenantId, ManifestURL, null, connectionString, DDLType, targetSparkConnection);
 
             string dataSourceName = getConfigurationValue(req, "DataSourceName", ManifestURL);
             if (dataSourceName != null)
@@ -285,14 +285,27 @@ namespace CDMUtil
             string TranslateEnum = getConfigurationValue(req, "TranslateEnum", ManifestURL);
             if (TranslateEnum != null)
                 AppConfiguration.synapseOptions.TranslateEnum = bool.Parse(TranslateEnum);
+            
+            string DefaultStringLenght = getConfigurationValue(req, "DefaultStringLenght", ManifestURL);
+            
+            if (DefaultStringLenght != null)
+            {
+                AppConfiguration.synapseOptions.DefaultStringLenght = Int16.Parse(DefaultStringLenght);
+            }
 
             AppConfiguration.SourceColumnProperties = Path.Combine(context.FunctionAppDirectory, "SourceColumnProperties.json");
             AppConfiguration.ReplaceViewSyntax = Path.Combine(context.FunctionAppDirectory, "ReplaceViewSyntax.json");
-         
+
+
+            string ProcessEntities = getConfigurationValue(req, "ProcessEntities", ManifestURL);
+            
+            if (ProcessEntities!= null)
+            {
+                AppConfiguration.ProcessEntities = bool.Parse(ProcessEntities);
+                AppConfiguration.ProcessEntitiesFilePath = Path.Combine(context.FunctionAppDirectory, "EntityList.json");
+                
+            }
             return AppConfiguration;
         }
-
-         
-
     }
 }

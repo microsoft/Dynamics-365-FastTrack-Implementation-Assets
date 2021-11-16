@@ -20,6 +20,10 @@
     "Value": "CREATE OR ALTER VIEW "
   },
   {
+    "Key": "AND (1 = 1)",
+    "Value": ""
+  },
+  {
     "Key": "[dbo].GetValidFromInContextInfo()",
     "Value": "GETUTCDATE()"
   },
@@ -35,5 +39,5 @@
     "Key": ", T1.CREDMANNOTES AS CREDMANNOTES",
     "Value": ""
   }
- 
+
 ]
