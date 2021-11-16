@@ -94,34 +94,56 @@
                 {
                     dynamic entityObject = JObject.Load(jsonTextReader);
 
+                    dynamic enumFile = new JObject();
+                    string objectName = axObject.Name == null ? "Unknown" : axObject.Name.ToString();
+                    enumFile.Name = objectName.ToUpper();
+
+                    JArray enumsObjectArray = new JArray();
+
                     foreach (var field in entityObject.Fields)
                     {
-                        if (field.DataField == null)
+                        if (field.DataField == null && field.EnumType == null)
                         {
                             continue;
                         }
 
-                        string enumName = field.DataField.Value.ToString();
+                        string enumName = field.DataField == null ? field.EnumType.ToString() : field.DataField.Value.ToString();
                         var enumField = metadataProvider.Enums.Read(enumName);
                         if (enumField != null && enumSet.Add(field.Name.ToString()))
                         {
-                            var enumValues = enumField.EnumValues;
-                            var enumsPath = Path.Combine(tempPath, "enums");
-                            var enumDependenciesPath = Path.Combine(enumsPath, $"{field.Name}.csv");
+                            var values = enumField.EnumValues;
+                            JArray enumValues = new JArray();
 
-                            string csv = string.Join(
-                                Environment.NewLine,
-                                enumValues.Select(d => $"{d.getKey()},{d.Value}"));
-
-                            if (!Directory.Exists(enumsPath))
+                            foreach (var value in values)
                             {
-                                Directory.CreateDirectory(enumsPath);
+                                dynamic kv = new JObject();
+                                kv.Key = value.getKey();
+                                kv.Value = value.Value;
+                                enumValues.Add(kv);
                             }
 
-                            ColorConsole.WriteInfo($"\nWriting enum file: '{field.Name}'");
-                            File.WriteAllText(enumDependenciesPath, string.Format("EnumKey,EnumValue") + Environment.NewLine);
-                            File.AppendAllText(enumDependenciesPath, csv);
+                            dynamic enumObject = new JObject();
+
+                            enumObject.Name = field.Name.ToString().ToUpper();
+                            enumObject.Translations = enumValues;
+
+                            enumsObjectArray.Add(enumObject);
                         }
+                    }
+
+                    if (enumsObjectArray.Count != 0)
+                    {
+                        enumFile.Enums = enumsObjectArray;
+                        var enumsPath = Path.Combine(tempPath, "enums");
+                        var enumDependenciesPath = Path.Combine(enumsPath, $"{objectName.ToUpper()}.json");
+
+                        if (!Directory.Exists(enumsPath))
+                        {
+                            Directory.CreateDirectory(enumsPath);
+                        }
+
+                        ColorConsole.WriteInfo($"\nWriting enum file: '{objectName.ToUpper()}'");
+                        File.WriteAllText(enumDependenciesPath, JsonConvert.SerializeObject(enumFile, Formatting.Indented));
                     }
                 }
             }
