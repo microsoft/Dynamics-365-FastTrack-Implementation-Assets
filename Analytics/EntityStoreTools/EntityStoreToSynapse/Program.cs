@@ -103,45 +103,43 @@
                 });
         }
 
-        private static string GenerateEnumTranslationsQuery(List<ZipArchiveEntry> entryList, HashSet<string> columnNames)
+        private static (string, HashSet<string>) GenerateEnumTranslationsQuery(List<ZipArchiveEntry> entryList, string measureObject, HashSet<string> columnNames)
         {
-            string enumTranslationQuery = string.Empty;
-
-            foreach (var column in columnNames)
-            {
-                enumTranslationQuery += AppendEnumTranslation(entryList, column);
-            }
-
-            return enumTranslationQuery;
-        }
-
-        private static string AppendEnumTranslation(List<ZipArchiveEntry> entryList, string enumName)
-        {
-            var enumEntry = entryList.FirstOrDefault(e => e.FullName == $"enums\\{enumName}.csv");
+            var enumEntry = entryList.FirstOrDefault(e => e.FullName == $"enums\\{measureObject.ToUpper()}.json");
+            HashSet<string> foundEnums = new HashSet<string>();
 
             if (enumEntry == null)
             {
-                return string.Empty;
+                return (string.Empty, new HashSet<string>());
             }
 
-            string enumQuery = " CASE ";
+            string enumQuery = string.Empty;
             using (var stream = enumEntry.Open())
             {
                 using (var reader = new StreamReader(stream))
-                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                using (var jsonTextReader = new JsonTextReader(reader))
                 {
-                    var records = csv.GetRecords<AxEnumMetadata>();
+                    dynamic enumMetadata = JObject.Load(jsonTextReader);
 
-                    foreach (var record in records)
+                    foreach (var enumObject in enumMetadata.Enums)
                     {
-                        enumQuery += $"WHEN {enumName} = '{record.EnumKey}' THEN '{record.EnumValue}' ";
-                    }
+                        if (columnNames.Contains(enumObject.Name.ToString()))
+                        {
+                            foundEnums.Add(enumObject.Name.ToString().ToUpper());
+                            string tempQuery = " CASE ";
+                            foreach (var kv in enumObject.Translations)
+                            {
+                                tempQuery += $"WHEN {enumObject.Name} = '{kv.Value}' THEN '{kv.Key}' ";
+                            }
 
-                    enumQuery += $"END AS {enumName.ToUpper()}_VALUE,";
+                            tempQuery += $"END AS {enumObject.Name},";
+                            enumQuery += tempQuery;
+                        }
+                    }
                 }
             }
 
-            return enumQuery;
+            return (enumQuery, foundEnums);
         }
 
         private static async Task CreateFactAndDimensionTablesAsync(List<ZipArchiveEntry> entryList, dynamic measurementMetadata, SynapseSqlProvider sqlProvider)
@@ -316,7 +314,18 @@
                 }
 
                 createMeasureGroupQuery = AttachCommonColumns(createMeasureGroupQuery, commonColumns);
-                createMeasureGroupQuery += GenerateEnumTranslationsQuery(entryList, factTableColumns);
+
+                (string, HashSet<string>) enumTranslations = GenerateEnumTranslationsQuery(entryList, measureGroup.Table.ToString(), factTableColumns);
+                if (enumTranslations.Item2.Count() > 0)
+                {
+                    foreach (string column in enumTranslations.Item2)
+                    {
+                        createMeasureGroupQuery = RenameEnumColumns(createMeasureGroupQuery, column);
+                    }
+
+                    createMeasureGroupQuery += enumTranslations.Item1;
+                }
+
                 createMeasureGroupQuery = createMeasureGroupQuery.Remove(createMeasureGroupQuery.Length - 1);
                 createMeasureGroupQuery += $" FROM {measureGroup.Table}";
 
@@ -330,7 +339,7 @@
 
                         ColorConsole.WriteSuccess($"Created '{measureGroupTableName}'\n");
                     }
-                    catch (SqlException e)
+                    catch (Exception e)
                     {
                         if (e.Message.Contains($"Invalid column name 'PARTITION'"))
                         {
@@ -488,7 +497,18 @@
                             }
 
                             createDimensionQuery = AttachCommonColumns(createDimensionQuery, commonColumns);
-                            createDimensionQuery += GenerateEnumTranslationsQuery(entryList, columns);
+
+                            (string, HashSet<string>) enumTranslations = GenerateEnumTranslationsQuery(entryList, dimensionMetadata.Table.ToString(), columns);
+                            if (enumTranslations.Item2.Count() > 0)
+                            {
+                                foreach (string column in enumTranslations.Item2)
+                                {
+                                    createDimensionQuery = RenameEnumColumns(createDimensionQuery, column);
+                                }
+
+                                createDimensionQuery += enumTranslations.Item1;
+                            }
+
                             createDimensionQuery = createDimensionQuery.Remove(createDimensionQuery.Length - 1);
 
                             createDimensionQuery += $" FROM {dimensionMetadata.Table}";
@@ -505,7 +525,7 @@
 
                             ColorConsole.WriteSuccess($"Created '{dimensionTableName}'\n");
                         }
-                        catch (SqlException e)
+                        catch (Exception e)
                         {
                             if (e.Message.Contains($"Invalid column name 'PARTITION'"))
                             {
@@ -536,6 +556,13 @@
             }
 
             return errorList;
+        }
+
+        private static string RenameEnumColumns(string createQuery, string enumColumn)
+        {
+            string input = $"{enumColumn}";
+            string output = $"{enumColumn}_VALUE";
+            return createQuery.Replace(input, output);
         }
 
         private static string DefaultPartitionColumn(string createDimensionQuery)
