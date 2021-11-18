@@ -125,6 +125,7 @@
                             dynamic enumObject = new JObject();
 
                             enumObject.Name = field.Name.ToString().ToUpper();
+                            enumObject.EnumName = enumField.Name.ToUpper();
                             enumObject.Translations = enumValues;
 
                             enumsObjectArray.Add(enumObject);
