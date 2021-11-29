@@ -29,23 +29,24 @@ namespace CDMUtil
         
             AppConfigurations c = loadConfigurations(logger);
 
-            // Read Manifest metadata
-            logger.LogInformation($"Reading Manifest metadata https://{c.AdlsContext.StorageAccount}{c.rootFolder}{c.manifestName}");
             List<SQLMetadata> metadataList = new List<SQLMetadata>();
-
-            ManifestReader.manifestToSQLMetadata(c, metadataList, logger, c.rootFolder).Wait();
-
-            logger.LogInformation($"Count of entities:{metadataList.Count}");
-            
-            logger.LogInformation("Preparing DB");
-
-            if (!String.IsNullOrEmpty(c.synapseOptions.targetSparkEndpoint))
+            // Read Manifest metadata
+            using (logger.BeginScope("Reading CDM"))
             {
-                SparkHandler.executeSpark(c, metadataList,logger);
+                logger.LogInformation($"Reading Manifest metadata https://{c.AdlsContext.StorageAccount}/{c.rootFolder}{c.manifestName}");
+                ManifestReader.manifestToSQLMetadata(c, metadataList, logger, c.rootFolder).Wait();
             }
-            else
+        
+            using (logger.BeginScope("Processing DDL"))
             {
-                SQLHandler.executeSQL(c, metadataList, logger);
+                if (!String.IsNullOrEmpty(c.synapseOptions.targetSparkEndpoint))
+                {
+                    SparkHandler.executeSpark(c, metadataList, logger);
+                }
+                else
+                {
+                    SQLHandler.executeSQL(c, metadataList, logger);
+                }
             }
         }
 
@@ -114,6 +115,10 @@ namespace CDMUtil
             if (ConfigurationManager.AppSettings.Get("DefaultStringLenght") != null)
             {
                 AppConfiguration.synapseOptions.DefaultStringLenght = Int16.Parse(ConfigurationManager.AppSettings.Get("DefaultStringLenght"));
+            }
+            if (ConfigurationManager.AppSettings.Get("CreateStats") != null)
+            {
+                AppConfiguration.synapseOptions.createStats = bool.Parse(ConfigurationManager.AppSettings.Get("CreateStats"));
             }
             if (ConfigurationManager.AppSettings.Get("ProcessEntities") != null )
             {
