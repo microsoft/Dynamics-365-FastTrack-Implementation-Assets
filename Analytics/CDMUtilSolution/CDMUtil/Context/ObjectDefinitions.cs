@@ -143,7 +143,11 @@ namespace CDMUtil.Context.ObjectDefinitions
             {
                 rootFolder += segments[i];
             }
-            rootFolder = rootFolder.Replace("/resolved/", "/");
+            if (!String.IsNullOrEmpty(rootFolder))
+            {
+                rootFolder = rootFolder.Replace("/resolved/", "/");
+            }
+            else { rootFolder = "/Entities/"; }
 
             if (!String.IsNullOrEmpty(targetSparkConnection))
             {
@@ -182,6 +186,7 @@ namespace CDMUtil.Context.ObjectDefinitions
         public bool DateTimeAsString = false;
         public bool ConvertDateTime = false;
         public bool TranslateEnum = false;
+        public bool createStats = false;
        
         public SynapseDBOptions()
         { }
@@ -216,7 +221,7 @@ namespace CDMUtil.Context.ObjectDefinitions
             }
 
             // default Synapse Serverless settings 
-            if (connectionStringBuilder.DataSource.EndsWith("-ondemand.sql.azuresynapse.net"))
+            if (connectionStringBuilder.DataSource.Contains("-ondemand.sql.azuresynapse.net"))
             {
                 external_data_source = $"{environmentName}_EDS";
                 fileFormatName = $"{environmentName}_FF";

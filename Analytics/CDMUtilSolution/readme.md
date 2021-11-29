@@ -124,6 +124,7 @@ For simple POC scenario you can execute the CDMUtil solution as a Console Applic
     <add key="AccessKey" value="YourStorageAccountAccessKey" />
     <add key="ManifestURL" value="https://youradls.blob.core.windows.net/dynamics365-financeandoperations/yourenvvi.sandbox.operations.dynamics.com/Tables/Tables.manifest.cdm.json" />
     <add key="TargetDbConnectionString" value="Server=yoursynapseworkspace-ondemand.sql.azuresynapse.net;Database=dbname;Uid=youruser;Pwd=yourpassword" />
+    <!--add key="TargetSparkConnection" value="https://yoursynapseworkspace.dev.azuresynapse.net@synapsePool@dbname" /-->
     <!--Parameters bellow are optional overide parameters/-->
     <!--add key="DataSourceName" value="d365folabanalytics_analytics" />
     <add key="DDLType" value="SynapseView" />
@@ -133,6 +134,8 @@ For simple POC scenario you can execute the CDMUtil solution as a Console Applic
     <add key="ConvertDateTime" value ="true"/>
     <add key="TranslateEnum" value ="false"/>
     <add key="TableNames" value ="SalesTable"/>
+    <add key="ProcessEntities" value ="true"/>
+    <add key="CreateStats" value ="false"/>
     <add key="AXDBConnectionString" value ="Server=DBServer;Database=AXDB;Uid=youruser;Pwd=yourpassword"/-->
   </appSettings>
 </configuration>
@@ -152,6 +155,7 @@ For simple POC scenario you can execute the CDMUtil solution as a Console Applic
 |R|SQLEndPoint/TargetDbConnectionString    |Synapse SQL Pool endpoint connection string. If Database name is not specified - create new database, if userid and password are not specified - MSI authentication will be used.   |Server=yoursynapseworkspace-ondemand.sql.azuresynapse.net; 
 |R|ManifestURL    |URI of the sub manifest or leaf level manifest.json or cdm.json. When using EventGrid trigger with function app, uri is retrived from event | https://youradls.blob.core.windows.net/dynamics365-financeandoperations/yourenvvi.sandbox.operations.dynamics.com/Tables/Tables.manifest.cdm.json, https://youradls.blob.core.windows.net/dynamics365-financeandoperations/yourenvvi.sandbox.operations.dynamics.com/Entities/Entities.manifest.cdm.json 
 |O|AccessKey    |Storage account access key..Only needed if current user does not have access to storage account |  
+|O|TargetSparkConnection    |when provided CDMUtil will create lake database that can be used with Spark as well as SQL Pool | https://yoursynapseworkspace.dev.azuresynapse.net@synapsePool@dbname
 |O|DDLType          |Synapse DDLType default:SynapseView  |<ul><li>SynapseView:Synapse views using openrowset</li><li>SynapseExternalTable:Synapse external table</li><li>SynapseTable:Synapse permanent table(Refer section)</li></ul>|
 |O|Schema    |schema name default:dbo | dbo, cdc 
 |O|DataSourceName    |external data source name. new external ds is created if not provided | 
@@ -159,6 +163,8 @@ For simple POC scenario you can execute the CDMUtil solution as a Console Applic
 |O|DateTimeAsString    |Openrowset csv V2 parser does not support all date time format and hence this workaround default = true | 
 |O|ConvertDateTime    |Openrowset csv V2 parser does not support all date time format and hence this workaround default = true |  
 |O|TranslateEnum    |default= false |   
+|O|ProcessEntities    |Extract list of entities for EntityList.json file to create view on Synapse SQL Pool| default= false
+|O|CreateStats    | Extract Tables and Columns names from joins and create stats on synapse| default= false
 |O|TableNames    |limit list of tables to create view when manifestURL is root level |
 |O|AXDBConnectionString    |AXDB ConnectionString to retrive dependent views definition for Data entities  |
 
@@ -169,19 +175,32 @@ You can use CDMUtil with DDLType = SynapseTable to collect metadata and insert d
 2. Configure CDMUtil to DDLType = SynapseTable
 3. Use ADF/Synapse pileline to trigger copy activity by calling generic storedprocedure.    
 
-## Create F&O Data Entities as View on Synapse SQL Serverless
-### Metadata add-in is enabled 
-When Finance and Operations Metadata add-inis  enables and "select tables using entities" option is used, Export to data lake service generate CDM metadata of the data entity under Entities folder. CDMUtil can read entities CDM metadata and create as views on Synapse. 
+## Create F&O Data entities as View on Synapse
+Dynamics 365 Finance and Operations **Data entities** provides conceptual abstraction and encapsulation (de-normalized view) of underlying table schemas to represent key data concepts and functionalities. 
+Existing Finance and Operations customer that are using BYOD for reporting and BI scenarios, may wants to create Data entities as view on Synapse to enable easier transition from BYOD to Export to data lake and minimize changes in existing reports and ETL processes. 
+Export to data lake **Select tables using entities** option enables users to export dependent tables and data entity view defintion as cdm file under Entities folder in the data lake. 
+To create data entities as view on Synapse, update following configurations to process entities as view 
 
-#### Challenges and workarounds 
- 1. **Tables dependency**: All dependent tables views must be already present before you can create views based on entity metadata.   
- 2. **Views dependency**: Some data entities may have dependency on F&O views, currently metadata service does not produce metadata for views. CDMUtil can mitigate this with AXDBConnectionString of source AXDB tier1 to tier2 environment and automatically retrieve dependent views and create before create entity views.   
- 3. **Syntax dependecy**: Some data entities or views may have syntax that are not supported in synapse. CDMUtil contain ReplaceViewSyntax.json file to replace some such known syntax changes. Additional replacement can be added in the file if required.        
+|Name           |Description |Example Value  |
+|----------------- |:---|:--------------|
+|ManifestURL|Entity root or specific manifest file|[path]/Entities.manifest.cdm.json,[path]/[entityname].cdm.json |
+|ProcessEntities|Process entities list from file Manifest/EntityList.json, this option can be used even if you dont have the entity metadata in the data lake.|true |
+|Manifest/EntityList.json|List of the entities, Key name of entity, Value = Entity view definition. Leave value ="" to retrieve view definition from AXDBConnectionString |"Key" = "CUSTCUSTOMERV3ENTITY", Value=""|
+|AXDBConnectionString|AXDB ConnectionString to retrive dependent views definition for Data entities. |"Server=DBServer;Database=AXDB;Uid=youruser;Pwd=yourpassword"|
 
-### Metadata add-in not enabled 
-Once you have created Tables as view or external table. You can create additional view on Synapse Serverless. Customer that are using BYOD for reporting and BI scenarios with Dynamics 365 for Finance and Operations Apps, may wants to create BYOD Statging table or Data Entity Schema as view so that their reports and solution can work without much of change. As you might know that Data entities in AXDB are nothing but views, so you can copy the view definition and create that on Synapse SQL Serveless to get the same schema as you have in BYOD. 
-Once tables views are present you can copy the view definition of Data entities from AXDB and create view on synapse. Sometime entities may have several level of dependencies on tables or views and help with that you can use bellow script that you can execute on the AXDB and get the view definition with dependencies 
+Run CDMUtil console App or trigger Function App using HTTP to create entities as views on Synapse. 
 
+#### Common issues and workarounds 
+
+|Issue           |Current issue |Workaround/Recomendation |
+|----------------- |:---|:--------------|
+|**Missing dependent Tables** |Data entities view creation may fail if all dependent tables are not already available in Synapse SQL pool. Currently when **Select tables using entities** is used, all dependent tables does not get added to lake. | To easily identify missing tables provide AXDBConnectionString, CDMUtil will list outs missing tables in Synapse. Add missing table to service and run CDMUtil again |
+|**Missing dependent views**|Data entities may have dependency on F&O views, currently metadata service does not produce metadata for views.| AXDBConnectionString of source AXDB tier1 to tier2 environment and automatically retrieve dependent views and create before create entity views.|
+|**Syntax dependecy**|Some data entities or views may have sql syntax that is not supported in synapse.| CDMUtil parse the sql syntax and replaces with known supported syntax in Synapse SQL. ReplaceViewSyntax.json contains list of known syntax replacements. Additional replacement can be added in the file if required. |
+|**Case sensitive object name** |Object name can be case sensitive in Synapse SQL pool and cause error while creating the view definition of entities | Change your database collation to 'alter database DBNAME COLLATE Latin1_General_100_CI_AI_SC_UTF8' |
+
+   
+You can also use bellow SQL query to identify views and dependencies manually using developer or sandbox environment
 ![View Definition and Dependency](/Analytics/CDMUtilSolution/ViewsAndDependencies.sql)
 
  
