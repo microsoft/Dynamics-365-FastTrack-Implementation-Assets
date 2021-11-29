@@ -30,7 +30,6 @@ namespace CDMUtil.SQL
         public static SQLStatements executeSQL(AppConfigurations c, List<SQLMetadata> metadataList, ILogger log)
         {
             // convert metadata to DDL
-            log.Log(LogLevel.Information,"Converting metadata to DDL");
             var statementsList = SQLHandler.sqlMetadataToDDL(metadataList, c, log);
             // prep DB
             if (c.synapseOptions.targetDbConnectionString != null)
@@ -125,16 +124,19 @@ namespace CDMUtil.SQL
                             try
                             {
                                 if (s.EntityName != null)
-                                    logger.LogInformation($"Executing Entity:{s.EntityName}");
-                                logger.LogInformation($"Statement:{s.Statement}");
+                                {
+                                    logger.LogInformation($"Executing DDL:{s.EntityName}");
+                                }
+                                logger.LogDebug($"Statement:{s.Statement}");
                                 command.ExecuteNonQuery();
-                                logger.LogInformation($"Status:Created");
+                                logger.LogInformation($"Status:success");
                                 s.Created = true;
                             }
                             catch (SqlException ex)
                             {
+                                logger.LogError($"Statement:{s.Statement}");
                                 logger.LogError(ex.Message);
-                                logger.LogError($"Status:Failed");
+                                logger.LogError($"Status:failed");
                                 s.Created = false;
                                 s.Detail = ex.Message;
                             }
@@ -149,7 +151,7 @@ namespace CDMUtil.SQL
             }
         }
         public async static Task<List<SQLStatement>> sqlMetadataToDDL(List<SQLMetadata> metadataList, AppConfigurations c, ILogger logger)
-        {
+       {
 
             List<SQLStatement> sqlStatements = new List<SQLStatement>();
             string template = "";
@@ -178,13 +180,14 @@ namespace CDMUtil.SQL
                     break;
 
             }
+            logger.LogInformation($"Metadata to DDL as {c.synapseOptions.DDLType}");
             foreach (SQLMetadata metadata in metadataList)
             {
                 string sql = "";
-
-                logger.LogInformation($"Converting {metadata.entityName} metadata to SQLDDL {c.synapseOptions.DDLType} ");
+                string dataLocation = null;
                 if (string.IsNullOrEmpty(metadata.viewDefinition))
                 {
+                    logger.LogInformation($"Table:{metadata.entityName}");
                     string columnDefSQL = string.Join(", ", metadata.columnAttributes.Select(i => attributeToSQlType((ColumnAttribute)i, c.synapseOptions.DateTimeAsString)));
                     string columnNames = string.Join(", ", metadata.columnAttributes.Select(i => attributeToColumnNames((ColumnAttribute)i, c.synapseOptions.ConvertDateTime, c.synapseOptions.TranslateEnum)));
 
@@ -202,18 +205,22 @@ namespace CDMUtil.SQL
                                          metadata.cdcDataFileFilePath,//10
                                          readOption //11
                                          );
+                    dataLocation = metadata.dataLocation;
                 }
                 else
                 {
-                    sql = replaceViewSyntax(metadata.viewDefinition, c);
+                    logger.LogInformation($"Entity:{metadata.entityName}");
+                    sql = metadata.viewDefinition;
                 }
 
                 if (sqlStatements.Exists(x => x.EntityName.ToLower() == metadata.entityName.ToLower()))
                     continue;
                 else
-                    sqlStatements.Add(new SQLStatement() { EntityName = metadata.entityName, Statement = sql });
+                    sqlStatements.Add(new SQLStatement() { EntityName = metadata.entityName,DataLocation = dataLocation, Statement = sql });
             }
 
+            logger.LogInformation($"Tables:{sqlStatements.FindAll(a => a.DataLocation != null).Count}");
+            logger.LogInformation($"Entities/Views:{sqlStatements.FindAll(a => a.DataLocation == null).Count}");
             return sqlStatements;
         }
         public static string attributeToColumnNames(ColumnAttribute attribute, bool convertDatetime = false, bool translateEnum = false)
@@ -245,14 +252,16 @@ namespace CDMUtil.SQL
                     {
                         sqlColumnNames = $"{attribute.name}";
                     }
-                    
-                    if (translateEnum == true )
-                    { 
-                        foreach (List<string> constantValueList in attribute.constantValueList)
+
+                    if (translateEnum == true && attribute.constantValueList != null)
+                    {
+                        var constantValues = attribute.constantValueList.ConstantValues;
+                        sqlColumnNames += $" ,CASE {attribute.name}";
+                        foreach (var constantValueList in constantValues)
                         {
                             sqlColumnNames += $"{ " When " + constantValueList[3] + " Then '" + constantValueList[2]}'";
                         }
-                        sqlColumnNames += $" END AS {attribute.name}";
+                        sqlColumnNames += $" END AS {attribute.name}_Label";
                     }
                     break;
                 default:
@@ -266,7 +275,7 @@ namespace CDMUtil.SQL
         static public string attributeToSQlType(ColumnAttribute attribute, bool dateTimeAsString = false)
         {
             string sqlColumnDef;
-          
+
             switch (attribute.dataType.ToLower())
             {
                 case "string":
@@ -298,14 +307,14 @@ namespace CDMUtil.SQL
                         sqlColumnDef = $"{attribute.name} datetime2";
                     }
                     break;
-               
+
                 case "boolean":
                     sqlColumnDef = $"{attribute.name} tinyint";
                     break;
                 case "guid":
                     sqlColumnDef = $"{attribute.name} uniqueidentifier";
                     break;
-               
+
                 default:
                     sqlColumnDef = $"{attribute.name} nvarchar({attribute.maximumLength})";
                     break;
@@ -313,49 +322,32 @@ namespace CDMUtil.SQL
 
             return sqlColumnDef;
         }
+    public static void missingTables(AppConfigurations c, List<SQLMetadata> metaData, ILogger log)
+    {
+            List<Artifacts> tables = new List<Artifacts>();
+            string dependentTables = string.Join(", ", metaData.Select(i => i.dependentTables)).Replace(" ","");
+            string queryString = @$"select STRING_AGG(D.TABLE_NAME, ',') as Table_Names from
+            (select distinct Value as TABLE_NAME from STRING_SPLIT('{dependentTables}', ',')) as D 
+            left outer join  INFORMATION_SCHEMA.VIEWS V
+            on V.TABLE_NAME = D.TABLE_NAME
+            where V.TABLE_NAME is Null";
 
-        public static string replaceViewSyntax(string inputString, AppConfigurations c)
-        {
-            string outputString = inputString;
-            
-            using (var rdr = new StringReader(outputString))
-            {
-                IList<ParseError> errors = null;
-                var parser = new TSql150Parser(true, SqlEngineType.All);
-                var tree = parser.Parse(rdr, out errors);
-                tree.Accept(new TSqlSyntaxHandler(c));
+            SQLHandler handler = new SQLHandler(c.synapseOptions.targetDbConnectionString, c.tenantId, log);
+            DataTable dataTable = handler.executeSQLQuery(queryString);
+            DataTableReader dataReader = dataTable.CreateDataReader();
 
-                var scrGen = new Sql150ScriptGenerator();
-                scrGen.GenerateScript(tree, out outputString);
-            }
-
-            // Create View to Create or Alter
-            if (!String.IsNullOrEmpty(c.synapseOptions.targetSparkEndpoint))
+            if (dataReader.Read())
             {
-                outputString = outputString.Replace("CREATE VIEW ", "CREATE OR REPLACE VIEW ");
-                outputString = outputString.Replace("[", "");
-                outputString = outputString.Replace("]", "");
-                outputString = outputString.Replace(";", "");
-            }
-            else
-            {
-                outputString = outputString.Replace("CREATE VIEW ", "CREATE OR ALTER VIEW ");
-            }
-            
-            //Other replacements
-            if (String.IsNullOrEmpty(c.ReplaceViewSyntax) == false && File.Exists(c.ReplaceViewSyntax))
-            {
-                string artifactsStr = File.ReadAllText(c.ReplaceViewSyntax);
-                IEnumerable<Artifacts> replaceViewSyntax = JsonConvert.DeserializeObject<IEnumerable<Artifacts>>(artifactsStr);
-
-                foreach (Artifacts a in replaceViewSyntax)
+                var missingTables = dataReader[0];
+                if (missingTables != null)
                 {
-                    outputString = outputString.Replace(a.Key, a.Value);
+                    Console.BackgroundColor= ConsoleColor.Red;
+                    log.LogError($"Missing tables:{missingTables.ToString()}");
+                    Console.ResetColor();
                 }
             }
-           // Console.WriteLine(outputString);
-            return outputString;
-        }
+           
+    }
         public List<SQLMetadata> retrieveViewDependencies(string entityName)
         {
             List<SQLMetadata> viewDependencies = new List<SQLMetadata>();
@@ -427,7 +419,9 @@ order by rootNode asc, depth desc
                 var viewName = dataReader[0];
                 var viewDef = dataReader[3];
                 var tableDependencies = dataReader[4];
-                viewDependencies.Add(new SQLMetadata { entityName = viewName.ToString(),
+                viewDependencies.Add(new SQLMetadata
+                {
+                    entityName = viewName.ToString(),
                     viewDefinition = viewDef.ToString(),
                     dependentTables = tableDependencies.ToString()
                 });
@@ -446,18 +440,22 @@ order by rootNode asc, depth desc
             masterKeySQL.executeStatements(masterKeyStatement);
 
             var prepareDbStatement = prepSynapseDBSQL(options);
-            SQLHandler sQLHandler = new SQLHandler(options.targetDbConnectionString, tenantId,log);
+            SQLHandler sQLHandler = new SQLHandler(options.targetDbConnectionString, tenantId, log);
             sQLHandler.executeStatements(prepareDbStatement);
+
+            var statsSP = createStatsSP();
+            SQLHandler handler = new SQLHandler(options.targetDbConnectionString, tenantId, log);
+            handler.executeStatements(statsSP);
         }
         public static SQLStatements createDBSQL(string dbName)
         {
             string createDBSQL = @"IF NOT EXISTS (select * from sys.databases where name = '{0}')
-	            create database {0} COLLATE Latin1_General_100_BIN2_UTF8";
+	            create database {0} COLLATE Latin1_General_100_CI_AI_SC_UTF8";
 
             string sqlScript = String.Format(createDBSQL, dbName);
-            
+
             var sqldbprep = new List<SQLStatement>();
-            sqldbprep.Add(new SQLStatement { Statement = sqlScript });
+            sqldbprep.Add(new SQLStatement {EntityName ="CreateDB", Statement = sqlScript });
             var statements = new SQLStatements { Statements = sqldbprep };
 
             return statements;
@@ -472,15 +470,52 @@ order by rootNode asc, depth desc
 	            CREATE MASTER KEY ENCRYPTION BY PASSWORD = '{0}'";
 
             sqlMasterKey = String.Format(sqlMasterKey, options.masterKey);
-            sqldbprep.Add(new SQLStatement { Statement = sqlMasterKey });
+            sqldbprep.Add(new SQLStatement { EntityName = "CreateMasterKey", Statement = sqlMasterKey });
 
             return new SQLStatements { Statements = sqldbprep };
         }
-
-            public static SQLStatements  prepSynapseDBSQL(SynapseDBOptions options)
+        public static SQLStatements createStatsSP()
         {
             var sqldbprep = new List<SQLStatement>();
-           
+            string sp1 = @"Create or ALTER     procedure [dbo].[sp_drop_create_openrowset_statistics] (@statement nvarchar(max))
+as 
+begin try 
+	EXEC sys.sp_create_openrowset_statistics @statement
+end try 
+begin catch 
+	EXEC sys.sp_drop_openrowset_statistics @statement
+	EXEC sys.sp_create_openrowset_statistics @statement
+end catch;";
+
+string sp2 = @"CREATE OR ALTER   procedure [dbo].[sp_create_view_column_statistics](@schema varchar(10), @viewName varchar(100), @ColumnName varchar(100))
+as 
+	
+	declare @begin varchar(100) = 'FROM OPENROWSET(BULK';
+
+	declare @viewdefinition varchar(max); 
+	set @viewdefinition = (select top 1 SUBSTRING(definition, CHARINDEX(@begin, definition), len(definition))
+	from sys.views v
+	join sys.sql_modules m 
+		 on m.object_id = v.object_id
+	where v.schema_id = schema_id(@schema)
+	and m.definition like '%'+@begin+'%'
+	and v.name = @viewName)
+
+	IF (@viewdefinition != '')
+	BEGIN
+		declare @statsDefinition nvarchar(max) = (select ' SELECT ' + @ColumnName + ' ' + @viewdefinition);
+	
+		exec sp_drop_create_openrowset_statistics @statement = @statsDefinition ;
+		
+	END";
+            sqldbprep.Add(new SQLStatement { EntityName = "CreateStatsSp1", Statement = sp1 } );
+            sqldbprep.Add(new SQLStatement { EntityName = "CreateStatsSp2", Statement = sp2 });
+            return new SQLStatements { Statements = sqldbprep };
+        }
+        public static SQLStatements prepSynapseDBSQL(SynapseDBOptions options)
+        {
+            var sqldbprep = new List<SQLStatement>();
+
             string sql = @"
             -- create credentials as managed identity 
             IF NOT EXISTS(select * from sys.database_credentials where credential_identity = 'Managed Identity' and name = '{0}')
@@ -505,23 +540,68 @@ order by rootNode asc, depth desc
                                             options.external_data_source,
                                             options.location,
                                             options.fileFormatName);
-           
-            sqldbprep.Add(new SQLStatement { Statement = sqlScript });
+
+            sqldbprep.Add(new SQLStatement { EntityName = "Create_Cred_sources_formats", Statement = sqlScript });
 
             return new SQLStatements { Statements = sqldbprep };
         }
 
     }
+
     public class TSqlSyntaxHandler : TSqlFragmentVisitor
     {
         public bool sparkSQL;
-        public string dbName; 
-        public string schema; 
-        public TSqlSyntaxHandler(AppConfigurations c)
+        public string dbName;
+        public string schema;
+        public string outputString;
+        public string inputString;
+        TSqlFragment tree;
+        AppConfigurations c;
+        readonly Dictionary<string, string> aliases = new Dictionary<string, string>();
+        readonly Dictionary<string,string> joinColumns = new Dictionary<string, string>();
+        readonly Dictionary<string,string> selectColumns = new Dictionary<string, string>();
+        readonly Dictionary<string, string> statsStatements = new Dictionary<string, string>();
+        public Dictionary<string, string> Aliases { get { return aliases; } }
+        public Dictionary<string,string> JoinColumns { get { return joinColumns; } }
+        public Dictionary<string,string> SelectColumns { get { return selectColumns; } }
+        public Dictionary<string, string> StatsStatements { get { return statsStatements; } }
+        public string getOutputString { get { return outputString; } }
+        public TSqlSyntaxHandler(string _inputString, AppConfigurations c)
         {
             sparkSQL = (String.IsNullOrEmpty(c.synapseOptions.targetSparkEndpoint)) ? false : true;
-            dbName   = c.synapseOptions.dbName;
-            schema   = c.synapseOptions.schema;
+            dbName = c.synapseOptions.dbName;
+            schema = c.synapseOptions.schema;
+            inputString = _inputString;
+            tree = initializeTsqlParser(inputString);
+            if (tree != null)
+            {
+                tree.Accept(this);
+                this.setOutputString();
+                this.setStatsStatements();
+            }
+        }
+        private void setOutputString()
+        {
+            var scrGen = new Sql150ScriptGenerator();
+            scrGen.GenerateScript(tree, out outputString);
+        }
+        private void setStatsStatements()
+        {
+            if (joinColumns != null && aliases != null)
+            {
+                var output = from column in joinColumns
+                             join a in aliases on column.Value equals a.Key
+                             select new { Table = a.Value, Column = column.Key.Replace(column.Value + ".", "") };
+
+                if (output != null)
+                {
+                    foreach (var column in output)
+                    {
+                        string statsStatement = $"exec [dbo].[sp_create_view_column_statistics] @schema = '{schema}', @viewName = '{column.Table}', @ColumnName = '{column.Column}';";
+                        addToDictionary(column.Table + "." + column.Column, statsStatement, statsStatements);
+                    }
+                }
+            }
         }
         public override void ExplicitVisit(CreateViewStatement node)
         {
@@ -538,7 +618,7 @@ order by rootNode asc, depth desc
             {
                 ColumnReferenceExpression fristExpression = expression.FirstExpression as ColumnReferenceExpression;
                 ColumnReferenceExpression secondExpression = expression.SecondExpression as ColumnReferenceExpression;
-                
+
                 if (fristExpression != null && secondExpression != null && fristExpression.MultiPartIdentifier[1].Value == "PARTITION" && secondExpression.MultiPartIdentifier[1].Value == "PARTITION")
                 {
                     var equal = new BooleanComparisonExpression();
@@ -557,17 +637,66 @@ order by rootNode asc, depth desc
             for (int i = 1; i < node.SelectElements.Count; i++)
             {
                 SelectScalarExpression element = node.SelectElements[i] as SelectScalarExpression;
-                if (element.ColumnName != null && element.ColumnName.Value.Contains("#"))
+                if (element.ColumnName != null)
                 {
-                    node.SelectElements.Remove(element);
-                    i--;
+                    if (element.ColumnName.Value.Contains("#"))
+                    {
+                        node.SelectElements.Remove(element);
+                        i--;
+                    }
+                    else
+                    {
+                        var columnExpression = element.Expression as ColumnReferenceExpression;
+
+                        if (columnExpression !=null)
+                        {
+                            string value = string.Join(".", columnExpression.MultiPartIdentifier.Identifiers.Select(i => i.Value));
+                            addToDictionary(element.ColumnName.Value, value, selectColumns);
+                        }
+                    }
                 }
             }
             base.ExplicitVisit(node);
         }
 
+
+        public override void ExplicitVisit(BooleanComparisonExpression node)
+        {
+            ColumnReferenceExpression fristExpression = node.FirstExpression as ColumnReferenceExpression;
+            ColumnReferenceExpression secondExpression = node.SecondExpression as ColumnReferenceExpression;
+
+            if (fristExpression != null)
+            {
+                addColumnsToDict(fristExpression, joinColumns);
+            }
+            if (secondExpression != null)
+            {
+                addColumnsToDict(secondExpression, joinColumns);
+            }
+            base.ExplicitVisit(node);
+        }
+        public void addColumnsToDict(ColumnReferenceExpression expression, Dictionary<string, string> columnDict)
+        {
+            if (expression != null && expression.MultiPartIdentifier != null)
+            {
+                var multiPart = expression.MultiPartIdentifier;
+                string key = string.Join(".", multiPart.Identifiers.Select(i => i.Value));
+                string value = multiPart.Identifiers[0].Value;
+
+                if (!columnDict.ContainsKey(key))
+                    columnDict.Add(key, value);
+            }
+        }
         public override void ExplicitVisit(NamedTableReference table)
         {
+            if (table.SchemaObject != null && table.SchemaObject.Identifiers != null)
+            {
+                string value = string.Join(".", table.SchemaObject.Identifiers.Select(i => i.Value));
+                string key = table.Alias != null ? table.Alias.Value : value;
+              
+                addToDictionary(key, value, aliases); 
+            }
+
             if (sparkSQL)
             {
                 table.SchemaObject.BaseIdentifier.Value = dbName + "." + table.SchemaObject.BaseIdentifier.Value;
@@ -579,6 +708,112 @@ order by rootNode asc, depth desc
 
             base.ExplicitVisit(table);
         }
-       
+        public void addToDictionary (string key, string value, Dictionary<string, string> dict)
+        {
+            if (!dict.ContainsKey(key))
+            {
+                dict.Add(key, value);
+            }
+        }
+        public static TSqlFragment initializeTsqlParser(string inputString)
+        {
+            TSqlFragment sqlFragment;
+            using (var rdr = new StringReader(inputString))
+            {
+                IList<ParseError> errors = null;
+                var parser = new TSql150Parser(true, SqlEngineType.All);
+                sqlFragment = parser.Parse(rdr, out errors);
+
+                if (errors != null && errors.Count > 0)
+                {
+                    foreach (var error in errors)
+                    {
+                        Console.WriteLine(error.Message);
+                    }
+                }
+            }
+            return sqlFragment;
+        }
+      
+        public static string finalTsqlConversion(string inputString, string type = "sql")
+        {
+            string outputString = inputString;
+
+            outputString = outputString.Replace("AND (1 = 1)", "", StringComparison.OrdinalIgnoreCase);
+
+            switch (type)
+            {
+                case "sql":
+                    outputString = outputString.Replace("CREATE VIEW ", "CREATE OR ALTER VIEW ", StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("[dbo].GetValidFromInContextInfo()", "GETUTCDATE()", StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("[dbo].GetValidToInContextInfo()", "GETUTCDATE()", StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("dbo.GetValidFromInContextInfo()", "GETUTCDATE()", StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("dbo.GetValidToInContextInfo()", "GETUTCDATE()", StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("GetValidFromInContextInfo()", "GETUTCDATE()", StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("GetValidToInContextInfo()", "GETUTCDATE()", StringComparison.OrdinalIgnoreCase);
+
+                    break;
+
+                case "spark":
+                    outputString = outputString.Replace("CREATE VIEW ", "CREATE OR REPLACE VIEW ", StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("[", "");
+                    outputString = outputString.Replace("]", "");
+                    outputString = outputString.Replace(";", "");
+                    outputString = outputString.Replace("nvarchar", "varchar", StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("N'", "'", StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("AS DATETIME", "as timestamp", StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("[dbo].GetValidFromInContextInfo()", "current_date()", StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("[dbo].GetValidToInContextInfo()", "current_date()", StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("dbo.GetValidFromInContextInfo()", "current_date()", StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("dbo.GetValidToInContextInfo()", "current_date()", StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("GetValidFromInContextInfo()", "current_date()", StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("GetValidToInContextInfo()", "current_date()", StringComparison.OrdinalIgnoreCase);
+
+                    break;
+            }
+
+            return outputString;
+        }
+
+        public static void updateViewSyntax(AppConfigurations c, List<SQLMetadata> metadataList)
+        {
+            Dictionary<string, string> statsStatements = new Dictionary<string, string>(); 
+            foreach (var view in metadataList.FindAll(a => a.viewDefinition != null))
+            {
+                string outputString = view.viewDefinition;
+
+                outputString = customSyntaxUpdate(c.ReplaceViewSyntax, outputString);
+
+                TSqlSyntaxHandler sqlSyntax = new TSqlSyntaxHandler(outputString, c);
+
+                if (sqlSyntax.tree != null)
+                {
+                    outputString = sqlSyntax.outputString;
+                    sqlSyntax.StatsStatements.ToList().ForEach(x => statsStatements[x.Key]= x.Value);
+                }
+
+                outputString = finalTsqlConversion(outputString, "sql");
+                view.viewDefinition = outputString;
+            }
+             if (c.synapseOptions.createStats)
+            {
+                statsStatements.ToList().ForEach(x => metadataList.Add(new SQLMetadata { entityName = x.Key, viewDefinition = x.Value }));
+            }
+        }
+        public static string customSyntaxUpdate(string fileName, string inputString)
+        {
+            string outputString = inputString;
+            if (String.IsNullOrEmpty(fileName) == false && File.Exists(fileName))
+            {
+                string artifactsStr = File.ReadAllText(fileName);
+                IEnumerable<Artifacts> replaceViewSyntax = JsonConvert.DeserializeObject<IEnumerable<Artifacts>>(artifactsStr);
+
+                foreach (Artifacts a in replaceViewSyntax)
+                {
+                    outputString = outputString.Replace(a.Key, a.Value, StringComparison.OrdinalIgnoreCase);
+                }
+            }
+            return outputString;
+        }
     }
 }

@@ -193,7 +193,7 @@ namespace CDMUtil
            
             //get configurations data 
             AppConfigurations c = GetAppConfigurations(null, context, eventGridEvent);
-
+          
             log.LogInformation(eventGridEvent.Data.ToString());
             // Read Manifest metadata
             log.Log(LogLevel.Information, "Reading Manifest metadata");
@@ -286,7 +286,7 @@ namespace CDMUtil
             if (TranslateEnum != null)
                 AppConfiguration.synapseOptions.TranslateEnum = bool.Parse(TranslateEnum);
             
-            string DefaultStringLenght = getConfigurationValue(req, "DefaultStringLenght", ManifestURL);
+            string DefaultStringLenght = getConfigurationValue(req, "DefaultStringLength", ManifestURL);
             
             if (DefaultStringLenght != null)
             {
@@ -304,6 +304,12 @@ namespace CDMUtil
                 AppConfiguration.ProcessEntities = bool.Parse(ProcessEntities);
                 AppConfiguration.ProcessEntitiesFilePath = Path.Combine(context.FunctionAppDirectory, "EntityList.json");
                 
+            }
+            string CreateStats = getConfigurationValue(req, "CreateStats", ManifestURL);
+
+            if (CreateStats != null)
+            {
+                AppConfiguration.synapseOptions.createStats = bool.Parse(CreateStats);
             }
             return AppConfiguration;
         }

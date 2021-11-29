@@ -52,14 +52,14 @@ namespace CDMUtil.Manifest
                         break;
                     string subManifestName = submanifest.ManifestName;
                     string subManifestRoot = localRoot.EndsWith('/') ? localRoot + subManifestName : localRoot + '/' + subManifestName;
-                    logger.LogInformation($"Reading Sub-Manifest:{subManifestRoot}");
+                    logger.LogInformation($"Sub-Manifest:{subManifestRoot}");
                     c.manifestName = subManifestName;
                     c.rootFolder = subManifestRoot;
 
                     await manifestToSQLMetadata(c, metadataList, logger, parentFolder);
                 }
 
-                logger.LogInformation($"Reading Manifest:{manifest.Name}");
+                logger.LogInformation($"Manifest:{manifest.Name}");
 
                 foreach (CdmEntityDeclarationDefinition eDef in manifest.Entities)
                 {
@@ -77,7 +77,7 @@ namespace CDMUtil.Manifest
 
                     var entSelected = manifestHandler.cdmCorpus.FetchObjectAsync<CdmEntityDefinition>(eDef.EntityPath, manifest).Result;
 
-                    logger.LogInformation($"Reading Entity:{entityName}");
+                    logger.LogInformation($"Table:{entityName}");
 
                     if (entSelected.ExhibitsTraits.Count() > 1 && entSelected.ExhibitsTraits.Where(x => x.NamedReference == "has.sqlViewDefinition").Count() > 0)
                     {
@@ -130,13 +130,16 @@ namespace CDMUtil.Manifest
             {
                 string artifactsStr = File.ReadAllText(c.ProcessEntitiesFilePath);
                 var entitiesList = JsonConvert.DeserializeObject<IEnumerable<Artifacts>>(artifactsStr);
-
+                logger.LogInformation($"Process Entities");
                 foreach (var entity in entitiesList)
                 {
-                    logger.LogInformation($"Entity : {entity.Key}");
                     //update view dependencies
                     updateViewDependencies(entity.Key, entity.Value, metadataList, c, logger);
                 }
+                // at the end update the view syntax
+                TSqlSyntaxHandler.updateViewSyntax(c, metadataList);
+
+                SQLHandler.missingTables(c, metadataList, logger);
             }
             return true;
 
@@ -230,11 +233,12 @@ namespace CDMUtil.Manifest
                         columnAttribute.maximumLength = 15;
                         break;
                     case "update_mask":
-                        columnAttribute.maximumLength = 15;
+                        columnAttribute.maximumLength = 200;
                         break;
                 }
                 var traitsCollection = cdmAttribute.AppliedTraits;
-                if (traitsCollection.Where(x => x.NamedReference == "is.constrainedList.wellKnown").Count() > 0)
+
+                if (traitsCollection != null && traitsCollection.Where(x => x.NamedReference == "is.constrainedList.wellKnown").Count() > 0)
                 {
                     CdmTraitReference trait = cdmAttribute.AppliedTraits.Where(x => x.NamedReference == "is.constrainedList.wellKnown").First() as CdmTraitReference;
                     CdmArgumentDefinition argumentDefinition = trait.Arguments.Where(x => x.Name == "defaultList").First();
@@ -242,10 +246,14 @@ namespace CDMUtil.Manifest
                     if (argumentDefinition.Value is CdmEntityReference)
                     {
                         var contEntDef = argumentDefinition.Value.FetchObjectDefinition<CdmConstantEntityDefinition>();
-                        columnAttribute.constantValueList = contEntDef;
-                        columnAttribute.maximumLength = 10;
+                        if (contEntDef != null)
+                        {
+                            columnAttribute.constantValueList = contEntDef;
+                            columnAttribute.maximumLength = 10;
+                        }
                     }
                 }
+                
                 columnAttributes.Add(columnAttribute);
             }
             return columnAttributes;
@@ -256,12 +264,13 @@ namespace CDMUtil.Manifest
                 if (!String.IsNullOrEmpty(configurations.AXDBConnectionString))
                 {
                     SQLHandler sQLHandler = new SQLHandler(configurations.AXDBConnectionString, "", logger);
-                    logger.LogInformation($"Retrieving dependencies from AXDB connection");
+                   // logger.LogInformation($"Retrieving dependencies from AXDB connection");
                     List<SQLMetadata> viewDependencices = sQLHandler.retrieveViewDependencies(entityName);
 
                     if (viewDependencices != null && viewDependencices.Count >0)
                     {
-                        logger.LogInformation($"Dependent tables: {viewDependencices.FirstOrDefault().dependentTables}");
+                        logger.LogInformation($"Entity:{entityName}, Dependent tables: {viewDependencices.FirstOrDefault().dependentTables}");
+
                         foreach (var dependency in viewDependencices)
                         {
                             string viewDef = dependency.viewDefinition;
@@ -298,6 +307,7 @@ namespace CDMUtil.Manifest
                     }) ;
                 }
         }
+       
 
         public static IEnumerable<Artifacts> getSourceColumnProperties(string entityName, AppConfigurations c, ILogger logger)
         {
@@ -319,7 +329,7 @@ namespace CDMUtil.Manifest
             else
             {
                 SQLHandler sQLHandler = new SQLHandler(c.AXDBConnectionString, "", logger);
-                logger.LogInformation("Gettting schema infrormation from AXDB connection");
+              //  logger.LogInformation("Gettting schema infrormation from AXDB connection");
                 string exceptionJson = sQLHandler.getTableMaxFieldLenght(entityName);
 
                 if (String.IsNullOrEmpty(exceptionJson) == false)

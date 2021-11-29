@@ -16,28 +16,27 @@
     "Value": ""
   },
   {
-    "Key": "CREATE VIEW ",
-    "Value": "CREATE OR ALTER VIEW "
-  },
-  {
-    "Key": "AND (1 = 1)",
-    "Value": ""
-  },
-  {
-    "Key": "[dbo].GetValidFromInContextInfo()",
-    "Value": "GETUTCDATE()"
-  },
-  {
-    "Key": "[dbo].GetValidToInContextInfo()",
-    "Value": "GETUTCDATE()"
-  },
-  {
     "Key": ", T1.MEMO AS SALESMEMO",
-    "Value": ""
+    "Value": ", null as SALESMEMO"
+  },
+  {
+    "Key": ", T1.MEMO AS NOTES",
+    "Value": ", null as NOTES"
   },
   {
     "Key": ", T1.CREDMANNOTES AS CREDMANNOTES",
-    "Value": ""
+    "Value": ", null as CREDMANNOTES"
+  },
+  {
+    "Key": " ELSE T1.STARTDATE1 - 1 END",
+    "Value": " ELSE DateAdd(Day, -1, T1.STARTDATE1) END"
+  },
+  {
+    "Key": " ELSE T1.STARTDATE1 - 1 END",
+    "Value": " ELSE DateAdd(Day, -1, T1.STARTDATE1) END"
+  },
+  {
+    "Key": " ELSE T1.STARTDATE2 - 1 END",
+    "Value": " ELSE DateAdd(Day, -1, T1.STARTDATE2) END"
   }
-
 ]
