@@ -213,7 +213,7 @@ namespace CDMUtil
         public static string getConfigurationValue(HttpRequest req, string token, string url = null)
         {
             string ConfigValue = null;
-            
+
             if (req != null && !String.IsNullOrEmpty(req.Headers[token]))
             {
                 ConfigValue = req.Headers[token];
