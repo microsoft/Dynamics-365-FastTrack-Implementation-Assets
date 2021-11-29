@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Threading;
 using System.Collections.Generic;
-using System.Text;
 using Azure.Analytics.Synapse.Spark;
 using Azure.Analytics.Synapse.Spark.Models;
 using Azure.Identity;
 using CDMUtil.Context.ObjectDefinitions;
-using System.Threading.Tasks;
-using CDMUtil.SQL;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 
@@ -21,7 +17,7 @@ namespace CDMUtil.Spark
         public SparkHandler(string endpoint, string sparkPoolName, ILogger _logger)
         {
             logger = _logger;
-            sparkClient = new SparkSessionClient(new Uri(endpoint), sparkPoolName, new DefaultAzureCredential());
+            sparkClient = new SparkSessionClient(new Uri(endpoint), sparkPoolName, new DefaultAzureCredential(true));
         }
         public static SQLStatements executeSpark(AppConfigurations c, List<SQLMetadata> metadataList, ILogger logger)
         {
@@ -151,7 +147,7 @@ namespace CDMUtil.Spark
                 }
                 else
                 {
-                    sql = SQLHandler.replaceViewSyntax(metadata.viewDefinition, c);
+                    sql = metadata.viewDefinition;
                 }
                 if (sqlStatements.Exists(x => x.EntityName.ToLower() == metadata.entityName.ToLower()))
                 {
@@ -176,7 +172,7 @@ namespace CDMUtil.Spark
             switch (columnAttribute.dataType.ToLower())
             {
                 case "string":
-                    sqlColumnDef = $"{columnAttribute.name} varchar({columnAttribute.maximumLength * 2})";
+                    sqlColumnDef = $"{columnAttribute.name} string";
                     break;
                 case "decimal":
                     sqlColumnDef = $"{columnAttribute.name} decimal ";
@@ -198,7 +194,7 @@ namespace CDMUtil.Spark
                     break;
 
                 default:
-                    sqlColumnDef = $"{columnAttribute.name} varchar({columnAttribute.maximumLength * 2})";
+                    sqlColumnDef = $"{columnAttribute.name} string";
                     break;
             }
             return sqlColumnDef;

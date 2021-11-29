@@ -1,16 +1,51 @@
-
 [
   {
-    "Key": "DIMENSIONCOMBINATIONENTITY",
-    "Value": "CREATE VIEW [DBO].[DIMENSIONCOMBINATIONENTITY] AS SELECT  T1.MAINACCOUNTVALUE AS MAINACCOUNT FROM DIMENSIONATTRIBUTEVALUECOMBINATION T1"
+    "Key": "CUSTCUSTOMERV3ENTITY",
+    "Value": ""
   },
   {
-    "Key": "CustomerView",
-    "Value": "CREATE VIEW [DBO].[CustomerView] AS SELECT  T1.AccountNum AS AccountNum FROM CustTable T1"
+    "Key": "SalesOrderHeaderV2Entity",
+    "Value": ""
   },
   {
-    "Key": "CustomerView",
+    "Key": "SalesOrderLineV2Entity",
+    "Value": ""
+  },
+  {
+    "Key": "SalesInvoiceHeaderEntity",
+    "Value": ""
+  },
+  {
+    "Key": "SalesInvoiceLineV3Entity",
+    "Value": ""
+  },
+  {
+    "Key": "CustCollectionsBICustTrans",
+    "Value": ""
+  },
+  {
+    "Key": "VendVendorV2Entity",
+    "Value": ""
+  },
+  {
+    "Key": "PurchPurchaseOrderHeaderV2Entity",
+    "Value": ""
+  },
+  {
+    "Key": "PurchPurchaseOrderLineV2Entity",
+    "Value": ""
+  },
+  {
+    "Key": "VendPaymentBIVendTrans",
+    "Value": ""
+  },
+  {
+    "Key": "VendPaymentBIVendTransOpen",
+    "Value": ""
+  },
+  {
+    "Key": "DimensionCombinationEntity",
     "Value": ""
   }
-]
 
+]
