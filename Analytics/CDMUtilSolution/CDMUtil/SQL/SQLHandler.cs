@@ -34,7 +34,7 @@ namespace CDMUtil.SQL
             // prep DB
             if (c.synapseOptions.targetDbConnectionString != null)
             {
-                SQLHandler.dbSetup(c.synapseOptions, c.tenantId, log);
+                SQLHandler.dbSetup(c, log);
             }
 
             // Execute DDL
@@ -129,6 +129,7 @@ namespace CDMUtil.SQL
                                 }
                                 logger.LogDebug($"Statement:{s.Statement}");
                                 command.ExecuteNonQuery();
+                                
                                 logger.LogInformation($"Status:success");
                                 s.Created = true;
                             }
@@ -176,7 +177,9 @@ namespace CDMUtil.SQL
                                 drop table  {0}.{1} ;  
                                 create  TABLE {0}.{1} ({2}) 
                                 WITH (DISTRIBUTION = ROUND_ROBIN, CLUSTERED COLUMNSTORE INDEX);
-                                EXEC [dbo].[DataLakeToSynapse_InsertIntoControlTableForCopy] @TableName = '{0}.{1}', @DataLocation = '{8}', @FileFormat ='{5}',  @MetadataLocation = '{9}', @CDCDataLocation = '{10}'";
+                                EXEC [dbo].[DataLakeToSynapse_InsertIntoControlTableForCopy] @TableName = '{0}.{1}', @DataLocation = '{8}', @FileFormat ='{5}',  @MetadataLocation = '{9}', @CDCDataLocation = '{10}';
+                                EXEC [dbo].[DataLakeToSynapse_CopyIntoSingleTable] @TableName='{1}',@Schema='{0}';";
+
                     break;
 
             }
@@ -231,6 +234,15 @@ namespace CDMUtil.SQL
             {
                 case "date":
                 case "datetime":
+                    if (convertDatetime)
+                    {
+                        sqlColumnNames = $"Cast({attribute.name} AS DATETIME) as {attribute.name}";
+                    }
+                    else
+                    {
+                        sqlColumnNames = $"{attribute.name}";
+                    }
+                    break;
                 case "datetime2":
                     if (convertDatetime)
                     {
@@ -297,6 +309,15 @@ namespace CDMUtil.SQL
                     break;
                 case "date":
                 case "datetime":
+                    if (dateTimeAsString)
+                    {
+                        sqlColumnDef = $"{attribute.name} nvarchar(30)";
+                    }
+                    else
+                    {
+                        sqlColumnDef = $"{attribute.name} datetime";
+                    }
+                    break;
                 case "datetime2":
                     if (dateTimeAsString)
                     {
@@ -339,11 +360,9 @@ namespace CDMUtil.SQL
             if (dataReader.Read())
             {
                 var missingTables = dataReader[0];
-                if (missingTables != null)
+                if (String.IsNullOrWhiteSpace(missingTables.ToString()) != false)
                 {
-                    Console.BackgroundColor= ConsoleColor.Red;
                     log.LogError($"Missing tables:{missingTables.ToString()}");
-                    Console.ResetColor();
                 }
             }
            
@@ -429,23 +448,54 @@ order by rootNode asc, depth desc
             return viewDependencies;
 
         }
-        public static void dbSetup(SynapseDBOptions options, string tenantId, ILogger log)
+        public static void dbSetup(AppConfigurations c, ILogger log)
         {
-            var createDbStatement = createDBSQL(options.dbName);
-            SQLHandler createDB = new SQLHandler(options.masterDbConnectionString, tenantId, log);
-            createDB.executeStatements(createDbStatement);
+            if (c.synapseOptions.DDLType != "SynapseTable")
+            {
+                var createDbStatement = createDBSQL(c.synapseOptions.dbName);
+                SQLHandler createDB = new SQLHandler(c.synapseOptions.masterDbConnectionString, c.tenantId, log);
+                createDB.executeStatements(createDbStatement);
 
-            var masterKeyStatement = createMasterKey(options);
-            SQLHandler masterKeySQL = new SQLHandler(options.targetDbConnectionString, tenantId, log);
-            masterKeySQL.executeStatements(masterKeyStatement);
+                var masterKeyStatement = createMasterKey(c.synapseOptions);
+                SQLHandler masterKeySQL = new SQLHandler(c.synapseOptions.targetDbConnectionString, c.tenantId, log);
+                masterKeySQL.executeStatements(masterKeyStatement);
 
-            var prepareDbStatement = prepSynapseDBSQL(options);
-            SQLHandler sQLHandler = new SQLHandler(options.targetDbConnectionString, tenantId, log);
-            sQLHandler.executeStatements(prepareDbStatement);
+                var prepareDbStatement = prepSynapseDBSQL(c.synapseOptions);
+                SQLHandler sQLHandler = new SQLHandler(c.synapseOptions.targetDbConnectionString, c.tenantId, log);
+                sQLHandler.executeStatements(prepareDbStatement);
 
-            var statsSP = createStatsSP();
-            SQLHandler handler = new SQLHandler(options.targetDbConnectionString, tenantId, log);
-            handler.executeStatements(statsSP);
+                var statsSP = createStatsSP();
+                SQLHandler handler = new SQLHandler(c.synapseOptions.targetDbConnectionString, c.tenantId, log);
+                handler.executeStatements(statsSP);
+            }
+            else
+            {
+                var statement = createControlTableAndSP(c);
+                SQLHandler handler = new SQLHandler(c.synapseOptions.targetDbConnectionString, c.tenantId, log);
+                handler.executeStatements(statement);
+            }
+        }
+        public static SQLStatements createControlTableAndSP(AppConfigurations c)
+        {
+            string scriptFile = c.ReplaceViewSyntax.Replace("ReplaceViewSyntax.json", "preparesynapsededicatedpool.sql");
+            string script = null;
+            if (String.IsNullOrEmpty(scriptFile) == false && File.Exists(scriptFile))
+            {
+                script = File.ReadAllText(scriptFile);
+            }
+            var sqldbprep = new List<SQLStatement>();
+            var statementBatch = script.Split("GO");
+            
+            foreach (var statement in statementBatch)
+            {
+                if (String.IsNullOrWhiteSpace(statement) == false)
+                {
+                    sqldbprep.Add(new SQLStatement { EntityName = "createControlTableAndSP", Statement = statement });
+                }
+            }
+            var statements = new SQLStatements { Statements = sqldbprep };
+
+            return statements;
         }
         public static SQLStatements createDBSQL(string dbName)
         {

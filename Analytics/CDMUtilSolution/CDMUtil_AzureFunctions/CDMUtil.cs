@@ -226,8 +226,9 @@ namespace CDMUtil
                 var n = pathSegments.Count();
                 while (n >= 0 && ConfigValue == null)
                     ConfigValue = System.Environment.GetEnvironmentVariable($"{storageAccount}:{String.Join(":", pathSegments.Take(n--))}{(n > 0 ? ":" : "")}{token}");
+
             }
-            else
+            if (ConfigValue == null)
             {
                 ConfigValue = System.Environment.GetEnvironmentVariable(token);
             }
@@ -253,6 +254,7 @@ namespace CDMUtil
             {
                 throw new Exception($"Invalid manifest URL:{ManifestURL}");
             }
+            string AccessKey = getConfigurationValue(req, "AccessKey", ManifestURL);
 
             string tenantId = getConfigurationValue(req, "TenantId", ManifestURL);
             string connectionString = getConfigurationValue(req, "SQLEndpoint", ManifestURL);
@@ -260,11 +262,12 @@ namespace CDMUtil
 
             string targetSparkConnection = getConfigurationValue(req, "TargetSparkConnection", ManifestURL);
 
-            AppConfigurations AppConfiguration = new AppConfigurations(tenantId, ManifestURL, null, connectionString, DDLType, targetSparkConnection);
+            AppConfigurations AppConfiguration = new AppConfigurations(tenantId, ManifestURL, AccessKey, connectionString, DDLType, targetSparkConnection);
 
-            string dataSourceName = getConfigurationValue(req, "DataSourceName", ManifestURL);
-            if (dataSourceName != null)
-                AppConfiguration.synapseOptions.external_data_source = dataSourceName;
+            string AXDBConnectionString = getConfigurationValue(req, "AXDBConnectionString", ManifestURL);
+            
+            if (AXDBConnectionString != null)
+                AppConfiguration.AXDBConnectionString = AXDBConnectionString;
 
             string schema = getConfigurationValue(req, "Schema", ManifestURL);
             if (schema != null)
