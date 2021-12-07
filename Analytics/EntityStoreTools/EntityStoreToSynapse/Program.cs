@@ -53,7 +53,7 @@
                         /*
                         * Step 1: Create AxViews on Azure Synapse
                         */
-                        /*var viewMetadataEntry = entryList.FirstOrDefault(e => e.FullName == "views\\dependencies.csv");
+                        var viewMetadataEntry = entryList.FirstOrDefault(e => e.FullName == "views\\dependencies.csv");
                         if (viewMetadataEntry == null)
                         {
                             throw new Exception($"Cannot find view metadata file 'views/dependencies.csv' in file {options.MetadataPath}");
@@ -104,7 +104,7 @@
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex.ToString());
+                            ColorConsole.WriteError(ex.ToString());
                         }
                     }
                 });
@@ -175,11 +175,6 @@
                 else
                 {
                     ColorConsole.WriteSuccess($"Dimensions were created (or exists) successfully for MeasureGroup {measureGroup.Name}.");
-                }
-
-                if (measureGroup.Name.ToString().Equals("SalesOrders"))
-                {
-                    Console.WriteLine("Here");
                 }
 
                 foreach (var attribute in measureGroup.Attributes)

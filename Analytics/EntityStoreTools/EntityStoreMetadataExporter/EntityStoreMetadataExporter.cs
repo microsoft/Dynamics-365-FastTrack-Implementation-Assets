@@ -249,23 +249,6 @@
                         }
                     }
                 }
-
-                /*if (!tableName.Equals("RLXBIInventTransView"))
-                {
-                    continue;
-                }
-
-                foreach (var dimension in measureGroup.Dimensions)
-                {
-                    string dimName = dimension.Name.ToString();
-                    if (!dimName.Equals("PostingType"))
-                    {
-                        continue;
-                    }
-
-                    var constraint = dimension.DimensionRelations[0].Constraints[0];
-                    WriteEnumFile(metadataProvider, tableName, dimName, dimension.DimensionRelations[0].Name.ToString(), constraint.Field.ToString());
-                }*/
             }
         }
 
@@ -551,15 +534,6 @@
                 {
                     RecursivelyAddDataSourcesFromQuery(metadataProvider, dimensionsTables, dimensionsViews, element);
 
-                    /*if (metadataProvider.Views.Exists(element))
-                    {
-                        WriteEnums(metadataProvider, metadataProvider.Views.Read(element));
-                    }
-                    else
-                    {
-                        WriteEnums(metadataProvider, metadataProvider.DataEntityViews.Read(element));
-                    }*/
-
                     ColorConsole.WriteInfo($"\tAdded element as view '{element.ToUpperInvariant()}'");
                 }
             }
@@ -567,8 +541,6 @@
             {
                 if (dimensionsTables.Add(element))
                 {
-                    /*WriteEnums(metadataProvider, metadataProvider.Tables.Read(element));*/
-
                     ColorConsole.WriteInfo($"\tAdded element as 'table '{element.ToUpperInvariant()}'");
                 }
             }
@@ -668,7 +640,6 @@
 
         private static void WriteTables(ISet<string> aggregateDimensionTables, string measureName, IMetadataProvider metadataProvider, string outputPath)
         {
-            aggregateDimensionTables.Add("RLXSRSAnalysisEnums");
             var tablesPath = Path.Combine(outputPath, "tables");
             if (!Directory.Exists(tablesPath))
             {
