@@ -233,7 +233,10 @@ namespace CDMUtil.Context.ObjectDefinitions
             }
             if (ddlType != null)
                 DDLType = ddlType;
-
+            if (DDLType == "SynapseTable")
+            {
+                fileFormatName = $"CSV";
+            }
             connectionStringBuilder.InitialCatalog = "master";
             masterDbConnectionString = connectionStringBuilder.ConnectionString;
             
