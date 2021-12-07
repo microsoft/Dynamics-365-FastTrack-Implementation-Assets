@@ -33,6 +33,11 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\CDMUtil\SQL\preparesynapsededicatedpool.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
   <PropertyGroup>
