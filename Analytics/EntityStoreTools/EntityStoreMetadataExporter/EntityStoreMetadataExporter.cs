@@ -341,11 +341,6 @@
             }
             else if (metadataProvider.Views.Exists(dataSource))
             {
-                if (dataSource.Equals("RLXBIOpenSalesLineView"))
-                {
-                    Console.WriteLine("Here");
-                }
-
                 var innerView = metadataProvider.Views.Read(dataSource);
 
                 foreach (var field in innerView.Fields)
@@ -405,8 +400,6 @@
 
             if (queryObject != null)
             {
-                Console.WriteLine("Here");
-
                 var json = JsonConvert.SerializeObject(queryObject, Formatting.Indented);
                 using (TextReader sr = new StringReader(json))
                 {
