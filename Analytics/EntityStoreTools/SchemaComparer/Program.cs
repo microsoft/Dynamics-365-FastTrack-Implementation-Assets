@@ -93,7 +93,7 @@
 
                 CompareTables(measureTableName, synapseSql, sqlProvider);
 
-                CompareDimensionTables(measurementMetadata.Name.ToString(), measureGroups.Dimensions, synapseSql, sqlProvider);
+                // CompareDimensionTables(measurementMetadata.Name.ToString(), measureGroups.Dimensions, synapseSql, sqlProvider);
             }
         }
 
@@ -113,10 +113,10 @@
                 var secondNotFirst = columnsList2.Except(columnsList1).ToList();
                 var commonList = columnsList1.Intersect(columnsList2);
 
-                Console.WriteLine($"For table {tableName}:");
+                Console.WriteLine($"For fact table {tableName}:");
                 Console.WriteLine($"Common columns: {string.Join(", ", commonList)}");
-                Console.WriteLine($"Additional columns in Synapse: {string.Join(", ", firstNotSecond)}");
-                Console.WriteLine($"Additional columns in AX: {string.Join(", ", secondNotFirst)}\n");
+                Console.WriteLine($"Additional columns in Synapse SQL: {string.Join(", ", firstNotSecond)}");
+                Console.WriteLine($"Additional columns in AXDW (Entity Store): {string.Join(", ", secondNotFirst)}\n");
             }
             catch (Exception exception)
             {

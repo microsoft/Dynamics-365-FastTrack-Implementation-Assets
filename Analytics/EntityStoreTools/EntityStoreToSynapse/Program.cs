@@ -53,7 +53,7 @@
                         /*
                         * Step 1: Create AxViews on Azure Synapse
                         */
-                        var viewMetadataEntry = entryList.FirstOrDefault(e => e.FullName == "views\\dependencies.csv");
+                        /*var viewMetadataEntry = entryList.FirstOrDefault(e => e.FullName == "views\\dependencies.csv");
                         if (viewMetadataEntry == null)
                         {
                             throw new Exception($"Cannot find view metadata file 'views/dependencies.csv' in file {options.MetadataPath}");
@@ -85,56 +85,61 @@
                             throw new Exception($"Cannot find measurement metadata file 'measurement.json' in the root folder of the file {options.MetadataPath}");
                         }
 
-                        using (var stream = measurementEntry.Open())
+                        try
                         {
-                            var serializer = new JsonSerializer();
-
-                            using (var sr = new StreamReader(stream))
-                            using (var jsonTextReader = new JsonTextReader(sr))
+                            using (var stream = measurementEntry.Open())
                             {
-                                dynamic measurementMetadata = JObject.Load(jsonTextReader);
+                                var serializer = new JsonSerializer();
 
-                                Console.WriteLine($"\nProcessing measurement '{measurementMetadata.Label}' ({measurementMetadata.Name})");
+                                using (var sr = new StreamReader(stream))
+                                using (var jsonTextReader = new JsonTextReader(sr))
+                                {
+                                    dynamic measurementMetadata = JObject.Load(jsonTextReader);
 
-                                await CreateFactAndDimensionTablesAsync(entryList, measurementMetadata, sqlProvider);
+                                    Console.WriteLine($"\nProcessing measurement '{measurementMetadata.Label}' ({measurementMetadata.Name})");
+
+                                    await CreateFactAndDimensionTablesAsync(entryList, measurementMetadata, sqlProvider);
+                                }
                             }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.ToString());
                         }
                     }
                 });
         }
 
-        private static (string, HashSet<string>) GenerateEnumTranslationsQuery(List<ZipArchiveEntry> entryList, string measureObject, HashSet<string> columnNames)
+        private static (string, HashSet<string>) GenerateEnumTranslationsQuery(List<ZipArchiveEntry> entryList, string measureObject, Dictionary<string, string> columnNames)
         {
-            var enumEntry = entryList.FirstOrDefault(e => e.FullName == $"enums\\{measureObject.ToUpper()}.json");
             HashSet<string> foundEnums = new HashSet<string>();
-
-            if (enumEntry == null)
-            {
-                return (string.Empty, new HashSet<string>());
-            }
-
             string enumQuery = string.Empty;
-            using (var stream = enumEntry.Open())
+
+            foreach (KeyValuePair<string, string> kvp in columnNames)
             {
-                using (var reader = new StreamReader(stream))
-                using (var jsonTextReader = new JsonTextReader(reader))
+                var enumEntry = entryList.FirstOrDefault(e => e.FullName == $"enums\\{measureObject.ToUpper()}_{kvp.Value.ToUpper()}.json");
+
+                if (enumEntry == null)
                 {
-                    dynamic enumMetadata = JObject.Load(jsonTextReader);
+                    continue;
+                }
 
-                    foreach (var enumObject in enumMetadata.Enums)
+                using (var stream = enumEntry.Open())
+                {
+                    using (var reader = new StreamReader(stream))
+                    using (var jsonTextReader = new JsonTextReader(reader))
                     {
-                        if (columnNames.Contains(enumObject.Name.ToString()))
-                        {
-                            foundEnums.Add(enumObject.Name.ToString().ToUpper());
-                            string tempQuery = " CASE ";
-                            foreach (var kv in enumObject.Translations)
-                            {
-                                tempQuery += $"WHEN {enumObject.Name} = '{kv.Value}' THEN '{kv.Key}' ";
-                            }
+                        dynamic enumMetadata = JObject.Load(jsonTextReader);
+                        foundEnums.Add(kvp.Key.ToUpper());
+                        string tempQuery = " CASE ";
 
-                            tempQuery += $"END AS {enumObject.Name},";
-                            enumQuery += tempQuery;
+                        foreach (var enumKv in enumMetadata.Translations)
+                        {
+                            tempQuery += $"WHEN {enumMetadata.Name} = '{enumKv.Value}' THEN '{enumKv.Key}' ";
                         }
+
+                        tempQuery += $"END AS {kvp.Key},";
+                        enumQuery += tempQuery;
                     }
                 }
             }
@@ -151,7 +156,7 @@
 
             foreach (var measureGroup in measureGroups)
             {
-                HashSet<string> factTableColumns = new HashSet<string>();
+                Dictionary<string, string> factTableColumns = new Dictionary<string, string>();
                 var commonColumns = GetCommonColumns();
                 var measureGroupTableName = aggregateMeasurementName + "_" + measureGroup.Name;
 
@@ -172,6 +177,11 @@
                     ColorConsole.WriteSuccess($"Dimensions were created (or exists) successfully for MeasureGroup {measureGroup.Name}.");
                 }
 
+                if (measureGroup.Name.ToString().Equals("SalesOrders"))
+                {
+                    Console.WriteLine("Here");
+                }
+
                 foreach (var attribute in measureGroup.Attributes)
                 {
                     if (commonColumns.Contains(attribute.Name.ToString().ToUpper()))
@@ -179,17 +189,69 @@
                         commonColumns.Remove(attribute.Name.ToString().ToUpper());
                     }
 
-                    var reservedColumn = CheckReservedWord(attribute.KeyFields[0].DimensionField, attribute.Name, createMeasureGroupQuery);
-
-                    if (factTableColumns.Add(attribute.Name.ToString().ToUpper()))
+                    foreach (var keyFields in attribute.KeyFields)
                     {
-                        if (!reservedColumn.Item1)
+                        string dimField = keyFields.DimensionField == null ? string.Empty : keyFields.DimensionField.ToString();
+                        string attrName = attribute.Name == null ? string.Empty : attribute.Name.ToString();
+                        string nameField = attribute.NameField == null ? string.Empty : attribute.NameField.ToString();
+                        if (!dimField.Equals(nameField) && attribute.KeyFields.Count > 1)
                         {
-                            createMeasureGroupQuery += $"{attribute.KeyFields[0].DimensionField} AS {attribute.Name.ToString().ToUpper()},";
+                            attrName = dimField;
                         }
-                        else
+
+                        var reservedColumn = CheckReservedWord(dimField, attrName, createMeasureGroupQuery);
+
+                        if (factTableColumns.TryAdd(attrName.ToUpper(), dimField.ToUpper()))
                         {
-                            createMeasureGroupQuery = reservedColumn.Item2;
+                            if (!reservedColumn.Item1)
+                            {
+                                createMeasureGroupQuery += $"{dimField} AS {attrName.ToUpper()},";
+                            }
+                            else
+                            {
+                                createMeasureGroupQuery = reservedColumn.Item2;
+                            }
+                        }
+                    }
+                }
+
+                if (measureGroup.Attributes.Count == 0)
+                {
+                    var viewMetadataEntry = entryList.FirstOrDefault(e => e.FullName == $"views\\{measureGroup.Table.ToString().ToUpper()}.json");
+                    if (viewMetadataEntry == null)
+                    {
+                        ColorConsole.WriteWarning($"Attr Creation: No view found in path views/{measureGroup.Table.ToString().ToUpper()}.json");
+                    }
+
+                    using (var stream = viewMetadataEntry.Open())
+                    {
+                        using (var sr = new StreamReader(stream))
+                        using (var jsonTextReader = new JsonTextReader(sr))
+                        {
+                            dynamic viewMetadata = JObject.Load(jsonTextReader);
+
+                            foreach (var attr in viewMetadata.Fields)
+                            {
+                                string attrName = attr.Name.ToString();
+                                if (commonColumns.Contains(attrName.ToUpper()))
+                                {
+                                    commonColumns.Remove(attrName.ToUpper());
+                                }
+
+                                var reservedColumn = CheckReservedWord(attrName, attrName, createMeasureGroupQuery);
+
+                                if (factTableColumns.TryAdd(attrName.ToUpper(), attrName.ToUpper()))
+                                {
+                                    if (!reservedColumn.Item1)
+                                    {
+                                        createMeasureGroupQuery += $"{attrName} AS {attrName.ToUpper()},";
+                                    }
+                                    else
+                                    {
+                                        createMeasureGroupQuery = reservedColumn.Item2;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -209,7 +271,7 @@
                         }
 
                         var reservedColumnCheck = CheckReservedWord(measure.Name, measure.Name, createMeasureGroupQuery);
-                        if (factTableColumns.Add(measure.Name.ToString().ToUpper()))
+                        if (factTableColumns.TryAdd(measure.Name.ToString().ToUpper(), measure.Name.ToString().ToUpper()))
                         {
                             if (reservedColumnCheck.Item1)
                             {
@@ -231,7 +293,7 @@
                         }
 
                         var reservedColumnCheck = CheckReservedWord(measure.Field, measure.Field, createMeasureGroupQuery);
-                        if (factTableColumns.Add(measure.Field.ToString().ToUpper()))
+                        if (factTableColumns.TryAdd(measure.Field.ToString().ToUpper(), measure.Field.ToString().ToUpper()))
                         {
                             if (reservedColumnCheck.Item1)
                             {
@@ -253,7 +315,7 @@
 
                     var reservedColumn = CheckReservedWord(measure.Field, measure.Name, createMeasureGroupQuery);
 
-                    if (factTableColumns.Add(measure.Name.ToString().ToUpper()))
+                    if (factTableColumns.TryAdd(measure.Name.ToString().ToUpper(), measure.Field.ToString().ToUpper()))
                     {
                         if (!reservedColumn.Item1)
                         {
@@ -293,7 +355,7 @@
                                 commonColumns.Remove(contraint.RelatedField.ToString().ToUpper());
                             }
 
-                            if (factTableColumns.Add(contraint.RelatedField.ToString().ToUpper()))
+                            if (factTableColumns.TryAdd(contraint.Name.ToString().ToUpper(), contraint.RelatedField.ToString().ToUpper()))
                             {
                                 createMeasureGroupQuery += $"{contraint.RelatedField} AS {contraint.Name.ToString().ToUpper()},";
                             }
@@ -309,6 +371,29 @@
                             foreignKeyConcat = foreignKeyConcat.Remove(foreignKeyConcat.Length - 5);
                             foreignKeyConcat += $") AS {foreignKeyName},";
                             createMeasureGroupQuery += foreignKeyConcat;
+                        }
+                        else
+                        {
+                            var dimensionMetadataEntry = entryList.FirstOrDefault(e => e.FullName == $"dimensions\\{dimensions.DimensionName}.json");
+                            if (dimensionMetadataEntry == null)
+                            {
+                                throw new Exception($"FK Creation: Cannot find dimension metadata file 'dimensions/{dimensions.DimensionName}.json' in file.");
+                            }
+
+                            using (var stream = dimensionMetadataEntry.Open())
+                            {
+                                using (var sr = new StreamReader(stream))
+                                using (var jsonTextReader = new JsonTextReader(sr))
+                                {
+                                    dynamic dimensionMetadata = JObject.Load(jsonTextReader);
+
+                                    string dataSource = dimensionMetadata.Table.ToString();
+                                    string fieldName = relation.Constraints[0].RelatedField.ToString();
+                                    string fkQuery = SearchViewForFK(entryList, dataSource, fieldName, foreignKeyName);
+
+                                    createMeasureGroupQuery += fkQuery;
+                                }
+                            }
                         }
                     }
                 }
@@ -382,6 +467,81 @@
             }
         }
 
+        private static string SearchViewForFK(List<ZipArchiveEntry> entryList, string dataSource, string fieldName, string foreignKeyName)
+        {
+            var viewMetadataEntry = entryList.FirstOrDefault(e => e.FullName == $"views\\{dataSource.ToUpper()}.json");
+            if (viewMetadataEntry == null)
+            {
+                ColorConsole.WriteWarning($"FK Creation: Cannot find view metadata file 'views/{dataSource.ToUpper()}.json' in file.");
+
+                return SearchTableForFK(entryList, dataSource, fieldName, foreignKeyName);
+            }
+
+            using (var streamView = viewMetadataEntry.Open())
+            {
+                using (var srv = new StreamReader(streamView))
+                using (var jsonTextReaderView = new JsonTextReader(srv))
+                {
+                    dynamic viewMetadata = JObject.Load(jsonTextReaderView);
+
+                    if (viewMetadata.ViewMetadata.DataSources.Count > 0)
+                    {
+                        string dataSourceName = viewMetadata.ViewMetadata.DataSources[0].Table.ToString();
+                        return SearchViewForFK(entryList, dataSourceName, fieldName, foreignKeyName);
+                    }
+                    else if (viewMetadata.Query != null)
+                    {
+                        var queryMetadataEntry = entryList.FirstOrDefault(e => e.FullName == $"queries\\{viewMetadata.Query}.json");
+                        if (queryMetadataEntry == null)
+                        {
+                            ColorConsole.WriteWarning($"FK Creation: Cannot find query metadata file 'queries/{viewMetadata.Query}.json' in file.\n");
+                            return string.Empty;
+                        }
+
+                        using (var stringQuery = queryMetadataEntry.Open())
+                        {
+                            using (var srq = new StreamReader(stringQuery))
+                            using (var jsonTextReaderTable = new JsonTextReader(srq))
+                            {
+                                dynamic queryMetadata = JObject.Load(jsonTextReaderTable);
+
+                                string dataSourceName = queryMetadata.DataSources[0].Table.ToString();
+                                return SearchViewForFK(entryList, dataSourceName, fieldName, foreignKeyName);
+                            }
+                        }
+                    }
+
+                    return string.Empty;
+                }
+            }
+        }
+
+        private static string SearchTableForFK(List<ZipArchiveEntry> entryList, string tableName, string fieldName, string fkName)
+        {
+            var tableMetadataEntry = entryList.FirstOrDefault(e => e.FullName == $"tables\\{tableName}.json");
+            if (tableMetadataEntry == null)
+            {
+                ColorConsole.WriteWarning($"Cannot find table metadata file 'tables/{tableName}.json' in file.");
+                return string.Empty;
+            }
+
+            using (var streamTable = tableMetadataEntry.Open())
+            {
+                using (var srt = new StreamReader(streamTable))
+                using (var jsonTextReaderTable = new JsonTextReader(srt))
+                {
+                    dynamic tableMetadata = JObject.Load(jsonTextReaderTable);
+
+                    if (tableMetadata.SaveDataPerCompany == null)
+                    {
+                        return $"{fieldName} AS {fkName},";
+                    }
+
+                    return string.Empty;
+                }
+            }
+        }
+
         private static object AddMeasureGroupAttributes(dynamic attributes, int counter)
         {
             dynamic result = string.Empty;
@@ -404,7 +564,7 @@
 
                 if (dimensionTables.Add(dimensionTableName.ToString()))
                 {
-                    HashSet<string> columns = new HashSet<string>();
+                    Dictionary<string, string> columns = new Dictionary<string, string>();
 
                     var createDimensionQuery = $"CREATE OR ALTER VIEW {dimensionTableName} AS SELECT ";
 
@@ -438,7 +598,7 @@
 
                                     createDimensionQuery = createDimensionQuery.Remove(createDimensionQuery.Length - 5);
                                     createDimensionQuery += $") AS {rowUniqueKeyColumnName},";
-                                    columns.Add(rowUniqueKeyColumnName);
+                                    columns.TryAdd(rowUniqueKeyColumnName, rowUniqueKeyColumnName);
                                 }
 
                                 if (attribute.KeyFields.Count == 1)
@@ -448,7 +608,7 @@
                                         commonColumns.Remove(attribute.KeyFields[0].DimensionField.ToString().ToUpper());
                                     }
 
-                                    if (columns.Add(attribute.Name.ToString().ToUpper()))
+                                    if (columns.TryAdd(attribute.Name.ToString().ToUpper(), attribute.KeyFields[0].DimensionField.ToString().ToUpper()))
                                     {
                                         var reservedColumn = CheckReservedWord(attribute.KeyFields[0].DimensionField, attribute.Name, createDimensionQuery);
                                         if (!reservedColumn.Item1)
@@ -465,9 +625,14 @@
                                 {
                                     foreach (var field in attribute.KeyFields)
                                     {
+                                        if (commonColumns.Contains(field.DimensionField.ToString().ToUpper()))
+                                        {
+                                            commonColumns.Remove(field.DimensionField.ToString().ToUpper());
+                                        }
+
                                         if (field.DimensionField.ToString().Equals(attribute.NameField.ToString()))
                                         {
-                                            if (columns.Add(attribute.Name.ToString().ToUpper()))
+                                            if (columns.TryAdd(attribute.Name.ToString().ToUpper(), field.DimensionField.ToString().ToUpper()))
                                             {
                                                 var reservedColumn = CheckReservedWord(field.DimensionField, attribute.Name, createDimensionQuery);
                                                 if (!reservedColumn.Item1)
@@ -480,7 +645,7 @@
                                                 }
                                             }
                                         }
-                                        else if (columns.Add(field.DimensionField.ToString().ToUpper()))
+                                        else if (columns.TryAdd(field.DimensionField.ToString().ToUpper(), field.DimensionField.ToString().ToUpper()))
                                         {
                                             var reservedColumn = CheckReservedWord(field.DimensionField, field.DimensionField, createDimensionQuery);
                                             if (!reservedColumn.Item1)
@@ -560,8 +725,8 @@
 
         private static string RenameEnumColumns(string createQuery, string enumColumn)
         {
-            string input = $"{enumColumn}";
-            string output = $"{enumColumn}_VALUE";
+            string input = $"{enumColumn},";
+            string output = $"{enumColumn}_VALUE,";
             return createQuery.Replace(input, output);
         }
 
