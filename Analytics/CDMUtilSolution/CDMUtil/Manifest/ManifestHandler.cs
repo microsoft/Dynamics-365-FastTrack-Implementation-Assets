@@ -139,7 +139,7 @@ namespace CDMUtil.Manifest
                 // at the end update the view syntax
                 TSqlSyntaxHandler.updateViewSyntax(c, metadataList);
 
-                SQLHandler.missingTables(c, metadataList, logger);
+               
             }
             return true;
 

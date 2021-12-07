@@ -55,6 +55,10 @@ namespace CDMUtil.SQL
                 }
                 log.Log(LogLevel.Error, e.Message);
             }
+            finally
+            {
+                SQLHandler.missingTables(c, metadataList, log);
+            }
             return statements;
         }
         public string getTableMaxFieldLenght(string TableName)
@@ -177,9 +181,7 @@ namespace CDMUtil.SQL
                                 drop table  {0}.{1} ;  
                                 create  TABLE {0}.{1} ({2}) 
                                 WITH (DISTRIBUTION = ROUND_ROBIN, CLUSTERED COLUMNSTORE INDEX);
-                                EXEC [dbo].[DataLakeToSynapse_InsertIntoControlTableForCopy] @TableName = '{0}.{1}', @DataLocation = '{8}', @FileFormat ='{5}',  @MetadataLocation = '{9}', @CDCDataLocation = '{10}';
-                                EXEC [dbo].[DataLakeToSynapse_CopyIntoSingleTable] @TableName='{1}',@Schema='{0}';";
-
+                                EXEC [dbo].[DataLakeToSynapse_InsertIntoControlTableForCopy] @TableName = '{0}.{1}', @DataLocation = '{8}', @FileFormat ='{5}',  @MetadataLocation = '{9}', @CDCDataLocation = '{10}';";
                     break;
 
             }
@@ -236,7 +238,7 @@ namespace CDMUtil.SQL
                 case "datetime":
                     if (convertDatetime)
                     {
-                        sqlColumnNames = $"Cast({attribute.name} AS DATETIME) as {attribute.name}";
+                        sqlColumnNames = $"Cast({attribute.name} AS DATETIME2) as {attribute.name}";
                     }
                     else
                     {
@@ -315,7 +317,7 @@ namespace CDMUtil.SQL
                     }
                     else
                     {
-                        sqlColumnDef = $"{attribute.name} datetime";
+                        sqlColumnDef = $"{attribute.name} datetime2";
                     }
                     break;
                 case "datetime2":
