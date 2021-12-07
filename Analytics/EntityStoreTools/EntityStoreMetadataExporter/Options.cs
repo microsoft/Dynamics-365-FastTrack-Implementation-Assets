@@ -4,7 +4,7 @@
 
     public class Options
     {
-        [Option('p', "path", Required = false, HelpText = "Path to the AOS package path (e.g. C:\\AosService\\PackagesLocalDirectory).", Default = @"C:\AosService\PackagesLocalDirectory")]
+        [Option('p', "path", Required = false, HelpText = "Path to the AOS package path (e.g. C:\\AosService\\PackagesLocalDirectory).", Default = @"K:\AosService\PackagesLocalDirectory")]
         public string PackagePath { get; set; }
 
         [Option('m', "measure", Required = true, HelpText = "The aggregate measurement name.")]
