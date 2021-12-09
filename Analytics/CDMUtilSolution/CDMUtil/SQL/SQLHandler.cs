@@ -166,7 +166,7 @@ namespace CDMUtil.SQL
             {
                 // {0} Schema, {1} TableName, {2} ColumnDefinition {3} data location ,{4} DataSource, {5} FileFormat
                 case "SynapseView":
-                    template = @"CREATE OR ALTER VIEW {0}.{1} AS SELECT r.filepath(1) as [$FileName], {6} FROM OPENROWSET(BULK '{3}', FORMAT = 'CSV', PARSER_VERSION = '2.0', DATA_SOURCE ='{4}', ROWSET_OPTIONS =  '{11}') WITH ({2}) as r";
+                    template = @"CREATE OR ALTER VIEW {0}.{1} AS SELECT r.filepath(1) as [$FileName], {6} FROM OPENROWSET(BULK '{3}', FORMAT = 'CSV', PARSER_VERSION = '1.0', DATA_SOURCE ='{4}', ROWSET_OPTIONS =  '{11}') WITH ({2}) as r";
                     break;
 
                 case "SQLTable":
