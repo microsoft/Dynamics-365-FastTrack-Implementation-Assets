@@ -377,17 +377,28 @@ namespace CDMUtil.SQL
             string queryStringTableIdSubTable = String.Format("select Id from TableIdTable where Name = '{0}'", subTableTableName);
             DataTable dataTableTableIdSubTable = this.executeSQLQuery(queryStringTableIdSubTable);
             DataTableReader dataReaderTableIdSubTable = dataTableTableIdSubTable.CreateDataReader();
+            string subTableTableId = "0";
+            if (dataReaderTableIdSubTable.Read())
+            {
+                subTableTableId = dataReaderTableIdSubTable[0].ToString();
+            }
 
             string queryStringTableIdSuperTable = String.Format("select Id from TableIdTable where Name = '{0}'", superTableName);
             DataTable dataTableTableIdSuperTable = this.executeSQLQuery(queryStringTableIdSuperTable);
             DataTableReader dataReaderTableIdSuperTable = dataTableTableIdSuperTable.CreateDataReader();
+            string superTableTableId = "0";
+            if (dataReaderTableIdSuperTable.Read())
+            {
+                superTableTableId = dataReaderTableIdSuperTable[0].ToString();
+            }
 
             string viewDefinition = String.Format("CREATE VIEW {0}.{1} AS SELECT ", c.synapseOptions.schema, subTableTableName);
-            if (dataReaderTableIdSubTable.Read() && dataReaderTableIdSuperTable.Read())
+            string tableToAnalyze = subTableTableName;
+            if (superTableName != String.Empty)
             {
-                var subTableTableId = dataReaderTableIdSubTable[0];
-                var superTableTableId = dataReaderTableIdSuperTable[0];
-                string queryStringColumns = String.Format(@"
+                tableToAnalyze = superTableName;
+            }
+            string queryStringColumns = String.Format(@"
                     SELECT DISTINCT col.name
                     FROM sys.tables t
                     INNER JOIN sys.schemas s on t.schema_id = s.schema_id
@@ -398,8 +409,10 @@ namespace CDMUtil.SQL
 	                    AND f.TABLEID in ({1}, {2})
                         AND NOT col.name like 'DEL_%'
                     ORDER BY col.name
-                    ", superTableName, subTableTableId, superTableTableId);
+                    ", tableToAnalyze, subTableTableId, superTableTableId);
 
+            if (subTableTableId != "0" && superTableTableId != "0")
+            {
                 DataTable dataTableColumns = this.executeSQLQuery(queryStringColumns);
                 DataTableReader dataReaderColumns = dataTableColumns.CreateDataReader();
                 string columnList = String.Empty;
@@ -419,7 +432,32 @@ namespace CDMUtil.SQL
                     entityName = subTableTableName,
                     viewDefinition = viewDefinition,
                     dependentTables = superTableName
+                });
+            }
+            // dummy table/view case
+            else if(subTableTableId != "0" && superTableTableId == "0" && superTableName == String.Empty)
+            {
+                DataTable dataTableColumns = this.executeSQLQuery(queryStringColumns);
+                DataTableReader dataReaderColumns = dataTableColumns.CreateDataReader();
+                string columnList = String.Empty;
+                while (dataReaderColumns.Read())
+                {
+                    if (columnList != String.Empty)
+                    {
+                        columnList += ",";
+                    }
+                    columnList += String.Format("NULL AS {0}", dataReaderColumns[0]);
+                }
+                columnList += "NULL AS DataAreaId";
+                columnList += "NULL AS Partition";
 
+                viewDefinition += String.Format("{0} WHERE 1 = 2", columnList);
+
+                subTableSuperTableViews.Add(new SQLMetadata
+                {
+                    entityName = subTableTableName,
+                    viewDefinition = viewDefinition,
+                    dependentTables = superTableName
                 });
             }
 
