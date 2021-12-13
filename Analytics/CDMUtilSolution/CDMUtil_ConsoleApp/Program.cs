@@ -128,6 +128,14 @@ namespace CDMUtil
                     AppConfiguration.ProcessEntitiesFilePath = Path.Combine(Environment.CurrentDirectory, "Manifest", "EntityList.json");
                 }
             }
+            if (ConfigurationManager.AppSettings.Get("ProcessSubTableSuperTables") != null)
+            {
+                if (bool.Parse(ConfigurationManager.AppSettings.Get("ProcessSubTableSuperTables")))
+                {
+                    AppConfiguration.ProcessSubTableSuperTables = true;
+                    AppConfiguration.ProcessSubTableSuperTablesFilePath = Path.Combine(Environment.CurrentDirectory, "Manifest", "SubTableSuperTableList.json");
+                }
+            }
 
             AppConfiguration.SourceColumnProperties = Path.Combine(Environment.CurrentDirectory, "Manifest", "SourceColumnProperties.json");
             AppConfiguration.ReplaceViewSyntax = Path.Combine(Environment.CurrentDirectory, "SQL", "ReplaceViewSyntax.json");

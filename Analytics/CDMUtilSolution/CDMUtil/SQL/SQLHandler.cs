@@ -367,8 +367,65 @@ namespace CDMUtil.SQL
                     log.LogError($"Missing tables:{missingTables.ToString()}");
                 }
             }
-           
-    }
+
+        }
+
+        public List<SQLMetadata> retrieveSubTableSuperTableView(AppConfigurations c, string superTableName, string subTableTableName)
+        {
+            List<SQLMetadata> subTableSuperTableViews = new List<SQLMetadata>();
+
+            string queryStringTableIdSubTable = String.Format("select Id from TableIdTable where Name = '{0}'", subTableTableName);
+            DataTable dataTableTableIdSubTable = this.executeSQLQuery(queryStringTableIdSubTable);
+            DataTableReader dataReaderTableIdSubTable = dataTableTableIdSubTable.CreateDataReader();
+
+            string queryStringTableIdSuperTable = String.Format("select Id from TableIdTable where Name = '{0}'", superTableName);
+            DataTable dataTableTableIdSuperTable = this.executeSQLQuery(queryStringTableIdSuperTable);
+            DataTableReader dataReaderTableIdSuperTable = dataTableTableIdSuperTable.CreateDataReader();
+
+            string viewDefinition = String.Format("CREATE VIEW {0}.{1} AS SELECT ", c.synapseOptions.schema, subTableTableName);
+            if (dataReaderTableIdSubTable.Read() && dataReaderTableIdSuperTable.Read())
+            {
+                var subTableTableId = dataReaderTableIdSubTable[0];
+                var superTableTableId = dataReaderTableIdSuperTable[0];
+                string queryStringColumns = String.Format(@"
+                    SELECT DISTINCT col.name
+                    FROM sys.tables t
+                    INNER JOIN sys.schemas s on t.schema_id = s.schema_id
+                    INNER JOIN sys.columns col ON t.object_id = col.object_id
+                    INNER JOIN TableFieldIdTable f ON col.name = f.name
+                    WHERE t.name = '{0}'
+	                    AND s.name = 'dbo'
+	                    AND f.TABLEID in ({1}, {2})
+                        AND NOT col.name like 'DEL_%'
+                    ORDER BY col.name
+                    ", superTableName, subTableTableId, superTableTableId);
+
+                DataTable dataTableColumns = this.executeSQLQuery(queryStringColumns);
+                DataTableReader dataReaderColumns = dataTableColumns.CreateDataReader();
+                string columnList = String.Empty;
+                while (dataReaderColumns.Read())
+                {
+                    if (columnList != String.Empty)
+                    {
+                        columnList += ",";
+                    }
+                    columnList += dataReaderColumns[0];
+                }
+
+                viewDefinition += String.Format("{0} FROM {1} WHERE INSTANCERELATIONTYPE = {2}", columnList, superTableName, subTableTableId);
+
+                subTableSuperTableViews.Add(new SQLMetadata
+                {
+                    entityName = subTableTableName,
+                    viewDefinition = viewDefinition,
+                    dependentTables = superTableName
+
+                });
+            }
+
+            return subTableSuperTableViews;
+        }
+
         public List<SQLMetadata> retrieveViewDependencies(string entityName)
         {
             List<SQLMetadata> viewDependencies = new List<SQLMetadata>();

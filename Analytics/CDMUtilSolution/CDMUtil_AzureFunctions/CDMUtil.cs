@@ -314,6 +314,33 @@ namespace CDMUtil
             {
                 AppConfiguration.synapseOptions.createStats = bool.Parse(CreateStats);
             }
+
+            string ServicePrincipalBasedAuthentication = getConfigurationValue(req, "ServicePrincipalBasedAuthentication", ManifestURL);
+
+            if (ServicePrincipalBasedAuthentication != null)
+            {
+                AppConfiguration.synapseOptions.servicePrincipalBasedAuthentication = bool.Parse(ServicePrincipalBasedAuthentication);
+                if (AppConfiguration.synapseOptions.servicePrincipalBasedAuthentication)
+                {
+                    AppConfiguration.synapseOptions.servicePrincipalTenantId = tenantId;
+                    string servicePrincipalAppId = getConfigurationValue(req, "ServicePrincipalAppId", ManifestURL);
+                    if (servicePrincipalAppId != null)
+                        AppConfiguration.synapseOptions.servicePrincipalAppId = servicePrincipalAppId;
+                    string servicePrincipalSecret = getConfigurationValue(req, "ServicePrincipalSecret", ManifestURL);
+                    if (servicePrincipalSecret != null)
+                        AppConfiguration.synapseOptions.servicePrincipalSecret = servicePrincipalSecret;
+                }
+            }
+
+            string ProcessSubTableSuperTables = getConfigurationValue(req, "ProcessSubTableSuperTables", ManifestURL);
+
+            if (ProcessSubTableSuperTables != null)
+            {
+                AppConfiguration.ProcessSubTableSuperTables = bool.Parse(ProcessSubTableSuperTables);
+                AppConfiguration.ProcessSubTableSuperTablesFilePath = Path.Combine(context.FunctionAppDirectory, "SubTableSuperTableList.json");
+
+            }
+
             return AppConfiguration;
         }
     }
