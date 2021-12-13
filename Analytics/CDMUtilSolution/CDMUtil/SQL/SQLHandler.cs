@@ -448,8 +448,9 @@ namespace CDMUtil.SQL
                     }
                     columnList += String.Format("NULL AS {0}", dataReaderColumns[0]);
                 }
-                columnList += "NULL AS DataAreaId";
-                columnList += "NULL AS Partition";
+                columnList += ",NULL AS RecId";
+                columnList += ",NULL AS DataAreaId";
+                columnList += ",NULL AS Partition";
 
                 viewDefinition += String.Format("{0} WHERE 1 = 2", columnList);
 
