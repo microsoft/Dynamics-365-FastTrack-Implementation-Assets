@@ -63,7 +63,7 @@ namespace CDMUtil
             NameValueCollection sAll = ConfigurationManager.AppSettings;
             foreach (string s in sAll.AllKeys)
             {
-                if (s.Contains("AccessKey") || s.Contains("ConnectionString"))
+                if (s.Contains("AccessKey") || s.Contains("ConnectionString") || s.Contains("Secret"))
                 {
                     logger.LogInformation("Key: " + s + " Value:***");
                 }
