@@ -38,5 +38,9 @@
   {
     "Key": " ELSE T1.STARTDATE2 - 1 END",
     "Value": " ELSE DateAdd(Day, -1, T1.STARTDATE2) END"
+  },
+  {
+    "Key": "GETUTCDATE()",
+    "Value": "SYSUTCDATETIME()"
   }
 ]
