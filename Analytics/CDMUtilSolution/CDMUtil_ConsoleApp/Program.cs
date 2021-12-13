@@ -94,7 +94,7 @@ namespace CDMUtil
 
             if (ConfigurationManager.AppSettings.Get("ConvertDateTime") != null)
             {
-                AppConfiguration.synapseOptions.DateTimeAsString = bool.Parse(ConfigurationManager.AppSettings.Get("ConvertDateTime"));
+                AppConfiguration.synapseOptions.ConvertDateTime = bool.Parse(ConfigurationManager.AppSettings.Get("ConvertDateTime"));
             }
             if (ConfigurationManager.AppSettings.Get("DataSourceName") != null)
             {
