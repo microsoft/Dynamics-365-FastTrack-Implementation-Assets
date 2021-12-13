@@ -149,17 +149,17 @@ namespace CDMUtil
             {
                 statements = SQLHandler.executeSQL(c, metadataList, log);
             }
-                 
+
             return new OkObjectResult(JsonConvert.SerializeObject(statements));
         }
-        
+
         [FunctionName("manifestToSQLDDL")]
         public static async Task<IActionResult> manifestToSQLDDL(
           [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
           ILogger log, ExecutionContext context)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
-            
+
             //get configurations data 
             AppConfigurations c = GetAppConfigurations(req, context);
 
@@ -174,13 +174,13 @@ namespace CDMUtil
 
             if (!String.IsNullOrEmpty(c.synapseOptions.targetSparkEndpoint))
             {
-                statementsList = await SQLHandler.sqlMetadataToDDL(metadataList, c,log);
+                statementsList = await SQLHandler.sqlMetadataToDDL(metadataList, c, log);
             }
             else
             {
-                statementsList =  SparkHandler.metadataToSparkStmt(metadataList, c, log);
+                statementsList = SparkHandler.metadataToSparkStmt(metadataList, c, log);
             }
-             
+
 
             return new OkObjectResult(JsonConvert.SerializeObject(statementsList));
         }
@@ -188,12 +188,12 @@ namespace CDMUtil
         [FunctionName("EventGrid_CDMToSynapseView")]
         public static void CDMToSynapseView([EventGridTrigger] EventGridEvent eventGridEvent, ILogger log, ExecutionContext context)
         {
-            
+
             dynamic data = eventGridEvent.Data;
-           
+
             //get configurations data 
             AppConfigurations c = GetAppConfigurations(null, context, eventGridEvent);
-          
+
             log.LogInformation(eventGridEvent.Data.ToString());
             // Read Manifest metadata
             log.Log(LogLevel.Information, "Reading Manifest metadata");
@@ -232,18 +232,18 @@ namespace CDMUtil
             {
                 ConfigValue = System.Environment.GetEnvironmentVariable(token);
             }
-            
+
             return ConfigValue;
         }
-        public static AppConfigurations GetAppConfigurations(HttpRequest req, ExecutionContext context, EventGridEvent eventGridEvent= null)
+        public static AppConfigurations GetAppConfigurations(HttpRequest req, ExecutionContext context, EventGridEvent eventGridEvent = null)
         {
-            
+
             string ManifestURL;
 
             if (eventGridEvent != null)
             {
                 dynamic eventData = eventGridEvent.Data;
-                
+
                 ManifestURL = eventData.url;
             }
             else
@@ -265,7 +265,7 @@ namespace CDMUtil
             AppConfigurations AppConfiguration = new AppConfigurations(tenantId, ManifestURL, AccessKey, connectionString, DDLType, targetSparkConnection);
 
             string AXDBConnectionString = getConfigurationValue(req, "AXDBConnectionString", ManifestURL);
-            
+
             if (AXDBConnectionString != null)
                 AppConfiguration.AXDBConnectionString = AXDBConnectionString;
 
@@ -276,11 +276,11 @@ namespace CDMUtil
             string fileFormat = getConfigurationValue(req, "FileFormat", ManifestURL);
             if (fileFormat != null)
                 AppConfiguration.synapseOptions.fileFormatName = fileFormat;
-            
-            string DateTimeAsString = getConfigurationValue(req, "DateTimeAsString", ManifestURL);            
+
+            string DateTimeAsString = getConfigurationValue(req, "DateTimeAsString", ManifestURL);
             if (DateTimeAsString != null)
                 AppConfiguration.synapseOptions.DateTimeAsString = bool.Parse(DateTimeAsString);
-            
+
             string ConvertDateTime = getConfigurationValue(req, "ConvertDateTime", ManifestURL);
             if (ConvertDateTime != null)
                 AppConfiguration.synapseOptions.ConvertDateTime = bool.Parse(ConvertDateTime);
@@ -288,9 +288,9 @@ namespace CDMUtil
             string TranslateEnum = getConfigurationValue(req, "TranslateEnum", ManifestURL);
             if (TranslateEnum != null)
                 AppConfiguration.synapseOptions.TranslateEnum = bool.Parse(TranslateEnum);
-            
+
             string DefaultStringLenght = getConfigurationValue(req, "DefaultStringLength", ManifestURL);
-            
+
             if (DefaultStringLenght != null)
             {
                 AppConfiguration.synapseOptions.DefaultStringLenght = Int16.Parse(DefaultStringLenght);
@@ -301,12 +301,12 @@ namespace CDMUtil
 
 
             string ProcessEntities = getConfigurationValue(req, "ProcessEntities", ManifestURL);
-            
-            if (ProcessEntities!= null)
+
+            if (ProcessEntities != null)
             {
                 AppConfiguration.ProcessEntities = bool.Parse(ProcessEntities);
                 AppConfiguration.ProcessEntitiesFilePath = Path.Combine(context.FunctionAppDirectory, "EntityList.json");
-                
+
             }
             string CreateStats = getConfigurationValue(req, "CreateStats", ManifestURL);
 
@@ -314,6 +314,24 @@ namespace CDMUtil
             {
                 AppConfiguration.synapseOptions.createStats = bool.Parse(CreateStats);
             }
+
+            string ServicePrincipalBasedAuthentication = getConfigurationValue(req, "ServicePrincipalBasedAuthentication", ManifestURL);
+
+            if (ServicePrincipalBasedAuthentication != null)
+            {
+                AppConfiguration.synapseOptions.servicePrincipalBasedAuthentication = bool.Parse(ServicePrincipalBasedAuthentication);
+                if (AppConfiguration.synapseOptions.servicePrincipalBasedAuthentication)
+                {
+                    AppConfiguration.synapseOptions.servicePrincipalTenantId = tenantId;
+                    string servicePrincipalAppId = getConfigurationValue(req, "ServicePrincipalAppId", ManifestURL);
+                    if (servicePrincipalAppId != null)
+                        AppConfiguration.synapseOptions.servicePrincipalAppId = servicePrincipalAppId;
+                    string servicePrincipalSecret = getConfigurationValue(req, "ServicePrincipalSecret", ManifestURL);
+                    if (servicePrincipalSecret != null)
+                        AppConfiguration.synapseOptions.servicePrincipalSecret = servicePrincipalSecret;
+                }
+            }
+
             return AppConfiguration;
         }
     }
