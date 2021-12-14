@@ -13,6 +13,8 @@
 
     public class Program
     {
+        private static bool comparisonFlag = false;
+
         public static async Task Main(string[] args)
         {
             await Parser.Default.ParseArguments<Options>(args)
@@ -69,6 +71,13 @@
                             throw new Exception($"Cannot find measurement metadata file 'measurement.json' in the root folder of the file {options.MetadataPath}");
                         }
 
+                        Console.WriteLine("Show comparison for all tables? Enter yes OR no (Default = yes)");
+                        string allTableData = Console.ReadLine();
+                        if (allTableData.Equals("no"))
+                        {
+                            comparisonFlag = true;
+                        }
+
                         using (var stream = measurementEntry.Open())
                         {
                             var serializer = new JsonSerializer();
@@ -113,10 +122,15 @@
                 var secondNotFirst = columnsList2.Except(columnsList1).ToList();
                 var commonList = columnsList1.Intersect(columnsList2);
 
-                Console.WriteLine($"For table {tableName}:");
+                if (comparisonFlag && secondNotFirst.Count == 0)
+                {
+                    return;
+                }
+
+                Console.WriteLine($"\nFor table {tableName}:");
                 Console.WriteLine($"Common columns: {string.Join(", ", commonList)}");
-                Console.WriteLine($"Additional columns in Synapse: {string.Join(", ", firstNotSecond)}");
-                Console.WriteLine($"Additional columns in AX: {string.Join(", ", secondNotFirst)}\n");
+                Console.WriteLine($"Additional columns in Synapse SQL: {string.Join(", ", firstNotSecond)}");
+                Console.WriteLine($"Additional columns in AXDW (Entity Store): {string.Join(", ", secondNotFirst)}\n");
             }
             catch (Exception exception)
             {
