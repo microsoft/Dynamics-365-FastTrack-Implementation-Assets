@@ -1,5 +1,9 @@
 [
-  {
+  /*Provide list of entities to process, 
+  AXDBConnectionString is mandatory if EntityList is provided with Value blank
+  Util will connect to database to retrieve entity views and dependencies
+  */
+  /*{
     "Key": "CUSTCUSTOMERV3ENTITY",
     "Value": ""
   },
@@ -46,6 +50,46 @@
   {
     "Key": "DimensionCombinationEntity",
     "Value": ""
-  }
+  },
+  {
+    "Key": "CUSTTABLECUBE",
+    "Value": ""
+  },
+  {
+    "Key": "BICompanyView",
+    "Value": ""
+  },
+  {
+    "Key": "INVENTTABLEEXPANDED",
+    "Value": ""
+  },
+  {
+    "Key": "INVENTLOCATIONEXPANDED",
+    "Value": ""
+  },
+  {
+    "Key": "CUSTPACKINGSLIPTRANSEXPANDED",
+    "Value": ""
+  },
+  {
+    "Key": "[BI].[Customer_Dim]",
+    "Value": "Create or alter view  [BI].[Customer_Dim] as SELECT [ACCOUNTNUM] as [CUSTOMER_ACCOUNT],[BLOCKED] as BLOKCED       ,[CURRENCY]        ,[CREDITMAX]       ,[PAYMTERMID] as [TERMS_OF_PAYMENT]       ,[DATAAREAID] as [COMPANY_ID]       ,[CUSTGROUP]  as [CUSTOMER_GROUP]       ,[GROUPNAME]  as [CUSTOMER_GROUP_NAME]       ,[NAME] as [CUSTOMER_NAME]       ,[CUSTOMERINDUSTRY] as [INDUSTRY]       ,[CUSTOMERREGION] as [REGION]       ,[CITY] as [CITY]       ,[STATE] as [STATE]       ,[ZIPCODE] as [POSTAL_CODE]       ,[COUNTRYREGIONID] as [COUNTRY]   ,[ACCOUNTNUM] + '_' + DATAAREAID as [ID_PK]   , RECID    FROM CUSTTABLECUBE group by [ACCOUNTNUM] ,[BLOCKED] ,[CURRENCY],[CREDITMAX],  [PAYMTERMID] ,  [DATAAREAID] ,  [CUSTGROUP] ,  [GROUPNAME] ,  [NAME] ,  [CUSTOMERINDUSTRY] ,  [CUSTOMERREGION] ,  [CITY] ,  [STATE],  [ZIPCODE] ,  [COUNTRYREGIONID] ,  [ACCOUNTNUM] + '_' + DATAAREAID,  RECID"
+  },
+  {
+    "Key": "[BI].[Company_Dim]",
+    "Value": "Create or alter view [BI].[Company_Dim] as select ID, NAME from BICompanyView where ID <> 'DAT' group by ID, NAME"
+  },
+  {
+    "Key": "[BI].[OrderShipment_Fact]",
+    "Value": " CREATE OR ALTER view [BI].[OrderShipment_Fact] as   SELECT  DATEADD(year, 4,CONVERT(DATE,[DELIVERYDATE])) as [DELEVERY DATE]       ,[QTY] as [SHIPPED QTY]       ,DATEADD(year, 4,CONVERT(DATE,[SALESLINESHIPPINGDATECONFIRMED])) as [CONFIRM DELIVERY DATE]       ,DATEADD(year, 4,CONVERT(DATE,[SALESLINESHIPPINGDATEREQUESTED]))  as [REQUESTED DELIVERY DATE]       ,[DELIVERYPOSTALADDRESS] as [POSTALADDRESS_FK]       ,[ITEMID] + '_' + DATAAREAID AS [PRODUCT_FK]       ,[SALESCATEGORY] as SALESCATEGORY_FK       ,[SALESUNIT] as [SALES UNIT]       ,[DATAAREAID] as COMPANY       ,[ORDERACCOUNT] + '_' + DATAAREAID AS [CUSTOMER_FK]       ,[CONFIGID] as [PRODUCT CONFIG]       ,[INVENTCOLORID] as [PRODUCT COLOR]       ,[INVENTSIZEID] as [PRODUCT SIZE] \t  ,[INVENTSTYLEID] as [PRODUCT STYLE] \t  ,[INVENTVERSIONID] as [PRODUCT VERSION]        ,+[INVENTLOCATIONID]  + '_' + DATAAREAID AS [WAREHOUSE_FK]       ,[PRODUCTCATEGORY] as [PRODUCTCATEGORY_FK]       ,[DELAYEDREQUESTEDDATE] as [DELAYED REQUESTED DATE]       ,[DELAYEDCONFIRMEDDATE] as [DELAYED CONFIRMED DATE]       ,[DAYSDELAYEDCONFIRMEDDATE] as [DAYS DELAYED CONFIRMED DATE]       ,[DAYSDELAYEDREQUESTEDDATE] as [DAYS DELAYED REQUESTED DATE]   FROM CUSTPACKINGSLIPTRANSEXPANDED"
+  },
+  {
+    "Key": "[BI].[Warehouse_Dim]",
+    "Value": "CREATE OR ALTER view [BI].[Warehouse_Dim] AS   select   [NAME] as [WAREHOUSE NAME]  ,case [INVENTLOCATIONTYPE] when 0 then 'DEFAULT' WHEN 1 then 'QUARENTINE'  WHEN 2 THEN 'TRANSIT' end  as [WAREHOUSE TYPE]        ,[INVENTLOCATIONID] as [WAREHOUSE]       ,[INVENTSITEID] as [SITE]       ,[INVENTSITEID]+'_'+ [INVENTLOCATIONID] +'_' + [DATAAREAID] as [WAREHOUSE_PK]   FROM INVENTLOCATIONEXPANDED group by Name,INVENTLOCATIONTYPE,INVENTLOCATIONID,INVENTSITEID, [INVENTSITEID]+'_'+ [INVENTLOCATIONID] +'_' + [DATAAREAID]"
+  },
+  {
+    "Key": "[BI].[Product_Dim]",
+    "Value": "CREATE OR ALTER view  [BI].[Product_Dim] as   SELECT        [ITEMID] as [ITEM ID]       ,[ITEMTYPE] as [ITEM TYPE]       ,[NAMEALIAS] as [ALIAS]       ,[ITEMBUYERGROUPID] as [BUYER GROUP]       ,[DATAAREAID] as [COMPANY ID]       ,[DISPLAYPRODUCTNUMBER] as [PRODUCT NUMBER]       ,[PRODUCTTYPE] as [PRODUCT TYPE]       ,[ITEMGROUPNAME] as [ITEM GROUP NAME]       ,[ITEMGROUPID] as [ITEM GROUP ID]       ,[PRODUCTSUBTYPE] as [PRODUCT SUB TYPE]       ,[PRODUCTNAME] as [PRODUCT NAME]       ,[PRODUCTSUBTYPENAME] as [PRODUCT SUB TYPE NAME]   ,[ITEMID] + '_' + DATAAREAID as [ID_PK]   FROM INVENTTABLEEXPANDED Group by  [ITEMID] ,[ITEMTYPE] ,[NAMEALIAS] ,[ITEMBUYERGROUPID],  [DATAAREAID],[DISPLAYPRODUCTNUMBER],[PRODUCTTYPE] ,[ITEMGROUPNAME] ,[ITEMGROUPID],[PRODUCTSUBTYPE] ,[PRODUCTNAME] ,[PRODUCTSUBTYPENAME] ,[ITEMID] + '_' + DATAAREAID "
+  }*/
 
 ]
