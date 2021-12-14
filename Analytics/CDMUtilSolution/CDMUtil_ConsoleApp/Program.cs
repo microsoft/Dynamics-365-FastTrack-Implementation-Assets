@@ -48,6 +48,7 @@ namespace CDMUtil
                     SQLHandler.executeSQL(c, metadataList, logger);
                 }
             }
+            Console.WriteLine("Press any key to exit...");
         }
 
         static AppConfigurations loadConfigurations(ILogger logger)
@@ -87,15 +88,11 @@ namespace CDMUtil
                 AppConfiguration.synapseOptions.TranslateEnum = bool.Parse(ConfigurationManager.AppSettings.Get("TranslateEnum"));
             }
 
-            if (ConfigurationManager.AppSettings.Get("DateTimeAsString") != null)
+            if (ConfigurationManager.AppSettings.Get("ParserVersion") != null)
             {
-                AppConfiguration.synapseOptions.DateTimeAsString = bool.Parse(ConfigurationManager.AppSettings.Get("DateTimeAsString"));
+                AppConfiguration.synapseOptions.parserVersion = ConfigurationManager.AppSettings.Get("ParserVersion");
             }
 
-            if (ConfigurationManager.AppSettings.Get("ConvertDateTime") != null)
-            {
-                AppConfiguration.synapseOptions.DateTimeAsString = bool.Parse(ConfigurationManager.AppSettings.Get("ConvertDateTime"));
-            }
             if (ConfigurationManager.AppSettings.Get("DataSourceName") != null)
             {
                 AppConfiguration.synapseOptions.external_data_source = ConfigurationManager.AppSettings.Get("DataSourceName");

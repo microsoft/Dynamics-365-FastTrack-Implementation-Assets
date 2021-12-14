@@ -277,13 +277,9 @@ namespace CDMUtil
             if (fileFormat != null)
                 AppConfiguration.synapseOptions.fileFormatName = fileFormat;
             
-            string DateTimeAsString = getConfigurationValue(req, "DateTimeAsString", ManifestURL);            
-            if (DateTimeAsString != null)
-                AppConfiguration.synapseOptions.DateTimeAsString = bool.Parse(DateTimeAsString);
-            
-            string ConvertDateTime = getConfigurationValue(req, "ConvertDateTime", ManifestURL);
-            if (ConvertDateTime != null)
-                AppConfiguration.synapseOptions.ConvertDateTime = bool.Parse(ConvertDateTime);
+            string ParserVersion = getConfigurationValue(req, "ParserVersion", ManifestURL);            
+            if (ParserVersion != null)
+                AppConfiguration.synapseOptions.parserVersion = ParserVersion;
 
             string TranslateEnum = getConfigurationValue(req, "TranslateEnum", ManifestURL);
             if (TranslateEnum != null)
