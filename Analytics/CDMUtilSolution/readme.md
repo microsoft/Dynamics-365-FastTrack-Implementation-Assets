@@ -70,8 +70,7 @@ For simple POC scenario you can execute the CDMUtil solution as a Console Applic
     <add key="DDLType" value="SynapseView" />
     <add key="Schema" value="dbo" />
     <add key="FileFormat" value="CSV" />
-    <add key="DateTimeAsString" value ="true"/>
-    <add key="ConvertDateTime" value ="true"/>
+    <add key="ParserVersion" value="2.0" />
     <add key="TranslateEnum" value ="false"/>
     <add key="TableNames" value ="SalesTable"/>
     <add key="ProcessEntities" value ="true"/>
@@ -135,8 +134,7 @@ Execute client application and monitor the response
 |O|Schema    |schema name default:dbo | dbo, cdc 
 |O|DataSourceName    |external data source name. new external ds is created if not provided | 
 |O|FileFormat    |external file format - default csv file format is created if not provided |
-|O|DateTimeAsString    |Openrowset csv V2 parser does not support all date time format and hence this workaround default = true | 
-|O|ConvertDateTime    |Openrowset csv V2 parser does not support all date time format and hence this workaround default = true |  
+|O|ParserVersion    |default = 2.0 and recomended for perf | 
 |O|TranslateEnum    |default= false |   
 |O|ProcessEntities    |Extract list of entities for EntityList.json file to create view on Synapse SQL Pool| default= false
 |O|CreateStats    | Extract Tables and Columns names from joins and create stats on synapse| default= false
