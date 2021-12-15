@@ -85,71 +85,6 @@
             ColorConsole.WriteSuccess($"Metadata exported to '{destinationFile}'");
         }
 
-        private static void WriteEnums(IMetadataProvider metadataProvider, dynamic axObject)
-        {
-            var json = JsonConvert.SerializeObject(axObject, Formatting.Indented);
-            using (TextReader sr = new StringReader(json))
-            {
-                using (var jsonTextReader = new JsonTextReader(sr))
-                {
-                    dynamic entityObject = JObject.Load(jsonTextReader);
-
-                    dynamic enumFile = new JObject();
-                    string objectName = axObject.Name == null ? "Unknown" : axObject.Name.ToString();
-                    enumFile.Name = objectName.ToUpper();
-
-                    JArray enumsObjectArray = new JArray();
-
-                    foreach (var field in entityObject.Fields)
-                    {
-                        if (field.DataField == null && field.EnumType == null)
-                        {
-                            continue;
-                        }
-
-                        string enumName = field.DataField == null ? field.EnumType.ToString() : field.DataField.Value.ToString();
-                        var enumField = metadataProvider.Enums.Read(enumName);
-                        if (enumField != null && enumSet.Add(field.Name.ToString()))
-                        {
-                            var values = enumField.EnumValues;
-                            JArray enumValues = new JArray();
-
-                            foreach (var value in values)
-                            {
-                                dynamic kv = new JObject();
-                                kv.Key = value.getKey();
-                                kv.Value = value.Value;
-                                enumValues.Add(kv);
-                            }
-
-                            dynamic enumObject = new JObject();
-
-                            enumObject.Name = field.Name.ToString().ToUpper();
-                            enumObject.EnumName = enumField.Name.ToUpper();
-                            enumObject.Translations = enumValues;
-
-                            enumsObjectArray.Add(enumObject);
-                        }
-                    }
-
-                    if (enumsObjectArray.Count != 0)
-                    {
-                        enumFile.Enums = enumsObjectArray;
-                        var enumsPath = Path.Combine(tempPath, "enums");
-                        var enumDependenciesPath = Path.Combine(enumsPath, $"{objectName.ToUpper()}.json");
-
-                        if (!Directory.Exists(enumsPath))
-                        {
-                            Directory.CreateDirectory(enumsPath);
-                        }
-
-                        ColorConsole.WriteInfo($"\nWriting enum file: '{objectName.ToUpper()}'");
-                        File.WriteAllText(enumDependenciesPath, JsonConvert.SerializeObject(enumFile, Formatting.Indented));
-                    }
-                }
-            }
-        }
-
         private static void WriteManifest(string measureName, string outputPath)
         {
             var manifest = new
@@ -181,70 +116,104 @@
             {
                 var tableName = measureGroup.Table.ToString();
 
-                if (metadataProvider.Views.Exists(tableName))
+                EnumParser(metadataProvider, tableName);
+
+                foreach (var axDimension in measureGroup.Dimensions)
                 {
-                    var view = metadataProvider.Views.Read(tableName);
+                    AxAggregateDimension dimension = metadataProvider.AggregateDimensions.Read(axDimension.DimensionName.ToString());
 
-                    foreach (var field in view.Fields)
-                    {
-                        var json = JsonConvert.SerializeObject(field, Formatting.Indented);
-                        using (TextReader sr = new StringReader(json))
-                        {
-                            using (var jsonTextReader = new JsonTextReader(sr))
-                            {
-                                dynamic fieldObject = JObject.Load(jsonTextReader);
-
-                                string fieldName = fieldObject.Name == null ? null : fieldObject.Name.ToString();
-                                string dataSource = fieldObject.DataSource == null ? null : fieldObject.DataSource.ToString();
-                                string dataField = fieldObject.DataField == null ? null : fieldObject.DataField.ToString();
-
-                                WriteEnumFile(metadataProvider, tableName, fieldName, dataSource, dataField);
-                            }
-                        }
-                    }
+                    EnumParser(metadataProvider, dimension.Table == null ? string.Empty : dimension.Table.ToString());
                 }
-                else if (metadataProvider.DataEntityViews.Exists(tableName))
+            }
+        }
+
+        private static void EnumParser(IMetadataProvider metadataProvider, string tableName)
+        {
+            if (metadataProvider.Views.Exists(tableName))
+            {
+                var view = metadataProvider.Views.Read(tableName);
+
+                foreach (var field in view.Fields)
                 {
-                    var entity = metadataProvider.DataEntityViews.Read(tableName);
-
-                    foreach (var field in entity.Fields)
+                    var json = JsonConvert.SerializeObject(field, Formatting.Indented);
+                    using (TextReader sr = new StringReader(json))
                     {
-                        var json = JsonConvert.SerializeObject(field, Formatting.Indented);
-                        using (TextReader sr = new StringReader(json))
+                        using (var jsonTextReader = new JsonTextReader(sr))
                         {
-                            using (var jsonTextReader = new JsonTextReader(sr))
+                            dynamic fieldObject = JObject.Load(jsonTextReader);
+
+                            string fieldName = fieldObject.Name == null ? null : fieldObject.Name.ToString();
+                            string dataSource = fieldObject.DataSource == null ? null : fieldObject.DataSource.ToString();
+                            string dataField = fieldObject.DataField == null ? null : fieldObject.DataField.ToString();
+
+                            if (!WriteEnumFile(metadataProvider, tableName, fieldName, dataSource, dataField))
                             {
-                                dynamic fieldObject = JObject.Load(jsonTextReader);
-
-                                string fieldName = fieldObject.Name == null ? null : fieldObject.Name.ToString();
-                                string dataSource = fieldObject.DataSource == null ? null : fieldObject.DataSource.ToString();
-                                string dataField = fieldObject.DataField == null ? null : fieldObject.DataField.ToString();
-
-                                WriteEnumFile(metadataProvider, tableName, fieldName, dataSource, dataField);
-                            }
-                        }
-                    }
-                }
-                else if (metadataProvider.Tables.Exists(tableName))
-                {
-                    var table = metadataProvider.Tables.Read(tableName);
-
-                    foreach (var field in table.Fields)
-                    {
-                        var json = JsonConvert.SerializeObject(field, Formatting.Indented);
-                        using (TextReader innerSR = new StringReader(json))
-                        {
-                            using (var innerJsonTextReader = new JsonTextReader(innerSR))
-                            {
-                                dynamic fieldObject = JObject.Load(innerJsonTextReader);
-
-                                string fieldName = fieldObject.Name == null ? null : fieldObject.Name.ToString();
-                                string enumName = fieldObject.EnumType == null ? null : fieldObject.EnumType.ToString();
-
-                                if (!string.IsNullOrEmpty(enumName))
+                                if (view.Query != null)
                                 {
-                                    EnumWriter(metadataProvider, tableName, fieldName, enumName);
+                                    string tableNameFromQuery = GetTableNameFromQuery(metadataProvider, view.Query.ToString(), dataSource);
+
+                                    if (!string.IsNullOrEmpty(tableNameFromQuery))
+                                    {
+                                        WriteEnumFile(metadataProvider, tableName, fieldName, tableNameFromQuery, dataField);
+                                    }
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+            else if (metadataProvider.DataEntityViews.Exists(tableName))
+            {
+                var entity = metadataProvider.DataEntityViews.Read(tableName);
+
+                foreach (var field in entity.Fields)
+                {
+                    var json = JsonConvert.SerializeObject(field, Formatting.Indented);
+                    using (TextReader sr = new StringReader(json))
+                    {
+                        using (var jsonTextReader = new JsonTextReader(sr))
+                        {
+                            dynamic fieldObject = JObject.Load(jsonTextReader);
+
+                            string fieldName = fieldObject.Name == null ? null : fieldObject.Name.ToString();
+                            string dataSource = fieldObject.DataSource == null ? null : fieldObject.DataSource.ToString();
+                            string dataField = fieldObject.DataField == null ? null : fieldObject.DataField.ToString();
+
+                            if (!WriteEnumFile(metadataProvider, tableName, fieldName, dataSource, dataField))
+                            {
+                                if (entity.Query != null)
+                                {
+                                    string tableNameFromQuery = GetTableNameFromQuery(metadataProvider, entity.Query.ToString(), dataSource);
+
+                                    if (!string.IsNullOrEmpty(tableNameFromQuery))
+                                    {
+                                        WriteEnumFile(metadataProvider, tableName, fieldName, tableNameFromQuery, dataField);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else if (metadataProvider.Tables.Exists(tableName))
+            {
+                var table = metadataProvider.Tables.Read(tableName);
+
+                foreach (var field in table.Fields)
+                {
+                    var json = JsonConvert.SerializeObject(field, Formatting.Indented);
+                    using (TextReader innerSR = new StringReader(json))
+                    {
+                        using (var innerJsonTextReader = new JsonTextReader(innerSR))
+                        {
+                            dynamic fieldObject = JObject.Load(innerJsonTextReader);
+
+                            string fieldName = fieldObject.Name == null ? null : fieldObject.Name.ToString();
+                            string enumName = fieldObject.EnumType == null ? null : fieldObject.EnumType.ToString();
+
+                            if (!string.IsNullOrEmpty(enumName))
+                            {
+                                EnumWriter(metadataProvider, tableName, fieldName, enumName);
                             }
                         }
                     }
@@ -396,6 +365,11 @@
 
         private static string GetTableNameFromQuery(IMetadataProvider metadataProvider, string queryName, string dataSource)
         {
+            if (string.IsNullOrEmpty(dataSource))
+            {
+                return string.Empty;
+            }
+
             var queryObject = metadataProvider.Queries.Read(queryName);
 
             if (queryObject != null)

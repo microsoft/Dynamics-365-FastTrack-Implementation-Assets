@@ -188,11 +188,10 @@ namespace CDMUtil.Context.ObjectDefinitions
         public string DDLType = "SynapseView";
         public string schema = "dbo";
         public int DefaultStringLenght = 100;
-        public bool DateTimeAsString = false;
-        public bool ConvertDateTime = false;
         public bool TranslateEnum = false;
         public bool createStats = false;
-
+        public string parserVersion = "2.0";
+       
         public SynapseDBOptions()
         { }
         public SynapseDBOptions(string sparkConnection, string environmentName)
@@ -233,8 +232,10 @@ namespace CDMUtil.Context.ObjectDefinitions
                 masterKey = environmentName;
                 credentialName = environmentName;
                 location = rootLocation;
-                DateTimeAsString = true;
-                ConvertDateTime = true;
+            }
+            else
+            {
+                parserVersion = "1.0";
             }
             if (ddlType != null)
                 DDLType = ddlType;
