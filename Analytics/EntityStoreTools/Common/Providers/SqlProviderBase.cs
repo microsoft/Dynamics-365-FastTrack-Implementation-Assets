@@ -63,7 +63,7 @@
             }
         }
 
-        public List<string> ReadSqlStatement(string statement)
+        public List<string> ReadSqlStatement(string statement, string columnName = "column_name")
         {
             ContractValidator.MustNotBeEmpty(statement, "statement");
             List<string> columnsList = new List<string>();
@@ -78,7 +78,7 @@
                     {
                         while (reader.Read())
                         {
-                            columnsList.Add(reader["column_name"].ToString());
+                            columnsList.Add(reader[columnName].ToString());
                         }
 
                         connection.Close();
