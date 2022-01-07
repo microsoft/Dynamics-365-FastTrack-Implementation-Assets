@@ -21,7 +21,7 @@ namespace CDMUtil.Manifest
         public ManifestReader(AdlsContext adlsContext, string currentFolder, ILogger logger) : base(adlsContext, currentFolder, logger)
         {
         }
-        public async static Task<bool> manifestToSQLMetadata(AppConfigurations c, List<SQLMetadata> metadataList, ILogger logger, string parentFolder ="")
+        public async static Task<bool> manifestToSQLMetadata(AppConfigurations c, List<SQLMetadata> metadataList, ILogger logger, string parentFolder = "")
         {
             AdlsContext adlsContext = c.AdlsContext;
             string manifestName = c.manifestName;
@@ -39,7 +39,7 @@ namespace CDMUtil.Manifest
             try
             {
                 CdmManifestDefinition manifest = manifestHandler.cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(manifestName, null, null, true).Result;
-          
+
                 if (manifest == null)
                 {
                     logger.LogError($"Manifest: {manifestName } at Location {localRoot} is invalid");
@@ -125,8 +125,10 @@ namespace CDMUtil.Manifest
                 logger.LogError(e.StackTrace);
             }
 
+            bool updateViewSyntax = false;
+
             // Process entities from entity list file
-          if (parentFolder == localRoot && c.ProcessEntities && !String.IsNullOrEmpty(c.ProcessEntitiesFilePath) && File.Exists(c.ProcessEntitiesFilePath))
+            if (parentFolder == localRoot && c.ProcessEntities && !String.IsNullOrEmpty(c.ProcessEntitiesFilePath) && File.Exists(c.ProcessEntitiesFilePath))
             {
                 string artifactsStr = File.ReadAllText(c.ProcessEntitiesFilePath);
                 var entitiesList = JsonConvert.DeserializeObject<IEnumerable<Artifacts>>(artifactsStr);
@@ -136,11 +138,28 @@ namespace CDMUtil.Manifest
                     //update view dependencies
                     updateViewDependencies(entity.Key, entity.Value, metadataList, c, logger);
                 }
-                // at the end update the view syntax
-                TSqlSyntaxHandler.updateViewSyntax(c, metadataList);
-
-               
+                updateViewSyntax = true;                
             }
+
+            // Process sub tables and super tables from list file
+            if (parentFolder == localRoot && c.ProcessSubTableSuperTables && !String.IsNullOrEmpty(c.ProcessSubTableSuperTablesFilePath) && File.Exists(c.ProcessSubTableSuperTablesFilePath))
+            {
+                string artifactsStr = File.ReadAllText(c.ProcessSubTableSuperTablesFilePath);
+                var subTableSuperTableList = JsonConvert.DeserializeObject<IEnumerable<Artifacts>>(artifactsStr);
+                logger.LogInformation($"Process sub tables and super tables");
+                foreach (var subTable in subTableSuperTableList)
+                {   
+                    updateViewsForSubTableSuperTables(subTable.Key, subTable.Value, metadataList, c, logger);
+                }
+                updateViewSyntax = true;
+            }
+
+            // at the end update the view syntax
+            if (updateViewSyntax)
+            {
+                TSqlSyntaxHandler.updateViewSyntax(c, metadataList);
+            }
+
             return true;
 
         }
@@ -186,7 +205,7 @@ namespace CDMUtil.Manifest
 
             return dataLocation;
         }
-        
+
         public static List<ColumnAttribute> getColumnAttributes(CdmEntityDefinition entityDefinition, AppConfigurations c, ILogger logger)
         {
             CdmCollection<CdmAttributeItem> cdmAttributeItem = entityDefinition.Attributes;
@@ -194,21 +213,21 @@ namespace CDMUtil.Manifest
             IEnumerable<Artifacts> sourceColumnLength = getSourceColumnProperties(entityDefinition.EntityName, c, logger);
 
             List<ColumnAttribute> columnAttributes = new List<ColumnAttribute>();
-            
+
             foreach (var attributeItem in cdmAttributeItem)
             {
-                CdmTypeAttributeDefinition cdmAttribute = (CdmTypeAttributeDefinition) attributeItem;
-                
+                CdmTypeAttributeDefinition cdmAttribute = (CdmTypeAttributeDefinition)attributeItem;
+
                 ColumnAttribute columnAttribute = new ColumnAttribute();
                 columnAttribute.name = cdmAttribute.Name;
                 columnAttribute.description = cdmAttribute.Description;
                 columnAttribute.dataType = cdmAttribute.DataType == null ? cdmAttribute.DataFormat.ToString() : cdmAttribute.DataType.NamedReference;
-                
-                columnAttribute.maximumLength = cdmAttribute.MaximumLength !=null ? (int)cdmAttribute.MaximumLength : c.synapseOptions.DefaultStringLenght;
+
+                columnAttribute.maximumLength = cdmAttribute.MaximumLength != null ? (int)cdmAttribute.MaximumLength : c.synapseOptions.DefaultStringLenght;
                 switch (columnAttribute.dataType.ToLower())
                 {
                     case "datetime":
-                    columnAttribute.maximumLength = 30;
+                        columnAttribute.maximumLength = 30;
                         break;
 
                     case "string":
@@ -253,47 +272,62 @@ namespace CDMUtil.Manifest
                         }
                     }
                 }
-                
+
                 columnAttributes.Add(columnAttribute);
             }
             return columnAttributes;
         }
-        
-        static void updateViewDependencies(string entityName, string viewDefinition, List<SQLMetadata> metadata, AppConfigurations configurations, ILogger logger)
+
+        static void updateViewsForSubTableSuperTables(string subTableName, string superTablesName, List<SQLMetadata> metadata, AppConfigurations configurations, ILogger logger)
         {
-                if (!String.IsNullOrEmpty(configurations.AXDBConnectionString))
+            if (!String.IsNullOrEmpty(configurations.AXDBConnectionString))
+            {
+                SQLHandler sQLHandler = new SQLHandler(configurations.AXDBConnectionString, "", logger);
+                logger.LogInformation($"Retrieving sub table super tables from AXDB connection");
+                List<SQLMetadata> viewDependencices = sQLHandler.retrieveSubTableSuperTableView(configurations, superTablesName, subTableName);
+
+                if (viewDependencices != null && viewDependencices.Count > 0)
                 {
-                    SQLHandler sQLHandler = new SQLHandler(configurations.AXDBConnectionString, "", logger);
-                   // logger.LogInformation($"Retrieving dependencies from AXDB connection");
-                    List<SQLMetadata> viewDependencices = sQLHandler.retrieveViewDependencies(entityName);
+                    logger.LogInformation($"Sub table: {subTableName}, super tables: {superTablesName}");
 
-                    if (viewDependencices != null && viewDependencices.Count >0)
-                    {
-                        logger.LogInformation($"Entity:{entityName}, Dependent tables: {viewDependencices.FirstOrDefault().dependentTables}");
-
-                        foreach (var dependency in viewDependencices)
-                        {
-                            string viewDef = dependency.viewDefinition;
-                            
-                            if (!String.IsNullOrEmpty(viewDefinition) && dependency.entityName ==entityName)
-                            {
-                                viewDef = viewDefinition;
-                            }
-                            metadata.Add(new SQLMetadata()
-                            {
-                                entityName      = dependency.entityName,
-                                viewDefinition  = viewDef,
-                                dependentTables = dependency.dependentTables
-                            });
-                        }
-                    }
-                    else if (!String.IsNullOrEmpty(viewDefinition))
+                    foreach (var dependency in viewDependencices)
                     {
                         metadata.Add(new SQLMetadata()
                         {
-                            entityName = entityName,
-                            viewDefinition = viewDefinition,
-                            dependentTables = ""
+                            entityName = dependency.entityName,
+                            viewDefinition = dependency.viewDefinition,
+                            dependentTables = dependency.dependentTables
+                        });
+                    }
+                }                
+            }            
+        }
+
+        static void updateViewDependencies(string entityName, string viewDefinition, List<SQLMetadata> metadata, AppConfigurations configurations, ILogger logger)
+        {
+            if (!String.IsNullOrEmpty(configurations.AXDBConnectionString))
+            {
+                SQLHandler sQLHandler = new SQLHandler(configurations.AXDBConnectionString, "", logger);
+                // logger.LogInformation($"Retrieving dependencies from AXDB connection");
+                List<SQLMetadata> viewDependencices = sQLHandler.retrieveViewDependencies(entityName);
+
+                if (viewDependencices != null && viewDependencices.Count > 0)
+                {
+                    logger.LogInformation($"Entity:{entityName}, Dependent tables: {viewDependencices.FirstOrDefault().dependentTables}");
+
+                    foreach (var dependency in viewDependencices)
+                    {
+                        string viewDef = dependency.viewDefinition;
+
+                        if (!String.IsNullOrEmpty(viewDefinition) && dependency.entityName == entityName)
+                        {
+                            viewDef = viewDefinition;
+                        }
+                        metadata.Add(new SQLMetadata()
+                        {
+                            entityName = dependency.entityName,
+                            viewDefinition = viewDef,
+                            dependentTables = dependency.dependentTables
                         });
                     }
                 }
@@ -304,10 +338,20 @@ namespace CDMUtil.Manifest
                         entityName = entityName,
                         viewDefinition = viewDefinition,
                         dependentTables = ""
-                    }) ;
+                    });
                 }
+            }
+            else if (!String.IsNullOrEmpty(viewDefinition))
+            {
+                metadata.Add(new SQLMetadata()
+                {
+                    entityName = entityName,
+                    viewDefinition = viewDefinition,
+                    dependentTables = ""
+                });
+            }
         }
-       
+
 
         public static IEnumerable<Artifacts> getSourceColumnProperties(string entityName, AppConfigurations c, ILogger logger)
         {
@@ -329,7 +373,7 @@ namespace CDMUtil.Manifest
             else
             {
                 SQLHandler sQLHandler = new SQLHandler(c.AXDBConnectionString, "", logger);
-              //  logger.LogInformation("Gettting schema infrormation from AXDB connection");
+                //  logger.LogInformation("Gettting schema infrormation from AXDB connection");
                 string exceptionJson = sQLHandler.getTableMaxFieldLenght(entityName);
 
                 if (String.IsNullOrEmpty(exceptionJson) == false)
@@ -469,7 +513,7 @@ namespace CDMUtil.Manifest
             List<EntityDefinition> EntityDefinitions = entityList.entityDefinitions;
 
             // Read manifest if exists.
-            CdmManifestDefinition manifest =  cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(manifestName + ".manifest.cdm.json").Result;
+            CdmManifestDefinition manifest = cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(manifestName + ".manifest.cdm.json").Result;
 
             if (manifest == null)
             {
@@ -706,7 +750,7 @@ namespace CDMUtil.Manifest
                 case "date":
                     cdmDataType = "date";
                     break;
-                
+
 
                 case "decimal":
                 case "numeric":
@@ -795,7 +839,7 @@ namespace CDMUtil.Manifest
             return entityAttribute;
         }
     }
-    
+
     public class ManifestBase
     {
         protected ILogger logger;
@@ -809,7 +853,7 @@ namespace CDMUtil.Manifest
         protected const string DefaultCollation = "Latin1_General_100_BIN2_UTF8";
 
 
-        public ManifestBase(AdlsContext adlsContext, string currentFolder,ILogger _logger)
+        public ManifestBase(AdlsContext adlsContext, string currentFolder, ILogger _logger)
         {
             cdmCorpus = new CdmCorpusDefinition();
             eventCallback = new EventCallback();
@@ -817,7 +861,7 @@ namespace CDMUtil.Manifest
             logger = _logger;
             this.mountStorage(adlsContext, currentFolder);
         }
-      
+
         private void mountStorage(AdlsContext adlsContext, string localFolder)
         {
 
@@ -875,12 +919,12 @@ namespace CDMUtil.Manifest
               adlsContext.SharedKey
                 ));
             }
-          
+
             cdmCorpus.Storage.DefaultNamespace = "adls"; // local is our default. so any paths that start out navigating without a device tag will assume local
         }
-     
-        
-       
+
+
+
     }
 
 }

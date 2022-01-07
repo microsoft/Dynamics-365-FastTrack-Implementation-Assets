@@ -134,7 +134,7 @@ namespace CDMUtil.SQL
                                 }
                                 logger.LogDebug($"Statement:{s.Statement}");
                                 command.ExecuteNonQuery();
-                                
+
                                 logger.LogInformation($"Status:success");
                                 s.Created = true;
                             }
@@ -157,7 +157,7 @@ namespace CDMUtil.SQL
             }
         }
         public async static Task<List<SQLStatement>> sqlMetadataToDDL(List<SQLMetadata> metadataList, AppConfigurations c, ILogger logger)
-       {
+        {
 
             List<SQLStatement> sqlStatements = new List<SQLStatement>();
             string template = "";
@@ -224,7 +224,7 @@ namespace CDMUtil.SQL
                 if (sqlStatements.Exists(x => x.EntityName.ToLower() == metadata.entityName.ToLower()))
                     continue;
                 else
-                    sqlStatements.Add(new SQLStatement() { EntityName = metadata.entityName,DataLocation = dataLocation, Statement = sql });
+                    sqlStatements.Add(new SQLStatement() { EntityName = metadata.entityName, DataLocation = dataLocation, Statement = sql });
             }
 
             logger.LogInformation($"Tables:{sqlStatements.FindAll(a => a.DataLocation != null).Count}");
@@ -333,10 +333,10 @@ namespace CDMUtil.SQL
 
             return sqlColumnDef;
         }
-    public static void missingTables(AppConfigurations c, List<SQLMetadata> metaData, ILogger log)
-    {
+        public static void missingTables(AppConfigurations c, List<SQLMetadata> metaData, ILogger log)
+        {
             List<Artifacts> tables = new List<Artifacts>();
-            string dependentTables = string.Join(", ", metaData.Select(i => i.dependentTables)).Replace(" ","");
+            string dependentTables = string.Join(", ", metaData.Select(i => i.dependentTables)).Replace(" ", "");
             string queryString = @$"select STRING_AGG(D.TABLE_NAME, ',') as Table_Names from
             (select distinct Value as TABLE_NAME from STRING_SPLIT('{dependentTables}', ',')) as D 
             left outer join  INFORMATION_SCHEMA.VIEWS V
@@ -363,8 +363,104 @@ namespace CDMUtil.SQL
                     log.LogInformation($"No Missing tables");
                 }
             }
-           
-    }
+
+        }
+
+        public List<SQLMetadata> retrieveSubTableSuperTableView(AppConfigurations c, string superTableName, string subTableTableName)
+        {
+            List<SQLMetadata> subTableSuperTableViews = new List<SQLMetadata>();
+
+            string queryStringTableIdSubTable = String.Format("select Id from TableIdTable where Name = '{0}'", subTableTableName);
+            DataTable dataTableTableIdSubTable = this.executeSQLQuery(queryStringTableIdSubTable);
+            DataTableReader dataReaderTableIdSubTable = dataTableTableIdSubTable.CreateDataReader();
+            string subTableTableId = "0";
+            if (dataReaderTableIdSubTable.Read())
+            {
+                subTableTableId = dataReaderTableIdSubTable[0].ToString();
+            }
+
+            string queryStringTableIdSuperTable = String.Format("select Id from TableIdTable where Name = '{0}'", superTableName);
+            DataTable dataTableTableIdSuperTable = this.executeSQLQuery(queryStringTableIdSuperTable);
+            DataTableReader dataReaderTableIdSuperTable = dataTableTableIdSuperTable.CreateDataReader();
+            string superTableTableId = "0";
+            if (dataReaderTableIdSuperTable.Read())
+            {
+                superTableTableId = dataReaderTableIdSuperTable[0].ToString();
+            }
+
+            string viewDefinition = String.Format("CREATE VIEW {0}.{1} AS SELECT ", c.synapseOptions.schema, subTableTableName);
+            string tableToAnalyze = subTableTableName;
+            if (superTableName != String.Empty)
+            {
+                tableToAnalyze = superTableName;
+            }
+            string queryStringColumns = String.Format(@"
+                    SELECT DISTINCT col.name
+                    FROM sys.tables t
+                    INNER JOIN sys.schemas s on t.schema_id = s.schema_id
+                    INNER JOIN sys.columns col ON t.object_id = col.object_id
+                    INNER JOIN TableFieldIdTable f ON col.name = f.name
+                    WHERE t.name = '{0}'
+	                    AND s.name = 'dbo'
+	                    AND f.TABLEID in ({1}, {2})
+                        AND NOT col.name like 'DEL_%'
+                    ORDER BY col.name
+                    ", tableToAnalyze, subTableTableId, superTableTableId);
+
+            if (subTableTableId != "0" && superTableTableId != "0")
+            {
+                DataTable dataTableColumns = this.executeSQLQuery(queryStringColumns);
+                DataTableReader dataReaderColumns = dataTableColumns.CreateDataReader();
+                string columnList = String.Empty;
+                while (dataReaderColumns.Read())
+                {
+                    if (columnList != String.Empty)
+                    {
+                        columnList += ",";
+                    }
+                    columnList += dataReaderColumns[0];
+                }
+
+                viewDefinition += String.Format("{0} FROM {1} WHERE INSTANCERELATIONTYPE = {2}", columnList, superTableName, subTableTableId);
+
+                subTableSuperTableViews.Add(new SQLMetadata
+                {
+                    entityName = subTableTableName,
+                    viewDefinition = viewDefinition,
+                    dependentTables = superTableName
+                });
+            }
+            // dummy table/view case
+            else if(subTableTableId != "0" && superTableTableId == "0" && superTableName == String.Empty)
+            {
+                DataTable dataTableColumns = this.executeSQLQuery(queryStringColumns);
+                DataTableReader dataReaderColumns = dataTableColumns.CreateDataReader();
+                string columnList = String.Empty;
+                while (dataReaderColumns.Read())
+                {
+                    if (columnList != String.Empty)
+                    {
+                        columnList += ",";
+                    }
+                    columnList += String.Format("NULL AS {0}", dataReaderColumns[0]);
+                }
+                columnList += ",NULL AS RecId";
+                columnList += ",NULL AS DataAreaId";
+                columnList += ",NULL AS Partition";
+
+                viewDefinition += String.Format("{0} WHERE 1 = 2", columnList);
+
+                subTableSuperTableViews.Add(new SQLMetadata
+                {
+                    entityName = subTableTableName,
+                    viewDefinition = viewDefinition,
+                    dependentTables = superTableName
+                });
+            }
+
+            return subTableSuperTableViews;
+        }
+
         public List<SQLMetadata> retrieveViewDependencies(string entityName)
         {
             List<SQLMetadata> viewDependencies = new List<SQLMetadata>();
@@ -485,7 +581,7 @@ order by rootNode asc, depth desc
             }
             var sqldbprep = new List<SQLStatement>();
             var statementBatch = script.Split("GO");
-            
+
             foreach (var statement in statementBatch)
             {
                 if (String.IsNullOrWhiteSpace(statement) == false)
@@ -505,7 +601,7 @@ order by rootNode asc, depth desc
             string sqlScript = String.Format(createDBSQL, dbName);
 
             var sqldbprep = new List<SQLStatement>();
-            sqldbprep.Add(new SQLStatement {EntityName ="CreateDB", Statement = sqlScript });
+            sqldbprep.Add(new SQLStatement { EntityName = "CreateDB", Statement = sqlScript });
             var statements = new SQLStatements { Statements = sqldbprep };
 
             return statements;
@@ -537,7 +633,7 @@ begin catch
 	EXEC sys.sp_create_openrowset_statistics @statement
 end catch;";
 
-string sp2 = @"CREATE OR ALTER   procedure [dbo].[sp_create_view_column_statistics](@schema varchar(10), @viewName varchar(100), @ColumnName varchar(100))
+            string sp2 = @"CREATE OR ALTER   procedure [dbo].[sp_create_view_column_statistics](@schema varchar(10), @viewName varchar(100), @ColumnName varchar(100))
 as 
 	
 	declare @begin varchar(100) = 'FROM OPENROWSET(BULK';
@@ -558,13 +654,15 @@ as
 		exec sp_drop_create_openrowset_statistics @statement = @statsDefinition ;
 		
 	END";
-            sqldbprep.Add(new SQLStatement { EntityName = "CreateStatsSp1", Statement = sp1 } );
+            sqldbprep.Add(new SQLStatement { EntityName = "CreateStatsSp1", Statement = sp1 });
             sqldbprep.Add(new SQLStatement { EntityName = "CreateStatsSp2", Statement = sp2 });
             return new SQLStatements { Statements = sqldbprep };
         }
         public static SQLStatements prepSynapseDBSQL(SynapseDBOptions options)
         {
             var sqldbprep = new List<SQLStatement>();
+            string sql = String.Empty;
+
 
             string ParserVersion = "";
             
@@ -576,7 +674,24 @@ as
             IF NOT EXISTS(select * from sys.database_credentials where credential_identity = 'Managed Identity' and name = '{0}')
             CREATE DATABASE SCOPED CREDENTIAL {0} WITH IDENTITY='Managed Identity'
 
+            if (options.servicePrincipalBasedAuthentication)
+            {
+                sql += String.Format(@"
+                -- create credentials as service principal 
+                IF NOT EXISTS(select * from sys.database_credentials where name = '{0}')
+                    CREATE DATABASE SCOPED CREDENTIAL {0} WITH IDENTITY = '{2}@https://login.microsoftonline.com/{1}/oauth2/token', SECRET = '{3}'
+                ", options.credentialName, options.servicePrincipalTenantId, options.servicePrincipalAppId, options.servicePrincipalSecret);
+            }
+            else
+            {
+                sql += @"
+                -- create credentials as managed identity 
+                IF NOT EXISTS(select * from sys.database_credentials where name = '{0}')
+                    CREATE DATABASE SCOPED CREDENTIAL {0} WITH IDENTITY='Managed Identity'
+                ";
+            }
 
+            sql += @"
             IF NOT EXISTS(select * from sys.external_data_sources where name = '{1}')
             CREATE EXTERNAL DATA SOURCE {1} WITH (
                 LOCATION = '{2}',
@@ -614,12 +729,12 @@ as
         TSqlFragment tree;
         AppConfigurations c;
         readonly Dictionary<string, string> aliases = new Dictionary<string, string>();
-        readonly Dictionary<string,string> joinColumns = new Dictionary<string, string>();
-        readonly Dictionary<string,string> selectColumns = new Dictionary<string, string>();
+        readonly Dictionary<string, string> joinColumns = new Dictionary<string, string>();
+        readonly Dictionary<string, string> selectColumns = new Dictionary<string, string>();
         readonly Dictionary<string, string> statsStatements = new Dictionary<string, string>();
         public Dictionary<string, string> Aliases { get { return aliases; } }
-        public Dictionary<string,string> JoinColumns { get { return joinColumns; } }
-        public Dictionary<string,string> SelectColumns { get { return selectColumns; } }
+        public Dictionary<string, string> JoinColumns { get { return joinColumns; } }
+        public Dictionary<string, string> SelectColumns { get { return selectColumns; } }
         public Dictionary<string, string> StatsStatements { get { return statsStatements; } }
         public string getOutputString { get { return outputString; } }
         public TSqlSyntaxHandler(string _inputString, AppConfigurations c)
@@ -704,7 +819,7 @@ as
                     {
                         var columnExpression = element.Expression as ColumnReferenceExpression;
 
-                        if (columnExpression !=null)
+                        if (columnExpression != null)
                         {
                             string value = string.Join(".", columnExpression.MultiPartIdentifier.Identifiers.Select(i => i.Value));
                             addToDictionary(element.ColumnName.Value, value, selectColumns);
@@ -749,8 +864,8 @@ as
             {
                 string value = string.Join(".", table.SchemaObject.Identifiers.Select(i => i.Value));
                 string key = table.Alias != null ? table.Alias.Value : value;
-              
-                addToDictionary(key, value, aliases); 
+
+                addToDictionary(key, value, aliases);
             }
 
             if (sparkSQL)
@@ -764,7 +879,7 @@ as
 
             base.ExplicitVisit(table);
         }
-        public void addToDictionary (string key, string value, Dictionary<string, string> dict)
+        public void addToDictionary(string key, string value, Dictionary<string, string> dict)
         {
             if (!dict.ContainsKey(key))
             {
@@ -790,6 +905,7 @@ as
             }
             return sqlFragment;
         }
+
       
         public static string finalTsqlConversion(string inputString, string type = "sql", bool serverless= true)
         {
@@ -841,7 +957,7 @@ as
 
         public static void updateViewSyntax(AppConfigurations c, List<SQLMetadata> metadataList)
         {
-            Dictionary<string, string> statsStatements = new Dictionary<string, string>(); 
+            Dictionary<string, string> statsStatements = new Dictionary<string, string>();
             foreach (var view in metadataList.FindAll(a => a.viewDefinition != null))
             {
                 string outputString = view.viewDefinition;
@@ -853,13 +969,13 @@ as
                 if (sqlSyntax.tree != null)
                 {
                     outputString = sqlSyntax.outputString;
-                    sqlSyntax.StatsStatements.ToList().ForEach(x => statsStatements[x.Key]= x.Value);
+                    sqlSyntax.StatsStatements.ToList().ForEach(x => statsStatements[x.Key] = x.Value);
                 }
 
                 outputString = finalTsqlConversion(outputString, "sql", c.synapseOptions.serverless);
                 view.viewDefinition = outputString;
             }
-             if (c.synapseOptions.createStats)
+            if (c.synapseOptions.createStats)
             {
                 statsStatements.ToList().ForEach(x => metadataList.Add(new SQLMetadata { entityName = x.Key, viewDefinition = x.Value }));
             }
