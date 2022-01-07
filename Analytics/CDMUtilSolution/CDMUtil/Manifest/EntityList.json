@@ -3,7 +3,7 @@
   AXDBConnectionString is mandatory if EntityList is provided with Value blank
   Util will connect to database to retrieve entity views and dependencies
   */
-  /*{
+ {
     "Key": "CUSTCUSTOMERV3ENTITY",
     "Value": ""
   },
@@ -90,6 +90,6 @@
   {
     "Key": "[BI].[Product_Dim]",
     "Value": "CREATE OR ALTER view  [BI].[Product_Dim] as   SELECT        [ITEMID] as [ITEM ID]       ,[ITEMTYPE] as [ITEM TYPE]       ,[NAMEALIAS] as [ALIAS]       ,[ITEMBUYERGROUPID] as [BUYER GROUP]       ,[DATAAREAID] as [COMPANY ID]       ,[DISPLAYPRODUCTNUMBER] as [PRODUCT NUMBER]       ,[PRODUCTTYPE] as [PRODUCT TYPE]       ,[ITEMGROUPNAME] as [ITEM GROUP NAME]       ,[ITEMGROUPID] as [ITEM GROUP ID]       ,[PRODUCTSUBTYPE] as [PRODUCT SUB TYPE]       ,[PRODUCTNAME] as [PRODUCT NAME]       ,[PRODUCTSUBTYPENAME] as [PRODUCT SUB TYPE NAME]   ,[ITEMID] + '_' + DATAAREAID as [ID_PK]   FROM INVENTTABLEEXPANDED Group by  [ITEMID] ,[ITEMTYPE] ,[NAMEALIAS] ,[ITEMBUYERGROUPID],  [DATAAREAID],[DISPLAYPRODUCTNUMBER],[PRODUCTTYPE] ,[ITEMGROUPNAME] ,[ITEMGROUPID],[PRODUCTSUBTYPE] ,[PRODUCTNAME] ,[PRODUCTSUBTYPENAME] ,[ITEMID] + '_' + DATAAREAID "
-  }*/
+  }
 
 ]

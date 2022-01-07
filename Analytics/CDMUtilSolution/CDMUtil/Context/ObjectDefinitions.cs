@@ -186,6 +186,7 @@ namespace CDMUtil.Context.ObjectDefinitions
         public bool TranslateEnum = false;
         public bool createStats = false;
         public string parserVersion = "2.0";
+        public bool serverless = true;
        
         public SynapseDBOptions()
         { }
@@ -227,10 +228,12 @@ namespace CDMUtil.Context.ObjectDefinitions
                 masterKey = environmentName;
                 credentialName = environmentName;
                 location = rootLocation;
+                serverless = true;
             }
             else
             {
                 parserVersion = "1.0";
+                serverless = false;
             }
             if (ddlType != null)
                 DDLType = ddlType;

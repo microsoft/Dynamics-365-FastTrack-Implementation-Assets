@@ -194,7 +194,7 @@ namespace CDMUtil.SQL
                 if (string.IsNullOrEmpty(metadata.viewDefinition))
                 {
                     logger.LogInformation($"Table:{metadata.entityName}");
-                    string columnDefSQL = string.Join(", ", metadata.columnAttributes.Select(i => attributeToSQlType((ColumnAttribute)i, c.synapseOptions)));
+                    string columnDefSQL = string.Join(", ", metadata.columnAttributes.Select(i => attributeToSQLType((ColumnAttribute)i, c.synapseOptions)));
                     string columnNames = string.Join(", ", metadata.columnAttributes.Select(i => attributeToColumnNames((ColumnAttribute)i, c.synapseOptions)));
 
                     sql = string.Format(template,
@@ -273,7 +273,7 @@ namespace CDMUtil.SQL
             return sqlColumnNames;
         }
 
-        static public string attributeToSQlType(ColumnAttribute attribute, SynapseDBOptions synapseDBOptions)
+        static public string attributeToSQLType(ColumnAttribute attribute, SynapseDBOptions synapseDBOptions)
         {
             string sqlColumnDef;
 
@@ -284,7 +284,7 @@ namespace CDMUtil.SQL
                     break;
                 case "decimal":
                 case "double":
-                    sqlColumnDef = $"{attribute.name} decimal";
+                    sqlColumnDef = $"{attribute.name} decimal (32, 6)";
                     break;
                 case "biginteger":
                 case "int64":
@@ -340,7 +340,9 @@ namespace CDMUtil.SQL
             (select distinct Value as TABLE_NAME from STRING_SPLIT('{dependentTables}', ',')) as D 
             left outer join  INFORMATION_SCHEMA.VIEWS V
             on V.TABLE_NAME = D.TABLE_NAME
-            where V.TABLE_NAME is Null";
+            left outer join  INFORMATION_SCHEMA.TABLES T
+            on T.TABLE_NAME = D.TABLE_NAME
+            where V.TABLE_NAME is Null and T.TABLE_NAME is null";
 
             SQLHandler handler = new SQLHandler(c.synapseOptions.targetDbConnectionString, c.tenantId, log);
             DataTable dataTable = handler.executeSQLQuery(queryString);
@@ -445,7 +447,15 @@ order by rootNode asc, depth desc
         }
         public static void dbSetup(AppConfigurations c, ILogger log)
         {
-            if (c.synapseOptions.DDLType != "SynapseTable")
+            if (c.synapseOptions.DDLType == "SynapseTable")
+            {
+                var statement = createControlTableAndSP(c);
+                SQLHandler handler = new SQLHandler(c.synapseOptions.targetDbConnectionString, c.tenantId, log);
+                handler.executeStatements(statement);
+
+                
+            }
+            else
             {
                 var createDbStatement = createDBSQL(c.synapseOptions.dbName);
                 SQLHandler createDB = new SQLHandler(c.synapseOptions.masterDbConnectionString, c.tenantId, log);
@@ -462,12 +472,6 @@ order by rootNode asc, depth desc
                 var statsSP = createStatsSP();
                 SQLHandler handler = new SQLHandler(c.synapseOptions.targetDbConnectionString, c.tenantId, log);
                 handler.executeStatements(statsSP);
-            }
-            else
-            {
-                var statement = createControlTableAndSP(c);
-                SQLHandler handler = new SQLHandler(c.synapseOptions.targetDbConnectionString, c.tenantId, log);
-                handler.executeStatements(statement);
             }
         }
         public static SQLStatements createControlTableAndSP(AppConfigurations c)
@@ -561,6 +565,11 @@ as
         {
             var sqldbprep = new List<SQLStatement>();
 
+            string ParserVersion = "";
+            
+            if (options.servername.Contains("-ondemand.sql.azuresynapse.net"))
+                ParserVersion = $", PARSER_VERSION = '{options.parserVersion}'";
+
             string sql = @"
             -- create credentials as managed identity 
             IF NOT EXISTS(select * from sys.database_credentials where credential_identity = 'Managed Identity' and name = '{0}')
@@ -577,14 +586,15 @@ as
             CREATE EXTERNAL FILE FORMAT {3}
             WITH (  
                 FORMAT_TYPE = DELIMITEDTEXT,
-                FORMAT_OPTIONS ( FIELD_TERMINATOR = ',', STRING_DELIMITER = '""', FIRST_ROW = 1,  PARSER_VERSION = '2.0' )
+                FORMAT_OPTIONS ( FIELD_TERMINATOR = ',', STRING_DELIMITER = '""', FIRST_ROW = 1 {4})
             );";
 
             string sqlScript = String.Format(sql,
                                             options.credentialName,
                                             options.external_data_source,
                                             options.location,
-                                            options.fileFormatName);
+                                            options.fileFormatName,
+                                            ParserVersion);
 
             sqldbprep.Add(new SQLStatement { EntityName = "Create_Cred_sources_formats", Statement = sqlScript });
 
@@ -780,7 +790,7 @@ as
             return sqlFragment;
         }
       
-        public static string finalTsqlConversion(string inputString, string type = "sql")
+        public static string finalTsqlConversion(string inputString, string type = "sql", bool serverless= true)
         {
             string outputString = inputString;
 
@@ -789,14 +799,22 @@ as
             switch (type)
             {
                 case "sql":
-                    outputString = outputString.Replace("CREATE VIEW ", "CREATE OR ALTER VIEW ", StringComparison.OrdinalIgnoreCase);
-                    outputString = outputString.Replace("[dbo].GetValidFromInContextInfo()", "GETUTCDATE()", StringComparison.OrdinalIgnoreCase);
-                    outputString = outputString.Replace("[dbo].GetValidToInContextInfo()", "GETUTCDATE()", StringComparison.OrdinalIgnoreCase);
-                    outputString = outputString.Replace("dbo.GetValidFromInContextInfo()", "GETUTCDATE()", StringComparison.OrdinalIgnoreCase);
-                    outputString = outputString.Replace("dbo.GetValidToInContextInfo()", "GETUTCDATE()", StringComparison.OrdinalIgnoreCase);
-                    outputString = outputString.Replace("GetValidFromInContextInfo()", "GETUTCDATE()", StringComparison.OrdinalIgnoreCase);
-                    outputString = outputString.Replace("GetValidToInContextInfo()", "GETUTCDATE()", StringComparison.OrdinalIgnoreCase);
-
+                    if (serverless)
+                    {
+                        outputString = outputString.Replace("CREATE VIEW ", "CREATE OR ALTER VIEW ", StringComparison.OrdinalIgnoreCase);
+                    }
+                    //DW Gen 2 does not support create or alter
+                    else
+                    {
+                        outputString = outputString.Replace("CREATE OR ALTER VIEW ", "CREATE VIEW ", StringComparison.OrdinalIgnoreCase);
+                    }
+                    outputString = outputString.Replace("[dbo].GetValidFromInContextInfo()", "SYSUTCDATETIME()", StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("[dbo].GetValidToInContextInfo()", "SYSUTCDATETIME()", StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("dbo.GetValidFromInContextInfo()", "SYSUTCDATETIME()", StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("dbo.GetValidToInContextInfo()", "SYSUTCDATETIME()", StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("GetValidFromInContextInfo()", "SYSUTCDATETIME()", StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("GetValidToInContextInfo()", "SYSUTCDATETIME()", StringComparison.OrdinalIgnoreCase);
+                   
                     break;
 
                 case "spark":
@@ -837,7 +855,7 @@ as
                     sqlSyntax.StatsStatements.ToList().ForEach(x => statsStatements[x.Key]= x.Value);
                 }
 
-                outputString = finalTsqlConversion(outputString, "sql");
+                outputString = finalTsqlConversion(outputString, "sql", c.synapseOptions.serverless);
                 view.viewDefinition = outputString;
             }
              if (c.synapseOptions.createStats)
