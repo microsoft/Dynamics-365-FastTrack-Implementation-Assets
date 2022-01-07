@@ -32,7 +32,7 @@
         /// <param name="outputPath">The output directory path.</param>
         public static void ExportMetadata(string measureName, string packagePath, string axDbSqlConnectionString, string outputPath)
         {
-            Console.WriteLine($"Entity Store Metadata Exporter Tool (EntityStoreTools Version 2.8)\n");
+            Console.WriteLine($"Entity Store Metadata Exporter Tool (EntityStoreTools Version 2.9)\n");
 
             ContractValidator.MustNotBeEmpty(measureName, nameof(measureName));
             ContractValidator.MustNotBeEmpty(packagePath, nameof(packagePath));
@@ -85,48 +85,6 @@
             ColorConsole.WriteSuccess($"Metadata exported to '{destinationFile}'");
         }
 
-        private static void WriteEnums(IMetadataProvider metadataProvider, dynamic axObject)
-        {
-            var json = JsonConvert.SerializeObject(axObject, Formatting.Indented);
-            using (TextReader sr = new StringReader(json))
-            {
-                using (var jsonTextReader = new JsonTextReader(sr))
-                {
-                    dynamic entityObject = JObject.Load(jsonTextReader);
-
-                    foreach (var field in entityObject.Fields)
-                    {
-                        if (field.DataField == null)
-                        {
-                            continue;
-                        }
-
-                        string enumName = field.DataField.Value.ToString();
-                        var enumField = metadataProvider.Enums.Read(enumName);
-                        if (enumField != null && enumSet.Add(field.Name.ToString()))
-                        {
-                            var enumValues = enumField.EnumValues;
-                            var enumsPath = Path.Combine(tempPath, "enums");
-                            var enumDependenciesPath = Path.Combine(enumsPath, $"{field.Name}.csv");
-
-                            string csv = string.Join(
-                                Environment.NewLine,
-                                enumValues.Select(d => $"{d.getKey()},{d.Value}"));
-
-                            if (!Directory.Exists(enumsPath))
-                            {
-                                Directory.CreateDirectory(enumsPath);
-                            }
-
-                            ColorConsole.WriteInfo($"\nWriting enum file: '{field.Name}'");
-                            File.WriteAllText(enumDependenciesPath, string.Format("EnumKey,EnumValue") + Environment.NewLine);
-                            File.AppendAllText(enumDependenciesPath, csv);
-                        }
-                    }
-                }
-            }
-        }
-
         private static void WriteManifest(string measureName, string outputPath)
         {
             var manifest = new
@@ -147,7 +105,344 @@
 
             ColorConsole.WriteInfo($"\tAdded measure '{measureName}'");
 
+            WriteFactEnums(metadataProvider, measure);
+
             return measure;
+        }
+
+        private static void WriteFactEnums(IMetadataProvider metadataProvider, AxAggregateMeasurement measure)
+        {
+            foreach (var measureGroup in measure.MeasureGroups)
+            {
+                var tableName = measureGroup.Table.ToString();
+
+                EnumParser(metadataProvider, tableName);
+
+                foreach (var axDimension in measureGroup.Dimensions)
+                {
+                    AxAggregateDimension dimension = metadataProvider.AggregateDimensions.Read(axDimension.DimensionName.ToString());
+
+                    EnumParser(metadataProvider, dimension.Table == null ? string.Empty : dimension.Table.ToString());
+                }
+            }
+        }
+
+        private static void EnumParser(IMetadataProvider metadataProvider, string tableName)
+        {
+            if (metadataProvider.Views.Exists(tableName))
+            {
+                var view = metadataProvider.Views.Read(tableName);
+
+                foreach (var field in view.Fields)
+                {
+                    var json = JsonConvert.SerializeObject(field, Formatting.Indented);
+                    using (TextReader sr = new StringReader(json))
+                    {
+                        using (var jsonTextReader = new JsonTextReader(sr))
+                        {
+                            dynamic fieldObject = JObject.Load(jsonTextReader);
+
+                            string fieldName = fieldObject.Name == null ? null : fieldObject.Name.ToString();
+                            string dataSource = fieldObject.DataSource == null ? null : fieldObject.DataSource.ToString();
+                            string dataField = fieldObject.DataField == null ? null : fieldObject.DataField.ToString();
+
+                            if (!WriteEnumFile(metadataProvider, tableName, fieldName, dataSource, dataField))
+                            {
+                                if (view.Query != null)
+                                {
+                                    string tableNameFromQuery = GetTableNameFromQuery(metadataProvider, view.Query.ToString(), dataSource);
+
+                                    if (!string.IsNullOrEmpty(tableNameFromQuery))
+                                    {
+                                        WriteEnumFile(metadataProvider, tableName, fieldName, tableNameFromQuery, dataField);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else if (metadataProvider.DataEntityViews.Exists(tableName))
+            {
+                var entity = metadataProvider.DataEntityViews.Read(tableName);
+
+                foreach (var field in entity.Fields)
+                {
+                    var json = JsonConvert.SerializeObject(field, Formatting.Indented);
+                    using (TextReader sr = new StringReader(json))
+                    {
+                        using (var jsonTextReader = new JsonTextReader(sr))
+                        {
+                            dynamic fieldObject = JObject.Load(jsonTextReader);
+
+                            string fieldName = fieldObject.Name == null ? null : fieldObject.Name.ToString();
+                            string dataSource = fieldObject.DataSource == null ? null : fieldObject.DataSource.ToString();
+                            string dataField = fieldObject.DataField == null ? null : fieldObject.DataField.ToString();
+
+                            if (!WriteEnumFile(metadataProvider, tableName, fieldName, dataSource, dataField))
+                            {
+                                if (entity.Query != null)
+                                {
+                                    string tableNameFromQuery = GetTableNameFromQuery(metadataProvider, entity.Query.ToString(), dataSource);
+
+                                    if (!string.IsNullOrEmpty(tableNameFromQuery))
+                                    {
+                                        WriteEnumFile(metadataProvider, tableName, fieldName, tableNameFromQuery, dataField);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else if (metadataProvider.Tables.Exists(tableName))
+            {
+                var table = metadataProvider.Tables.Read(tableName);
+
+                foreach (var field in table.Fields)
+                {
+                    var json = JsonConvert.SerializeObject(field, Formatting.Indented);
+                    using (TextReader innerSR = new StringReader(json))
+                    {
+                        using (var innerJsonTextReader = new JsonTextReader(innerSR))
+                        {
+                            dynamic fieldObject = JObject.Load(innerJsonTextReader);
+
+                            string fieldName = fieldObject.Name == null ? null : fieldObject.Name.ToString();
+                            string enumName = fieldObject.EnumType == null ? null : fieldObject.EnumType.ToString();
+
+                            if (!string.IsNullOrEmpty(enumName))
+                            {
+                                EnumWriter(metadataProvider, tableName, fieldName, enumName);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static bool WriteEnumFile(IMetadataProvider metadataProvider, string tableName, string fieldName, string dataSource, string dataField)
+        {
+            if (string.IsNullOrEmpty(dataSource) || string.IsNullOrEmpty(dataField))
+            {
+                return false;
+            }
+
+            if (metadataProvider.Tables.Exists(dataSource))
+            {
+                var innerTable = metadataProvider.Tables.Read(dataSource);
+
+                foreach (var columnEntity in innerTable.Fields)
+                {
+                    string columnName = columnEntity.Name.ToString();
+
+                    if (!columnName.Equals(dataField))
+                    {
+                        continue;
+                    }
+
+                    var innerJson = JsonConvert.SerializeObject(columnEntity, Formatting.Indented);
+                    using (TextReader innerSR = new StringReader(innerJson))
+                    {
+                        using (var innerJsonTextReader = new JsonTextReader(innerSR))
+                        {
+                            dynamic columnObject = JObject.Load(innerJsonTextReader);
+
+                            string enumName = columnObject.EnumType;
+
+                            if (enumName != null)
+                            {
+                                EnumWriter(metadataProvider, tableName, fieldName, enumName.ToString());
+                            }
+                        }
+                    }
+
+                    return true;
+                }
+
+                return true;
+            }
+            else if (metadataProvider.DataEntityViews.Exists(dataSource))
+            {
+                var innerEntity = metadataProvider.DataEntityViews.Read(dataSource);
+
+                foreach (var field in innerEntity.Fields)
+                {
+                    string columnName = field.Name.ToString();
+
+                    if (!columnName.Equals(dataField))
+                    {
+                        continue;
+                    }
+
+                    var json = JsonConvert.SerializeObject(field, Formatting.Indented);
+                    using (TextReader sr = new StringReader(json))
+                    {
+                        using (var jsonTextReader = new JsonTextReader(sr))
+                        {
+                            dynamic fieldObject = JObject.Load(jsonTextReader);
+
+                            string innerFieldName = fieldObject.Name == null ? null : fieldObject.Name.ToString();
+                            string innerDataSource = fieldObject.DataSource == null ? null : fieldObject.DataSource.ToString();
+                            string innerDataField = fieldObject.DataField == null ? null : fieldObject.DataField.ToString();
+
+                            string enumName = fieldObject.EnumType;
+
+                            if (enumName != null)
+                            {
+                                EnumWriter(metadataProvider, tableName, fieldName, enumName.ToString());
+                            }
+                            else
+                            {
+                                if (!WriteEnumFile(metadataProvider, tableName, fieldName, innerDataSource, innerDataField))
+                                {
+                                    if (innerEntity.Query != null)
+                                    {
+                                        string tableNameFromQuery = GetTableNameFromQuery(metadataProvider, innerEntity.Query.ToString(), innerDataSource);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    return true;
+                }
+            }
+            else if (metadataProvider.Views.Exists(dataSource))
+            {
+                var innerView = metadataProvider.Views.Read(dataSource);
+
+                foreach (var field in innerView.Fields)
+                {
+                    string columnName = field.Name.ToString();
+
+                    if (!columnName.Equals(dataField))
+                    {
+                        continue;
+                    }
+
+                    var json = JsonConvert.SerializeObject(field, Formatting.Indented);
+                    using (TextReader sr = new StringReader(json))
+                    {
+                        using (var jsonTextReader = new JsonTextReader(sr))
+                        {
+                            dynamic fieldObject = JObject.Load(jsonTextReader);
+
+                            string innerFieldName = fieldObject.Name == null ? null : fieldObject.Name.ToString();
+                            string innerDataSource = fieldObject.DataSource == null ? null : fieldObject.DataSource.ToString();
+                            string innerDataField = fieldObject.DataField == null ? null : fieldObject.DataField.ToString();
+
+                            string enumName = fieldObject.EnumType;
+
+                            if (enumName != null)
+                            {
+                                EnumWriter(metadataProvider, tableName, fieldName, enumName.ToString());
+                            }
+                            else
+                            {
+                                if (!WriteEnumFile(metadataProvider, tableName, fieldName, innerDataSource, innerDataField))
+                                {
+                                    if (innerView.Query != null)
+                                    {
+                                        string tableNameFromQuery = GetTableNameFromQuery(metadataProvider, innerView.Query.ToString(), innerDataSource);
+
+                                        if (!string.IsNullOrEmpty(tableNameFromQuery))
+                                        {
+                                            WriteEnumFile(metadataProvider, tableName, fieldName, tableNameFromQuery, innerDataField);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static string GetTableNameFromQuery(IMetadataProvider metadataProvider, string queryName, string dataSource)
+        {
+            if (string.IsNullOrEmpty(dataSource))
+            {
+                return string.Empty;
+            }
+
+            var queryObject = metadataProvider.Queries.Read(queryName);
+
+            if (queryObject != null)
+            {
+                var json = JsonConvert.SerializeObject(queryObject, Formatting.Indented);
+                using (TextReader sr = new StringReader(json))
+                {
+                    using (var jsonTextReader = new JsonTextReader(sr))
+                    {
+                        dynamic queryParsedObject = JObject.Load(jsonTextReader);
+                        foreach (var source in queryParsedObject.DataSources)
+                        {
+                            if (source.Name.ToString().Equals(dataSource))
+                            {
+                                return source.Table;
+                            }
+                            else
+                            {
+                                foreach (var innerSource in source.DataSources)
+                                {
+                                    if (innerSource.Name.ToString().Equals(dataSource))
+                                    {
+                                        return innerSource.Table;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return string.Empty;
+        }
+
+        private static bool EnumWriter(IMetadataProvider metadataProvider, string tableName, string fieldName, string enumName)
+        {
+            var enumObject = metadataProvider.Enums.Read(enumName);
+
+            if (enumObject == null)
+            {
+                return false;
+            }
+
+            var values = enumObject.EnumValues;
+
+            JArray enumValues = new JArray();
+
+            foreach (var value in values)
+            {
+                dynamic kv = new JObject();
+                kv.Key = value.getKey();
+                kv.Value = value.Value;
+                enumValues.Add(kv);
+            }
+
+            dynamic enumFileObject = new JObject();
+
+            enumFileObject.Name = fieldName.ToUpper();
+            enumFileObject.EnumName = enumName.ToUpper();
+            enumFileObject.Translations = enumValues;
+
+            var enumsPath = Path.Combine(tempPath, "enums");
+            var enumDependenciesPath = Path.Combine(enumsPath, $"{tableName.ToUpper()}_{fieldName.ToUpper()}.json");
+
+            if (!Directory.Exists(enumsPath))
+            {
+                Directory.CreateDirectory(enumsPath);
+            }
+
+            ColorConsole.WriteInfo($"\nWriting enum file: '{tableName.ToUpper()}_{fieldName.ToUpper()}'");
+            File.WriteAllText(enumDependenciesPath, JsonConvert.SerializeObject(enumFileObject, Formatting.Indented));
+
+            return true;
         }
 
         private static AggregateDimensionElements WriteAggregateDimensions(AxAggregateMeasurement measure, IMetadataProvider metadataProvider, string outputPath)
@@ -206,15 +501,6 @@
                 {
                     RecursivelyAddDataSourcesFromQuery(metadataProvider, dimensionsTables, dimensionsViews, element);
 
-                    if (metadataProvider.Views.Exists(element))
-                    {
-                        WriteEnums(metadataProvider, metadataProvider.Views.Read(element));
-                    }
-                    else
-                    {
-                        WriteEnums(metadataProvider, metadataProvider.DataEntityViews.Read(element));
-                    }
-
                     ColorConsole.WriteInfo($"\tAdded element as view '{element.ToUpperInvariant()}'");
                 }
             }
@@ -222,8 +508,6 @@
             {
                 if (dimensionsTables.Add(element))
                 {
-                    WriteEnums(metadataProvider, metadataProvider.Tables.Read(element));
-
                     ColorConsole.WriteInfo($"\tAdded element as 'table '{element.ToUpperInvariant()}'");
                 }
             }
@@ -247,6 +531,15 @@
                     using (var jsonTextReader = new JsonTextReader(sr))
                     {
                         dynamic queryObject = JObject.Load(jsonTextReader);
+
+                        var queriesPath = Path.Combine(tempPath, "queries");
+                        if (!Directory.Exists(queriesPath))
+                        {
+                            Directory.CreateDirectory(queriesPath);
+                        }
+
+                        var queryMetadataPath = Path.Combine(queriesPath, $"{view.Query}.json");
+                        File.WriteAllText(queryMetadataPath, JsonConvert.SerializeObject(queryObject, Formatting.Indented));
 
                         foreach (var dataSource in queryObject.DataSources)
                         {
