@@ -76,6 +76,9 @@ For simple POC scenario you can execute the CDMUtil solution as a Console Applic
     <add key="ProcessEntities" value ="true"/>
     <add key="CreateStats" value ="false"/>
     <add key="AXDBConnectionString" value ="Server=DBServer;Database=AXDB;Uid=youruser;Pwd=yourpassword"/-->
+	<add key="ServicePrincipalBasedAuthentication" value ="false"/>
+	<add key="ServicePrincipalAppId" value ="YourAppId - You can use the same app id, which you´ve used for installing the LCS Add-In"/>
+	<add key="ServicePrincipalSecret" value ="YourSecret - Corresponding Secret"/>
   </appSettings>
 </configuration>
 ```
