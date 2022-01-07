@@ -839,9 +839,18 @@
 
                         try
                         {
-                            await sqlProvider.RunSqlStatementAsync(processedQuery);
+                            var viewList = sqlProvider.ReadSqlStatement($"SELECT TOP(1) * FROM sys.views WHERE name = '{axViewMetadata.ViewName}'", "name");
 
-                            ColorConsole.WriteSuccess($"Created '{axViewMetadata.ViewName}'\n");
+                            if (viewList.Count == 0)
+                            {
+                                await sqlProvider.RunSqlStatementAsync(processedQuery);
+
+                                ColorConsole.WriteSuccess($"Created '{axViewMetadata.ViewName}'\n");
+                            }
+                            else
+                            {
+                                ColorConsole.WriteSuccess($"View already exists. Skipping creation of '{axViewMetadata.ViewName}'\n");
+                            }
                         }
                         catch (SqlException e)
                         {
