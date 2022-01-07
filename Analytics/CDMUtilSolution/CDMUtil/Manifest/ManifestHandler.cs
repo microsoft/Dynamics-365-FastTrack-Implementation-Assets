@@ -56,7 +56,7 @@ namespace CDMUtil.Manifest
                     c.manifestName = subManifestName;
                     c.rootFolder = subManifestRoot;
 
-                    await manifestToSQLMetadata(c, metadataList, logger, parentFolder);
+                    manifestToSQLMetadata(c, metadataList, logger, parentFolder);
                 }
 
                 logger.LogInformation($"Manifest:{manifest.Name}");
