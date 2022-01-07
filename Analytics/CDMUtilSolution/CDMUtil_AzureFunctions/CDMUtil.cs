@@ -311,6 +311,14 @@ namespace CDMUtil
                 AppConfiguration.synapseOptions.createStats = bool.Parse(CreateStats);
             }
 
+            string ProcessSubTableSuperTables = getConfigurationValue(req, "ProcessSubTableSuperTables", ManifestURL);
+
+            if (ProcessSubTableSuperTables != null)
+            {
+                AppConfiguration.ProcessSubTableSuperTables = bool.Parse(ProcessSubTableSuperTables);
+                AppConfiguration.ProcessSubTableSuperTablesFilePath = Path.Combine(context.FunctionAppDirectory, "SubTableSuperTableList.json");
+
+            }
             string ServicePrincipalBasedAuthentication = getConfigurationValue(req, "ServicePrincipalBasedAuthentication", ManifestURL);
 
             if (ServicePrincipalBasedAuthentication != null)

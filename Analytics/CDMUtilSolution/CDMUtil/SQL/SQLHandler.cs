@@ -363,6 +363,102 @@ namespace CDMUtil.SQL
             }
 
         }
+
+        public List<SQLMetadata> retrieveSubTableSuperTableView(AppConfigurations c, string superTableName, string subTableTableName)
+        {
+            List<SQLMetadata> subTableSuperTableViews = new List<SQLMetadata>();
+
+            string queryStringTableIdSubTable = String.Format("select Id from TableIdTable where Name = '{0}'", subTableTableName);
+            DataTable dataTableTableIdSubTable = this.executeSQLQuery(queryStringTableIdSubTable);
+            DataTableReader dataReaderTableIdSubTable = dataTableTableIdSubTable.CreateDataReader();
+            string subTableTableId = "0";
+            if (dataReaderTableIdSubTable.Read())
+            {
+                subTableTableId = dataReaderTableIdSubTable[0].ToString();
+            }
+
+            string queryStringTableIdSuperTable = String.Format("select Id from TableIdTable where Name = '{0}'", superTableName);
+            DataTable dataTableTableIdSuperTable = this.executeSQLQuery(queryStringTableIdSuperTable);
+            DataTableReader dataReaderTableIdSuperTable = dataTableTableIdSuperTable.CreateDataReader();
+            string superTableTableId = "0";
+            if (dataReaderTableIdSuperTable.Read())
+            {
+                superTableTableId = dataReaderTableIdSuperTable[0].ToString();
+            }
+
+            string viewDefinition = String.Format("CREATE VIEW {0}.{1} AS SELECT ", c.synapseOptions.schema, subTableTableName);
+            string tableToAnalyze = subTableTableName;
+            if (superTableName != String.Empty)
+            {
+                tableToAnalyze = superTableName;
+            }
+            string queryStringColumns = String.Format(@"
+                    SELECT DISTINCT col.name
+                    FROM sys.tables t
+                    INNER JOIN sys.schemas s on t.schema_id = s.schema_id
+                    INNER JOIN sys.columns col ON t.object_id = col.object_id
+                    INNER JOIN TableFieldIdTable f ON col.name = f.name
+                    WHERE t.name = '{0}'
+	                    AND s.name = 'dbo'
+	                    AND f.TABLEID in ({1}, {2})
+                        AND NOT col.name like 'DEL_%'
+                    ORDER BY col.name
+                    ", tableToAnalyze, subTableTableId, superTableTableId);
+
+            if (subTableTableId != "0" && superTableTableId != "0")
+            {
+                DataTable dataTableColumns = this.executeSQLQuery(queryStringColumns);
+                DataTableReader dataReaderColumns = dataTableColumns.CreateDataReader();
+                string columnList = String.Empty;
+                while (dataReaderColumns.Read())
+                {
+                    if (columnList != String.Empty)
+                    {
+                        columnList += ",";
+                    }
+                    columnList += dataReaderColumns[0];
+                }
+
+                viewDefinition += String.Format("{0} FROM {1} WHERE INSTANCERELATIONTYPE = {2}", columnList, superTableName, subTableTableId);
+
+                subTableSuperTableViews.Add(new SQLMetadata
+                {
+                    entityName = subTableTableName,
+                    viewDefinition = viewDefinition,
+                    dependentTables = superTableName
+                });
+            }
+            // dummy table/view case
+            else if(subTableTableId != "0" && superTableTableId == "0" && superTableName == String.Empty)
+            {
+                DataTable dataTableColumns = this.executeSQLQuery(queryStringColumns);
+                DataTableReader dataReaderColumns = dataTableColumns.CreateDataReader();
+                string columnList = String.Empty;
+                while (dataReaderColumns.Read())
+                {
+                    if (columnList != String.Empty)
+                    {
+                        columnList += ",";
+                    }
+                    columnList += String.Format("NULL AS {0}", dataReaderColumns[0]);
+                }
+                columnList += ",NULL AS RecId";
+                columnList += ",NULL AS DataAreaId";
+                columnList += ",NULL AS Partition";
+
+                viewDefinition += String.Format("{0} WHERE 1 = 2", columnList);
+
+                subTableSuperTableViews.Add(new SQLMetadata
+                {
+                    entityName = subTableTableName,
+                    viewDefinition = viewDefinition,
+                    dependentTables = superTableName
+                });
+            }
+
+            return subTableSuperTableViews;
+        }
+
         public List<SQLMetadata> retrieveViewDependencies(string entityName)
         {
             List<SQLMetadata> viewDependencies = new List<SQLMetadata>();
