@@ -1,0 +1,22 @@
+[
+  {
+    "Key": "CompanyInfo",
+    "Value": "DirPartyTable"
+  },
+  {
+    "Key": "DirOrganization",
+    "Value": "DirPartyTable"
+  },
+  {
+    "Key": "DirPerson",
+    "Value": "DirPartyTable"
+  },
+  {
+    "Key": "OMOperatingUnit",
+    "Value": "DirPartyTable"
+  },
+  {
+    "Key": "OMTeam",
+    "Value": "DirPartyTable"
+  }
+]
