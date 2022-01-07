@@ -113,7 +113,10 @@ namespace CDMUtil.Context.ObjectDefinitions
         public string ReplaceViewSyntax;
         public bool ProcessEntities;
         public string ProcessEntitiesFilePath;
+        public bool ProcessSubTableSuperTables;
+        public string ProcessSubTableSuperTablesFilePath;
 
+        
         public AppConfigurations()
         { }
         public AppConfigurations(string tenant, string manifestURL, string accessKey, string targetConnectionString = "", string ddlType = "", string targetSparkConnection = "")
