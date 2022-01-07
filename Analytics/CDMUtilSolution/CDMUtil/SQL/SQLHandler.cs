@@ -57,6 +57,7 @@ namespace CDMUtil.SQL
             }
             finally
             {
+               //TODO : Log stats by tables , entity , created or failed
                 SQLHandler.missingTables(c, metadataList, log);
             }
             return statements;
@@ -84,7 +85,7 @@ namespace CDMUtil.SQL
                 SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder(SQLConnectionStr);
 
                 //use AAD auth when userid is not passed in connection string 
-                if (string.IsNullOrEmpty(builder.UserID))
+                if (builder.IntegratedSecurity != true && string.IsNullOrEmpty(builder.UserID))
                 {
                     conn.AccessToken = (new AzureServiceTokenProvider()).GetAccessTokenAsync("https://database.windows.net/", Tenant).Result;
                 }
@@ -114,7 +115,7 @@ namespace CDMUtil.SQL
             {
                 SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder(SQLConnectionStr);
                 //use AAD auth when userid is not passed in connection string 
-                if (string.IsNullOrEmpty(builder.UserID))
+                if (builder.IntegratedSecurity != true && string.IsNullOrEmpty(builder.UserID))
                 {
                     conn.AccessToken = (new AzureServiceTokenProvider()).GetAccessTokenAsync("https://database.windows.net/", Tenant).Result;
                 }
@@ -133,7 +134,7 @@ namespace CDMUtil.SQL
                                 }
                                 logger.LogDebug($"Statement:{s.Statement}");
                                 command.ExecuteNonQuery();
-                                
+
                                 logger.LogInformation($"Status:success");
                                 s.Created = true;
                             }
@@ -156,7 +157,7 @@ namespace CDMUtil.SQL
             }
         }
         public async static Task<List<SQLStatement>> sqlMetadataToDDL(List<SQLMetadata> metadataList, AppConfigurations c, ILogger logger)
-       {
+        {
 
             List<SQLStatement> sqlStatements = new List<SQLStatement>();
             string template = "";
@@ -166,7 +167,8 @@ namespace CDMUtil.SQL
             {
                 // {0} Schema, {1} TableName, {2} ColumnDefinition {3} data location ,{4} DataSource, {5} FileFormat
                 case "SynapseView":
-                    template = @"CREATE OR ALTER VIEW {0}.{1} AS SELECT r.filepath(1) as [$FileName], {6} FROM OPENROWSET(BULK '{3}', FORMAT = 'CSV', PARSER_VERSION = '1.0', DATA_SOURCE ='{4}', ROWSET_OPTIONS =  '{11}') WITH ({2}) as r";
+                    template = @"CREATE OR ALTER VIEW {0}.{1} AS SELECT r.filepath(1) as [$FileName], {6} FROM OPENROWSET(BULK '{3}', FORMAT = 'CSV', PARSER_VERSION = '{12}', DATA_SOURCE ='{4}', ROWSET_OPTIONS =  '{11}') WITH ({2}) as r";
+
                     break;
 
                 case "SQLTable":
@@ -193,8 +195,8 @@ namespace CDMUtil.SQL
                 if (string.IsNullOrEmpty(metadata.viewDefinition))
                 {
                     logger.LogInformation($"Table:{metadata.entityName}");
-                    string columnDefSQL = string.Join(", ", metadata.columnAttributes.Select(i => attributeToSQlType((ColumnAttribute)i, c.synapseOptions.DateTimeAsString)));
-                    string columnNames = string.Join(", ", metadata.columnAttributes.Select(i => attributeToColumnNames((ColumnAttribute)i, c.synapseOptions.ConvertDateTime, c.synapseOptions.TranslateEnum)));
+                    string columnDefSQL = string.Join(", ", metadata.columnAttributes.Select(i => attributeToSQlType((ColumnAttribute)i, c.synapseOptions)));
+                    string columnNames = string.Join(", ", metadata.columnAttributes.Select(i => attributeToColumnNames((ColumnAttribute)i, c.synapseOptions)));
 
                     sql = string.Format(template,
                                          c.synapseOptions.schema, //0 
@@ -208,7 +210,8 @@ namespace CDMUtil.SQL
                                          metadata.dataFilePath, //8
                                          metadata.metadataFilePath,//9
                                          metadata.cdcDataFileFilePath,//10
-                                         readOption //11
+                                         readOption, //11,
+                                         c.synapseOptions.parserVersion//12
                                          );
                     dataLocation = metadata.dataLocation;
                 }
@@ -221,32 +224,23 @@ namespace CDMUtil.SQL
                 if (sqlStatements.Exists(x => x.EntityName.ToLower() == metadata.entityName.ToLower()))
                     continue;
                 else
-                    sqlStatements.Add(new SQLStatement() { EntityName = metadata.entityName,DataLocation = dataLocation, Statement = sql });
+                    sqlStatements.Add(new SQLStatement() { EntityName = metadata.entityName, DataLocation = dataLocation, Statement = sql });
             }
 
             logger.LogInformation($"Tables:{sqlStatements.FindAll(a => a.DataLocation != null).Count}");
             logger.LogInformation($"Entities/Views:{sqlStatements.FindAll(a => a.DataLocation == null).Count}");
             return sqlStatements;
         }
-        public static string attributeToColumnNames(ColumnAttribute attribute, bool convertDatetime = false, bool translateEnum = false)
+        public static string attributeToColumnNames(ColumnAttribute attribute, SynapseDBOptions synapseDBOptions)
         {
-            string sqlColumnNames;
+            string sqlColumnNames = "";
 
             switch (attribute.dataType.ToLower())
             {
                 case "date":
                 case "datetime":
-                    if (convertDatetime)
-                    {
-                        sqlColumnNames = $"Cast({attribute.name} AS DATETIME2) as {attribute.name}";
-                    }
-                    else
-                    {
-                        sqlColumnNames = $"{attribute.name}";
-                    }
-                    break;
                 case "datetime2":
-                    if (convertDatetime)
+                    if (synapseDBOptions.parserVersion == "2.0")
                     {
                         sqlColumnNames = $"Cast({attribute.name} AS DATETIME2) as {attribute.name}";
                     }
@@ -255,19 +249,9 @@ namespace CDMUtil.SQL
                         sqlColumnNames = $"{attribute.name}";
                     }
                     break;
+                
                 case "string":
-                case "unknown":
-                    if (convertDatetime && (attribute.name.ToLower() == "validfrom" ||
-                                            attribute.name.ToLower() == "validto"))
-                    {
-                        sqlColumnNames = $"Cast({attribute.name} AS DATETIME2) as {attribute.name}";
-                    }
-                    else
-                    {
-                        sqlColumnNames = $"{attribute.name}";
-                    }
-
-                    if (translateEnum == true && attribute.constantValueList != null)
+                    if (synapseDBOptions.TranslateEnum == true && attribute.constantValueList != null)
                     {
                         var constantValues = attribute.constantValueList.ConstantValues;
                         sqlColumnNames += $" ,CASE {attribute.name}";
@@ -276,6 +260,10 @@ namespace CDMUtil.SQL
                             sqlColumnNames += $"{ " When " + constantValueList[3] + " Then '" + constantValueList[2]}'";
                         }
                         sqlColumnNames += $" END AS {attribute.name}_Label";
+                    }
+                    else
+                    {
+                        sqlColumnNames = $"{attribute.name}";
                     }
                     break;
                 default:
@@ -286,7 +274,7 @@ namespace CDMUtil.SQL
             return sqlColumnNames;
         }
 
-        static public string attributeToSQlType(ColumnAttribute attribute, bool dateTimeAsString = false)
+        static public string attributeToSQlType(ColumnAttribute attribute, SynapseDBOptions synapseDBOptions)
         {
             string sqlColumnDef;
 
@@ -311,17 +299,17 @@ namespace CDMUtil.SQL
                     break;
                 case "date":
                 case "datetime":
-                    if (dateTimeAsString)
+                    if (synapseDBOptions.parserVersion == "2.0")
                     {
                         sqlColumnDef = $"{attribute.name} nvarchar(30)";
                     }
                     else
                     {
-                        sqlColumnDef = $"{attribute.name} datetime2";
+                        sqlColumnDef = $"{attribute.name} datetime";
                     }
                     break;
                 case "datetime2":
-                    if (dateTimeAsString)
+                    if (synapseDBOptions.parserVersion == "2.0")
                     {
                         sqlColumnDef = $"{attribute.name} nvarchar(30)";
                     }
@@ -345,10 +333,10 @@ namespace CDMUtil.SQL
 
             return sqlColumnDef;
         }
-    public static void missingTables(AppConfigurations c, List<SQLMetadata> metaData, ILogger log)
-    {
+        public static void missingTables(AppConfigurations c, List<SQLMetadata> metaData, ILogger log)
+        {
             List<Artifacts> tables = new List<Artifacts>();
-            string dependentTables = string.Join(", ", metaData.Select(i => i.dependentTables)).Replace(" ","");
+            string dependentTables = string.Join(", ", metaData.Select(i => i.dependentTables)).Replace(" ", "");
             string queryString = @$"select STRING_AGG(D.TABLE_NAME, ',') as Table_Names from
             (select distinct Value as TABLE_NAME from STRING_SPLIT('{dependentTables}', ',')) as D 
             left outer join  INFORMATION_SCHEMA.VIEWS V
@@ -361,10 +349,16 @@ namespace CDMUtil.SQL
 
             if (dataReader.Read())
             {
-                var missingTables = dataReader[0];
-                if (String.IsNullOrWhiteSpace(missingTables.ToString()) != false)
+                var missingTables = (string) dataReader[0];
+                if (String.IsNullOrEmpty(missingTables) == false)
                 {
-                    log.LogError($"Missing tables:{missingTables.ToString()}");
+                    missingTables = missingTables.TrimStart(',');
+                    var list = missingTables.Split(',');
+                    log.LogError($"Missing tables ({list.Length}):{missingTables}");
+                }
+                else
+                {
+                    log.LogInformation($"No Missing tables");
                 }
             }
 
@@ -583,7 +577,7 @@ order by rootNode asc, depth desc
             }
             var sqldbprep = new List<SQLStatement>();
             var statementBatch = script.Split("GO");
-            
+
             foreach (var statement in statementBatch)
             {
                 if (String.IsNullOrWhiteSpace(statement) == false)
@@ -603,7 +597,7 @@ order by rootNode asc, depth desc
             string sqlScript = String.Format(createDBSQL, dbName);
 
             var sqldbprep = new List<SQLStatement>();
-            sqldbprep.Add(new SQLStatement {EntityName ="CreateDB", Statement = sqlScript });
+            sqldbprep.Add(new SQLStatement { EntityName = "CreateDB", Statement = sqlScript });
             var statements = new SQLStatements { Statements = sqldbprep };
 
             return statements;
@@ -635,7 +629,7 @@ begin catch
 	EXEC sys.sp_create_openrowset_statistics @statement
 end catch;";
 
-string sp2 = @"CREATE OR ALTER   procedure [dbo].[sp_create_view_column_statistics](@schema varchar(10), @viewName varchar(100), @ColumnName varchar(100))
+            string sp2 = @"CREATE OR ALTER   procedure [dbo].[sp_create_view_column_statistics](@schema varchar(10), @viewName varchar(100), @ColumnName varchar(100))
 as 
 	
 	declare @begin varchar(100) = 'FROM OPENROWSET(BULK';
@@ -656,20 +650,33 @@ as
 		exec sp_drop_create_openrowset_statistics @statement = @statsDefinition ;
 		
 	END";
-            sqldbprep.Add(new SQLStatement { EntityName = "CreateStatsSp1", Statement = sp1 } );
+            sqldbprep.Add(new SQLStatement { EntityName = "CreateStatsSp1", Statement = sp1 });
             sqldbprep.Add(new SQLStatement { EntityName = "CreateStatsSp2", Statement = sp2 });
             return new SQLStatements { Statements = sqldbprep };
         }
         public static SQLStatements prepSynapseDBSQL(SynapseDBOptions options)
         {
             var sqldbprep = new List<SQLStatement>();
+            string sql = String.Empty;
 
-            string sql = @"
-            -- create credentials as managed identity 
-            IF NOT EXISTS(select * from sys.database_credentials where credential_identity = 'Managed Identity' and name = '{0}')
-            CREATE DATABASE SCOPED CREDENTIAL {0} WITH IDENTITY='Managed Identity'
+            if (options.servicePrincipalBasedAuthentication)
+            {
+                sql += String.Format(@"
+                -- create credentials as service principal 
+                IF NOT EXISTS(select * from sys.database_credentials where name = '{0}')
+                    CREATE DATABASE SCOPED CREDENTIAL {0} WITH IDENTITY = '{2}@https://login.microsoftonline.com/{1}/oauth2/token', SECRET = '{3}'
+                ", options.credentialName, options.servicePrincipalTenantId, options.servicePrincipalAppId, options.servicePrincipalSecret);
+            }
+            else
+            {
+                sql += @"
+                -- create credentials as managed identity 
+                IF NOT EXISTS(select * from sys.database_credentials where name = '{0}')
+                    CREATE DATABASE SCOPED CREDENTIAL {0} WITH IDENTITY='Managed Identity'
+                ";
+            }
 
-
+            sql += @"
             IF NOT EXISTS(select * from sys.external_data_sources where name = '{1}')
             CREATE EXTERNAL DATA SOURCE {1} WITH (
                 LOCATION = '{2}',
@@ -706,12 +713,12 @@ as
         TSqlFragment tree;
         AppConfigurations c;
         readonly Dictionary<string, string> aliases = new Dictionary<string, string>();
-        readonly Dictionary<string,string> joinColumns = new Dictionary<string, string>();
-        readonly Dictionary<string,string> selectColumns = new Dictionary<string, string>();
+        readonly Dictionary<string, string> joinColumns = new Dictionary<string, string>();
+        readonly Dictionary<string, string> selectColumns = new Dictionary<string, string>();
         readonly Dictionary<string, string> statsStatements = new Dictionary<string, string>();
         public Dictionary<string, string> Aliases { get { return aliases; } }
-        public Dictionary<string,string> JoinColumns { get { return joinColumns; } }
-        public Dictionary<string,string> SelectColumns { get { return selectColumns; } }
+        public Dictionary<string, string> JoinColumns { get { return joinColumns; } }
+        public Dictionary<string, string> SelectColumns { get { return selectColumns; } }
         public Dictionary<string, string> StatsStatements { get { return statsStatements; } }
         public string getOutputString { get { return outputString; } }
         public TSqlSyntaxHandler(string _inputString, AppConfigurations c)
@@ -796,7 +803,7 @@ as
                     {
                         var columnExpression = element.Expression as ColumnReferenceExpression;
 
-                        if (columnExpression !=null)
+                        if (columnExpression != null)
                         {
                             string value = string.Join(".", columnExpression.MultiPartIdentifier.Identifiers.Select(i => i.Value));
                             addToDictionary(element.ColumnName.Value, value, selectColumns);
@@ -841,8 +848,8 @@ as
             {
                 string value = string.Join(".", table.SchemaObject.Identifiers.Select(i => i.Value));
                 string key = table.Alias != null ? table.Alias.Value : value;
-              
-                addToDictionary(key, value, aliases); 
+
+                addToDictionary(key, value, aliases);
             }
 
             if (sparkSQL)
@@ -856,7 +863,7 @@ as
 
             base.ExplicitVisit(table);
         }
-        public void addToDictionary (string key, string value, Dictionary<string, string> dict)
+        public void addToDictionary(string key, string value, Dictionary<string, string> dict)
         {
             if (!dict.ContainsKey(key))
             {
@@ -882,7 +889,7 @@ as
             }
             return sqlFragment;
         }
-      
+
         public static string finalTsqlConversion(string inputString, string type = "sql")
         {
             string outputString = inputString;
@@ -925,7 +932,7 @@ as
 
         public static void updateViewSyntax(AppConfigurations c, List<SQLMetadata> metadataList)
         {
-            Dictionary<string, string> statsStatements = new Dictionary<string, string>(); 
+            Dictionary<string, string> statsStatements = new Dictionary<string, string>();
             foreach (var view in metadataList.FindAll(a => a.viewDefinition != null))
             {
                 string outputString = view.viewDefinition;
@@ -937,13 +944,13 @@ as
                 if (sqlSyntax.tree != null)
                 {
                     outputString = sqlSyntax.outputString;
-                    sqlSyntax.StatsStatements.ToList().ForEach(x => statsStatements[x.Key]= x.Value);
+                    sqlSyntax.StatsStatements.ToList().ForEach(x => statsStatements[x.Key] = x.Value);
                 }
 
                 outputString = finalTsqlConversion(outputString, "sql");
                 view.viewDefinition = outputString;
             }
-             if (c.synapseOptions.createStats)
+            if (c.synapseOptions.createStats)
             {
                 statsStatements.ToList().ForEach(x => metadataList.Add(new SQLMetadata { entityName = x.Key, viewDefinition = x.Value }));
             }

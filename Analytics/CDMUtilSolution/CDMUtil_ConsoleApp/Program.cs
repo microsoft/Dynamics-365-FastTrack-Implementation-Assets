@@ -26,7 +26,7 @@ namespace CDMUtil
                   }));
 
             ILogger<ConsoleApp> logger = loggerFactory.CreateLogger<ConsoleApp>();
-        
+
             AppConfigurations c = loadConfigurations(logger);
 
             List<SQLMetadata> metadataList = new List<SQLMetadata>();
@@ -36,7 +36,7 @@ namespace CDMUtil
                 logger.LogInformation($"Reading Manifest metadata https://{c.AdlsContext.StorageAccount}/{c.rootFolder}{c.manifestName}");
                 ManifestReader.manifestToSQLMetadata(c, metadataList, logger, c.rootFolder).Wait();
             }
-        
+
             using (logger.BeginScope("Processing DDL"))
             {
                 if (!String.IsNullOrEmpty(c.synapseOptions.targetSparkEndpoint))
@@ -48,6 +48,7 @@ namespace CDMUtil
                     SQLHandler.executeSQL(c, metadataList, logger);
                 }
             }
+            Console.WriteLine("Press any key to exit...");
         }
 
         static AppConfigurations loadConfigurations(ILogger logger)
@@ -63,7 +64,7 @@ namespace CDMUtil
             NameValueCollection sAll = ConfigurationManager.AppSettings;
             foreach (string s in sAll.AllKeys)
             {
-                if (s.Contains("AccessKey") || s.Contains("ConnectionString"))
+                if (s.Contains("AccessKey") || s.Contains("ConnectionString") || s.Contains("Secret"))
                 {
                     logger.LogInformation("Key: " + s + " Value:***");
                 }
@@ -87,15 +88,11 @@ namespace CDMUtil
                 AppConfiguration.synapseOptions.TranslateEnum = bool.Parse(ConfigurationManager.AppSettings.Get("TranslateEnum"));
             }
 
-            if (ConfigurationManager.AppSettings.Get("DateTimeAsString") != null)
+            if (ConfigurationManager.AppSettings.Get("ParserVersion") != null)
             {
-                AppConfiguration.synapseOptions.DateTimeAsString = bool.Parse(ConfigurationManager.AppSettings.Get("DateTimeAsString"));
+                AppConfiguration.synapseOptions.parserVersion = ConfigurationManager.AppSettings.Get("ParserVersion");
             }
 
-            if (ConfigurationManager.AppSettings.Get("ConvertDateTime") != null)
-            {
-                AppConfiguration.synapseOptions.DateTimeAsString = bool.Parse(ConfigurationManager.AppSettings.Get("ConvertDateTime"));
-            }
             if (ConfigurationManager.AppSettings.Get("DataSourceName") != null)
             {
                 AppConfiguration.synapseOptions.external_data_source = ConfigurationManager.AppSettings.Get("DataSourceName");
@@ -120,7 +117,7 @@ namespace CDMUtil
             {
                 AppConfiguration.synapseOptions.createStats = bool.Parse(ConfigurationManager.AppSettings.Get("CreateStats"));
             }
-            if (ConfigurationManager.AppSettings.Get("ProcessEntities") != null )
+            if (ConfigurationManager.AppSettings.Get("ProcessEntities") != null)
             {
                 if (bool.Parse(ConfigurationManager.AppSettings.Get("ProcessEntities")))
                 {
@@ -136,10 +133,26 @@ namespace CDMUtil
                     AppConfiguration.ProcessSubTableSuperTablesFilePath = Path.Combine(Environment.CurrentDirectory, "Manifest", "SubTableSuperTableList.json");
                 }
             }
+            if (ConfigurationManager.AppSettings.Get("ServicePrincipalBasedAuthentication") != null)
+            {
+                if (bool.Parse(ConfigurationManager.AppSettings.Get("ServicePrincipalBasedAuthentication")))
+                {
+                    AppConfiguration.synapseOptions.servicePrincipalBasedAuthentication = true;
+                    AppConfiguration.synapseOptions.servicePrincipalTenantId = tenantId;
+                    if (ConfigurationManager.AppSettings.Get("ServicePrincipalAppId") != null)
+                    {
+                        AppConfiguration.synapseOptions.servicePrincipalAppId = ConfigurationManager.AppSettings.Get("ServicePrincipalAppId");
+                    }
+                    if (ConfigurationManager.AppSettings.Get("ServicePrincipalSecret") != null)
+                    {
+                        AppConfiguration.synapseOptions.servicePrincipalSecret = ConfigurationManager.AppSettings.Get("ServicePrincipalSecret");
+                    }
+                }
+            }
 
             AppConfiguration.SourceColumnProperties = Path.Combine(Environment.CurrentDirectory, "Manifest", "SourceColumnProperties.json");
             AppConfiguration.ReplaceViewSyntax = Path.Combine(Environment.CurrentDirectory, "SQL", "ReplaceViewSyntax.json");
-                       
+
             return AppConfiguration;
         }
     }

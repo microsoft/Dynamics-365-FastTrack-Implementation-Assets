@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.IO;
+
 using CDMUtil.Context.ADLS;
 
 namespace CDMUtil.Context.ObjectDefinitions
@@ -103,7 +104,7 @@ namespace CDMUtil.Context.ObjectDefinitions
         public string tenantId;
         public string rootFolder;
         public string manifestName;
-      
+
         public string AXDBConnectionString;
         public List<string> tableList;
         public AdlsContext AdlsContext;
@@ -118,7 +119,7 @@ namespace CDMUtil.Context.ObjectDefinitions
         
         public AppConfigurations()
         { }
-        public AppConfigurations(string tenant, string manifestURL,string accessKey, string targetConnectionString="", string ddlType="", string targetSparkConnection ="")
+        public AppConfigurations(string tenant, string manifestURL, string accessKey, string targetConnectionString = "", string ddlType = "", string targetSparkConnection = "")
         {
             tenantId = tenant;
             Uri manifestURI = new Uri(manifestURL);
@@ -138,7 +139,7 @@ namespace CDMUtil.Context.ObjectDefinitions
             {
                 manifestName = segments[segments.Length - 2].StartsWith("resolved/") ? segments[segments.Length - 3] : segments[segments.Length - 2];
                 manifestName = manifestName.Replace("/", ".manifest.cdm.json");
-                
+
                 tableList = new List<string>();
                 tableList.Add(lastSegment.Replace(".cdm.json", ""));
             }
@@ -154,7 +155,7 @@ namespace CDMUtil.Context.ObjectDefinitions
 
             if (!String.IsNullOrEmpty(targetSparkConnection))
             {
-                synapseOptions = new SynapseDBOptions(targetSparkConnection,environmentName);
+                synapseOptions = new SynapseDBOptions(targetSparkConnection, environmentName);
             }
             else
             {
@@ -163,7 +164,7 @@ namespace CDMUtil.Context.ObjectDefinitions
             AdlsContext = new AdlsContext()
             {
                 StorageAccount = storageAccount,
-                FileSytemName = segments[1]+segments[2],
+                FileSytemName = segments[1] + segments[2],
                 MSIAuth = String.IsNullOrEmpty(accessKey) ? true : false,
                 TenantId = tenant,
                 SharedKey = accessKey
@@ -180,16 +181,19 @@ namespace CDMUtil.Context.ObjectDefinitions
         public string targetSparkPool;
         public string masterKey = Guid.NewGuid().ToString();
         public string credentialName;
+        public bool servicePrincipalBasedAuthentication;
+        public string servicePrincipalTenantId;
+        public string servicePrincipalAppId;
+        public string servicePrincipalSecret;
         public string external_data_source;
         public string location;
         public string fileFormatName;
         public string DDLType = "SynapseView";
         public string schema = "dbo";
         public int DefaultStringLenght = 100;
-        public bool DateTimeAsString = false;
-        public bool ConvertDateTime = false;
         public bool TranslateEnum = false;
         public bool createStats = false;
+        public string parserVersion = "2.0";
        
         public SynapseDBOptions()
         { }
@@ -200,13 +204,13 @@ namespace CDMUtil.Context.ObjectDefinitions
             {
                 targetSparkEndpoint = sparkConfig[0];
                 targetSparkPool = sparkConfig[1];
-                dbName = sparkConfig.Length > 2? sparkConfig[2] : environmentName;
+                dbName = sparkConfig.Length > 2 ? sparkConfig[2] : environmentName;
             }
         }
 
         public SynapseDBOptions(string targetDBConnectionString, string environmentName, string rootLocation, string ddlType)
         {
-            
+
             SqlConnectionStringBuilder connectionStringBuilder = new SqlConnectionStringBuilder(targetDBConnectionString);
 
             servername = connectionStringBuilder.DataSource;
@@ -231,8 +235,10 @@ namespace CDMUtil.Context.ObjectDefinitions
                 masterKey = environmentName;
                 credentialName = environmentName;
                 location = rootLocation;
-                DateTimeAsString = true;
-                ConvertDateTime = true;
+            }
+            else
+            {
+                parserVersion = "1.0";
             }
             if (ddlType != null)
                 DDLType = ddlType;
@@ -242,7 +248,7 @@ namespace CDMUtil.Context.ObjectDefinitions
             }
             connectionStringBuilder.InitialCatalog = "master";
             masterDbConnectionString = connectionStringBuilder.ConnectionString;
-            
+
         }
     }
 }
