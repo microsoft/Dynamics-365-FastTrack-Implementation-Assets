@@ -7,7 +7,6 @@ using CDMUtil.Spark;
 using System.Configuration;
 using System.Collections.Specialized;
 using System.IO;
-using Microsoft.Extensions.Logging.Console;
 using Microsoft.Extensions.Logging;
 
 namespace CDMUtil
@@ -53,6 +52,7 @@ namespace CDMUtil
 
         static AppConfigurations loadConfigurations(ILogger logger)
         {
+            
             //get data from config 
             string tenantId = ConfigurationManager.AppSettings.Get("TenantId");
             string ManifestURL = ConfigurationManager.AppSettings.Get("ManifestURL");

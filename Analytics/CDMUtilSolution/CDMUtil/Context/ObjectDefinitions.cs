@@ -194,6 +194,7 @@ namespace CDMUtil.Context.ObjectDefinitions
         public bool TranslateEnum = false;
         public bool createStats = false;
         public string parserVersion = "2.0";
+        public bool serverless = true;
        
         public SynapseDBOptions()
         { }
@@ -227,18 +228,20 @@ namespace CDMUtil.Context.ObjectDefinitions
                 targetDbConnectionString = connectionStringBuilder.ConnectionString;
             }
 
+            external_data_source = $"{environmentName}_EDS";
+            fileFormatName = $"{environmentName}_FF";
+            masterKey = environmentName;
+            credentialName = environmentName;
+            location = rootLocation;
             // default Synapse Serverless settings 
             if (connectionStringBuilder.DataSource.Contains("-ondemand.sql.azuresynapse.net"))
             {
-                external_data_source = $"{environmentName}_EDS";
-                fileFormatName = $"{environmentName}_FF";
-                masterKey = environmentName;
-                credentialName = environmentName;
-                location = rootLocation;
+                serverless = true;
             }
             else
             {
                 parserVersion = "1.0";
+                serverless = false;
             }
             if (ddlType != null)
                 DDLType = ddlType;
@@ -246,6 +249,7 @@ namespace CDMUtil.Context.ObjectDefinitions
             {
                 fileFormatName = $"CSV";
             }
+
             connectionStringBuilder.InitialCatalog = "master";
             masterDbConnectionString = connectionStringBuilder.ConnectionString;
 
