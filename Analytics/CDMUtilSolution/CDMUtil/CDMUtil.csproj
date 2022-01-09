@@ -27,6 +27,9 @@
     <None Update="Manifest\SourceColumnProperties.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Manifest\SubTableSuperTableList.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="SQL\preparesynapsededicatedpool.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
