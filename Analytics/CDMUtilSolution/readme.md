@@ -4,7 +4,8 @@ CDMUtil solution is a client tool based on [CDM SDK](https://github.com/microsof
 ## Create T-SQL metadata on Synapse Analytics from CDM metadata: 
 Convert CDM metadata to TSQL DDL statements and execute DDL on Synapse Analytics. You can use CDMUtil reader functions to read the CDM metadata created by Dynamics 365 Export to Azure Data Lake feature to automatically create views or external tables on Synapse Analytics. 
 Following diagram shows high level concept of the scenario.  
- ![Cdmreader](cdmreader.png)
+![Cdmutilv2](cdmutilv2.png)
+
 ## Export SQL server tables data to Azure Data Lake in CDM format:
 Convert SQL server table metadata into CDM format and write cdm.json and manifest.cdm.json into Azure Data Lake. You can utilize CDMUtil writer functions with Azure Data Factory/Synapse pipeline to Export SQL Server tables data to data lake in CDM format (Use copy activity to copy table data and CDMUtil to create CDM metadata).
 
@@ -72,14 +73,14 @@ For simple POC scenario you can execute the CDMUtil solution as a Console Applic
     <add key="FileFormat" value="CSV" />
     <add key="ParserVersion" value="2.0" />
     <add key="TranslateEnum" value ="false"/>
-    <add key="TableNames" value ="SalesTable"/>
+    <add key="TableNames" value =""/>
     <add key="ProcessEntities" value ="true"/>
     <add key="CreateStats" value ="false"/>
-	<add key="ProcessSubTableSuperTables" value ="true"/>
-    <add key="AXDBConnectionString" value ="Server=DBServer;Database=AXDB;Uid=youruser;Pwd=yourpassword"/-->
-	<add key="ServicePrincipalBasedAuthentication" value ="false"/>
-	<add key="ServicePrincipalAppId" value ="YourAppId - You can use the same app id, which you´ve used for installing the LCS Add-In"/>
-	<add key="ServicePrincipalSecret" value ="YourSecret - Corresponding Secret"/>
+    <add key="ProcessSubTableSuperTables" value ="true"/>
+    <add key="AXDBConnectionString" value ="Server=DBServer;Database=AXDB;Uid=youruser;Pwd=yourpassword"/>
+    <add key="ServicePrincipalBasedAuthentication" value ="false"/>
+    <add key="ServicePrincipalAppId" value ="YourAppId - You can use the same app id, which you´ve used for installing the LCS Add-In"/>
+    <add key="ServicePrincipalSecret" value ="YourSecret - Corresponding Secret"/-->
   </appSettings>
 </configuration>
 ```
@@ -145,9 +146,12 @@ Execute client application and monitor the response
 ## Copy data to Synapse Table in dedicated pool (DW GEN2)
 If you are using Synapse dedicated pool (Gen 2) and want to copy the Tables data from data lake to Gen2 tables using Copy activity.   
 You can use CDMUtil with DDLType = SynapseTable to collect metadata and insert details in control table to further automate the copy activity using synapse pipeline. Follow the steps bellow 
-1. ![Create control table and artifacts on Synapse SQL Pool](DataTransform_SynapseDedicatedPool.sql)  
-2. Configure CDMUtil to DDLType = SynapseTable
-3. Use ADF/Synapse pileline to trigger copy activity by calling generic storedprocedure.    
+1. Configure CDMUtil to DDLType = SynapseTable
+2. CDMUtil will create control table and stored procedures. It will also create empty tables and populate data in control table based on the CDM metadata.For details check this sql script (![Create control table and artifacts on Synapse SQL Pool](DataTransform_SynapseDedicatedPool.sql))
+3. To copy data in Synapse tables ADF or Synapse pilelines can be used. 
+4. Download [CopySynapseTable template](/Analytics/CDMUtilSolution/CopySynapseTable.zip)    
+5. Import Synapsepipeline Template ![Import Synapsepipeline Template](importsynapsepipelinetemplate.png)
+6. Provide parameters and execute CopySynapseTable pipeline to copy data to Synapse tables 
 
 ## Create F&O Data entities as View on Synapse
 Dynamics 365 Finance and Operations **Data entities** provides conceptual abstraction and encapsulation (de-normalized view) of underlying table schemas to represent key data concepts and functionalities. 
@@ -174,7 +178,7 @@ Run CDMUtil console App or trigger Function App using HTTP to create entities as
 |**Case sensitive object name** |Object name can be case sensitive in Synapse SQL pool and cause error while creating the view definition of entities | Change your database collation to 'alter database DBNAME COLLATE Latin1_General_100_CI_AI_SC_UTF8' |
 
    
-You can also use bellow SQL query to identify views and dependencies manually using developer or sandbox environment
+You can also identify views and dependencies by connecting to database of Finance and Operations Cloud hosted environment or sandbox environment using sql query bellow
 ![View Definition and Dependency](/Analytics/CDMUtilSolution/ViewsAndDependencies.sql)
 
  

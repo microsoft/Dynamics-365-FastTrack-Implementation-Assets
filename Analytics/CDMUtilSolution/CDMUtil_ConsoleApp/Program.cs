@@ -44,45 +44,7 @@ namespace CDMUtil
                 }
                 else
                 {
-                    // Synapse Table Dedicated
-                    //c.synapseOptions.servername = "ftd365synapseanalytics.sql.azuresynapse.net";
-                    //c.synapseOptions.serverless = false;
-                    //c.synapseOptions.DDLType = "SynapseTable";
                     SQLHandler.executeSQL(c, metadataList, logger);
-
-                    // Synapse view with parser version 1
-                    //c.synapseOptions.serverless = true;
-                    //c.synapseOptions.targetDbConnectionString = c.synapseOptions.targetDbConnectionString.Replace(".sql.", "-ondemand.sql.");
-                    //c.synapseOptions.masterDbConnectionString = c.synapseOptions.masterDbConnectionString.Replace(".sql.", "-ondemand.sql.");
-                    //c.synapseOptions.servername = c.synapseOptions.servername.Replace(".sql.", "-ondemand.sql.");
-
-                    //c.synapseOptions.targetDbConnectionString = c.synapseOptions.targetDbConnectionString.Replace("dynamics365_financeandoperations_finance_sandbox", "dynamics365_financeandoperations_finance_sandbox_P1");                   
-                    //c.synapseOptions.dbName = "dynamics365_financeandoperations_finance_sandbox_P1";
-                    //c.synapseOptions.parserVersion = "1.0";
-                    //c.synapseOptions.DDLType = "SynapseView";
-                    //SQLHandler.executeSQL(c, metadataList, logger);
-
-                    //// Synapse view with parser version 2
-                    //c.synapseOptions.serverless = true;
-                    //c.synapseOptions.targetDbConnectionString = c.synapseOptions.targetDbConnectionString.Replace("dynamics365_financeandoperations_finance_sandbox_P1", "dynamics365_financeandoperations_finance_sandbox_P2");
-                    //c.synapseOptions.dbName = "dynamics365_financeandoperations_finance_sandbox_P2";
-                    //c.synapseOptions.parserVersion = "2.0";
-                    //c.synapseOptions.DDLType = "SynapseView";
-                    //SQLHandler.executeSQL(c, metadataList, logger);
-
-                    //c.synapseOptions.serverless = true;
-                    //c.synapseOptions.targetDbConnectionString = c.synapseOptions.targetDbConnectionString.Replace("dynamics365_financeandoperations_finance_sandbox_P2", "dynamics365_financeandoperations_finance_sandbox_EXTP1");
-                    //c.synapseOptions.dbName = "dynamics365_financeandoperations_finance_sandbox_EXTP1";
-                    //c.synapseOptions.parserVersion = "1.0";
-                    //c.synapseOptions.DDLType = "SynapseExternalTable";
-                    //SQLHandler.executeSQL(c, metadataList, logger);
-
-                    //c.synapseOptions.serverless = true;
-                    //c.synapseOptions.targetDbConnectionString = c.synapseOptions.targetDbConnectionString.Replace("dynamics365_financeandoperations_finance_sandbox_EXTP1", "dynamics365_financeandoperations_finance_sandbox_EXTP2");
-                    //c.synapseOptions.dbName = "dynamics365_financeandoperations_finance_sandbox_EXTP2";
-                    //c.synapseOptions.parserVersion = "2.0";
-                    //c.synapseOptions.DDLType = "SynapseExternalTable";
-                    //SQLHandler.executeSQL(c, metadataList, logger);
                 }
             }
             Console.WriteLine("Press any key to exit...");

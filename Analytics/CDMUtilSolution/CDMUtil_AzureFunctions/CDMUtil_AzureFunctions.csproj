@@ -26,6 +26,9 @@
     <None Include="..\CDMUtil\Manifest\EntityList.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="..\CDMUtil\Manifest\SubTableSuperTableList.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\CDMUtil\SQL\ReplaceViewSyntax.json">
