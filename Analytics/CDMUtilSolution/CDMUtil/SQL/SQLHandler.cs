@@ -218,13 +218,13 @@ namespace CDMUtil.SQL
                 else
                 {
                     logger.LogInformation($"Entity:{metadata.entityName}");
-                    sql = metadata.viewDefinition;
+                    sql = TSqlSyntaxHandler.finalTsqlConversion(metadata.viewDefinition, "sql", c.synapseOptions);
                 }
-
+                 
                 if (sqlStatements.Exists(x => x.EntityName.ToLower() == metadata.entityName.ToLower()))
                     continue;
                 else
-                    sqlStatements.Add(new SQLStatement() { EntityName = metadata.entityName,DataLocation = dataLocation, Statement = sql });
+                    sqlStatements.Add(new SQLStatement() { EntityName = metadata.entityName,DataLocation = dataLocation, Statement = sql });      
             }
 
             logger.LogInformation($"Tables:{sqlStatements.FindAll(a => a.DataLocation != null).Count}");
@@ -285,7 +285,7 @@ namespace CDMUtil.SQL
                     break;
                 case "decimal":
                 case "double":
-                    sqlColumnDef = $"{attribute.name} decimal (32, 6)";
+                    sqlColumnDef = $"{attribute.name} numeric (32 , 6)";
                     break;
                 case "biginteger":
                 case "int64":
@@ -791,7 +791,7 @@ as
             return sqlFragment;
         }
       
-        public static string finalTsqlConversion(string inputString, string type = "sql", bool serverless= true)
+        public static string finalTsqlConversion(string inputString, string type, SynapseDBOptions synapseOptions)
         {
             string outputString = inputString;
 
@@ -800,7 +800,7 @@ as
             switch (type)
             {
                 case "sql":
-                    if (serverless)
+                    if (synapseOptions.serverless)
                     {
                         outputString = outputString.Replace("CREATE VIEW ", "CREATE OR ALTER VIEW ", StringComparison.OrdinalIgnoreCase);
                     }
@@ -809,13 +809,16 @@ as
                     {
                         outputString = outputString.Replace("CREATE OR ALTER VIEW ", "CREATE VIEW ", StringComparison.OrdinalIgnoreCase);
                     }
-                    outputString = outputString.Replace("[dbo].GetValidFromInContextInfo()", "SYSUTCDATETIME()", StringComparison.OrdinalIgnoreCase);
-                    outputString = outputString.Replace("[dbo].GetValidToInContextInfo()", "SYSUTCDATETIME()", StringComparison.OrdinalIgnoreCase);
-                    outputString = outputString.Replace("dbo.GetValidFromInContextInfo()", "SYSUTCDATETIME()", StringComparison.OrdinalIgnoreCase);
-                    outputString = outputString.Replace("dbo.GetValidToInContextInfo()", "SYSUTCDATETIME()", StringComparison.OrdinalIgnoreCase);
-                    outputString = outputString.Replace("GetValidFromInContextInfo()", "SYSUTCDATETIME()", StringComparison.OrdinalIgnoreCase);
-                    outputString = outputString.Replace("GetValidToInContextInfo()", "SYSUTCDATETIME()", StringComparison.OrdinalIgnoreCase);
-                   
+
+                    string dateTimeFunct = synapseOptions.parserVersion == "2.0" ? "SYSUTCDATETIME()" : "GETUTCDATE()";
+
+                    outputString = outputString.Replace("[dbo].GetValidFromInContextInfo()", dateTimeFunct, StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("[dbo].GetValidToInContextInfo()", dateTimeFunct, StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("dbo.GetValidFromInContextInfo()", dateTimeFunct, StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("dbo.GetValidToInContextInfo()", dateTimeFunct, StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("GetValidFromInContextInfo()", dateTimeFunct, StringComparison.OrdinalIgnoreCase);
+                    outputString = outputString.Replace("GetValidToInContextInfo()", dateTimeFunct, StringComparison.OrdinalIgnoreCase);
+                    
                     break;
 
                 case "spark":
@@ -856,10 +859,9 @@ as
                     sqlSyntax.StatsStatements.ToList().ForEach(x => statsStatements[x.Key]= x.Value);
                 }
 
-                outputString = finalTsqlConversion(outputString, "sql", c.synapseOptions.serverless);
                 view.viewDefinition = outputString;
             }
-             if (c.synapseOptions.createStats)
+            if (c.synapseOptions.createStats)
             {
                 statsStatements.ToList().ForEach(x => metadataList.Add(new SQLMetadata { entityName = x.Key, viewDefinition = x.Value }));
             }

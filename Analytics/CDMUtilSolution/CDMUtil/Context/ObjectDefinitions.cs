@@ -220,14 +220,14 @@ namespace CDMUtil.Context.ObjectDefinitions
                 targetDbConnectionString = connectionStringBuilder.ConnectionString;
             }
 
+            external_data_source = $"{environmentName}_EDS";
+            fileFormatName = $"{environmentName}_FF";
+            masterKey = environmentName;
+            credentialName = environmentName;
+            location = rootLocation;
             // default Synapse Serverless settings 
             if (connectionStringBuilder.DataSource.Contains("-ondemand.sql.azuresynapse.net"))
             {
-                external_data_source = $"{environmentName}_EDS";
-                fileFormatName = $"{environmentName}_FF";
-                masterKey = environmentName;
-                credentialName = environmentName;
-                location = rootLocation;
                 serverless = true;
             }
             else
@@ -241,6 +241,7 @@ namespace CDMUtil.Context.ObjectDefinitions
             {
                 fileFormatName = $"CSV";
             }
+
             connectionStringBuilder.InitialCatalog = "master";
             masterDbConnectionString = connectionStringBuilder.ConnectionString;
             

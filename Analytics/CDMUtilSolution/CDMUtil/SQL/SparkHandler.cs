@@ -6,6 +6,7 @@ using Azure.Identity;
 using CDMUtil.Context.ObjectDefinitions;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using CDMUtil.SQL;
 
 namespace CDMUtil.Spark
 {
@@ -147,7 +148,8 @@ namespace CDMUtil.Spark
                 }
                 else
                 {
-                    sql = metadata.viewDefinition;
+                    sql = TSqlSyntaxHandler.finalTsqlConversion(metadata.viewDefinition, "spark", c.synapseOptions);
+
                 }
                 if (sqlStatements.Exists(x => x.EntityName.ToLower() == metadata.entityName.ToLower()))
                 {
