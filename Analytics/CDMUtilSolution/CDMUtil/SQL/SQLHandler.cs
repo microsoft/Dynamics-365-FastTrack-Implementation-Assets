@@ -669,11 +669,6 @@ as
             if (options.servername.Contains("-ondemand.sql.azuresynapse.net"))
                 ParserVersion = $", PARSER_VERSION = '{options.parserVersion}'";
 
-            string sql = @"
-            -- create credentials as managed identity 
-            IF NOT EXISTS(select * from sys.database_credentials where credential_identity = 'Managed Identity' and name = '{0}')
-            CREATE DATABASE SCOPED CREDENTIAL {0} WITH IDENTITY='Managed Identity'
-
             if (options.servicePrincipalBasedAuthentication)
             {
                 sql += String.Format(@"
