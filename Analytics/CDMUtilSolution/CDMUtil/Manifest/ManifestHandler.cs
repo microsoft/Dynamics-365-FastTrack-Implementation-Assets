@@ -56,7 +56,7 @@ namespace CDMUtil.Manifest
                     c.manifestName = subManifestName;
                     c.rootFolder = subManifestRoot;
 
-                    await manifestToSQLMetadata(c, metadataList, logger, parentFolder);
+                    manifestToSQLMetadata(c, metadataList, logger, parentFolder);
                 }
 
                 logger.LogInformation($"Manifest:{manifest.Name}");
@@ -283,7 +283,7 @@ namespace CDMUtil.Manifest
             if (!String.IsNullOrEmpty(configurations.AXDBConnectionString))
             {
                 SQLHandler sQLHandler = new SQLHandler(configurations.AXDBConnectionString, "", logger);
-                logger.LogInformation($"Retrieving sub table super tables from AXDB connection");
+                //logger.LogInformation($"Retrieving sub table super tables from AXDB connection");
                 List<SQLMetadata> viewDependencices = sQLHandler.retrieveSubTableSuperTableView(configurations, superTablesName, subTableName);
 
                 if (viewDependencices != null && viewDependencices.Count > 0)
