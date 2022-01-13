@@ -57,7 +57,7 @@ namespace CDMUtil.SQL
             }
             finally
             {
-               //TODO : Log stats by tables , entity , created or failed
+                //TODO : Log stats by tables , entity , created or failed
                 SQLHandler.missingTables(c, metadataList, log);
             }
             return statements;
@@ -220,7 +220,7 @@ namespace CDMUtil.SQL
                     logger.LogInformation($"Entity:{metadata.entityName}");
                     sql = TSqlSyntaxHandler.finalTsqlConversion(metadata.viewDefinition, "sql", c.synapseOptions);
                 }
-                 
+
                 if (sqlStatements.Exists(x => x.EntityName.ToLower() == metadata.entityName.ToLower()))
                     continue;
                 else
@@ -249,7 +249,7 @@ namespace CDMUtil.SQL
                         sqlColumnNames = $"{attribute.name}";
                     }
                     break;
-                
+
                 case "string":
                     if (synapseDBOptions.TranslateEnum == true && attribute.constantValueList != null)
                     {
@@ -351,7 +351,7 @@ namespace CDMUtil.SQL
 
             if (dataReader.Read())
             {
-                var missingTables = (string) dataReader[0];
+                var missingTables = (string)dataReader[0];
                 if (String.IsNullOrEmpty(missingTables) == false)
                 {
                     missingTables = missingTables.TrimStart(',');
@@ -431,7 +431,7 @@ namespace CDMUtil.SQL
                 });
             }
             // dummy table/view case
-            else if(subTableTableId != "0" && superTableTableId == "0" && superTableName == String.Empty)
+            else if (subTableTableId != "0" && superTableTableId == "0" && superTableName == String.Empty)
             {
                 DataTable dataTableColumns = this.executeSQLQuery(queryStringColumns);
                 DataTableReader dataReaderColumns = dataTableColumns.CreateDataReader();
@@ -550,7 +550,7 @@ order by rootNode asc, depth desc
                 SQLHandler handler = new SQLHandler(c.synapseOptions.targetDbConnectionString, c.tenantId, log);
                 handler.executeStatements(statement);
 
-                
+
             }
             else
             {
@@ -665,7 +665,7 @@ as
 
 
             string ParserVersion = "";
-            
+
             if (options.servername.Contains("-ondemand.sql.azuresynapse.net"))
                 ParserVersion = $", PARSER_VERSION = '{options.parserVersion}'";
 
@@ -900,7 +900,7 @@ as
             }
             return sqlFragment;
         }
-      
+
         public static string finalTsqlConversion(string inputString, string type, SynapseDBOptions synapseOptions)
         {
             string outputString = inputString;
@@ -928,7 +928,7 @@ as
                     outputString = outputString.Replace("dbo.GetValidToInContextInfo()", dateTimeFunct, StringComparison.OrdinalIgnoreCase);
                     outputString = outputString.Replace("GetValidFromInContextInfo()", dateTimeFunct, StringComparison.OrdinalIgnoreCase);
                     outputString = outputString.Replace("GetValidToInContextInfo()", dateTimeFunct, StringComparison.OrdinalIgnoreCase);
-                    
+
                     break;
 
                 case "spark":
@@ -959,7 +959,7 @@ as
             {
                 string outputString = view.viewDefinition;
 
-                outputString = customSyntaxUpdate(c.ReplaceViewSyntax, outputString);
+                outputString = customSyntaxUpdate(c.ReplaceViewSyntax, outputString, view.entityName);
 
                 TSqlSyntaxHandler sqlSyntax = new TSqlSyntaxHandler(outputString, c);
 
@@ -976,7 +976,7 @@ as
                 statsStatements.ToList().ForEach(x => metadataList.Add(new SQLMetadata { entityName = x.Key, viewDefinition = x.Value }));
             }
         }
-        public static string customSyntaxUpdate(string fileName, string inputString)
+        public static string customSyntaxUpdate(string fileName, string inputString, string viewName)
         {
             string outputString = inputString;
             if (String.IsNullOrEmpty(fileName) == false && File.Exists(fileName))
@@ -986,7 +986,10 @@ as
 
                 foreach (Artifacts a in replaceViewSyntax)
                 {
-                    outputString = outputString.Replace(a.Key, a.Value, StringComparison.OrdinalIgnoreCase);
+                    if (a.ViewName == string.Empty || a.ViewName.Equals(viewName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        outputString = outputString.Replace(a.Key, a.Value, StringComparison.OrdinalIgnoreCase);
+                    }
                 }
             }
             return outputString;
