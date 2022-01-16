@@ -6,13 +6,13 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Azure.Analytics.Synapse.Spark" Version="1.0.0-beta.1" />
-    <PackageReference Include="Azure.Identity" Version="1.4.1" />
-    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.1" />
-    <PackageReference Include="Microsoft.CommonDataModel.ObjectModel" Version="1.4.0" />
-    <PackageReference Include="Microsoft.CommonDataModel.ObjectModel.Adapter.Adls" Version="1.4.0" />
+    <PackageReference Include="Azure.Identity" Version="1.5.0" />
+    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
+    <PackageReference Include="Microsoft.CommonDataModel.ObjectModel" Version="1.4.3" />
+    <PackageReference Include="Microsoft.CommonDataModel.ObjectModel.Adapter.Adls" Version="1.4.3" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="4.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.SqlServer.TransactSql.ScriptDom" Version="150.4897.1" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
   </ItemGroup>
   <ItemGroup>
     <None Update="local.settings.json">

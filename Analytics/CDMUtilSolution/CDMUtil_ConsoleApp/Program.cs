@@ -47,7 +47,9 @@ namespace CDMUtil
                     SQLHandler.executeSQL(c, metadataList, logger);
                 }
             }
+
             Console.WriteLine("Press any key to exit...");
+            Console.ReadLine();
         }
 
         static AppConfigurations loadConfigurations(ILogger logger)
