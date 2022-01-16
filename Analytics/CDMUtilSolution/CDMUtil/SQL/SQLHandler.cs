@@ -1,7 +1,6 @@
 ﻿using CDMUtil.Context.ObjectDefinitions;
 using System.Collections.Generic;
-using Microsoft.Azure.Services.AppAuthentication;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System;
 using System.Data;
 using System.Threading.Tasks;
@@ -79,47 +78,33 @@ namespace CDMUtil.SQL
         public DataTable executeSQLQuery(string query)
         {
             DataTable dataTable = new DataTable();
-
-            using (SqlConnection conn = new SqlConnection(SQLConnectionStr))
+            
+            try
             {
-                SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder(SQLConnectionStr);
-
-                //use AAD auth when userid is not passed in connection string 
-                if (builder.IntegratedSecurity != true && string.IsNullOrEmpty(builder.UserID))
+                using (SqlConnection conn = new SqlConnection(SQLConnectionStr))
                 {
-                    conn.AccessToken = (new AzureServiceTokenProvider()).GetAccessTokenAsync("https://database.windows.net/", Tenant).Result;
-                }
-
-                conn.Open();
-                using (var command = new SqlCommand(query, conn))
-                {
-                    try
+                    conn.Open();
+                    using (var command = new SqlCommand(query , conn))
                     {
+                   
                         SqlDataReader dataReader = command.ExecuteReader();
-                        dataTable.Load(dataReader);
-
+                        dataTable.Load(dataReader);                  
                     }
-                    catch (SqlException ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                    }
+                    conn.Close();
                 }
-                conn.Close();
+            }
+            catch (SqlException ex)
+            {
+                logger.LogError(ex.Message);
             }
             return dataTable;
         }
 
         public void executeStatements(SQLStatements sqlStatements)
         {
-            using (SqlConnection conn = new SqlConnection(SQLConnectionStr))
+            try
             {
-                SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder(SQLConnectionStr);
-                //use AAD auth when userid is not passed in connection string 
-                if (builder.IntegratedSecurity != true && string.IsNullOrEmpty(builder.UserID))
-                {
-                    conn.AccessToken = (new AzureServiceTokenProvider()).GetAccessTokenAsync("https://database.windows.net/", Tenant).Result;
-                }
-                try
+                using (SqlConnection conn = new SqlConnection(SQLConnectionStr))
                 {
                     conn.Open();
                     foreach (var s in sqlStatements.Statements)
@@ -132,6 +117,7 @@ namespace CDMUtil.SQL
                                 {
                                     logger.LogInformation($"Executing DDL:{s.EntityName}");
                                 }
+                                
                                 logger.LogDebug($"Statement:{s.Statement}");
                                 command.ExecuteNonQuery();
 
@@ -150,10 +136,10 @@ namespace CDMUtil.SQL
                     }
                     conn.Close();
                 }
-                catch (SqlException e)
-                {
-                    logger.LogError($"Connection error:{ e.Message}");
-                }
+            }
+            catch (SqlException e)
+            {
+                logger.LogError($"Connection error:{ e.Message}");
             }
         }
         public async static Task<List<SQLStatement>> sqlMetadataToDDL(List<SQLMetadata> metadataList, AppConfigurations c, ILogger logger)

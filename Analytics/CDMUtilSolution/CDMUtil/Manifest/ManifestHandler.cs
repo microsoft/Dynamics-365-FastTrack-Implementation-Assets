@@ -393,31 +393,50 @@ namespace CDMUtil.Manifest
         {
             var localRoot = cdmCorpus.Storage.FetchRootFolder("adls");
             bool created = false;
-
-            CdmManifestDefinition manifest = await cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(manifestName + ".manifest.cdm.json");
-
-            if (manifest == null)
+            try
             {
-                manifest = cdmCorpus.MakeObject<CdmManifestDefinition>(CdmObjectType.ManifestDef, manifestName);
+                logger.LogInformation($"creating subManifest {manifestName}");
+
+                CdmManifestDefinition manifest = cdmCorpus.MakeObject<CdmManifestDefinition>(CdmObjectType.ManifestDef, manifestName + ".manifest.cdm.json");
                 localRoot.Documents.Add(manifest, manifestName + ".manifest.cdm.json");
-            }
-
-            var subManifest = cdmCorpus.MakeObject<CdmManifestDeclarationDefinition>(CdmObjectType.ManifestDeclarationDef, nextFolder, simpleNameRef: false);
-            subManifest.ManifestName = nextFolder;
-            subManifest.Definition = $"{nextFolder}/{nextFolder}.manifest.cdm.json";
-
-            //check if the submanifest already exists then return
-            foreach (var sm in manifest.SubManifests)
-            {
-                if (sm.ManifestName == subManifest.ManifestName)
+                   
+                if (manifest != null)
                 {
-                    return false;
+                    CdmManifestDeclarationDefinition subManifest = null;
+                    
+                    subManifest = cdmCorpus.MakeObject<CdmManifestDeclarationDefinition>(CdmObjectType.ManifestDeclarationDef, nextFolder, simpleNameRef: false);
+                   
+                    if (subManifest != null)
+                    {
+                        subManifest.ManifestName = nextFolder;
+                        subManifest.Definition = $"{nextFolder}/{nextFolder}.manifest.cdm.json";
+
+                        //check if the submanifest already exists then return
+                        foreach (var sm in manifest.SubManifests)
+                        {
+                            if (sm.ManifestName == subManifest.ManifestName)
+                            {
+                                return false;
+                            }
+                        }
+
+                        manifest.SubManifests.Add(subManifest);
+                        created = await manifest.SaveAsAsync($"{manifestName}.manifest.cdm.json");
+                    }
                 }
             }
-
-            manifest.SubManifests.Add(subManifest);
-            created = await manifest.SaveAsAsync($"{manifestName}.manifest.cdm.json");
-
+            catch (Exception e)
+            {
+                this.cdmCorpus.Ctx.Events.ForEach(
+                         logEntry => logEntry.ToList().ForEach(
+                             logEntryPair => logger.LogError($"{logEntryPair.Key}={logEntryPair.Value}")
+                         )
+                     );
+                logger.LogError(e.Message);
+                logger.LogError(e.StackTrace);
+                logger.LogError(e.Message);
+                
+            }
             return created;
         }
 
@@ -502,73 +521,80 @@ namespace CDMUtil.Manifest
         }
 
 
-        public async Task<bool> createManifest(EntityList entityList, bool createModelJson = false)
+        public async Task<bool> createManifest(EntityList entityList, ILogger logger, bool createModelJson = false)
         {
-
             bool manifestCreated = false;
             string manifestName = entityList.manifestName;
             // Add to root folder.
             var adlsRoot = cdmCorpus.Storage.FetchRootFolder("adls");
 
             List<EntityDefinition> EntityDefinitions = entityList.entityDefinitions;
-
-            // Read manifest if exists.
-            CdmManifestDefinition manifest = cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(manifestName + ".manifest.cdm.json").Result;
-
-            if (manifest == null)
+            try
             {
+                logger.LogInformation($"Initializing manifest {manifestName}.manifest.cdm.json ");
+
                 // Make the temp manifest and add it to the root of the local documents in the corpus
-                manifest = cdmCorpus.MakeObject<CdmManifestDefinition>(CdmObjectType.ManifestDef, manifestName);
+                CdmManifestDefinition manifest = cdmCorpus.MakeObject<CdmManifestDefinition>(CdmObjectType.ManifestDef, manifestName);
 
                 // Add an import to the foundations doc so the traits about partitons will resolve nicely
                 manifest.Imports.Add(FoundationJsonPath);
 
                 // Add to root folder.
                 adlsRoot.Documents.Add(manifest, $"{manifestName}.manifest.cdm.json");
-
-            }
-            else
-            {
-                foreach (EntityDefinition entityDefinition in EntityDefinitions)
+                
+                if (manifest != null)
                 {
-                    foreach (CdmEntityDeclarationDefinition localEntityDefinition in manifest.Entities.ToList())
+                    foreach (EntityDefinition entityDefinition in EntityDefinitions)
                     {
-                        if (localEntityDefinition.EntityName.Equals(entityDefinition.name, StringComparison.OrdinalIgnoreCase))
+                        foreach (CdmEntityDeclarationDefinition localEntityDefinition in manifest.Entities.ToList())
                         {
-                            manifest.Entities.Remove(currObject: localEntityDefinition);
+                            if (localEntityDefinition.EntityName.Equals(entityDefinition.name, StringComparison.OrdinalIgnoreCase))
+                            {
+                                manifest.Entities.Remove(currObject: localEntityDefinition);
+                            }
                         }
+                    }
+                    foreach (EntityDefinition entityDefinition in EntityDefinitions)
+                    {
+                        logger.LogInformation($"Creating entity {entityDefinition.name} in manifest {manifestName}");
+                        var cdmEntityDefinition = this.CreateCdmEntityDefinition(entityDefinition);
+                        var cdmEntityDocument = this.CreateDocumentDefinition(cdmEntityDefinition);
+                        // Add Imports to the entity document.
+                        cdmEntityDocument.Imports.Add(FoundationJsonPath);
+
+                        // Add the document to the root of the local documents in the corpus.
+                        adlsRoot.Documents.Add(cdmEntityDocument, cdmEntityDocument.Name);
+
+                        // Add the entity to the manifest.
+                        manifest.Entities.Add(cdmEntityDefinition);
+
+                        this.addPartition(manifest, entityDefinition);
+                    }
+
+                    logger.LogInformation($"Creating manifest {manifestName}.manifest.cdm.json ");
+                    // We can save the documents as manifest.cdm.json format or model.json
+                    // Save as manifest.cdm.json 
+                    manifestCreated = manifest.SaveAsAsync($"{manifestName}.manifest.cdm.json", true).Result;
+                    logger.LogInformation($"{manifestName}.manifest.cdm.json created");
+                    // Save as a model.json
+                    if (createModelJson)
+                    {
+                        bool created = manifest.SaveAsAsync("model.json", true).Result;
+                        logger.LogInformation("model.json saved");
                     }
                 }
             }
-
-            foreach (EntityDefinition entityDefinition in EntityDefinitions)
+            catch (Exception e)
             {
-                var cdmEntityDefinition = this.CreateCdmEntityDefinition(entityDefinition);
-                var cdmEntityDocument = this.CreateDocumentDefinition(cdmEntityDefinition);
-                // Add Imports to the entity document.
-                cdmEntityDocument.Imports.Add(FoundationJsonPath);
-
-                // Add the document to the root of the local documents in the corpus.
-                adlsRoot.Documents.Add(cdmEntityDocument, cdmEntityDocument.Name);
-
-                // Add the entity to the manifest.
-                manifest.Entities.Add(cdmEntityDefinition);
-
-                this.addPartition(manifest, entityDefinition);
+                this.cdmCorpus.Ctx.Events.ForEach(
+                          logEntry => logEntry.ToList().ForEach(
+                              logEntryPair => logger.LogError($"{logEntryPair.Key}={logEntryPair.Value}")
+                          )
+                      );
+                logger.LogError(e.Message);
+                logger.LogError(e.StackTrace);
+                logger.LogError(e.Message);
             }
-
-            Console.WriteLine("Save the documents");
-            // We can save the documents as manifest.cdm.json format or model.json
-            // Save as manifest.cdm.json 
-            manifestCreated = manifest.SaveAsAsync($"{manifestName}.manifest.cdm.json", true).Result;
-
-            // Save as a model.json
-            if (createModelJson)
-            {
-                bool created = manifest.SaveAsAsync("model.json", true).Result;
-                Console.WriteLine("model.json saved");
-            }
-
             return manifestCreated;
         }
         public async Task<bool> manifestToModelJson(AdlsContext adlsContext, string manifestName, string localRoot, CdmManifestDefinition modelJson = null, bool root = true)
