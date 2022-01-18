@@ -174,10 +174,12 @@ namespace CDMUtil.Spark
             switch (columnAttribute.dataType.ToLower())
             {
                 case "string":
+                    //TODO: metadata sync is not workins  
+                    //sqlColumnDef = $"{columnAttribute.name} varchar({columnAttribute.maximumLength})";
                     sqlColumnDef = $"{columnAttribute.name} string";
                     break;
                 case "decimal":
-                    sqlColumnDef = $"{columnAttribute.name} decimal ";
+                    sqlColumnDef = $"{columnAttribute.name} decimal(32,6) ";
                     break;
                 case "biginteger":
                 case "int64":

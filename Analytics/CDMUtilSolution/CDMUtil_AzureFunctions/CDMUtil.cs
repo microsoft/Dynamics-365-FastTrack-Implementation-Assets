@@ -99,7 +99,7 @@ namespace CDMUtil
                 createModel = true;
             }
 
-            bool ManifestCreated = await manifestHandler.createManifest(entityList, createModel);
+            bool ManifestCreated = await manifestHandler.createManifest(entityList, log, createModel);
 
             //Folder structure Tables/AccountReceivable/Group
             var subFolders = localFolder.Split('/');
