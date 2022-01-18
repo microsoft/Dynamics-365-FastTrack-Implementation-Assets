@@ -16,7 +16,7 @@ Using Synapse Analytics Dynamics 365 customers can un-lock following scenarios
 5. Enterprise Datawarehousing
 6. System integration using T-SQL
 
-You can use CDMUtil to convert CDM metadata in the lake to Synapse Analytics metadata and quickly get started with Synapse Analytics.CDMUtil is a client tool based on [CDM SDK](https://github.com/microsoft/CDM/tree/master/objectModel/CSharp) to read [Common Data Model](https://docs.microsoft.com/en-us/common-data-model/) metadata and convert into metadata for Synapse Analytics SQL pools and Spark pools. 
+To get started with Synapse Analytics with data in the lake, you can use CDMUtil to convert CDM metadata in the lake to Synapse Analytics metadata. CDMUtil is a client tool based on [CDM SDK](https://github.com/microsoft/CDM/tree/master/objectModel/CSharp) to read [Common Data Model](https://docs.microsoft.com/en-us/common-data-model/) metadata and convert into metadata for Synapse Analytics SQL pools and Spark pools. 
 
 Following diagram shows high level concept about the use of Synapse Analytics- 
 
@@ -105,9 +105,11 @@ Bellow is how CDMUtil works end-to-end with Export to data lake feature
 
 Once view or external tables are created, you can [connect to Synapse Analytics pools](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/connect-overview) to query and transform data using TSQL.
 
-# Common use cases and configurations
+# CDMUtil common use cases 
 
-## Create Tables as Views or External Table on Synapse SQL Serverless Pool
+Following are common use cases to use CDMutil with various configuration options.
+
+## 1. Create tables as Views or External table on Synapse SQL serverless pool
 Follow the steps bellow to create views or external table on Synapse SQL Serverless pool
 
 1. Using Finance and Operations App [Configure Tables in Finance and Operations App](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/finance-data-azure-data-lake) service. 
@@ -136,7 +138,7 @@ Follow the steps bellow to create views or external table on Synapse SQL Serverl
 |**Error when creating view or external table**|Content of directory on path '.../TableName/*.csv' cannot be listed.|Grant synapse workspace blob data contributor or blob data reader access to storage account|
 |**Error when querying the view or external table** |Error handling external file: 'Max errors count reached.'. File/External table name: '.../{TableName}/{filename}.csv'.| Usually the error is due to datatype mismatch ie column lenght for string column. If your environment does not have Enhanced metadata feature on, provide AXDB connectionString to read the correct string length while creating the metadata on synapse. Use parser version 1.0 to get more detailed error on column or row that is causing issue. |
 
-## Create F&O Data entities as View on Synapse SQL Pool
+## 2. Create F&O Data entities as View on Synapse SQL pool
 Dynamics 365 Finance and Operations **Data entities** provides conceptual abstraction and encapsulation (de-normalized view) of underlying table schemas to represent key data concepts and functionalities. 
 Existing Finance and Operations customer that are using BYOD for reporting and BI scenarios, may wants to create Data entities as view on Synapse to enable easier transition from BYOD to Export to data lake and minimize changes in existing reports and ETL processes. 
 Export to data lake **Select tables using entities** option enables users to export dependent tables and data entity view defintion as cdm file under Entities folder in the data lake. 
@@ -156,19 +158,23 @@ Export to data lake **Select tables using entities** option enables users to exp
 
 |Issue           |Description |Workaround/Recomendation |
 |----------------- |:---|:--------------|
-|**Missing dependent Tables** |Data entities view creation may fail if all dependent tables are not already available in Synapse SQL pool. Currently when **Select tables using entities** is used, all dependent tables does not get added to lake. | To easily identify missing tables provide AXDBConnectionString, CDMUtil will list outs missing tables in Synapse. Add missing table to service and run CDMUtil again |
+|**Missing dependent tables** |Data entities view creation may fail if all dependent tables are not already available in Synapse SQL pool. Currently when **Select tables using entities** is used, all dependent tables does not get added to lake. | To easily identify missing tables provide AXDBConnectionString, CDMUtil will list outs missing tables in Synapse. Add missing table to service and run CDMUtil again |
 |**Missing dependent views**|Data entities may have dependency on F&O views, currently metadata service does not produce metadata for views.| AXDBConnectionString of source AXDB tier1 to tier2 environment and automatically retrieve dependent views and create before create entity views.|
 |**Syntax dependecy**|Some data entities or views may have sql syntax that is not supported in synapse.| CDMUtil parse the sql syntax and replaces with known supported syntax in Synapse SQL. ReplaceViewSyntax.json contains list of known syntax replacements. Additional replacement can be added in the file if required. |
+|**Performance issue when querying complex views** |You may run into performance issue when querying the complex view such that have lots of joins and complexity| Change your database collation to 'alter database DBNAME COLLATE Latin1_General_100_CI_AI_SC_UTF8' |
 |**Case sensitive object name** |Object name can be case sensitive in Synapse SQL pool and cause error while creating the view definition of entities | Change your database collation to 'alter database DBNAME COLLATE Latin1_General_100_CI_AI_SC_UTF8' |
 
 You can also identify views and dependencies by connecting to database of Finance and Operations Cloud hosted environment or sandbox environment using sql query bellow
 ![View Definition and Dependency](/Analytics/CDMUtilSolution/ViewsAndDependencies.sql)
 
-## Copy data to Synapse Table in dedicated pool (DW GEN2)
+## 3. Copy data to Synapse Table in dedicated pool (DW GEN2)
 
 If plan to use Synapse dedicated pool (Gen 2) and want to copy the Tables data from data lake to Gen2 tables using Copy activity.   
-You can use CDMUtil with DDLType = SynapseTable to collect metadata and insert details in control table to further automate the copy activity using synapse pipeline. Follow the steps bellow 
+You can use CDMUtil with DDLType = SynapseTable to collect metadata and insert details in control table to further automate the copy activity using synapse pipeline. 
 
+#### Create metadata and control table
+
+Follow the steps bellow to create metadata and control table
 1. Update following configuration
 * **TargetDbConnectionString**: Synapse SQL Dedicated pool connection string. 
 * **DDLType**: SynapseTable
@@ -177,14 +183,20 @@ You can use CDMUtil with DDLType = SynapseTable to collect metadata and insert d
 
 Data need to be copied in the dedicated pool before it can be queried. Bellow is example process to copy the data to dedicated pool.
 
-### Copy data in Synapse Tables
+#### Copy data in Synapse Tables
 1. To copy data in Synapse tables ADF or Synapse pilelines can be used. 
 2. Download [CopySynapseTable template](/Analytics/CDMUtilSolution/CopySynapseTable.zip)    
 3. Import Synapsepipeline Template ![Import Synapsepipeline Template](importsynapsepipelinetemplate.png)
 4. Provide parameters and execute CopySynapseTable pipeline to copy data to Synapse tables 
 
-## Create External Tables in Synapse Lake Database using SparkPool
-You can also use CDMUtil to create ExternalTables in Synapse Lake database (Spark database) 
+## 4. Create External Tables in Synapse Lake Database using SparkPool
+You can also use CDMUtil to create External Tables in Synapse [Lake database](https://docs.microsoft.com/en-us/azure/synapse-analytics/database-designer/concepts-lake-database). 
+
+1. [Create a Apache Spark Pool](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-create-apache-spark-pool-portal)
+2. Create a [lake database](https://docs.microsoft.com/en-us/azure/synapse-analytics/database-designer/create-empty-lake-database)
+3. Update CDMUtil configuration *TargetSparkConnection* to provide Spark Pool connection information.  
+4. Run the CDMUtil console app or function App to create external tables in Lake database
+5. External tables created in Lake database are [automatically share metadata](https://docs.microsoft.com/en-us/azure/synapse-analytics/metadata/table) to serverless SQL pool.
 
 # Additional References
 
