@@ -154,7 +154,15 @@ Export to data lake **Select tables using entities** option enables users to exp
 2. Run CDMUtil console App or trigger Function App using HTTP to create entities as views on Synapse.
 3. If you recieve error for missing tables, add those table to Export to data lake service, wait for the metadata to land in the lake and run the CDMUtil again.
 
-#### Common issues and workarounds 
+#### Create F&O Sub Tables as View on Synapse Serverless
+Using CDMUtil you can also create F&O SubTables such as CompanyInfo DirPerson etc as view on base table. 
+1. To create sub tables as view on Synapse,in addition to above configurations, update following configurations 
+* **ProcessSubTableSuperTables**: Process sub table list from file Manifest/SubTableSuperTableList.json 
+* **Manifest/SubTableSuperTableList.json**: Key name of sub Table, Value = Base table name. 
+* **AXDBConnectionString**: AXDB ConnectionString to retrive the views definition of sub Table.
+2. Run CDMUtil console App
+
+### Common issues and workarounds 
 
 |Issue           |Description |Workaround/Recomendation |
 |----------------- |:---|:--------------|
@@ -166,6 +174,7 @@ Export to data lake **Select tables using entities** option enables users to exp
 
 You can also identify views and dependencies by connecting to database of Finance and Operations Cloud hosted environment or sandbox environment using sql query bellow
 ![View Definition and Dependency](/Analytics/CDMUtilSolution/ViewsAndDependencies.sql)
+
 
 ## 3. Copy data to Synapse Table in dedicated pool (DW GEN2)
 
