@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.IO;
-
 using CDMUtil.Context.ADLS;
+using Microsoft.Data.SqlClient;
 
 namespace CDMUtil.Context.ObjectDefinitions
 {
@@ -213,8 +211,16 @@ namespace CDMUtil.Context.ObjectDefinitions
         public SynapseDBOptions(string targetDBConnectionString, string environmentName, string rootLocation, string ddlType)
         {
 
-            SqlConnectionStringBuilder connectionStringBuilder = new SqlConnectionStringBuilder(targetDBConnectionString);
-
+            SqlConnectionStringBuilder connectionStringBuilder;
+            try
+            {
+                connectionStringBuilder = new SqlConnectionStringBuilder(targetDBConnectionString);
+            }
+            catch (KeyNotFoundException e)
+            {
+                Console.WriteLine(e.Message);
+                throw new Exception("error");
+            }
             servername = connectionStringBuilder.DataSource;
             if (String.IsNullOrEmpty(connectionStringBuilder.InitialCatalog))
             {
