@@ -669,6 +669,8 @@
                                 createDimensionQuery += enumTranslations.Item1;
                             }
 
+                            createDimensionQuery = AttachDimensionFK(createDimensionQuery, dimensionTableName.ToString());
+
                             createDimensionQuery = createDimensionQuery.Remove(createDimensionQuery.Length - 1);
 
                             createDimensionQuery += $" FROM {dimensionMetadata.Table}";
@@ -716,6 +718,14 @@
             }
 
             return errorList;
+        }
+
+        private static string AttachDimensionFK(string createDimensionQuery, string dimensionTableName)
+        {
+            string fkQuery = $"1 AS {dimensionTableName}_FK,";
+            createDimensionQuery = createDimensionQuery + fkQuery;
+
+            return createDimensionQuery;
         }
 
         private static string RenameEnumColumns(string createQuery, string enumColumn)
