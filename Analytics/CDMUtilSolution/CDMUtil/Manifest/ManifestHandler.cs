@@ -223,7 +223,7 @@ namespace CDMUtil.Manifest
                 columnAttribute.description = cdmAttribute.Description;
                 columnAttribute.dataType = cdmAttribute.DataType == null ? cdmAttribute.DataFormat.ToString() : cdmAttribute.DataType.NamedReference;
 
-                columnAttribute.maximumLength = cdmAttribute.MaximumLength != null ? (int)cdmAttribute.MaximumLength : c.synapseOptions.DefaultStringLenght;
+                columnAttribute.maximumLength = cdmAttribute.MaximumLength != null ? (int)cdmAttribute.MaximumLength : c.synapseOptions.DefaultStringLength;
                 switch (columnAttribute.dataType.ToLower())
                 {
                     case "datetime":
