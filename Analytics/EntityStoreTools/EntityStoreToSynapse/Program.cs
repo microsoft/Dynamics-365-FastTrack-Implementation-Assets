@@ -596,6 +596,12 @@
                                     columns.TryAdd(rowUniqueKeyColumnName, rowUniqueKeyColumnName);
                                 }
 
+                                // Add Dimension FK
+                                if (attribute.Usage == 1)
+                                {
+                                    createDimensionQuery = AttachDimensionFK(createDimensionQuery, dimensionTableName.ToString(), attribute.KeyFields);
+                                }
+
                                 if (attribute.KeyFields.Count == 1)
                                 {
                                     if (commonColumns.Contains(attribute.KeyFields[0].DimensionField.ToString().ToUpper()))
@@ -669,8 +675,6 @@
                                 createDimensionQuery += enumTranslations.Item1;
                             }
 
-                            createDimensionQuery = AttachDimensionFK(createDimensionQuery, dimensionTableName.ToString());
-
                             createDimensionQuery = createDimensionQuery.Remove(createDimensionQuery.Length - 1);
 
                             createDimensionQuery += $" FROM {dimensionMetadata.Table}";
@@ -720,9 +724,16 @@
             return errorList;
         }
 
-        private static string AttachDimensionFK(string createDimensionQuery, string dimensionTableName)
+        private static string AttachDimensionFK(string createDimensionQuery, string dimensionTableName, dynamic attributes)
         {
-            string fkQuery = $"1 AS {dimensionTableName}_FK,";
+            string attrList = string.Empty;
+            foreach (var attr in attributes)
+            {
+                attrList += CheckReservedWord(attr.DimensionField) + ",";
+            }
+
+            attrList = attrList.Remove(attrList.Length - 1);
+            string fkQuery = $"ROW_NUMBER() OVER(ORDER BY {attrList}) AS {dimensionTableName}_FK,";
             createDimensionQuery = createDimensionQuery + fkQuery;
 
             return createDimensionQuery;
@@ -743,6 +754,25 @@
         private static string DefaultDataAreaIdColumn(string createDimensionQuery)
         {
             return createDimensionQuery.Replace(",DATAAREAID", ",'demo' AS DATAAREAID");
+        }
+
+        private static string CheckReservedWord(dynamic dimensionField)
+        {
+            HashSet<string> reservedWords = new HashSet<string>()
+            {
+                "KEY",
+                "COMMENT",
+                "COUNT",
+            };
+
+            string attr = dimensionField.ToString().ToUpper();
+
+            if (reservedWords.Contains(attr))
+            {
+                return $"{attr}_";
+            }
+
+            return attr;
         }
 
         private static (bool, string) CheckReservedWord(dynamic dimensionField, dynamic dimensionName, string createDimensionQuery)
