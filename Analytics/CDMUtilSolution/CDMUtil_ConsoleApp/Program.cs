@@ -113,7 +113,7 @@ namespace CDMUtil
             }
             if (ConfigurationManager.AppSettings.Get("DefaultStringLength") != null)
             {
-                AppConfiguration.synapseOptions.DefaultStringLenght = Int16.Parse(ConfigurationManager.AppSettings.Get("DefaultStringLenght"));
+                AppConfiguration.synapseOptions.DefaultStringLength = Int16.Parse(ConfigurationManager.AppSettings.Get("DefaultStringLenght"));
 
             }
             if (ConfigurationManager.AppSettings.Get("CreateStats") != null)
