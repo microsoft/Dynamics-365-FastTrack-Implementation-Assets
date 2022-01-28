@@ -154,18 +154,27 @@ Export to data lake **Select tables using entities** option enables users to exp
 2. Run CDMUtil console App or trigger Function App using HTTP to create entities as views on Synapse.
 3. If you recieve error for missing tables, add those table to Export to data lake service, wait for the metadata to land in the lake and run the CDMUtil again.
 
-#### Common issues and workarounds 
+#### Create F&O Sub Tables as View on Synapse Serverless
+Using CDMUtil you can also create F&O SubTables such as CompanyInfo DirPerson etc as view on base table. 
+1. To create sub tables as view on Synapse,in addition to above configurations, update following configurations 
+* **ProcessSubTableSuperTables**: Process sub table list from file Manifest/SubTableSuperTableList.json 
+* **Manifest/SubTableSuperTableList.json**: Key name of sub Table, Value = Base table name. 
+* **AXDBConnectionString**: AXDB ConnectionString to retrive the views definition of sub Table.
+2. Run CDMUtil console App
+
+### Common issues and workarounds 
 
 |Issue           |Description |Workaround/Recomendation |
 |----------------- |:---|:--------------|
 |**Missing dependent tables** |Data entities view creation may fail if all dependent tables are not already available in Synapse SQL pool. Currently when **Select tables using entities** is used, all dependent tables does not get added to lake. | To easily identify missing tables provide AXDBConnectionString, CDMUtil will list outs missing tables in Synapse. Add missing table to service and run CDMUtil again |
 |**Missing dependent views**|Data entities may have dependency on F&O views, currently metadata service does not produce metadata for views.| AXDBConnectionString of source AXDB tier1 to tier2 environment and automatically retrieve dependent views and create before create entity views.|
 |**Syntax dependecy**|Some data entities or views may have sql syntax that is not supported in synapse.| CDMUtil parse the sql syntax and replaces with known supported syntax in Synapse SQL. ReplaceViewSyntax.json contains list of known syntax replacements. Additional replacement can be added in the file if required. |
-|**Performance issue when querying complex views** |You may run into performance issue when querying the complex view such that have lots of joins and complexity| Change your database collation to 'alter database DBNAME COLLATE Latin1_General_100_CI_AI_SC_UTF8' |
+|**Performance issue when querying complex views** |You may run into performance issue when querying the complex view such that have lots of joins and complexity| Try creating stats by using option createStats = true . Query the columns that are only needed. Simplify the view definition of the entity. |
 |**Case sensitive object name** |Object name can be case sensitive in Synapse SQL pool and cause error while creating the view definition of entities | Change your database collation to 'alter database DBNAME COLLATE Latin1_General_100_CI_AI_SC_UTF8' |
 
 You can also identify views and dependencies by connecting to database of Finance and Operations Cloud hosted environment or sandbox environment using sql query bellow
 ![View Definition and Dependency](/Analytics/CDMUtilSolution/ViewsAndDependencies.sql)
+
 
 ## 3. Copy data to Synapse Table in dedicated pool (DW GEN2)
 

@@ -111,9 +111,10 @@ namespace CDMUtil
             {
                 AppConfiguration.AXDBConnectionString = ConfigurationManager.AppSettings.Get("AXDBConnectionString");
             }
-            if (ConfigurationManager.AppSettings.Get("DefaultStringLenght") != null)
+            if (ConfigurationManager.AppSettings.Get("DefaultStringLength") != null)
             {
-                AppConfiguration.synapseOptions.DefaultStringLength = Int16.Parse(ConfigurationManager.AppSettings.Get("DefaultStringLenght"));
+                AppConfiguration.synapseOptions.DefaultStringLenght = Int16.Parse(ConfigurationManager.AppSettings.Get("DefaultStringLenght"));
+
             }
             if (ConfigurationManager.AppSettings.Get("CreateStats") != null)
             {
