@@ -188,7 +188,7 @@ namespace CDMUtil.Context.ObjectDefinitions
         public string fileFormatName;
         public string DDLType = "SynapseView";
         public string schema = "dbo";
-        public int DefaultStringLenght = 100;
+        public int DefaultStringLength = 100;
         public bool TranslateEnum = false;
         public bool createStats = false;
         public string parserVersion = "2.0";

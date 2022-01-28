@@ -285,11 +285,11 @@ namespace CDMUtil
             if (TranslateEnum != null)
                 AppConfiguration.synapseOptions.TranslateEnum = bool.Parse(TranslateEnum);
 
-            string DefaultStringLenght = getConfigurationValue(req, "DefaultStringLength", ManifestURL);
+            string DefaultStringLength = getConfigurationValue(req, "DefaultStringLength", ManifestURL);
 
-            if (DefaultStringLenght != null)
+            if (DefaultStringLength != null)
             {
-                AppConfiguration.synapseOptions.DefaultStringLenght = Int16.Parse(DefaultStringLenght);
+                AppConfiguration.synapseOptions.DefaultStringLength = Int16.Parse(DefaultStringLength);
             }
 
             AppConfiguration.SourceColumnProperties = Path.Combine(context.FunctionAppDirectory, "SourceColumnProperties.json");
