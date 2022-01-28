@@ -25,6 +25,7 @@ namespace CDMUtil.Context.ObjectDefinitions
     {
         public string Key { get; set; }
         public string Value { get; set; }
+        public string ViewName { get; set; } = string.Empty;
     }
     public class ManifestDefinition
     {
