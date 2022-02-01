@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />
+  <Default Extension="psmdcp" ContentType="application/vnd.openxmlformats-package.core-properties+xml" />
+  <Default Extension="dll" ContentType="application/octet" />
+  <Default Extension="pdb" ContentType="application/octet" />
+  <Default Extension="md" ContentType="application/octet" />
+  <Default Extension="cab" ContentType="application/octet" />
+  <Default Extension="zip" ContentType="application/octet" />
+  <Default Extension="config" ContentType="application/octet" />
+  <Default Extension="xml" ContentType="application/octet" />
+  <Default Extension="txt" ContentType="application/octet" />
+  <Default Extension="css" ContentType="application/octet" />
+  <Default Extension="htm" ContentType="application/octet" />
+  <Default Extension="gif" ContentType="application/octet" />
+  <Default Extension="ts" ContentType="application/octet" />
+  <Default Extension="nuspec" ContentType="application/octet" />
+</Types>

@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Autofac.Extras.Moq</name>
+    </assembly>
+    <members>
+        <member name="T:Autofac.Extras.Moq.AutoMock">
+            <summary>
+            Wrapper around <see cref="N:Autofac"/> and <see cref="N:Autofac.Extras.Moq"/>
+            </summary>
+        </member>
+        <member name="P:Autofac.Extras.Moq.AutoMock.MockRepository">
+            <summary> 
+            <see cref="P:Autofac.Extras.Moq.AutoMock.MockRepository"/> instance responsible for expectations and mocks. 
+            </summary>
+        </member>
+        <member name="P:Autofac.Extras.Moq.AutoMock.Container">
+            <summary>
+            <see cref="T:Autofac.IContainer"/> that handles the component resolution.
+            </summary>
+        </member>
+        <member name="M:Autofac.Extras.Moq.AutoMock.Finalize">
+            <summary>
+            Finalizes an instance of the <see cref="T:Autofac.Extras.Moq.AutoMock"/> class.
+            </summary>
+        </member>
+        <member name="M:Autofac.Extras.Moq.AutoMock.GetLoose">
+            <summary>
+            Create new <see cref="T:Autofac.Extras.Moq.AutoMock"/> instance with loose mock behavior.
+            </summary>
+            <seealso cref="P:Autofac.Extras.Moq.AutoMock.MockRepository"/>
+            <returns>Container initialized for loose behavior.</returns>
+        </member>
+        <member name="M:Autofac.Extras.Moq.AutoMock.GetStrict">
+            <summary>
+            Create new <see cref="T:Autofac.Extras.Moq.AutoMock"/> instance with strict mock behavior.
+            </summary>
+            <seealso cref="P:Autofac.Extras.Moq.AutoMock.MockRepository"/>
+            <returns>Container initialized for loose behavior.</returns>
+        </member>
+        <member name="M:Autofac.Extras.Moq.AutoMock.GetFromRepository(Moq.MockRepository)">
+            <summary>
+            Create new <see cref="T:Autofac.Extras.Moq.AutoMock"/> instance that will create mocks with behavior defined by <c>repository</c>.
+            </summary>
+            <param name="repository"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Autofac.Extras.Moq.AutoMock.Dispose">
+            <summary>
+            Verifies mocks and disposes internal container.
+            </summary>
+        </member>
+        <member name="M:Autofac.Extras.Moq.AutoMock.Dispose(System.Boolean)">
+            <summary>
+            Handles disposal of managed and unmanaged resources.
+            </summary>
+            <param name="disposing">
+            <see langword="true" /> to dispose of managed resources (during a manual execution
+            of <see cref="M:Autofac.Extras.Moq.AutoMock.Dispose"/>); or
+            <see langword="false" /> if this is getting run as part of finalization where
+            managed resources may have already been cleaned up.
+            </param>
+        </member>
+        <member name="P:Autofac.Extras.Moq.AutoMock.VerifyAll">
+            <summary>
+            Gets or sets a value indicating whether all mocks are verified.
+            </summary>
+            <value><c>true</c> to verify all mocks. <c>false</c> (default) to verify only mocks marked Verifiable.</value>
+        </member>
+        <member name="M:Autofac.Extras.Moq.AutoMock.Mock``1(Autofac.Core.Parameter[])">
+            <summary>
+            Finds (creating if needed) the actual mock for the provided type
+            </summary>
+            <typeparam name="T">Type to mock</typeparam>
+            <param name="parameters">Optional parameters</param>
+            <returns>Mock</returns>
+        </member>
+        <member name="M:Autofac.Extras.Moq.AutoMock.Create``1(Autofac.Core.Parameter[])">
+            <summary>
+            Resolve the specified type in the container (register it if needed)
+            </summary>
+            <typeparam name="T">Service</typeparam>
+            <param name="parameters">Optional parameters</param>
+            <returns>The service.</returns>
+        </member>
+        <member name="M:Autofac.Extras.Moq.AutoMock.Provide``2(Autofac.Core.Parameter[])">
+            <summary>
+            Resolve the specified type in the container (register it if needed)
+            </summary>
+            <typeparam name="TService">Service</typeparam>
+            <typeparam name="TImplementation">The implementation of the service.</typeparam>
+            <param name="parameters">Optional parameters</param>
+            <returns>The service.</returns>
+        </member>
+        <member name="M:Autofac.Extras.Moq.AutoMock.Provide``1(``0)">
+            <summary>
+            Resolve the specified type in the container (register specified instance if needed)
+            </summary>
+            <typeparam name="TService">Service</typeparam>
+            <returns>The instance resolved from container.</returns>
+        </member>
+        <member name="T:Autofac.Extras.Moq.MoqRegistrationHandler">
+            <summary> Resolves unknown interfaces and Mocks using the <see cref="T:Moq.MockRepository"/> from the scope. </summary>
+        </member>
+        <member name="M:Autofac.Extras.Moq.MoqRegistrationHandler.#ctor">
+            <summary>
+            </summary>
+        </member>
+        <member name="M:Autofac.Extras.Moq.MoqRegistrationHandler.RegistrationsFor(Autofac.Core.Service,System.Func{Autofac.Core.Service,System.Collections.Generic.IEnumerable{Autofac.Core.IComponentRegistration}})">
+            <summary>
+            Retrieve a registration for an unregistered service, to be used
+            by the container.
+            </summary>
+            <param name="service">The service that was requested.</param>
+            <param name="registrationAccessor">Not used; required by the interface</param>
+            <returns>
+            Registrations for the service.
+            </returns>
+        </member>
+        <member name="M:Autofac.Extras.Moq.MoqRegistrationHandler.CreateMock(Autofac.IComponentContext,Autofac.Core.TypedService)">
+            <summary>
+            Creates a mock object.
+            </summary>
+            <param name="context">The component context.</param>
+            <param name="typedService">The typed service.</param>
+            <returns>
+            The mock object from the repository.
+            </returns>
+        </member>
+    </members>
+</doc>
