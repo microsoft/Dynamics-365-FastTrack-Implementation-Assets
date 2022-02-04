@@ -30,7 +30,7 @@ Deploy the CDMUtil solution as an Azure Function to automate end to end process 
 | Name           |Description |Example Value  |
 | ----------------- |:---|:--------------|
 |TenantId          |Azure active directory tenant Id |979fd422-22c4-4a36-bea6-xxxxx|
-|SQLEndPoint    |Synapse SQL Pool endpoint connection string. If Database name is not specified - create new database, if userid and password are not specified - MSI authentication will be used.   |Server=ftd365synapseanalytics-ondemand.sql.azuresynapse.net; 
+|SQLEndPoint    |Synapse SQL Pool endpoint connection string. If Database name is not specified - create new database, if userid and password are not specified - MSI authentication will be used.   |Server=ftd365synapseanalytics-ondemand.sql.azuresynapse.net;Authentication=ActiveDirectoryMSI; 
 
 ![Applicationsetting](applicationsetting.png)
 
