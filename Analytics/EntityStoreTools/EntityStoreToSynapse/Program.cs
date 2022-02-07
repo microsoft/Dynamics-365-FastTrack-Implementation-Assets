@@ -210,40 +210,42 @@
                     }
                 }
 
-                if (measureGroup.Attributes.Count == 0)
+                if (measureGroup.Attributes.Count >= 0)
                 {
                     var viewMetadataEntry = entryList.FirstOrDefault(e => e.FullName == $"views\\{measureGroup.Table.ToString().ToUpper()}.json");
                     if (viewMetadataEntry == null)
                     {
                         ColorConsole.WriteWarning($"Attr Creation: No view found in path views/{measureGroup.Table.ToString().ToUpper()}.json");
                     }
-
-                    using (var stream = viewMetadataEntry.Open())
+                    else
                     {
-                        using (var sr = new StreamReader(stream))
-                        using (var jsonTextReader = new JsonTextReader(sr))
+                        using (var stream = viewMetadataEntry.Open())
                         {
-                            dynamic viewMetadata = JObject.Load(jsonTextReader);
-
-                            foreach (var attr in viewMetadata.Fields)
+                            using (var sr = new StreamReader(stream))
+                            using (var jsonTextReader = new JsonTextReader(sr))
                             {
-                                string attrName = attr.Name.ToString();
-                                if (commonColumns.Contains(attrName.ToUpper()))
-                                {
-                                    commonColumns.Remove(attrName.ToUpper());
-                                }
+                                dynamic viewMetadata = JObject.Load(jsonTextReader);
 
-                                var reservedColumn = CheckReservedWord(attrName, attrName, createMeasureGroupQuery);
-
-                                if (factTableColumns.TryAdd(attrName.ToUpper(), attrName.ToUpper()))
+                                foreach (var attr in viewMetadata.Fields)
                                 {
-                                    if (!reservedColumn.Item1)
+                                    string attrName = attr.Name.ToString();
+                                    if (commonColumns.Contains(attrName.ToUpper()))
                                     {
-                                        createMeasureGroupQuery += $"{attrName} AS {attrName.ToUpper()},";
+                                        commonColumns.Remove(attrName.ToUpper());
                                     }
-                                    else
+
+                                    var reservedColumn = CheckReservedWord(attrName, attrName, createMeasureGroupQuery);
+
+                                    if (factTableColumns.TryAdd(attrName.ToUpper(), attrName.ToUpper()))
                                     {
-                                        createMeasureGroupQuery = reservedColumn.Item2;
+                                        if (!reservedColumn.Item1)
+                                        {
+                                            createMeasureGroupQuery += $"{attrName} AS {attrName.ToUpper()},";
+                                        }
+                                        else
+                                        {
+                                            createMeasureGroupQuery = reservedColumn.Item2;
+                                        }
                                     }
                                 }
                             }
@@ -369,10 +371,10 @@
                         }
                         else
                         {
-                            var dimensionMetadataEntry = entryList.FirstOrDefault(e => e.FullName == $"dimensions\\{dimensions.DimensionName}.json");
+                            var dimensionMetadataEntry = entryList.FirstOrDefault(e => e.FullName == $"dimensions\\{dimensions.DimensionName.ToString().ToUpper()}.json");
                             if (dimensionMetadataEntry == null)
                             {
-                                throw new Exception($"FK Creation: Cannot find dimension metadata file 'dimensions/{dimensions.DimensionName}.json' in file.");
+                                throw new Exception($"FK Creation: Cannot find dimension metadata file 'dimensions/{dimensions.DimensionName.ToString().ToUpper()}.json' in file.");
                             }
 
                             using (var stream = dimensionMetadataEntry.Open())
@@ -486,10 +488,10 @@
                     }
                     else if (viewMetadata.Query != null)
                     {
-                        var queryMetadataEntry = entryList.FirstOrDefault(e => e.FullName == $"queries\\{viewMetadata.Query}.json");
+                        var queryMetadataEntry = entryList.FirstOrDefault(e => e.FullName == $"queries\\{viewMetadata.Query.ToString().ToUpper()}.json");
                         if (queryMetadataEntry == null)
                         {
-                            ColorConsole.WriteWarning($"FK Creation: Cannot find query metadata file 'queries/{viewMetadata.Query}.json' in file.\n");
+                            ColorConsole.WriteWarning($"FK Creation: Cannot find query metadata file 'queries/{viewMetadata.Query.ToString().ToUpper()}.json' in file.\n");
                             return string.Empty;
                         }
 
@@ -513,10 +515,10 @@
 
         private static string SearchTableForFK(List<ZipArchiveEntry> entryList, string tableName, string fieldName, string fkName)
         {
-            var tableMetadataEntry = entryList.FirstOrDefault(e => e.FullName == $"tables\\{tableName}.json");
+            var tableMetadataEntry = entryList.FirstOrDefault(e => e.FullName == $"tables\\{tableName.ToString().ToUpper()}.json");
             if (tableMetadataEntry == null)
             {
-                ColorConsole.WriteWarning($"Cannot find table metadata file 'tables/{tableName}.json' in file.");
+                ColorConsole.WriteWarning($"Cannot find table metadata file 'tables/{tableName.ToString().ToUpper()}.json' in file.");
                 return string.Empty;
             }
 
@@ -563,10 +565,10 @@
 
                     var createDimensionQuery = $"CREATE OR ALTER VIEW {dimensionTableName} AS SELECT ";
 
-                    var dimensionMetadataEntry = entryList.FirstOrDefault(e => e.FullName == $"dimensions\\{dimension.DimensionName}.json");
+                    var dimensionMetadataEntry = entryList.FirstOrDefault(e => e.FullName == $"dimensions\\{dimension.DimensionName.ToString().ToUpper()}.json");
                     if (dimensionMetadataEntry == null)
                     {
-                        throw new Exception($"Cannot find dimension metadata file 'dimensions/{dimension.DimensionName}.json' in file.");
+                        throw new Exception($"Cannot find dimension metadata file 'dimensions/{dimension.DimensionName.ToString().ToUpper()}.json' in file.");
                     }
 
                     using (var stream = dimensionMetadataEntry.Open())
