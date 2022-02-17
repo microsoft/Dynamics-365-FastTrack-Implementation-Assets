@@ -22,6 +22,8 @@
     {
         private static string tempPath;
         private static HashSet<string> enumSet;
+        private static AggregateDimensionElements aggregateDimensionElements;
+        private static IMetadataProvider metadataProvider;
 
         /// <summary>
         /// Publishes a zip file containing all metadata for a given aggregate measurement name.
@@ -52,7 +54,7 @@
             // write a manifest file at root folder
             WriteManifest(measureName, tempPath);
 
-            IMetadataProvider metadataProvider;
+            aggregateDimensionElements = new AggregateDimensionElements();
             var metadataProviderFactory = new MetadataProviderFactory();
             var runtimeProviderConfig = new RuntimeProviderConfiguration(packagePath, includeStatic: true, strict: false);
 
@@ -61,16 +63,16 @@
             using (metadataProvider = metadataProviderFactory.CreateRuntimeProviderWithExtensions(runtimeProviderConfig))
             {
                 Console.WriteLine($"Writing aggregate measurement metadata for '{measureName}'...");
-                var measure = WriteAggregateMeasurement(measureName, metadataProvider, tempPath);
+                var measure = WriteAggregateMeasurement(measureName);
 
                 Console.WriteLine($"Writing aggregate dimension metadata...");
-                var dimensionElements = WriteAggregateDimensions(measure, metadataProvider, tempPath);
+                WriteAggregateDimensions(measure);
 
                 Console.WriteLine($"Writing view metadata for '{measureName}'");
-                WriteViews(dimensionElements, metadataProvider, axDbSqlConnectionString, tempPath);
+                WriteViews(axDbSqlConnectionString);
 
                 Console.WriteLine($"Writing table metadata for '{measureName}'");
-                WriteTables(dimensionElements.DimensionTables, measureName, metadataProvider, tempPath);
+                WriteTables(measureName);
             }
 
             // generate zip file
@@ -97,37 +99,37 @@
             File.WriteAllText(Path.Combine(outputPath, "manifest.json"), JsonConvert.SerializeObject(manifest, Formatting.Indented));
         }
 
-        private static AxAggregateMeasurement WriteAggregateMeasurement(string measureName, IMetadataProvider metadataProvider, string outputPath)
+        private static AxAggregateMeasurement WriteAggregateMeasurement(string measureName)
         {
             AxAggregateMeasurement measure = metadataProvider.AggregateMeasurements.Read(measureName);
 
-            File.WriteAllText(Path.Combine(outputPath, "measurement.json"), JsonConvert.SerializeObject(measure, Formatting.Indented));
+            File.WriteAllText(Path.Combine(tempPath, "measurement.json"), JsonConvert.SerializeObject(measure, Formatting.Indented));
 
             ColorConsole.WriteInfo($"\tAdded measure '{measureName}'");
 
-            WriteFactEnums(metadataProvider, measure);
+            WriteFactEnums(measure);
 
             return measure;
         }
 
-        private static void WriteFactEnums(IMetadataProvider metadataProvider, AxAggregateMeasurement measure)
+        private static void WriteFactEnums(AxAggregateMeasurement measure)
         {
             foreach (var measureGroup in measure.MeasureGroups)
             {
                 var tableName = measureGroup.Table.ToString();
 
-                EnumParser(metadataProvider, tableName);
+                EnumParser(tableName);
 
                 foreach (var axDimension in measureGroup.Dimensions)
                 {
                     AxAggregateDimension dimension = metadataProvider.AggregateDimensions.Read(axDimension.DimensionName.ToString());
 
-                    EnumParser(metadataProvider, dimension.Table == null ? string.Empty : dimension.Table.ToString());
+                    EnumParser(dimension.Table == null ? string.Empty : dimension.Table.ToString());
                 }
             }
         }
 
-        private static void EnumParser(IMetadataProvider metadataProvider, string tableName)
+        private static void EnumParser(string tableName)
         {
             if (metadataProvider.Views.Exists(tableName))
             {
@@ -146,15 +148,15 @@
                             string dataSource = fieldObject.DataSource == null ? null : fieldObject.DataSource.ToString();
                             string dataField = fieldObject.DataField == null ? null : fieldObject.DataField.ToString();
 
-                            if (!WriteEnumFile(metadataProvider, tableName, fieldName, dataSource, dataField))
+                            if (!WriteEnumFile(tableName, fieldName, dataSource, dataField))
                             {
                                 if (view.Query != null)
                                 {
-                                    string tableNameFromQuery = GetTableNameFromQuery(metadataProvider, view.Query.ToString(), dataSource);
+                                    string tableNameFromQuery = GetTableNameFromQuery(view.Query.ToString(), dataSource);
 
                                     if (!string.IsNullOrEmpty(tableNameFromQuery))
                                     {
-                                        WriteEnumFile(metadataProvider, tableName, fieldName, tableNameFromQuery, dataField);
+                                        WriteEnumFile(tableName, fieldName, tableNameFromQuery, dataField);
                                     }
                                 }
                             }
@@ -179,15 +181,15 @@
                             string dataSource = fieldObject.DataSource == null ? null : fieldObject.DataSource.ToString();
                             string dataField = fieldObject.DataField == null ? null : fieldObject.DataField.ToString();
 
-                            if (!WriteEnumFile(metadataProvider, tableName, fieldName, dataSource, dataField))
+                            if (!WriteEnumFile(tableName, fieldName, dataSource, dataField))
                             {
                                 if (entity.Query != null)
                                 {
-                                    string tableNameFromQuery = GetTableNameFromQuery(metadataProvider, entity.Query.ToString(), dataSource);
+                                    string tableNameFromQuery = GetTableNameFromQuery(entity.Query.ToString(), dataSource);
 
                                     if (!string.IsNullOrEmpty(tableNameFromQuery))
                                     {
-                                        WriteEnumFile(metadataProvider, tableName, fieldName, tableNameFromQuery, dataField);
+                                        WriteEnumFile(tableName, fieldName, tableNameFromQuery, dataField);
                                     }
                                 }
                             }
@@ -213,7 +215,7 @@
 
                             if (!string.IsNullOrEmpty(enumName))
                             {
-                                EnumWriter(metadataProvider, tableName, fieldName, enumName);
+                                EnumWriter(tableName, fieldName, enumName);
                             }
                         }
                     }
@@ -221,7 +223,7 @@
             }
         }
 
-        private static bool WriteEnumFile(IMetadataProvider metadataProvider, string tableName, string fieldName, string dataSource, string dataField)
+        private static bool WriteEnumFile(string tableName, string fieldName, string dataSource, string dataField)
         {
             if (string.IsNullOrEmpty(dataSource) || string.IsNullOrEmpty(dataField))
             {
@@ -252,7 +254,7 @@
 
                             if (enumName != null)
                             {
-                                EnumWriter(metadataProvider, tableName, fieldName, enumName.ToString());
+                                EnumWriter(tableName, fieldName, enumName.ToString());
                             }
                         }
                     }
@@ -290,15 +292,15 @@
 
                             if (enumName != null)
                             {
-                                EnumWriter(metadataProvider, tableName, fieldName, enumName.ToString());
+                                EnumWriter(tableName, fieldName, enumName.ToString());
                             }
                             else
                             {
-                                if (!WriteEnumFile(metadataProvider, tableName, fieldName, innerDataSource, innerDataField))
+                                if (!WriteEnumFile(tableName, fieldName, innerDataSource, innerDataField))
                                 {
                                     if (innerEntity.Query != null)
                                     {
-                                        string tableNameFromQuery = GetTableNameFromQuery(metadataProvider, innerEntity.Query.ToString(), innerDataSource);
+                                        string tableNameFromQuery = GetTableNameFromQuery(innerEntity.Query.ToString(), innerDataSource);
                                     }
                                 }
                             }
@@ -336,19 +338,19 @@
 
                             if (enumName != null)
                             {
-                                EnumWriter(metadataProvider, tableName, fieldName, enumName.ToString());
+                                EnumWriter(tableName, fieldName, enumName.ToString());
                             }
                             else
                             {
-                                if (!WriteEnumFile(metadataProvider, tableName, fieldName, innerDataSource, innerDataField))
+                                if (!WriteEnumFile(tableName, fieldName, innerDataSource, innerDataField))
                                 {
                                     if (innerView.Query != null)
                                     {
-                                        string tableNameFromQuery = GetTableNameFromQuery(metadataProvider, innerView.Query.ToString(), innerDataSource);
+                                        string tableNameFromQuery = GetTableNameFromQuery(innerView.Query.ToString(), innerDataSource);
 
                                         if (!string.IsNullOrEmpty(tableNameFromQuery))
                                         {
-                                            WriteEnumFile(metadataProvider, tableName, fieldName, tableNameFromQuery, innerDataField);
+                                            WriteEnumFile(tableName, fieldName, tableNameFromQuery, innerDataField);
                                         }
                                     }
                                 }
@@ -363,7 +365,7 @@
             return false;
         }
 
-        private static string GetTableNameFromQuery(IMetadataProvider metadataProvider, string queryName, string dataSource)
+        private static string GetTableNameFromQuery(string queryName, string dataSource)
         {
             if (string.IsNullOrEmpty(dataSource))
             {
@@ -404,7 +406,7 @@
             return string.Empty;
         }
 
-        private static bool EnumWriter(IMetadataProvider metadataProvider, string tableName, string fieldName, string enumName)
+        private static bool EnumWriter(string tableName, string fieldName, string enumName)
         {
             var enumObject = metadataProvider.Enums.Read(enumName);
 
@@ -445,22 +447,20 @@
             return true;
         }
 
-        private static AggregateDimensionElements WriteAggregateDimensions(AxAggregateMeasurement measure, IMetadataProvider metadataProvider, string outputPath)
+        private static void WriteAggregateDimensions(AxAggregateMeasurement measure)
         {
-            var dimensionsPath = Path.Combine(outputPath, "dimensions");
+            var dimensionsPath = Path.Combine(tempPath, "dimensions");
             if (!Directory.Exists(dimensionsPath))
             {
                 Directory.CreateDirectory(dimensionsPath);
             }
 
-            var dimensionsViews = new HashSet<string>();
-            var dimensionsTables = new HashSet<string>();
             var visitedElements = new HashSet<string>();
             List<AxMeasureGroup> axmgs = measure.MeasureGroups.ToList();
             foreach (AxMeasureGroup axmg in axmgs)
             {
                 string tablename = axmg.Table.ToString();
-                SeparateTablesAndViews(metadataProvider, dimensionsTables, dimensionsViews, tablename);
+                SeparateTablesAndViews(tablename);
 
                 List<AxDimension> axads = axmg.Dimensions.ToList();
                 foreach (AxDimension axad in axads)
@@ -479,34 +479,28 @@
                         visitedElements.Add(dimension.Table);
                     }
 
-                    var dimensionMetadataPath = Path.Combine(dimensionsPath, $"{dimensionName}.json");
+                    var dimensionMetadataPath = Path.Combine(dimensionsPath, $"{dimensionName.ToString().ToUpper()}.json");
                     File.WriteAllText(dimensionMetadataPath, JsonConvert.SerializeObject(dimension, Formatting.Indented));
 
-                    SeparateTablesAndViews(metadataProvider, dimensionsTables, dimensionsViews, dimension.Table);
+                    SeparateTablesAndViews(dimension.Table);
                 }
             }
-
-            return new AggregateDimensionElements
-            {
-                DimensionTables = dimensionsTables,
-                DimensionViews = dimensionsViews,
-            };
         }
 
-        private static void SeparateTablesAndViews(IMetadataProvider metadataProvider, HashSet<string> dimensionsTables, HashSet<string> dimensionsViews, string element)
+        private static void SeparateTablesAndViews(string element)
         {
             if (metadataProvider.Views.Exists(element) || metadataProvider.DataEntityViews.Exists(element))
             {
-                if (dimensionsViews.Add(element))
+                if (aggregateDimensionElements.DimensionViews.Add(element.ToUpper()))
                 {
-                    RecursivelyAddDataSourcesFromQuery(metadataProvider, dimensionsTables, dimensionsViews, element);
+                    RecursivelyAddDataSourcesFromQuery(element);
 
                     ColorConsole.WriteInfo($"\tAdded element as view '{element.ToUpperInvariant()}'");
                 }
             }
-            else if (metadataProvider.Tables.Exists(element))
+            else if (metadataProvider.Tables.Exists(element.ToUpper()))
             {
-                if (dimensionsTables.Add(element))
+                if (aggregateDimensionElements.DimensionTables.Add(element))
                 {
                     ColorConsole.WriteInfo($"\tAdded element as 'table '{element.ToUpperInvariant()}'");
                 }
@@ -517,7 +511,7 @@
             }
         }
 
-        private static void RecursivelyAddDataSourcesFromQuery(IMetadataProvider metadataProvider, HashSet<string> dimensionsTables, HashSet<string> dimensionsViews, string element)
+        private static void RecursivelyAddDataSourcesFromQuery(string element)
         {
             AxView view = metadataProvider.Views.Read(element);
 
@@ -538,43 +532,41 @@
                             Directory.CreateDirectory(queriesPath);
                         }
 
-                        var queryMetadataPath = Path.Combine(queriesPath, $"{view.Query}.json");
+                        var queryMetadataPath = Path.Combine(queriesPath, $"{view.Query.ToString().ToUpper()}.json");
                         File.WriteAllText(queryMetadataPath, JsonConvert.SerializeObject(queryObject, Formatting.Indented));
 
                         foreach (var dataSource in queryObject.DataSources)
                         {
-                            SeparateTablesAndViews(metadataProvider, dimensionsTables, dimensionsViews, dataSource.Table.ToString());
+                            SeparateTablesAndViews(dataSource.Table.ToString());
 
-                            RecursivelyAddDataSourcesFromDataSource(metadataProvider, dimensionsTables, dimensionsViews, dataSource);
+                            RecursivelyAddDataSourcesFromDataSource(dataSource);
                         }
                     }
                 }
             }
         }
 
-        private static void RecursivelyAddDataSourcesFromDataSource(IMetadataProvider metadataProvider, HashSet<string> dimensionsTables, HashSet<string> dimensionsViews, dynamic dataSource)
+        private static void RecursivelyAddDataSourcesFromDataSource(dynamic dataSource)
         {
             foreach (var source in dataSource.DataSources)
             {
-                SeparateTablesAndViews(metadataProvider, dimensionsTables, dimensionsViews, source.Table.ToString());
+                SeparateTablesAndViews(source.Table.ToString());
 
-                RecursivelyAddDataSourcesFromDataSource(metadataProvider, dimensionsTables, dimensionsViews, source);
+                RecursivelyAddDataSourcesFromDataSource(source);
             }
         }
 
-        private static void WriteViews(AggregateDimensionElements aggregateDimensionElements, IMetadataProvider metadataProvider, string axDbConnectionString, string outputPath)
+        private static void WriteViews(string axDbConnectionString)
         {
-            HashSet<string> aggregateDimensionViews = aggregateDimensionElements.DimensionViews;
-            HashSet<string> aggregateDimensionTables = aggregateDimensionElements.DimensionTables;
             HashSet<string> dataSources = new HashSet<string>();
 
-            var viewsPath = Path.Combine(outputPath, "views");
+            var viewsPath = Path.Combine(tempPath, "views");
             if (!Directory.Exists(viewsPath))
             {
                 Directory.CreateDirectory(viewsPath);
             }
 
-            var allViewDependencies = RetrieveViewDependencies(aggregateDimensionViews, axDbConnectionString, viewsPath);
+            var allViewDependencies = RetrieveViewDependencies(axDbConnectionString, viewsPath);
 
             foreach (string viewName in allViewDependencies)
             {
@@ -592,7 +584,7 @@
                         {
                             if (fields.DataSource != null && dataSources.Add(fields.DataSource.ToString()))
                             {
-                                SeparateTablesAndViews(metadataProvider, aggregateDimensionTables, aggregateDimensionViews, fields.DataSource.ToString());
+                                SeparateTablesAndViews(fields.DataSource.ToString());
                             }
                         }
                     }
@@ -605,15 +597,15 @@
             }
         }
 
-        private static void WriteTables(ISet<string> aggregateDimensionTables, string measureName, IMetadataProvider metadataProvider, string outputPath)
+        private static void WriteTables(string measureName)
         {
-            var tablesPath = Path.Combine(outputPath, "tables");
+            var tablesPath = Path.Combine(tempPath, "tables");
             if (!Directory.Exists(tablesPath))
             {
                 Directory.CreateDirectory(tablesPath);
             }
 
-            var allTables = new HashSet<string>(aggregateDimensionTables);
+            var allTables = new HashSet<string>(aggregateDimensionElements.DimensionTables);
 
             // add aggregate measure tables
             AxAggregateMeasurement measure = metadataProvider.AggregateMeasurements.Read(measureName);
@@ -640,7 +632,7 @@
                 {
                     AxTable tableMetadata = metadataProvider.Tables.Read(tableName);
 
-                    var tableMetadataPath = Path.Combine(tablesPath, $"{tableName}.json");
+                    var tableMetadataPath = Path.Combine(tablesPath, $"{tableName.ToString().ToUpper()}.json");
                     File.WriteAllText(tableMetadataPath, JsonConvert.SerializeObject(tableMetadata, Formatting.Indented));
 
                     ColorConsole.WriteInfo($"\tAdded table '{tableName}'");
@@ -652,65 +644,68 @@
             }
         }
 
-        private static ISet<string> RetrieveViewDependencies(ISet<string> aggregateDimensionViews, string axDbConnectionString, string viewsPath)
+        private static ISet<string> RetrieveViewDependencies(string axDbConnectionString, string viewsPath)
         {
             var viewDependencies = new HashSet<string>();
 
-            string listOfViews = string.Join(",", aggregateDimensionViews.Select(v => $"'{v}'"));
+            string listOfViews = string.Join(",", aggregateDimensionElements.DimensionViews.Select(v => $"'{v}'"));
 
             string queryString = @"
                 -- ***************************************************Part 1 recursion************************************* 
 -----------------------------------------------BEGIN Recursive section ---------------------------------------
 With allviews (nodeId, parentNodeId, nodeIdType, rootNode, depth) AS (
--- 1 Anchor member - represents the list of root nodes considered with a depth of 0	
-	select nv.name as nodeId,
+-- 1 Anchor member - represents the list of root nodes considered with a depth of 0  
+       select nv.name as nodeId,
        CAST(null as NVARCHAR(MAX)) as parentNodeId,
        CAST('VIEW' as nvarchar(60)) COLLATE DATABASE_DEFAULT as nodeIdType,
-	   nv.name as rootNode,
-	   0 as depth
-	from sys.views nv
-	where schema_name(nv.schema_id) = 'dbo' AND nv.name in (" + listOfViews + @") 	
-	union all
+          nv.name as rootNode,
+          0 as depth
+       from sys.views nv
+       where schema_name(nv.schema_id) = 'dbo' AND nv.name in (" + listOfViews + @")        
+       union all
 -- 2 recursive member - represents the iteration path to navigate from a node to its parent
 --increases depth by 1 at each iteration and keeps a trace of the initial root node from the anchor member 
-	select o.name as nodeId,
+       select o.name as nodeId,
        CAST(p.name as NVARCHAR(Max)) as parentNodeId,
        o.type_desc COLLATE DATABASE_DEFAULT as nodeIdType,
-	   allviews.rootNode as rootnode,
-	   allviews.depth + 1 as depth
-	from sys.sql_expression_dependencies d
-	join sys.objects o
-			on o.object_id = d.referenced_id
-	join sys.objects p
-			on p.object_id = d.referencing_id
-	join allviews on allviews.nodeId = p.name
-	where 
-	d.referenced_id is not null and 
+          allviews.rootNode as rootnode,
+          allviews.depth + 1 as depth
+       from sys.sql_expression_dependencies d
+       join sys.objects o
+                     on o.object_id = d.referenced_id
+       join sys.objects p
+                     on p.object_id = d.referencing_id
+       join allviews on allviews.nodeId = p.name
+       where 
+       d.referenced_id is not null and 
 -- 3 ending condition
-	p.type_desc = 'VIEW' and
-	schema_name(p.schema_id) = 'dbo' and schema_name(o.schema_id) = 'dbo'
+       p.type_desc = 'VIEW' and
+       schema_name(p.schema_id) = 'dbo' and schema_name(o.schema_id) = 'dbo'
 )
 --4 inserts the results in a temporary table for ease of use
 Select * into #myEntitiestree from allviews ;
 ------------------------------------------------End recursive section -------------------------------
 
 ";
-            string selectStatement = @"select 
-       v.name as view_name, 	   
+            string selectStatement = @"DECLARE @TablesList VARCHAR(MAX);
+select @TablesList =COALESCE(@TablesList + ',', '') + nodeId from #myEntitiestree where nodeIdType = 'USER_TABLE';
+select 
+       v.name as view_name,          
        rootnode,
-	   parentnodeid,
-       Replace(Replace(Replace(m.definition,'CREATE VIEW','CREATE OR ALTER VIEW'),'GetValidFromInContextInfo','GETUTCDATE'),'GetValidToInContextInfo','GETUTCDATE') as definitions
+          parentnodeid,
+       Replace(Replace(Replace(m.definition,'CREATE VIEW','CREATE OR ALTER VIEW'),'GetValidFromInContextInfo','GETUTCDATE'),'GetValidToInContextInfo','GETUTCDATE') as definitions,
+       @TablesList as TableList
 from sys.views v
 join sys.sql_modules m 
      on m.object_id = v.object_id
 join (Select * from #myEntitiestree mytree 
 where mytree.nodeIdType = 'VIEW' and exists 
 (  -- replace this section by selection of your list of tables in the lake
-	Select 
-	#myEntitiestree.rootNode
+       Select 
+       #myEntitiestree.rootNode
     from #myEntitiestree 
-	where mytree.rootNode = #myEntitiestree .rootNode
-	group by rootNode 
+       where mytree.rootNode = #myEntitiestree .rootNode
+       group by rootNode 
 ) ) as orderedViews
 on orderedViews.nodeId = v.name
 order by rootNode asc, depth desc
@@ -734,6 +729,8 @@ order by rootNode asc, depth desc
 
                     string record = string.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\"", dataReader[0], dataReader[1], dataReader[2], dataReader[3]);
 
+                    AddTables(dataReader[4].ToString());
+
                     File.AppendAllText(viewDependenciesPath, record + Environment.NewLine);
                 }
             }
@@ -741,8 +738,24 @@ order by rootNode asc, depth desc
             return viewDependencies;
         }
 
+        private static void AddTables(string tables)
+        {
+            string[] tablesList = tables.Split(',');
+
+            foreach (string table in tablesList)
+            {
+                SeparateTablesAndViews(table);
+            }
+        }
+
         private class AggregateDimensionElements
         {
+            public AggregateDimensionElements()
+            {
+                DimensionTables = new HashSet<string>();
+                DimensionViews = new HashSet<string>();
+            }
+
             public HashSet<string> DimensionTables { get; set; }
 
             public HashSet<string> DimensionViews { get; set; }
