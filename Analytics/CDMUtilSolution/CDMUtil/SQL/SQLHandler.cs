@@ -149,6 +149,17 @@ namespace CDMUtil.SQL
             string template = "";
             string readOption = @"{""READ_OPTIONS"":[""ALLOW_INCONSISTENT_READS""] }";
 
+            string fileFormat = "";
+
+            if (c.synapseOptions.parserVersion == "2.0")
+            {
+                fileFormat = c.synapseOptions.fileFormatName + "_CSV_P2";
+            }
+            else
+            {
+                fileFormat = c.synapseOptions.fileFormatName + "_CSV_P1";
+            }
+
             switch (c.synapseOptions.DDLType)
             {
                 // {0} Schema, {1} TableName, {2} ColumnDefinition {3} data location ,{4} DataSource, {5} FileFormat
@@ -162,7 +173,14 @@ namespace CDMUtil.SQL
                     break;
 
                 case "SynapseExternalTable":
-                    template = @"If (OBJECT_ID('{0}.{1}') is not NULL)   drop external table  {0}.{1} ;  create   EXTERNAL TABLE {0}.{1} ({2}) WITH (LOCATION = '{3}', DATA_SOURCE ={4}, FILE_FORMAT = {5}, TABLE_OPTIONS =  '{11}')";
+                    if (c.synapseOptions.serverless)
+                    {
+                        template = @"If (OBJECT_ID('{0}.{1}') is not NULL)   drop external table  {0}.{1} ;  create   EXTERNAL TABLE {0}.{1} ({2}) WITH (LOCATION = '{3}', DATA_SOURCE ={4}, FILE_FORMAT = {5}, TABLE_OPTIONS =  '{11}')";
+                    }
+                    else
+                    {
+                        template = @"If (OBJECT_ID('{0}.{1}') is not NULL)   drop external table  {0}.{1} ;  create   EXTERNAL TABLE {0}.{1} ({2}) WITH (LOCATION = '{3}', DATA_SOURCE ={4}, FILE_FORMAT = {5})";
+                    }
                     break;
                 case "SynapseTable":
                     template = @"If (OBJECT_ID('{0}.{1}') is not NULL)   
@@ -178,8 +196,15 @@ namespace CDMUtil.SQL
             {
                 string sql = "";
                 string dataLocation = null;
+                
                 if (string.IsNullOrEmpty(metadata.viewDefinition))
                 {
+                    if (metadata.columnAttributes == null || metadata.dataLocation == null)
+                    {
+                        logger.LogError($"Table/Entity: {metadata.entityName} invalid definition.");
+                        continue;
+                    }
+                    
                     logger.LogInformation($"Table:{metadata.entityName}");
                     string columnDefSQL = string.Join(", ", metadata.columnAttributes.Select(i => attributeToSQLType((ColumnAttribute)i, c.synapseOptions)));
                     string columnNames = string.Join(", ", metadata.columnAttributes.Select(i => attributeToColumnNames((ColumnAttribute)i, c.synapseOptions)));
@@ -190,7 +215,7 @@ namespace CDMUtil.SQL
                                          columnDefSQL, //2
                                          metadata.dataLocation, //3
                                          c.synapseOptions.external_data_source, //4
-                                         c.synapseOptions.fileFormatName, //5
+                                         fileFormat, //5
                                          columnNames, //6
                                          metadata.viewDefinition, //7
                                          metadata.dataFilePath, //8
@@ -205,12 +230,16 @@ namespace CDMUtil.SQL
                 {
                     logger.LogInformation($"Entity:{metadata.entityName}");
                     sql = TSqlSyntaxHandler.finalTsqlConversion(metadata.viewDefinition, "sql", c.synapseOptions);
+                    
                 }
 
-                if (sqlStatements.Exists(x => x.EntityName.ToLower() == metadata.entityName.ToLower()))
-                    continue;
-                else
-                    sqlStatements.Add(new SQLStatement() { EntityName = metadata.entityName, DataLocation = dataLocation, Statement = sql });
+                if (sql != "")
+                {
+                    if (sqlStatements.Exists(x => x.EntityName.ToLower() == metadata.entityName.ToLower()))
+                        continue;
+                    else
+                        sqlStatements.Add(new SQLStatement() { EntityName = metadata.entityName, DataLocation = dataLocation, Statement = sql });
+                }
             }
 
             logger.LogInformation($"Tables:{sqlStatements.FindAll(a => a.DataLocation != null).Count}");
@@ -240,12 +269,12 @@ namespace CDMUtil.SQL
                     if (synapseDBOptions.TranslateEnum == true && attribute.constantValueList != null)
                     {
                         var constantValues = attribute.constantValueList.ConstantValues;
-                        sqlColumnNames += $" ,CASE {attribute.name}";
+                        sqlColumnNames += $"{attribute.name}, CASE {attribute.name}";
                         foreach (var constantValueList in constantValues)
                         {
                             sqlColumnNames += $"{ " When " + constantValueList[3] + " Then '" + constantValueList[2]}'";
                         }
-                        sqlColumnNames += $" END AS {attribute.name}_Label";
+                        sqlColumnNames += $" END AS {attribute.name}_$Label";
                     }
                     else
                     {
@@ -535,8 +564,6 @@ order by rootNode asc, depth desc
                 var statement = createControlTableAndSP(c);
                 SQLHandler handler = new SQLHandler(c.synapseOptions.targetDbConnectionString, c.tenantId, log);
                 handler.executeStatements(statement);
-
-
             }
             else
             {
@@ -582,7 +609,7 @@ order by rootNode asc, depth desc
         public static SQLStatements createDBSQL(string dbName)
         {
             string createDBSQL = @"IF NOT EXISTS (select * from sys.databases where name = '{0}')
-	            create database {0} COLLATE Latin1_General_100_CI_AI_SC_UTF8";
+	            create database [{0}] COLLATE Latin1_General_100_CI_AI_SC_UTF8";
 
             string sqlScript = String.Format(createDBSQL, dbName);
 
@@ -649,11 +676,14 @@ as
             var sqldbprep = new List<SQLStatement>();
             string sql = String.Empty;
 
-
-            string ParserVersion = "";
+            string parserVersion1 = "";
+            string parserVersion2 = "";
 
             if (options.servername.Contains("-ondemand.sql.azuresynapse.net"))
-                ParserVersion = $", PARSER_VERSION = '{options.parserVersion}'";
+            {
+                parserVersion1 = $", PARSER_VERSION = '1.0'";
+                parserVersion2 = $", PARSER_VERSION = '2.0'";
+            }
 
             if (options.servicePrincipalBasedAuthentication)
             {
@@ -679,19 +709,32 @@ as
                 CREDENTIAL = {0}
             );
 
-            IF NOT EXISTS(select * from sys.external_file_formats  where name = '{3}')
-            CREATE EXTERNAL FILE FORMAT {3}
+            IF NOT EXISTS(select * from sys.external_file_formats  where name = '{3}_CSV_P1')
+            CREATE EXTERNAL FILE FORMAT {3}_CSV_P1
             WITH (  
                 FORMAT_TYPE = DELIMITEDTEXT,
-                FORMAT_OPTIONS ( FIELD_TERMINATOR = ',', STRING_DELIMITER = '""', FIRST_ROW = 1 {4})
-            );";
+                FORMAT_OPTIONS ( FIELD_TERMINATOR = ',', STRING_DELIMITER = '""', FIRST_ROW = 1, USE_TYPE_DEFAULT = true {4})
+            );
+
+            IF NOT EXISTS(select * from sys.external_file_formats  where name = '{3}_CSV_P2')
+            CREATE EXTERNAL FILE FORMAT {3}_CSV_P2
+            WITH (  
+                FORMAT_TYPE = DELIMITEDTEXT,
+                FORMAT_OPTIONS ( FIELD_TERMINATOR = ',', STRING_DELIMITER = '""', FIRST_ROW = 1 {5})
+            );
+
+            IF NOT EXISTS ( SELECT * FROM sys.schemas WHERE name = N'{6}' ) EXEC('CREATE SCHEMA [{6}]');
+            ";
 
             string sqlScript = String.Format(sql,
                                             options.credentialName,
                                             options.external_data_source,
                                             options.location,
                                             options.fileFormatName,
-                                            ParserVersion);
+                                            parserVersion1,
+                                            parserVersion2,
+                                            options.schema
+                                            );
 
             sqldbprep.Add(new SQLStatement { EntityName = "Create_Cred_sources_formats", Statement = sqlScript });
 

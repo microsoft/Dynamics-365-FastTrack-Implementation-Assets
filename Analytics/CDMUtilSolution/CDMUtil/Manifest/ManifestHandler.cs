@@ -77,8 +77,6 @@ namespace CDMUtil.Manifest
 
                     var entSelected = manifestHandler.cdmCorpus.FetchObjectAsync<CdmEntityDefinition>(eDef.EntityPath, manifest).Result;
 
-                    logger.LogInformation($"Table:{entityName}");
-
                     if (entSelected.ExhibitsTraits.Count() > 1 && entSelected.ExhibitsTraits.Where(x => x.NamedReference == "has.sqlViewDefinition").Count() > 0)
                     {
                         // Custom traits sqlViewDefinition exists
@@ -99,7 +97,12 @@ namespace CDMUtil.Manifest
                         string dataFilePath = "https://" + Regex.Replace($"{adlsContext.StorageAccount}/{adlsContext.FileSytemName}/{dataLocation}", @"/+", @"/");
                         string metadataFilePath = "https://" + Regex.Replace($"{adlsContext.StorageAccount}/{adlsContext.FileSytemName}/{localRoot}/{localRoot.Remove(localRoot.Length - 1).Split('/').Last()}.manifest.cdm.json", @"/+", @"/");
                         string cdcDataFileFilePath = "https://" + Regex.Replace($"{adlsContext.StorageAccount}/{adlsContext.FileSytemName}/ChangeFeed/{entityName}/*.csv", @"/+", @"/");
-
+                        
+                        if (dataFilePath.Contains("ChangeFeed/"))
+                        {
+                            entityName = "_cdc_" + entityName;
+                        }
+                       
                         var columnAttributes = getColumnAttributes(entSelected, c, logger);
 
                         metadataList.Add(new SQLMetadata()
@@ -112,6 +115,8 @@ namespace CDMUtil.Manifest
                             columnAttributes = columnAttributes
                         });
                     }
+                    logger.LogInformation($"Table:{entityName}");
+
                 }
             }
             catch (Exception e)
