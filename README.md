@@ -44,6 +44,8 @@ Outline the file contents of the repository. It helps users navigate the codebas
 ### Commerce guides
 
 - [POS UI Negative inventory check/prevention (CRT extension)](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Commerce/NegativeInventoryCheck)
+- [Ecommerce load test sample](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Commerce/CommercePerfTestSample)
+- [Dynamics 365 Commerce storefront E2E functional test sample](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Commerce/EcommerceE2ETestSample)
 
 ### Analytics guides 
 - [SQL to data lake export](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/README.md)
