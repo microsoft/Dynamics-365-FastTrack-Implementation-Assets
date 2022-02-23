@@ -1,0 +1,15 @@
+{
+    "browsers": ["edge -incognito"],
+    "src": "test/e2etest1.ts",
+    "reporter": "list",
+    "skipJsErrors": true,
+    "skipUncaughtErrors": false,
+    "concurrency": 1,
+    "speed": 0.5,
+    "screenshots": {
+        "takeOnFails": true,
+        "path": "artifacts/screenshots",
+        "fullPage": true,
+        "pathPattern": "${TEST_INDEX}/${USERAGENT}/${FILE_INDEX}.png"
+    }
+}
