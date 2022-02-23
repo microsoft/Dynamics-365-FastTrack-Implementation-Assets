@@ -114,8 +114,9 @@ namespace CDMUtil.Context.ObjectDefinitions
         public string ProcessEntitiesFilePath;
         public bool ProcessSubTableSuperTables;
         public string ProcessSubTableSuperTablesFilePath;
+        public int WaitAfterEventTrigger = 60000;
 
-        
+
         public AppConfigurations()
         { }
         public AppConfigurations(string tenant, string manifestURL, string accessKey, string targetConnectionString = "", string ddlType = "", string targetSparkConnection = "")
@@ -235,7 +236,7 @@ namespace CDMUtil.Context.ObjectDefinitions
                 targetDbConnectionString = connectionStringBuilder.ConnectionString;
             }
 
-            external_data_source = $"{environmentName}_EDS";
+            external_data_source = $"{environmentName}_EDS";           
             fileFormatName = $"{environmentName}_FF";
             masterKey = environmentName;
             credentialName = environmentName;
