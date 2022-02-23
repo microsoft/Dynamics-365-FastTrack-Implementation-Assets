@@ -1,13 +1,13 @@
-#Dynamics 365 Commerce storefront E2E functional test sample
+# Dynamics 365 Commerce storefront E2E functional test sample
 
 ## Introduction
 
 This is a sample project on how to automate functional end to end tests for Dynamics 365 Commerce storefront .
 
-###Automated end to end checkout functional test
+### Automated end to end checkout functional test
 ![Sample Test](data/checkoutflow.gif)
 
-###Pre-requisites
+### Pre-requisites
 
 1. Node.js to be installed with a version 16.0.0 or later - Download | Node.js (nodejs.org)
 2. Visual studio code can be installed from Download Visual Studio Code - Mac, Linux, Windows
@@ -17,7 +17,7 @@ This is a sample project on how to automate functional end to end tests for Dyna
    ![Test payment connector](data/paymentconnector.png)
    ![Starter theme](data/theme.png)
 
-###Setup
+### Setup
 
 1. Open PowerShell as administrator and type ‘code’.Visual Studio Code will open.
 2. Clone Ecommerce E2E from github using git or visual studio code
@@ -30,7 +30,7 @@ This is a sample project on how to automate functional end to end tests for Dyna
 5. Once yarn install has finished successfully, type `yarn start` in the VS Code Terminal
 6. The test will start(ecommerce site will open…) in edge browser in incognito mode
 
-###Configuration
+### Configuration
 
 Adjust test speed from value 0.1(lowest)-1(highest) in config.testcaferc
 
@@ -38,13 +38,13 @@ Adjust test speed from value 0.1(lowest)-1(highest) in config.testcaferc
 "speed": 0.1
 ```
 
-###Integration
+### Integration
 
 1. [Emulating the test on specific device or screen size](https://testcafe.io/documentation/402828/guides/concepts/browsers#emulate-a-device)
 2. [Running the tests as part of devops pipeline](https://testcafe.io/documentation/402822/guides/continuous-integration/azure-devops)
 3. [Cross browser testing](https://testcafe.io/documentation/402828/guides/concepts/browsers)
 
-###Troubleshoot
+### Troubleshoot
 If the test doesn’t start (eCommerce site is not showing) review the VS Code Terminal command output.
 The test script is configured to use edge in incognito mode.  
 To validate installed browsers you can use yarn list-browsers  
