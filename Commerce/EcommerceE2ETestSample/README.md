@@ -26,7 +26,7 @@ This is a sample project on how to automate functional end to end tests for Dyna
 
     Troubleshoot:  
     If the command is not recognized although using a Node.js version 16.0.0 or later you can use “npm i -g corepack” from the VS Code Terminal command line to modify
-
+5. Update site url and b2c signin url in data/settings.ts
 5. Once yarn install has finished successfully, type `yarn start` in the VS Code Terminal
 6. The test will start(ecommerce site will open…) in edge browser in incognito mode
 
