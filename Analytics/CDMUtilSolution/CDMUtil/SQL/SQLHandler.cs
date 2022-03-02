@@ -240,17 +240,16 @@ namespace CDMUtil.SQL
                     if (synapseDBOptions.TranslateEnum == true && attribute.constantValueList != null)
                     {
                         var constantValues = attribute.constantValueList.ConstantValues;
-                        sqlColumnNames += $" ,CASE {attribute.name}";
+                        sqlColumnNames += $" CASE {attribute.name}";
                         foreach (var constantValueList in constantValues)
                         {
                             sqlColumnNames += $"{ " When " + constantValueList[3] + " Then '" + constantValueList[2]}'";
                         }
                         sqlColumnNames += $" END AS {attribute.name}_Label";
+                        sqlColumnNames += $",";
                     }
-                    else
-                    {
-                        sqlColumnNames = $"{attribute.name}";
-                    }
+                    sqlColumnNames += $"{attribute.name}";
+
                     break;
                 default:
                     sqlColumnNames = $"{attribute.name}";
