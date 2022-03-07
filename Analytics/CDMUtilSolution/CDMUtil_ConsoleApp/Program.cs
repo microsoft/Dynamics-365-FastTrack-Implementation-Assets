@@ -32,7 +32,7 @@ namespace CDMUtil
             // Read Manifest metadata
             using (logger.BeginScope("Reading CDM"))
             {
-                logger.LogInformation($"Reading Manifest metadata https://{c.AdlsContext.StorageAccount}/{c.rootFolder}{c.manifestName}");
+                logger.LogInformation($"Reading Manifest metadata {c.synapseOptions.location}{c.rootFolder}{c.manifestName}");
                 ManifestReader.manifestToSQLMetadata(c, metadataList, logger, c.rootFolder).Wait();
             }
 
@@ -48,7 +48,7 @@ namespace CDMUtil
                 }
             }
 
-            Console.WriteLine("Press any key to exit...");
+            Console.WriteLine("Press any key to exit...");            
             Console.ReadLine();
         }
 

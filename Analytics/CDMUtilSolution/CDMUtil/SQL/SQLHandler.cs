@@ -164,7 +164,7 @@ namespace CDMUtil.SQL
             {
                 // {0} Schema, {1} TableName, {2} ColumnDefinition {3} data location ,{4} DataSource, {5} FileFormat
                 case "SynapseView":
-                    template = @"CREATE OR ALTER VIEW {0}.{1} AS SELECT r.filepath(1) as [$FileName], {6} FROM OPENROWSET(BULK '{3}', FORMAT = 'CSV', PARSER_VERSION = '{12}', DATA_SOURCE ='{4}', ROWSET_OPTIONS =  '{11}') WITH ({2}) as r";
+                    template = @"CREATE OR ALTER VIEW {0}.{1} AS SELECT cast(r.filepath(1) as varchar(100)) as [$FileName], {6} FROM OPENROWSET(BULK '{3}', FORMAT = 'CSV', PARSER_VERSION = '{12}', DATA_SOURCE ='{4}', ROWSET_OPTIONS =  '{11}') WITH ({2}) as r";
 
                     break;
 
@@ -249,43 +249,23 @@ namespace CDMUtil.SQL
         public static string attributeToColumnNames(ColumnAttribute attribute, SynapseDBOptions synapseDBOptions)
         {
             string sqlColumnNames = "";
-
-            switch (attribute.dataType.ToLower())
-            {
-                case "date":
-                case "datetime":
-                case "datetime2":
-                    if (synapseDBOptions.parserVersion == "2.0")
-                    {
-                        sqlColumnNames = $"Cast({attribute.name} AS DATETIME2) as {attribute.name}";
-                    }
-                    else
-                    {
-                        sqlColumnNames = $"{attribute.name}";
-                    }
-                    break;
-
-                case "string":
-                    if (synapseDBOptions.TranslateEnum == true && attribute.constantValueList != null)
-                    {
-                        var constantValues = attribute.constantValueList.ConstantValues;
-                        sqlColumnNames += $"{attribute.name}, CASE {attribute.name}";
-                        foreach (var constantValueList in constantValues)
-                        {
-                            sqlColumnNames += $"{ " When " + constantValueList[3] + " Then '" + constantValueList[2]}'";
-                        }
-                        sqlColumnNames += $" END AS {attribute.name}_$Label";
-                    }
-                    else
-                    {
-                        sqlColumnNames = $"{attribute.name}";
-                    }
-                    break;
-                default:
-                    sqlColumnNames = $"{attribute.name}";
-                    break;
+            if (synapseDBOptions.TranslateEnum == true
+                && attribute.dataType.ToLower() == "string"
+                && attribute.constantValueList != null)
+            { 
+                var constantValues = attribute.constantValueList.ConstantValues;
+                sqlColumnNames += $"{attribute.name}, CASE {attribute.name}";
+                foreach (var constantValueList in constantValues)
+                {
+                    sqlColumnNames += $"{ " When " + constantValueList[3] + " Then '" + constantValueList[2]}'";
+                }
+                sqlColumnNames += $" END AS {attribute.name}_$Label";
             }
-
+            else
+            {
+                sqlColumnNames = $"{attribute.name}";
+            }
+            
             return sqlColumnNames;
         }
 
@@ -316,7 +296,7 @@ namespace CDMUtil.SQL
                 case "datetime":
                     if (synapseDBOptions.parserVersion == "2.0")
                     {
-                        sqlColumnDef = $"{attribute.name} nvarchar(30)";
+                        sqlColumnDef = $"{attribute.name} datetime2";
                     }
                     else
                     {
@@ -324,14 +304,8 @@ namespace CDMUtil.SQL
                     }
                     break;
                 case "datetime2":
-                    if (synapseDBOptions.parserVersion == "2.0")
-                    {
-                        sqlColumnDef = $"{attribute.name} nvarchar(30)";
-                    }
-                    else
-                    {
                         sqlColumnDef = $"{attribute.name} datetime2";
-                    }
+                   
                     break;
 
                 case "boolean":

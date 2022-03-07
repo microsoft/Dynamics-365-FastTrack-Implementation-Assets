@@ -95,10 +95,10 @@ namespace CDMUtil.Manifest
                         string dataLocation = getDataLocation(eDef, localRoot);
 
                         string dataFilePath = "https://" + Regex.Replace($"{adlsContext.StorageAccount}/{adlsContext.FileSytemName}/{dataLocation}", @"/+", @"/");
-                        string metadataFilePath = "https://" + Regex.Replace($"{adlsContext.StorageAccount}/{adlsContext.FileSytemName}/{localRoot}/{localRoot.Remove(localRoot.Length - 1).Split('/').Last()}.manifest.cdm.json", @"/+", @"/");
+                        string metadataFilePath = "https://" + Regex.Replace($"{adlsContext.StorageAccount}/{adlsContext.FileSytemName}/{localRoot}/{manifestName}", @"/+", @"/");
                         string cdcDataFileFilePath = "https://" + Regex.Replace($"{adlsContext.StorageAccount}/{adlsContext.FileSytemName}/ChangeFeed/{entityName}/*.csv", @"/+", @"/");
                         
-                        if (dataFilePath.Contains("ChangeFeed/"))
+                        if (dataFilePath.Contains("ChangeFeed/") && c.synapseOptions.schema == "dbo")
                         {
                             entityName = "_cdc_" + entityName;
                         }
@@ -401,10 +401,18 @@ namespace CDMUtil.Manifest
             try
             {
                 logger.LogInformation($"creating subManifest {manifestName}");
-
-                CdmManifestDefinition manifest = cdmCorpus.MakeObject<CdmManifestDefinition>(CdmObjectType.ManifestDef, manifestName + ".manifest.cdm.json");
-                localRoot.Documents.Add(manifest, manifestName + ".manifest.cdm.json");
-                   
+                CdmManifestDefinition manifest;
+                
+                try
+                {
+                    manifest = await cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(manifestName + ".manifest.cdm.json");
+                }
+                catch
+                {
+                    manifest = cdmCorpus.MakeObject<CdmManifestDefinition>(CdmObjectType.ManifestDef, manifestName + ".manifest.cdm.json");
+                    localRoot.Documents.Add(manifest, manifestName + ".manifest.cdm.json");
+                }
+                
                 if (manifest != null)
                 {
                     CdmManifestDeclarationDefinition subManifest = null;
@@ -538,9 +546,19 @@ namespace CDMUtil.Manifest
             {
                 logger.LogInformation($"Initializing manifest {manifestName}.manifest.cdm.json ");
 
-                // Make the temp manifest and add it to the root of the local documents in the corpus
-                CdmManifestDefinition manifest = cdmCorpus.MakeObject<CdmManifestDefinition>(CdmObjectType.ManifestDef, manifestName);
+                CdmManifestDefinition manifest;
 
+                try
+                {
+                    // Read manifest if exists.
+                    manifest = cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(manifestName + ".manifest.cdm.json").Result;
+                }
+                catch
+                {
+                    // Make the temp manifest and add it to the root of the local documents in the corpus
+                    manifest = cdmCorpus.MakeObject<CdmManifestDefinition>(CdmObjectType.ManifestDef, manifestName);
+                }
+                
                 // Add an import to the foundations doc so the traits about partitons will resolve nicely
                 manifest.Imports.Add(FoundationJsonPath);
 
