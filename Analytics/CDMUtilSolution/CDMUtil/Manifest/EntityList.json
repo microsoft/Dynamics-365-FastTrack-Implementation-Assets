@@ -3,7 +3,7 @@
   AXDBConnectionString is mandatory if EntityList is provided with Value blank
   Util will connect to database to retrieve entity views and dependencies
   */
-  /*{
+/*{
     "Key": "CUSTCUSTOMERV3ENTITY",
     "Value": ""
   },

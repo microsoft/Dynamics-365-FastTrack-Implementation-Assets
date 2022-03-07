@@ -184,7 +184,23 @@ namespace CDMUtil
 
             return new OkObjectResult(JsonConvert.SerializeObject(statementsList));
         }
+        [FunctionName("getMetadata")]
+        public static async Task<IActionResult> getMetadata(
+         [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
+         ILogger log, ExecutionContext context)
+        {
+            log.LogInformation("C# HTTP trigger function processed a request- manifestToMetadata");
 
+            //get configurations data 
+            AppConfigurations c = GetAppConfigurations(req, context);
+
+            // Read Manifest metadata
+            log.Log(LogLevel.Information, "Reading Manifest metadata");
+            List<SQLMetadata> metadataList = new List<SQLMetadata>();
+            await ManifestReader.manifestToSQLMetadata(c, metadataList, log, c.rootFolder);
+
+            return new OkObjectResult(JsonConvert.SerializeObject(metadataList));
+        }
         [FunctionName("EventGrid_CDMToSynapseView")]
         public static void CDMToSynapseView([EventGridTrigger] EventGridEvent eventGridEvent, ILogger log, ExecutionContext context)
         {
@@ -255,7 +271,7 @@ namespace CDMUtil
             {
                 ManifestURL = getConfigurationValue(req, "ManifestURL");
             }
-            if (ManifestURL.ToLower().EndsWith("cdm.json") == false)
+            if (ManifestURL.ToLower().EndsWith("cdm.json") == false && ManifestURL.ToLower().EndsWith("model.json") == false)
             {
                 throw new Exception($"Invalid manifest URL:{ManifestURL}");
             }

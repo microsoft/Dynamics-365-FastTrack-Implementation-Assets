@@ -121,55 +121,82 @@ namespace CDMUtil.Context.ObjectDefinitions
         { }
         public AppConfigurations(string tenant, string manifestURL, string accessKey, string targetConnectionString = "", string ddlType = "", string targetSparkConnection = "")
         {
-            tenantId = tenant;
-            Uri manifestURI = new Uri(manifestURL);
-            string storageAccount = manifestURI.Host.Replace(".blob.", ".dfs.");
+            this.tenantId = tenant;
 
+            string manifestFilePath = manifestURL.Replace("/resolved/", "/");
+
+            if (manifestURL.EndsWith("manifest.cdm.json") || manifestURL.EndsWith("model.json"))
+            {
+                manifestFilePath = manifestURL;
+            }
+            else if (manifestURL.EndsWith(".cdm.json"))
+            {
+                Uri originalURI = new Uri(manifestFilePath);
+                string newManifestFilePath = string.Format("{0}://{1}", originalURI.Scheme, originalURI.Authority);
+                for (int i = 0; i < originalURI.Segments.Length - 1; i++)
+                {
+                    newManifestFilePath += originalURI.Segments[i];
+                }
+                manifestFilePath = newManifestFilePath + originalURI.Segments[originalURI.Segments.Length - 2].Trim("/".ToCharArray()) + ".manifest.cdm.json";
+
+                string TableName = originalURI.Segments[originalURI.Segments.Length - 1].Replace(".cdm.json", "");
+                this.tableList = new List<string>();
+                tableList.Add(TableName);
+            }
+
+            manifestFilePath = manifestFilePath.Replace(".blob.", ".dfs.");
+            
+            Uri manifestURI = new Uri(manifestFilePath);
+            string storageAccount = manifestURI.Host;
+            
             string[] segments = manifestURI.Segments;
-            string localFolder = segments[1] + segments[2];
-            string environmentName = localFolder.Replace(".operations.dynamics.com", "").Replace("/", "_").Replace("-", "_").Replace(".", "_");
-            string rootLocation = $"https://{storageAccount}/{segments[1]}{segments[2]}";
-            environmentName = environmentName.Remove(environmentName.Length - 1);
-            string lastSegment = segments[segments.Length - 1];
-            if (lastSegment.EndsWith(".manifest.cdm.json"))
-            {
-                manifestName = lastSegment;
-            }
-            else
-            {
-                manifestName = segments[segments.Length - 2].StartsWith("resolved/") ? segments[segments.Length - 3] : segments[segments.Length - 2];
-                manifestName = manifestName.Replace("/", ".manifest.cdm.json");
 
-                tableList = new List<string>();
-                tableList.Add(lastSegment.Replace(".cdm.json", ""));
-            }
-            for (int i = 3; i < segments.Length - 1; i++)
+            // Manifest URL must have at-least 3 segments storage account, container , manifest name 
+            if (segments.Length < 3)
             {
-                rootFolder += segments[i];
+                throw new Exception($"Invalid ManifestURL{manifestURL}");
             }
-            if (!String.IsNullOrEmpty(rootFolder))
+
+            string container = segments[1].Trim("/".ToCharArray());
+
+            string rootDirectory = (segments.Length > 3) ? segments[1] + segments[2] : segments[1];
+            string environmentName = rootDirectory.Replace(".operations.dynamics.com", "").Replace("/", "_").Replace("-", "_").Replace(".", "_");
+            environmentName = environmentName.Trim("_".ToCharArray());
+
+            // get folder path
+            string folderPath = "";
+            int rootDirectoryPosition = (segments.Length > 3) ? 3 : 2;
+            for (int i = rootDirectoryPosition; i < segments.Length - 1; i++)
             {
-                rootFolder = rootFolder.Replace("/resolved/", "/");
+                folderPath += segments[i];
             }
-            else { rootFolder = "/Entities/"; }
+            if (String.IsNullOrEmpty(folderPath))
+            {
+                folderPath = "/";
+            }
+
+            this.rootFolder = folderPath;
+            this.manifestName = segments[segments.Length - 1]; 
 
             if (!String.IsNullOrEmpty(targetSparkConnection))
             {
-                synapseOptions = new SynapseDBOptions(targetSparkConnection, environmentName);
+                this.synapseOptions = new SynapseDBOptions(targetSparkConnection, environmentName);
             }
             else
             {
-                synapseOptions = new SynapseDBOptions(targetConnectionString, environmentName, rootLocation, ddlType);
+                string rootLocation = string.Format("{0}://{1}", manifestURI.Scheme, manifestURI.Authority) + "/" + rootDirectory;
+                this.synapseOptions = new SynapseDBOptions(targetConnectionString, environmentName, rootLocation, ddlType);
             }
-            AdlsContext = new AdlsContext()
+            this.AdlsContext = new AdlsContext()
             {
                 StorageAccount = storageAccount,
-                FileSytemName = segments[1] + segments[2],
+                FileSytemName = rootDirectory,
                 MSIAuth = String.IsNullOrEmpty(accessKey) ? true : false,
                 TenantId = tenant,
                 SharedKey = accessKey
             };
         }
+
     }
     public class SynapseDBOptions
     {
