@@ -1,0 +1,28 @@
+{
+    "name": "ecommercee2etestsample",
+    "version": "1.0.0",
+    "description": "Dynamics 365 ecommerce end to end functional test sample",
+    "directories": {
+        "test": "test"
+    },
+    "scripts": {
+        "start": "testcafe --config-file config.testcaferc.json",
+        "test": "testcafe all test/",
+        "lint": "yarn eslint . --ext .ts",
+        "prettier-format": "yarn prettier --config .prettierrc . --write",
+        "list-browsers": "testcafe --list-browsers"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^5.10.0",
+        "@typescript-eslint/parser": "^5.10.0",
+        "eslint": "^8.7.0",
+        "eslint-config-prettier": "^8.3.0",
+        "eslint-plugin-prettier": "^4.0.0",
+        "prettier": "^2.5.1",
+        "testcafe": "^1.17.0",
+        "eslint-plugin-testcafe": "^0.2.1"
+    },
+    "dependencies": {}
+}
