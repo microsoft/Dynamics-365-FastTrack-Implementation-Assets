@@ -74,6 +74,7 @@ To run CDMUtil from local desktop, you can download and run CDMUtil executable u
     <add key="Schema" value="dbo" />
     <add key="FileFormat" value="CSV" />
     <add key="ParserVersion" value="2.0" />
+    <add key="DefaultStringLength" value ="100"/>
     <add key="TranslateEnum" value ="false"/>
     <add key="TableNames" value =""/>
     <add key="ProcessEntities" value ="true"/>
@@ -95,13 +96,14 @@ Bellow is how CDMUtil works end-to-end with Export to data lake feature
 
 1. Using Finance and Operations App, [Configure Tables in Finance and Operations App](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/finance-data-azure-data-lake)) service. 
 2. Data and CDM metadata (Cdm.json) gets created in data lake 
-3. *If Azure Function is configured* blob storage events is generated and triggers *Azure Function* automatically with blob URI as *ManifestURL*. 
-4. CDMUtil retrieve storage account URL from *ManifestURL* and connect with *AccessKey*, if access key is not provided, current user/app(MSI) credential are used (current user/application must have *Blob data reader* access to storage account).
-5. CDMutil recursively reads manifest.cdm.json and identify entities, schema and data location, convert metadata as TSQL DDL statement as per *DDLType{default:SynapseView}*.
-6. Connect to Synapse Analytics SQL Pool using *TargetDbConnectionString*  or SparkPool endpoints *TargetSparkConnection*. Current user/App(MSI) credentials are used when sql authentication is not available.
-7. Create and prepare Synapse Analytics database, [for reference read](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/tutorial-logical-data-warehouse).
-8. Execute SQL DDL to create [Views over external data](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/create-use-views#views-over-external-data), [Extenral tables](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/create-use-external-tables#external-table-on-a-file) or [prepare Synapse Tables for loading](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/design-elt-data-loading#3-prepare-the-data-for-loading) 
-9. To leans more about how Synapse enables querying CSV files [refere synapse documentation](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/query-single-csv-file).  
+3. *When Azure Function is configured* blob storage events is generated and triggers *Azure Function* automatically with blob URI as *ManifestURL*. 
+4. *When running Console App* configurations are retrived from CDMUtil_ConsoleApp.dll.config file. 
+5. CDMUtil retrieve storage account URL from *ManifestURL* and connect with *AccessKey*, if access key is not provided, current user/app(MSI) credential are used (current user/application must have *Blob data reader* access to storage account).
+6. CDMutil recursively reads manifest.cdm.json and identify entities, schema and data location, convert metadata as TSQL DDL statement as per *DDLType{default:SynapseView}*.
+7. Connect to Synapse Analytics SQL Pool using *TargetDbConnectionString*  or SparkPool endpoints *TargetSparkConnection*. Current user/App(MSI) credentials are used when sql authentication is not available.
+8. Create and prepare Synapse Analytics database, [for reference read](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/tutorial-logical-data-warehouse).
+9. Execute SQL DDL to create [Views over external data](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/create-use-views#views-over-external-data), [Extenral tables](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/create-use-external-tables#external-table-on-a-file) or [prepare Synapse Tables for loading](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/design-elt-data-loading#3-prepare-the-data-for-loading) 
+10. To learn about how Synapse Analytics enables querying CSV files [refere synapse documentation](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/query-single-csv-file).  
 
 Once view or external tables are created, you can [connect to Synapse Analytics pools](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/connect-overview) to query and transform data using TSQL.
 
@@ -113,7 +115,7 @@ Following are common use cases to use CDMutil with various configuration options
 Follow the steps bellow to create views or external table on Synapse SQL Serverless pool
 
 1. Using Finance and Operations App [Configure Tables in Finance and Operations App](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/finance-data-azure-data-lake) service. 
-2. Validate that data and CDM metadata (Cdm.json) gets created in data lake 
+2. Validate that data and CDM metadata (cdm.json) gets created in data lake 
 3. Update following configurations in CDMUtil_ConsoleApp.dll.config or Function App configurations (**Mandatory**, *Optional*)
 
 * **TenantId**: Azure AAD Tenant ID
@@ -132,11 +134,30 @@ Follow the steps bellow to create views or external table on Synapse SQL Serverl
 8. Once view or external tables are created, you can [connect to Synapse Analytics pools](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/connect-overview) to query and transform data using TSQL.
 9. If you want to also create external table or view for Tables data under ChangeFeed, you can change the ManifestURL to ChangeFeed.manifest.cdm.json and change the schema and run the CDMUtil console app or call function App with HTTP trigger. 
 
+### DDLType & ParserVersion for Tables
+When using Synapse Analytics serverless pool to create logical datawarehouse, there are currently 2 supported objects which can be persisted to database, External Tables and Views. 
+While both object type provides ability to query data from lake using TSQL, there are few functional and securtiy differences between external table and views, Following few blog post describing the difference 
+1. https://www.serverlesssql.com/optimisation/external-tables-vs-views-which-to-use/
+2. https://www.jamesserra.com/archive/2020/11/external-tables-vs-t-sql-views-on-files-in-a-data-lake/
+3. https://www.linkedin.com/pulse/demystifying-synapse-serverless-sql-openrowset-external-atoui-wahid/
+ 
+In addition to Object type, there are CSV parser (1.0 and 2.0) that are supported.CSV parser version 1.0 feature rich while parser version 2.0 is built for performance.  
+For Dynamics 365 F&O use case, in general Parser verion 2 is prefered for performance reason however some out of the box data entities may have compatibility issue. Review following options  
+
+|Option                                           |Description                                                             |
+|-------------------------------------------------|:------------------------------------------------------------------|
+|DDTType= SynapseExternalTable, ParserVersion =1.0|Feature reach, supports datetime and USE_TYPE_DEFAULT = true with this option serverless pool returns default sql values for example example null string is represented as emptystring. If you plan to create Entities as view then this options should provide you best compatibility |  
+|DDTType= SynapseView, ParserVersion =1.0         |Supports datetime however USE_TYPE_DEFAULT is not supported that may cause some compatibility issue with entities views |  
+|DDTType= SynapseExternalTable, ParserVersion =2.0|Parser version 2 provides better performance however USE_TYPE_DEFAULT is not supported and for datetime only datetime2 format is supported. This may cause compatibility issue with data entities views join conditions  |
+|DDTType= SynapseView, ParserVersion =2.0         |Parser version 2 provides better performance however USE_TYPE_DEFAULT is not supported and for datetime only datetime2 format is supported. This may cause compatibility issue with data entities views join conditions  |
+
 #### Common error and resolutions 
 |Error           | Description |Resolution |
 |----------------- |:---|:--------------|
+|**Error to read cdm files from data lake**|Error reading cdm.json files|Provide Storage account AccessKey or grant current user/MSI must have blob data reader access to storage account|
 |**Error when creating view or external table**|Content of directory on path '.../TableName/*.csv' cannot be listed.|Grant synapse workspace blob data contributor or blob data reader access to storage account|
-|**Error when querying the view or external table** |Error handling external file: 'Max errors count reached.'. File/External table name: '.../{TableName}/{filename}.csv'.| Usually the error is due to datatype mismatch ie column lenght for string column. If your environment does not have Enhanced metadata feature on, provide AXDB connectionString to read the correct string length while creating the metadata on synapse. Use parser version 1.0 to get more detailed error on column or row that is causing issue. |
+|**Error when querying the view or external table** |Error handling external file: 'Max errors count reached.'. File/External table name: '.../{TableName}/{filename}.csv'.| Usually the error is due to datatype mismatch ie column lenght for string column. If your environment does not have Enhanced metadata feature on, try following options Option 1: add config <add key="DefaultStringLength" value ="1000"/> to increase the defaultStringLength. Potential perf impact when using serverless Option 2: Add specific Table.Field in the Manifest/SourceColumnProperties.json - CDMutil will override the column length for given table.field Option 3: Provide AXDBConnectionString to read the column length from AXDB while creating the view
+
 
 ## 2. Create F&O Data entities as View on Synapse SQL pool
 Dynamics 365 Finance and Operations **Data entities** provides conceptual abstraction and encapsulation (de-normalized view) of underlying table schemas to represent key data concepts and functionalities. 
@@ -219,6 +240,7 @@ You can also use CDMUtil to create External Tables in Synapse [Lake database](ht
 |O|AccessKey    |Storage account access key.Only needed if current user does not have access to storage account |  
 |O|TargetSparkConnection    |when provided CDMUtil will create lake database that can be used with Spark as well as SQL Pool | https://yoursynapseworkspace.dev.azuresynapse.net@synapsePool@dbname
 |O|DDLType          |Synapse DDLType default:SynapseView  |<ul><li>SynapseView:Synapse views using openrowset</li><li>SynapseExternalTable:Synapse external table</li><li>SynapseTable:Synapse permanent table(Refer section)</li></ul>|
+|O|DefaultStringLength|default = 100, default string length|100|
 |O|Schema    |schema name default:dbo | dbo, cdc 
 |O|DataSourceName    |external data source name. new external ds is created if not provided | 
 |O|FileFormat    |external file format - default csv file format is created if not provided |
