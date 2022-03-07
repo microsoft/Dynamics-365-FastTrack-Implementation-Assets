@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.Dynamics.XrmSolutions.CRMP2C</id>
+    <version>15.0.0.2</version>
+    <authors>Microsoft Corporation</authors>
+    <owners>magatti, humar, ranlam, ahanda</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <licenseUrl>http://license_url_here_or_delete_this_line/</licenseUrl>
+    <projectUrl>http://project_url_here_or_delete_this_line/</projectUrl>
+    <iconUrl>http://icon_url_here_or_delete_this_line/</iconUrl>
+    <description>Microsoft Dynamics 365 integration solution</description>
+    <releaseNotes>This release includes the XRM solutions: CRMP2C, P2CFieldService, P2CProjectService.</releaseNotes>
+    <copyright>Copyright ©2017 Microsoft Corporation</copyright>
+    <tags>CRMP2C Notifications DeviceNotifications</tags>
+  </metadata>
+</package>
