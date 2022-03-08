@@ -1,3 +1,8 @@
+## Overview 
+There are scenarios where you may need to ingest Dynamics 365 Finance and Operations data available in the lake to relational database or external service – it could be Azure sql database, synapse dedicated pool or even on-premised sql database. This could for data integration or API scenarios where you expect millisecond response time or it could be integration to existing datawarehosue solution. **Export to data lake - Near real time data update feature (preview)** exports data incrementally in the changeFeed folder, it would be ideal if you could incrementally ingest this data to your sql database. 
+
+Following are the two common architecture choices to achive the objective  
+
 1. Use Synapse serverless ExternalTable/Views to virtualize the data in the lake and then use ETL tool to copy the data to destination database
 2. Use ETL tool to directly read data from the data lake 
 
