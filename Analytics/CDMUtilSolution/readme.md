@@ -41,14 +41,14 @@ CDMUtil can be deployed as Azure Function to convert CDM metadata to Synapse Ana
 2. In Azure portal, go to storage account, click on Events > + Event Subscription to create a new event subscription
 3. Give a name and select Azure Function App eventGrid_CDMToSynapseView as endpoint.
 ![Create Event Subscription](createEventSubscription.png)
-4. Click on Filters and update event filters as following 
-  a.  Enable subject filters
-  * **Subject begin with**: /blobServices/default/containers/dynamics365-financeandoperations/blobs/***environment***.sandbox.operations.dynamics.com/Tables
-  * **Subject ends with**: .cdm.json
-  b. Advance filters
-  * **Key**: data.url **Operator**:string does not ends with **Value**:.manifest.cdm.json 
-  * **Key**: data.url **Operator**:string does not contain **Value**:/resolved/
-  * **Key**: data.url **Operator**:string does not contain **Value**:/ChangeFeed/
+4. Click on Filters and update event filters as following:  
+  4.1. Enable subject filters
+    * **Subject begin with**: /blobServices/default/containers/dynamics365-financeandoperations/blobs/***environment***.sandbox.operations.dynamics.com/Tables
+    * **Subject ends with**: .cdm.json  
+  4.2. Advanced filters
+    * **Key**: data.url **Operator**:string does not ends with **Value**:.manifest.cdm.json 
+    * **Key**: data.url **Operator**:string does not contain **Value**:/resolved/
+    * **Key**: data.url **Operator**:string does not contain **Value**:/ChangeFeed/
   
 ![Events Filters](EventsFilters.png)
 
