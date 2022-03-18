@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CDMPathFinder"
         mc:Ignorable="d"
-        Title="Dynamcis 365 FO ADLS Paths" Height="450" Width="800">
+        Title="CDMPathFinder - Dynamics 365 Finance and Operations applications" Height="450" Width="800">
     <Grid>
         <TextBox x:Name="tbxConnectionString" Margin="175,36,0,0" TextWrapping="Wrap" Text="" HorizontalAlignment="Left" Width="588" VerticalAlignment="Top" Height="22"/>
         <Label Content="Connection String" HorizontalAlignment="Left" Margin="10,32,0,0" VerticalAlignment="Top" Width="145"/>
