@@ -21,6 +21,36 @@ namespace CDMUtil.Manifest
         public ManifestReader(AdlsContext adlsContext, string currentFolder, ILogger logger) : base(adlsContext, currentFolder, logger)
         {
         }
+        public async static Task WaitForFolderPathsToExist(AppConfigurations c, List<SQLMetadata> metadataList, ILogger logger)
+        {
+            AdlsContext adlsContext = c.AdlsContext;
+            string folderPath = "";
+            const int maxTries = 20;
+            const int secondsToWait = 10;
+
+            for (int i = 0; i < maxTries; i++)
+            {
+                try
+                {
+                    foreach (var metadata in metadataList)
+                    {
+
+                        //chop off /*.csv from the path
+                        folderPath = metadata.dataLocation.Substring(0, metadata.dataLocation.LastIndexOf("/"));
+                        ManifestReader manifestHandler = new ManifestReader(adlsContext, folderPath, logger);
+                        await manifestHandler.cdmCorpus.Storage.FetchAdapter(manifestHandler.cdmCorpus.Storage.DefaultNamespace).FetchAllFilesAsync("");
+                        logger.LogInformation($"Folder {folderPath} exists");
+                    }
+                    break;
+                }
+                catch (System.Net.Http.HttpRequestException)
+                {
+                    //the path doesnt exist
+                    logger.LogWarning($"Folder {folderPath} does not exist, waiting {secondsToWait} seconds then trying again, attempt {i + 1} of {maxTries}");
+                    System.Threading.Thread.Sleep(secondsToWait * 1000);
+                }
+            }
+        }
         public async static Task<bool> manifestToSQLMetadata(AppConfigurations c, List<SQLMetadata> metadataList, ILogger logger, string parentFolder = "")
         {
             AdlsContext adlsContext = c.AdlsContext;
