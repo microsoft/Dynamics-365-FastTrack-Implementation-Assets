@@ -1,6 +1,6 @@
 # Azure SQL to SQL Pipeline  
 
-This is a sample WPF application that can be used to list all the tables in the data lake with their respective paths. Solution uses the root table manifest (in the Tables folder) to traverse the metadata in the lake and retrieve the paths information. It can be useful to list all the paths and finds tables when they are moved due to a change in the metadata.
+This is a simple WPF application that can be used to list all the tables in the data lake with their respective paths. Solution uses the root table manifest (in the Tables folder) to traverse the metadata in the lake and retrieve the paths information. It can be useful to list all the paths and finds tables when they are moved due to a change in the metadata.
 
 # How to use
 
