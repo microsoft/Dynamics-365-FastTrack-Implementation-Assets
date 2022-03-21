@@ -5,19 +5,23 @@
         "factoryName": {
             "type": "string",
             "metadata": "Data Factory name",
-            "defaultValue": "releasepartypostaladdress"
+            "defaultValue": ""
         },
         "AzureBlobStorageService_connectionString": {
             "type": "secureString",
             "metadata": "Secure string for 'connectionString' of 'AzureBlobStorageService'"
         },
+        "CRMLinkedService_password": {
+            "type": "secureString",
+            "metadata": "Secure string for 'password' of 'CRMLinkedService'"
+        },
         "DynamicsAXService_servicePrincipalKey": {
             "type": "secureString",
             "metadata": "Secure string for 'servicePrincipalKey' of 'DynamicsAXService'"
         },
-        "CRMLinkedService_password": {
-            "type": "secureString",
-            "metadata": "Secure string for 'password' of 'CRMLinkedService'"
+        "CRMLinkedService_properties_typeProperties_username": {
+            "type": "string",
+            "defaultValue": ""
         },
         "DynamicsAXService_properties_typeProperties_url": {
             "type": "string",
@@ -32,10 +36,6 @@
             "defaultValue": ""
         },
         "DynamicsAXService_properties_typeProperties_servicePrincipalId": {
-            "type": "string",
-            "defaultValue": ""
-        },
-        "CRMLinkedService_properties_typeProperties_username": {
             "type": "string",
             "defaultValue": ""
         }
@@ -684,7 +684,7 @@
                         "typeProperties": {
                             "source": {
                                 "type": "DynamicsAXSource",
-                                "query": "$select=LocationId,ValidFrom,ValidTo,Description,Street,City,State,CountryRegionISOCode,ZipCode,County,DistrictName,BuildingCompliment,PostBox,CountryRegionId",
+                                "query": "$select=LocationId,ValidFrom,ValidTo,Description,Street,City,State,CountryRegionISOCode,ZipCode,County,DistrictName,BuildingCompliment,PostBox,CountryRegionId,Latitude,Longitude,StreetNumber",
                                 "httpRequestTimeout": "00:05:00"
                             },
                             "sink": {
@@ -724,61 +724,31 @@
                                     },
                                     {
                                         "source": {
+                                            "name": "Street",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "Street",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "Latitude",
+                                            "type": "Decimal"
+                                        },
+                                        "sink": {
+                                            "name": "Latitude",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
                                             "name": "Description",
                                             "type": "String"
                                         },
                                         "sink": {
                                             "name": "Description",
-                                            "type": "String"
-                                        }
-                                    },
-                                    {
-                                        "source": {
-                                            "name": "ZipCode",
-                                            "type": "String"
-                                        },
-                                        "sink": {
-                                            "name": "ZipCode",
-                                            "type": "String"
-                                        }
-                                    },
-                                    {
-                                        "source": {
-                                            "name": "PostBox",
-                                            "type": "String"
-                                        },
-                                        "sink": {
-                                            "name": "PostBox",
-                                            "type": "String"
-                                        }
-                                    },
-                                    {
-                                        "source": {
-                                            "name": "DistrictName",
-                                            "type": "String"
-                                        },
-                                        "sink": {
-                                            "name": "DistrictName",
-                                            "type": "String"
-                                        }
-                                    },
-                                    {
-                                        "source": {
-                                            "name": "BuildingCompliment",
-                                            "type": "String"
-                                        },
-                                        "sink": {
-                                            "name": "BuildingCompliment",
-                                            "type": "String"
-                                        }
-                                    },
-                                    {
-                                        "source": {
-                                            "name": "CountryRegionISOCode",
-                                            "type": "String"
-                                        },
-                                        "sink": {
-                                            "name": "CountryRegionISOCode",
                                             "type": "String"
                                         }
                                     },
@@ -804,6 +774,26 @@
                                     },
                                     {
                                         "source": {
+                                            "name": "DistrictName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "DistrictName",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "Longitude",
+                                            "type": "Decimal"
+                                        },
+                                        "sink": {
+                                            "name": "Longitude",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
                                             "name": "City",
                                             "type": "String"
                                         },
@@ -814,11 +804,21 @@
                                     },
                                     {
                                         "source": {
-                                            "name": "Street",
+                                            "name": "StreetNumber",
                                             "type": "String"
                                         },
                                         "sink": {
-                                            "name": "Street",
+                                            "name": "StreetNumber",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "CountryRegionId",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "CountryRegionId",
                                             "type": "String"
                                         }
                                     },
@@ -829,6 +829,46 @@
                                         },
                                         "sink": {
                                             "name": "State",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "PostBox",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "PostBox",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "ZipCode",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "ZipCode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "BuildingCompliment",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "BuildingCompliment",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "CountryRegionISOCode",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "CountryRegionISOCode",
                                             "type": "String"
                                         }
                                     }
@@ -980,7 +1020,7 @@
                         "typeProperties": {
                             "source": {
                                 "type": "DynamicsCrmSource",
-                                "query": "<fetch version=\"1.0\" output-format=\"xml-platform\" mapping=\"logical\" distinct=\"false\">\n  <entity name=\"customeraddress\" >\n    <attribute name=\"stateorprovince\" />\n    <attribute name=\"addressnumber\" />\n    <attribute name=\"line1\" />\n    <attribute name=\"line2\" />\n    <attribute name=\"line3\" />\n    <attribute name=\"county\" />\n    <attribute name=\"country\" />\n    <attribute name=\"addresstypecode\" />\n    <attribute name=\"postalcode\" />\n    <attribute name=\"city\" />\n    <attribute name=\"name\" />\n    <attribute name=\"msdyn_isprimaryname\" />\n    <attribute name=\"customeraddressid\" />\n    <attribute name=\"msdyn_locationid\" />\n    <attribute name=\"msdyn_isprimary\" />\n    <attribute name=\"parentid\" />\n    <link-entity name=\"account\" from=\"accountid\" to=\"parentid\" link-type=\"inner\" >\n      <attribute name=\"msdyn_partyid\" />\n      <attribute name=\"msdyn_partynumber\" />\n      <link-entity name=\"msdyn_party\" from=\"msdyn_partyid\" to=\"msdyn_partyid\" link-type=\"inner\" >\n        <attribute name=\"msdyn_partynumber\" alias=\"PartyNumber\" />\n      </link-entity>\n    </link-entity>\n  </entity>\n</fetch>"
+                                "query": "<fetch version=\"1.0\" output-format=\"xml-platform\" mapping=\"logical\" distinct=\"false\">\n  <entity name=\"customeraddress\" >\n    <attribute name=\"stateorprovince\" />\n    <attribute name=\"addressnumber\" />\n    <attribute name=\"line1\" />\n    <attribute name=\"line2\" />\n    <attribute name=\"line3\" />\n    <attribute name=\"county\" />\n    <attribute name=\"country\" />\n    <attribute name=\"addresstypecode\" />\n    <attribute name=\"postalcode\" />\n    <attribute name=\"city\" />\n    <attribute name=\"name\" />\n    <attribute name=\"msdyn_isprimaryname\" />\n    <attribute name=\"customeraddressid\" />\n    <attribute name=\"msdyn_locationid\" />\n    <attribute name=\"msdyn_isprimary\" />\n    <attribute name=\"parentid\" />\n    <attribute name=\"latitude\" />\n    <attribute name=\"longitude\" />\n    <link-entity name=\"account\" from=\"accountid\" to=\"parentid\" link-type=\"inner\" >\n      <attribute name=\"msdyn_partyid\" />\n      <attribute name=\"msdyn_partynumber\" />\n      <link-entity name=\"msdyn_party\" from=\"msdyn_partyid\" to=\"msdyn_partyid\" link-type=\"inner\" >\n        <attribute name=\"msdyn_partynumber\" alias=\"PartyNumber\" />\n      </link-entity>\n    </link-entity>\n  </entity>\n</fetch>"
                             },
                             "sink": {
                                 "type": "DelimitedTextSink",
@@ -1049,11 +1089,11 @@
                                     },
                                     {
                                         "source": {
-                                            "name": "addresstypecode",
+                                            "name": "addressnumber",
                                             "type": "Int32"
                                         },
                                         "sink": {
-                                            "name": "addresstypecode",
+                                            "name": "addressnumber",
                                             "type": "String"
                                         }
                                     },
@@ -1069,11 +1109,31 @@
                                     },
                                     {
                                         "source": {
+                                            "name": "msdyn_locationid",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_locationid",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
                                             "name": "city",
                                             "type": "String"
                                         },
                                         "sink": {
                                             "name": "city",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "objecttypecode",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "objecttypecode",
                                             "type": "String"
                                         }
                                     },
@@ -1139,16 +1199,6 @@
                                     },
                                     {
                                         "source": {
-                                            "name": "addressnumber",
-                                            "type": "Int32"
-                                        },
-                                        "sink": {
-                                            "name": "addressnumber",
-                                            "type": "String"
-                                        }
-                                    },
-                                    {
-                                        "source": {
                                             "name": "PartyNumber",
                                             "type": "String"
                                         },
@@ -1164,6 +1214,26 @@
                                         },
                                         "sink": {
                                             "name": "country",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "latitude",
+                                            "type": "Double"
+                                        },
+                                        "sink": {
+                                            "name": "latitude",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "longitude",
+                                            "type": "Double"
+                                        },
+                                        "sink": {
+                                            "name": "longitude",
                                             "type": "String"
                                         }
                                     }
@@ -1207,7 +1277,7 @@
                         "typeProperties": {
                             "source": {
                                 "type": "DynamicsCrmSource",
-                                "query": "<fetch version=\"1.0\" output-format=\"xml-platform\" mapping=\"logical\" distinct=\"false\">\n  <entity name=\"customeraddress\" >\n    <attribute name=\"stateorprovince\" />\n    <attribute name=\"addressnumber\" />\n    <attribute name=\"line1\" />\n    <attribute name=\"line2\" />\n    <attribute name=\"line3\" />\n    <attribute name=\"county\" />\n    <attribute name=\"country\" />\n    <attribute name=\"addresstypecode\" />\n    <attribute name=\"postalcode\" />\n    <attribute name=\"city\" />\n    <attribute name=\"name\" />\n    <attribute name=\"msdyn_isprimaryname\" />\n    <attribute name=\"customeraddressid\" />\n    <attribute name=\"msdyn_locationid\" />\n    <attribute name=\"msdyn_isprimary\" />\n    <attribute name=\"parentid\" />\n    <link-entity name=\"contact\" from=\"contactid\" to=\"parentid\" link-type=\"inner\" >\n      <attribute name=\"msdyn_partyid\" />\n      <attribute name=\"msdyn_partynumber\" />\n      <link-entity name=\"msdyn_party\" from=\"msdyn_partyid\" to=\"msdyn_partyid\" link-type=\"inner\" >\n        <attribute name=\"msdyn_partynumber\" alias=\"PartyNumber\" />\n      </link-entity>\n    </link-entity>\n  </entity>\n</fetch>"
+                                "query": "<fetch version=\"1.0\" output-format=\"xml-platform\" mapping=\"logical\" distinct=\"false\">\n  <entity name=\"customeraddress\" >\n    <attribute name=\"stateorprovince\" />\n    <attribute name=\"addressnumber\" />\n    <attribute name=\"line1\" />\n    <attribute name=\"line2\" />\n    <attribute name=\"line3\" />\n    <attribute name=\"county\" />\n    <attribute name=\"country\" />\n    <attribute name=\"addresstypecode\" />\n    <attribute name=\"postalcode\" />\n    <attribute name=\"city\" />\n    <attribute name=\"name\" />\n    <attribute name=\"msdyn_isprimaryname\" />\n    <attribute name=\"customeraddressid\" />\n    <attribute name=\"msdyn_locationid\" />\n    <attribute name=\"msdyn_isprimary\" />\n    <attribute name=\"parentid\" />\n    <attribute name=\"latitude\" />\n    <attribute name=\"longitude\" />\n    <link-entity name=\"contact\" from=\"contactid\" to=\"parentid\" link-type=\"inner\" >\n      <attribute name=\"msdyn_partyid\" />\n      <attribute name=\"msdyn_partynumber\" />\n      <link-entity name=\"msdyn_party\" from=\"msdyn_partyid\" to=\"msdyn_partyid\" link-type=\"inner\" >\n        <attribute name=\"msdyn_partynumber\" alias=\"PartyNumber\" />\n      </link-entity>\n    </link-entity>\n  </entity>\n</fetch>"
                             },
                             "sink": {
                                 "type": "DelimitedTextSink",
@@ -1236,21 +1306,11 @@
                                     },
                                     {
                                         "source": {
-                                            "name": "line1",
-                                            "type": "String"
+                                            "name": "customeraddressid",
+                                            "type": "Guid"
                                         },
                                         "sink": {
-                                            "name": "line1",
-                                            "type": "String"
-                                        }
-                                    },
-                                    {
-                                        "source": {
-                                            "name": "postalcode",
-                                            "type": "String"
-                                        },
-                                        "sink": {
-                                            "name": "postalcode",
+                                            "name": "customeraddressid",
                                             "type": "String"
                                         }
                                     },
@@ -1266,41 +1326,21 @@
                                     },
                                     {
                                         "source": {
-                                            "name": "city",
-                                            "type": "String"
+                                            "name": "addressnumber",
+                                            "type": "Int32"
                                         },
                                         "sink": {
-                                            "name": "city",
+                                            "name": "addressnumber",
                                             "type": "String"
                                         }
                                     },
                                     {
                                         "source": {
-                                            "name": "country",
-                                            "type": "String"
+                                            "name": "addresstypecode",
+                                            "type": "Int32"
                                         },
                                         "sink": {
-                                            "name": "country",
-                                            "type": "String"
-                                        }
-                                    },
-                                    {
-                                        "source": {
-                                            "name": "msdyn_locationid",
-                                            "type": "String"
-                                        },
-                                        "sink": {
-                                            "name": "msdyn_locationid",
-                                            "type": "String"
-                                        }
-                                    },
-                                    {
-                                        "source": {
-                                            "name": "customeraddressid",
-                                            "type": "Guid"
-                                        },
-                                        "sink": {
-                                            "name": "customeraddressid",
+                                            "name": "addresstypecode",
                                             "type": "String"
                                         }
                                     },
@@ -1346,6 +1386,16 @@
                                     },
                                     {
                                         "source": {
+                                            "name": "line1",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "line1",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
                                             "name": "county",
                                             "type": "String"
                                         },
@@ -1356,11 +1406,51 @@
                                     },
                                     {
                                         "source": {
-                                            "name": "addressnumber",
-                                            "type": "Int32"
+                                            "name": "msdyn_locationid",
+                                            "type": "String"
                                         },
                                         "sink": {
-                                            "name": "addressnumber",
+                                            "name": "msdyn_locationid",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "latitude",
+                                            "type": "Double"
+                                        },
+                                        "sink": {
+                                            "name": "latitude",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "city",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "city",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "postalcode",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "postalcode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "longitude",
+                                            "type": "Double"
+                                        },
+                                        "sink": {
+                                            "name": "longitude",
                                             "type": "String"
                                         }
                                     },
@@ -1371,16 +1461,6 @@
                                         },
                                         "sink": {
                                             "name": "stateorprovince",
-                                            "type": "String"
-                                        }
-                                    },
-                                    {
-                                        "source": {
-                                            "name": "addresstypecode",
-                                            "type": "Int32"
-                                        },
-                                        "sink": {
-                                            "name": "addresstypecode",
                                             "type": "String"
                                         }
                                     },
@@ -1401,6 +1481,26 @@
                                         },
                                         "sink": {
                                             "name": "line3",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "name",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "name",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "country",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "country",
                                             "type": "String"
                                         }
                                     }
@@ -1653,6 +1753,30 @@
                                 "dependencyConditions": [
                                     "Succeeded"
                                 ]
+                            },
+                            {
+                                "activity": "1-10-Retrieve postal address location from FO",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            },
+                            {
+                                "activity": "1-11-Retrieve postal address collection from Dataverse",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            },
+                            {
+                                "activity": "1-12-Retrieve Party postal address from Dataverse",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            },
+                            {
+                                "activity": "1-13-Retrieve postal address from Dataverse",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
                             }
                         ],
                         "policy": {
@@ -1704,6 +1828,21 @@
                                         "foldername": "input",
                                         "filename": "FOPostalAddressUpdate.csv"
                                     },
+                                    "CDSPostalAddressCollection": {
+                                        "container": "postaladdress",
+                                        "foldername": "input",
+                                        "filename": "CDSPostalAddressCollection.csv"
+                                    },
+                                    "CDSPartyPostalAddress": {
+                                        "container": "postaladdress",
+                                        "foldername": "input",
+                                        "filename": "CDSPartyPostalAddress.csv"
+                                    },
+                                    "CDSPostalAddress": {
+                                        "container": "postaladdress",
+                                        "foldername": "input",
+                                        "filename": "CDSPostalAddress.csv"
+                                    },
                                     "CEPostalAddressFile": {
                                         "container": "postaladdress",
                                         "folder": "input"
@@ -1732,6 +1871,18 @@
                         "dependsOn": [
                             {
                                 "activity": "7-Retrieve postal address collection",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            },
+                            {
+                                "activity": "1-8-Retrieve account from Dataverse",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            },
+                            {
+                                "activity": "1-9-Retrieve contact from Dataverse",
                                 "dependencyConditions": [
                                     "Succeeded"
                                 ]
@@ -2387,6 +2538,39 @@
                                             "name": "msdyn_postaladdressid",
                                             "type": "Guid"
                                         }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_latitude",
+                                            "type": "String",
+                                            "physicalType": "String"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_latitude",
+                                            "type": "Decimal"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_longitude",
+                                            "type": "String",
+                                            "physicalType": "String"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_longitude",
+                                            "type": "Decimal"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_zipcode",
+                                            "type": "String",
+                                            "physicalType": "String"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_zipcode",
+                                            "type": "String"
+                                        }
                                     }
                                 ],
                                 "typeConversion": true,
@@ -2539,6 +2723,17 @@
                                         "sink": {
                                             "name": "msdyn_partypostaladdressid",
                                             "type": "Guid"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_description",
+                                            "type": "String",
+                                            "physicalType": "String"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_name",
+                                            "type": "String"
                                         }
                                     }
                                 ],
@@ -3038,6 +3233,307 @@
                             },
                             "traceLevel": "Fine"
                         }
+                    },
+                    {
+                        "name": "1-11-Retrieve postal address collection from Dataverse",
+                        "description": "Retrieve postal address collection from Dataverse",
+                        "type": "Copy",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "DynamicsCrmSource",
+                                "query": "<fetch version=\"1.0\" output-format=\"xml-platform\" mapping=\"logical\" distinct=\"false\">\n  <entity name=\"msdyn_postaladdresscollection\" >\n    <attribute name=\"msdyn_postaladdresscollectionid\" />\n    <attribute name=\"msdyn_location\" />\n    <attribute name=\"msdyn_description\" />\n  </entity>\n</fetch>"
+                            },
+                            "sink": {
+                                "type": "DelimitedTextSink",
+                                "storeSettings": {
+                                    "type": "AzureBlobStorageWriteSettings"
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextWriteSettings",
+                                    "quoteAllText": true,
+                                    "fileExtension": ".txt"
+                                }
+                            },
+                            "enableStaging": false,
+                            "translator": {
+                                "type": "TabularTranslator",
+                                "mappings": [
+                                    {
+                                        "source": {
+                                            "name": "msdyn_postaladdresscollectionid",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_postaladdresscollectionid",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_location",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_location",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_description",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_description",
+                                            "type": "String"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "CRMConnection",
+                                "type": "DatasetReference",
+                                "parameters": {
+                                    "entityname": "msdyn_postaladdresscollection"
+                                }
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference",
+                                "parameters": {
+                                    "container": "postaladdress",
+                                    "foldername": "input",
+                                    "filename": "CDSPostalAddressCollection.csv"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "1-12-Retrieve Party postal address from Dataverse",
+                        "description": "Retrieve Party postal address from Dataverse",
+                        "type": "Copy",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "DynamicsCrmSource",
+                                "query": "<fetch version=\"1.0\" output-format=\"xml-platform\" mapping=\"logical\" distinct=\"false\">\n  <entity name=\"msdyn_partypostaladdress\">\n    <attribute name=\"msdyn_partypostaladdressid\" />\n    <attribute name=\"msdyn_name\" />\n    <attribute name=\"createdon\" />\n    <attribute name=\"msdyn_postaladdresscollectionid\" />\n    <order attribute=\"msdyn_name\" descending=\"false\" />\n    <link-entity name=\"msdyn_party\" from=\"msdyn_partyid\" to=\"msdyn_partyid\" link-type=\"inner\" alias=\"pt\">\n      <attribute name=\"msdyn_partynumber\" />\n    </link-entity>\n    <link-entity name=\"msdyn_postaladdresscollection\" from=\"msdyn_postaladdresscollectionid\" to=\"msdyn_postaladdresscollectionid\" link-type=\"inner\" alias=\"pac\">\n      <attribute name=\"msdyn_location\" />\n    </link-entity>\n  </entity>\n</fetch>"
+                            },
+                            "sink": {
+                                "type": "DelimitedTextSink",
+                                "storeSettings": {
+                                    "type": "AzureBlobStorageWriteSettings"
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextWriteSettings",
+                                    "quoteAllText": true,
+                                    "fileExtension": ".txt"
+                                }
+                            },
+                            "enableStaging": false,
+                            "translator": {
+                                "type": "TabularTranslator",
+                                "mappings": [
+                                    {
+                                        "source": {
+                                            "name": "msdyn_partypostaladdressid",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_partypostaladdressid",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_name",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_name",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "createdon",
+                                            "type": "DateTime"
+                                        },
+                                        "sink": {
+                                            "name": "createdon",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_postaladdresscollectionid",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_postaladdresscollectionid",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "pt.msdyn_partynumber",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_partynumber",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "pac.msdyn_location",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_location",
+                                            "type": "String"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "CRMConnection",
+                                "type": "DatasetReference",
+                                "parameters": {
+                                    "entityname": "msdyn_partypostaladdress"
+                                }
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference",
+                                "parameters": {
+                                    "container": "postaladdress",
+                                    "foldername": "input",
+                                    "filename": "CDSPartyPostalAddress.csv"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "1-13-Retrieve postal address from Dataverse",
+                        "description": "Retrieve postal address from Dataverse",
+                        "type": "Copy",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "DynamicsCrmSource",
+                                "query": "<fetch version=\"1.0\" output-format=\"xml-platform\" mapping=\"logical\" distinct=\"false\">\n  <entity name=\"msdyn_postaladdress\">\n    <attribute name=\"msdyn_postaladdressid\" />\n    <attribute name=\"msdyn_name\" />\n    <attribute name=\"createdon\" />\n    <attribute name=\"msdyn_validfrom\" />\n    <order attribute=\"msdyn_name\" descending=\"false\" />\n    <link-entity name=\"msdyn_postaladdresscollection\" from=\"msdyn_postaladdresscollectionid\" to=\"msdyn_postaladdresscollectionid\" visible=\"false\" link-type=\"outer\" alias=\"pac\">\n      <attribute name=\"msdyn_location\" />\n    </link-entity>\n  </entity>\n</fetch>"
+                            },
+                            "sink": {
+                                "type": "DelimitedTextSink",
+                                "storeSettings": {
+                                    "type": "AzureBlobStorageWriteSettings"
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextWriteSettings",
+                                    "quoteAllText": true,
+                                    "fileExtension": ".txt"
+                                }
+                            },
+                            "enableStaging": false,
+                            "translator": {
+                                "type": "TabularTranslator",
+                                "mappings": [
+                                    {
+                                        "source": {
+                                            "name": "msdyn_postaladdressid",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_postaladdressid",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "createdon",
+                                            "type": "DateTime"
+                                        },
+                                        "sink": {
+                                            "name": "createdon",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_validfrom",
+                                            "type": "DateTime"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_validfrom",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "pac.msdyn_location",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "pac.msdyn_location",
+                                            "type": "String"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "CRMConnection",
+                                "type": "DatasetReference",
+                                "parameters": {
+                                    "entityname": "msdyn_postaladdress"
+                                }
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference",
+                                "parameters": {
+                                    "container": "postaladdress",
+                                    "foldername": "input",
+                                    "filename": "CDSPostalAddress.csv"
+                                }
+                            }
+                        ]
                     }
                 ],
                 "policy": {
@@ -3045,7 +3541,7 @@
                     "cancelAfter": {}
                 },
                 "annotations": [],
-                "lastPublishTime": "2021-07-22T15:46:42Z"
+                "lastPublishTime": "2022-03-17T16:41:53Z"
             },
             "dependsOn": [
                 "[concat(variables('factoryId'), '/datasets/CRMConnection')]",
@@ -3059,6 +3555,56 @@
                 "[concat(variables('factoryId'), '/dataflows/AssociatePostalAddressCollection')]",
                 "[concat(variables('factoryId'), '/dataflows/AssociatePartyPostalAddressCollection')]",
                 "[concat(variables('factoryId'), '/dataflows/ConvertFOAddressInCSV')]",
+                "[concat(variables('factoryId'), '/linkedServices/AzureBlobStorageService')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/AzureStorageConnection')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "AzureBlobStorageService",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "container": {
+                        "type": "string"
+                    },
+                    "foldername": {
+                        "type": "string"
+                    },
+                    "filename": {
+                        "type": "string"
+                    }
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "fileName": {
+                            "value": "@dataset().filename",
+                            "type": "Expression"
+                        },
+                        "folderPath": {
+                            "value": "@dataset().foldername",
+                            "type": "Expression"
+                        },
+                        "container": {
+                            "value": "@dataset().container",
+                            "type": "Expression"
+                        }
+                    },
+                    "columnDelimiter": "♥",
+                    "rowDelimiter": "♠",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": []
+            },
+            "dependsOn": [
                 "[concat(variables('factoryId'), '/linkedServices/AzureBlobStorageService')]"
             ]
         },
@@ -3106,7 +3652,7 @@
             ]
         },
         {
-            "name": "[concat(parameters('factoryName'), '/AzureStorageConnection')]",
+            "name": "[concat(parameters('factoryName'), '/DelimitedTextImport')]",
             "type": "Microsoft.DataFactory/factories/datasets",
             "apiVersion": "2018-06-01",
             "properties": {
@@ -3118,10 +3664,7 @@
                     "container": {
                         "type": "string"
                     },
-                    "foldername": {
-                        "type": "string"
-                    },
-                    "filename": {
+                    "folder": {
                         "type": "string"
                     }
                 },
@@ -3130,12 +3673,8 @@
                 "typeProperties": {
                     "location": {
                         "type": "AzureBlobStorageLocation",
-                        "fileName": {
-                            "value": "@dataset().filename",
-                            "type": "Expression"
-                        },
                         "folderPath": {
-                            "value": "@dataset().foldername",
+                            "value": "@dataset().folder",
                             "type": "Expression"
                         },
                         "container": {
@@ -3143,8 +3682,7 @@
                             "type": "Expression"
                         }
                     },
-                    "columnDelimiter": "♥",
-                    "rowDelimiter": "♠",
+                    "columnDelimiter": ",",
                     "escapeChar": "\\",
                     "firstRowAsHeader": true,
                     "quoteChar": "\""
@@ -3213,48 +3751,6 @@
             ]
         },
         {
-            "name": "[concat(parameters('factoryName'), '/DelimitedTextImport')]",
-            "type": "Microsoft.DataFactory/factories/datasets",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "linkedServiceName": {
-                    "referenceName": "AzureBlobStorageService",
-                    "type": "LinkedServiceReference"
-                },
-                "parameters": {
-                    "container": {
-                        "type": "string"
-                    },
-                    "folder": {
-                        "type": "string"
-                    }
-                },
-                "annotations": [],
-                "type": "DelimitedText",
-                "typeProperties": {
-                    "location": {
-                        "type": "AzureBlobStorageLocation",
-                        "folderPath": {
-                            "value": "@dataset().folder",
-                            "type": "Expression"
-                        },
-                        "container": {
-                            "value": "@dataset().container",
-                            "type": "Expression"
-                        }
-                    },
-                    "columnDelimiter": ",",
-                    "escapeChar": "\\",
-                    "firstRowAsHeader": true,
-                    "quoteChar": "\""
-                },
-                "schema": []
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/AzureBlobStorageService')]"
-            ]
-        },
-        {
             "name": "[concat(parameters('factoryName'), '/AzureBlobStorageService')]",
             "type": "Microsoft.DataFactory/factories/linkedServices",
             "apiVersion": "2018-06-01",
@@ -3263,27 +3759,6 @@
                 "type": "AzureBlobStorage",
                 "typeProperties": {
                     "connectionString": "[parameters('AzureBlobStorageService_connectionString')]"
-                }
-            },
-            "dependsOn": []
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/DynamicsAXService')]",
-            "type": "Microsoft.DataFactory/factories/linkedServices",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "description": "Dynamics AX Service",
-                "annotations": [],
-                "type": "DynamicsAX",
-                "typeProperties": {
-                    "url": "[parameters('DynamicsAXService_properties_typeProperties_url')]",
-                    "tenant": "[parameters('DynamicsAXService_properties_typeProperties_tenant')]",
-                    "aadResourceId": "[parameters('DynamicsAXService_properties_typeProperties_aadResourceId')]",
-                    "servicePrincipalId": "[parameters('DynamicsAXService_properties_typeProperties_servicePrincipalId')]",
-                    "servicePrincipalKey": {
-                        "type": "SecureString",
-                        "value": "[parameters('DynamicsAXService_servicePrincipalKey')]"
-                    }
                 }
             },
             "dependsOn": []
@@ -3310,7 +3785,28 @@
             "dependsOn": []
         },
         {
-            "name": "[concat(parameters('factoryName'), '/CreateCEAddress')]",
+            "name": "[concat(parameters('factoryName'), '/DynamicsAXService')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "Dynamics AX Service",
+                "annotations": [],
+                "type": "DynamicsAX",
+                "typeProperties": {
+                    "url": "[parameters('DynamicsAXService_properties_typeProperties_url')]",
+                    "tenant": "[parameters('DynamicsAXService_properties_typeProperties_tenant')]",
+                    "aadResourceId": "[parameters('DynamicsAXService_properties_typeProperties_aadResourceId')]",
+                    "servicePrincipalId": "[parameters('DynamicsAXService_properties_typeProperties_servicePrincipalId')]",
+                    "servicePrincipalKey": {
+                        "type": "SecureString",
+                        "value": "[parameters('DynamicsAXService_servicePrincipalKey')]"
+                    }
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ConsolidateAccountAddress')]",
             "type": "Microsoft.DataFactory/factories/dataflows",
             "apiVersion": "2018-06-01",
             "properties": {
@@ -3322,29 +3818,187 @@
                                 "referenceName": "AzureStorageConnection",
                                 "type": "DatasetReference"
                             },
-                            "name": "FOPostalAddress"
+                            "name": "CDSAccountAddress"
                         },
                         {
                             "dataset": {
                                 "referenceName": "AzureStorageConnection",
                                 "type": "DatasetReference"
                             },
-                            "name": "FOPostalAddressLocation"
+                            "name": "CDSContactAddress"
                         },
                         {
                             "dataset": {
                                 "referenceName": "AzureStorageConnection",
                                 "type": "DatasetReference"
                             },
-                            "name": "FOPartyPostalAddress"
+                            "name": "CDSVendorAddress"
                         },
                         {
                             "dataset": {
                                 "referenceName": "AzureStorageConnection",
                                 "type": "DatasetReference"
                             },
-                            "name": "FONewPostalAddress"
+                            "name": "FOCountryISOCode"
+                        }
+                    ],
+                    "sinks": [
+                        {
+                            "dataset": {
+                                "referenceName": "DelimitedTextOutput",
+                                "type": "DatasetReference"
+                            },
+                            "name": "ConsolidateAccountAddress"
                         },
+                        {
+                            "dataset": {
+                                "referenceName": "DelimitedTextOutput",
+                                "type": "DatasetReference"
+                            },
+                            "name": "CDSAccountContactAddress"
+                        }
+                    ],
+                    "transformations": [
+                        {
+                            "name": "RemoveDuplicateAccountAddress"
+                        },
+                        {
+                            "name": "AccountAddressSortByAddressNumber"
+                        },
+                        {
+                            "name": "ContactAddressSortByAddressNumber"
+                        },
+                        {
+                            "name": "RemoveDuplicateContacttAddress"
+                        },
+                        {
+                            "name": "AccountContactAddress"
+                        },
+                        {
+                            "name": "AccountContactVendorAddress"
+                        },
+                        {
+                            "name": "VendorAddressAttribute"
+                        },
+                        {
+                            "name": "CountryRegionCode"
+                        },
+                        {
+                            "name": "CounrtyRegionISOCode"
+                        },
+                        {
+                            "name": "DistinctCEAddress"
+                        },
+                        {
+                            "name": "DistinctContactAddress"
+                        },
+                        {
+                            "name": "DistinctAccountAddress"
+                        }
+                    ],
+                    "script": "source(output(\n\t\tline1 as string,\n\t\tmsdyn_isprimary as boolean,\n\t\t{account1.msdyn_partyid} as string,\n\t\t{account1.msdyn_partynumber} as string,\n\t\tcounty as string,\n\t\taddressnumber as short,\n\t\tcustomeraddressid as string,\n\t\tmsdyn_locationid as string,\n\t\tcity as string,\n\t\tobjecttypecode as string,\n\t\tpostalcode as string,\n\t\tstateorprovince as string,\n\t\tline2 as string,\n\t\tline3 as string,\n\t\tparentid as string,\n\t\tname as string,\n\t\tPartyNumber as string,\n\t\tcountry as string,\n\t\tlatitude as string,\n\t\tlongitude as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSAccountAddress\nsource(output(\n\t\t{contact1.msdyn_partynumber} as string,\n\t\tcustomeraddressid as string,\n\t\t{contact1.msdyn_partyid} as string,\n\t\taddressnumber as short,\n\t\taddresstypecode as short,\n\t\tobjecttypecode as string,\n\t\tPartyNumber as string,\n\t\tparentid as string,\n\t\tmsdyn_isprimary as boolean,\n\t\tline1 as string,\n\t\tcounty as string,\n\t\tmsdyn_locationid as string,\n\t\tlatitude as string,\n\t\tcity as string,\n\t\tpostalcode as string,\n\t\tlongitude as string,\n\t\tstateorprovince as string,\n\t\tline2 as string,\n\t\tline3 as string,\n\t\tname as string,\n\t\tcountry as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tignoreNoFilesFound: false) ~> CDSContactAddress\nsource(output(\n\t\tmsdyn_addresscity as string,\n\t\tmsdyn_addressstateid as string,\n\t\tmsdyn_addresszipcode as string,\n\t\tmsdyn_addresscountyid as string,\n\t\tmsdyn_firstname as string,\n\t\tmsdyn_lastname as string,\n\t\tCompanyCode as string,\n\t\tmsdyn_addressstreet as string,\n\t\tmsdyn_addresscountryregionid as string,\n\t\tmsdyn_vendorpartynumber as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_vendoraccountnumber as string,\n\t\tmsdyn_vendorid as string,\n\t\tPartyNumber as string,\n\t\tmsdyn_name as string,\n\t\tmsdyn_linkedvendorinaccountsentity as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSVendorAddress\nsource(output(\n\t\tCountryRegion as string,\n\t\tISOcode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOCountryISOCode\nAccountAddressSortByAddressNumber aggregate(groupBy(line1,\n\t\tline2,\n\t\tline3,\n\t\tcity,\n\t\tstateorprovince,\n\t\tpostalcode,\n\t\tcountry,\n\t\tPartyNumber,\n\t\tparentid,\n\t\tlatitude,\n\t\tlongitude,\n\t\tname),\n\taddressnumber = min(addressnumber),\n\t\tcustomeraddressid = first(customeraddressid)) ~> RemoveDuplicateAccountAddress\nCDSAccountAddress sort(asc(parentid, true),\n\tasc(addressnumber, true)) ~> AccountAddressSortByAddressNumber\nCDSContactAddress sort(asc(parentid, true),\n\tasc(addressnumber, true)) ~> ContactAddressSortByAddressNumber\nContactAddressSortByAddressNumber aggregate(groupBy(line1,\n\t\tline2,\n\t\tline3,\n\t\tcity,\n\t\tstateorprovince,\n\t\tpostalcode,\n\t\tcountry,\n\t\tPartyNumber,\n\t\tparentid,\n\t\tlatitude,\n\t\tlongitude,\n\t\tname),\n\taddressnumber = min(addressnumber),\n\t\tcustomeraddressid = first(customeraddressid)) ~> RemoveDuplicateContacttAddress\nDistinctAccountAddress, DistinctContactAddress union(byName: true)~> AccountContactAddress\nAccountContactAddress, VendorAddressAttribute union(byName: true)~> AccountContactVendorAddress\nCDSVendorAddress select(mapColumn(\n\t\tstateorprovince = msdyn_addressstateid,\n\t\tcountry = msdyn_addresscountryregionid,\n\t\tmsdyn_vendorpartynumber,\n\t\tmsdyn_partyid,\n\t\tPartyNumber,\n\t\tline1 = msdyn_addressstreet,\n\t\tpostalcode = msdyn_addresszipcode,\n\t\tcity = msdyn_addresscity\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> VendorAddressAttribute\nAccountContactVendorAddress, FOCountryISOCode join(lower(country) == lower(CountryRegion),\n\tjoinType:'left',\n\tbroadcast: 'auto')~> CountryRegionCode\nCountryRegionCode derive(CounrtyRegionISOCode = iifNull(ISOcode, country, ISOcode)) ~> CounrtyRegionISOCode\nCounrtyRegionISOCode select(mapColumn(\n\t\tline1,\n\t\tline2,\n\t\tline3,\n\t\tcity,\n\t\tstateorprovince,\n\t\tpostalcode,\n\t\tPartyNumber,\n\t\tparentid,\n\t\taddressnumber,\n\t\tcustomeraddressid,\n\t\tmsdyn_vendorpartynumber,\n\t\tmsdyn_partyid,\n\t\tcountry = CounrtyRegionISOCode,\n\t\tlatitude,\n\t\tlongitude,\n\t\tname\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> DistinctCEAddress\nRemoveDuplicateContacttAddress select(mapColumn(\n\t\tline1,\n\t\tline2,\n\t\tline3,\n\t\tcity,\n\t\tstateorprovince,\n\t\tpostalcode,\n\t\tcountry,\n\t\tPartyNumber,\n\t\tparentid,\n\t\taddressnumber,\n\t\tcustomeraddressid,\n\t\tlatitude,\n\t\tlongitude,\n\t\tname\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> DistinctContactAddress\nRemoveDuplicateAccountAddress select(mapColumn(\n\t\tline1,\n\t\tline2,\n\t\tline3,\n\t\tcity,\n\t\tstateorprovince,\n\t\tpostalcode,\n\t\tcountry,\n\t\tPartyNumber,\n\t\tparentid,\n\t\taddressnumber,\n\t\tcustomeraddressid,\n\t\tlongitude,\n\t\tlatitude,\n\t\tname\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> DistinctAccountAddress\nDistinctCEAddress sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['CEAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> ConsolidateAccountAddress\nAccountContactAddress sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['CDSAccountContactAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> CDSAccountContactAddress"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/AzureStorageConnection')]",
+                "[concat(variables('factoryId'), '/datasets/DelimitedTextOutput')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/AssociatePostalAddressCollection')]",
+            "type": "Microsoft.DataFactory/factories/dataflows",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "type": "MappingDataFlow",
+                "typeProperties": {
+                    "sources": [
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "CEPostalAddress"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "CEPartyPostalAddress"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "FOCEPostalAddressCollection"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "CDSParty"
+                        }
+                    ],
+                    "sinks": [
+                        {
+                            "dataset": {
+                                "referenceName": "DelimitedTextOutput",
+                                "type": "DatasetReference"
+                            },
+                            "name": "FOCEPostalAddress"
+                        }
+                    ],
+                    "transformations": [
+                        {
+                            "name": "PostalAddressCollection"
+                        },
+                        {
+                            "name": "PostalAddressCollectionId"
+                        },
+                        {
+                            "name": "PostalAddressPartyAssociation"
+                        },
+                        {
+                            "name": "ActivePostalAddress"
+                        },
+                        {
+                            "name": "ExpiredPostalAddress"
+                        },
+                        {
+                            "name": "CEPartyPostalAddressLocationOwner"
+                        },
+                        {
+                            "name": "CEPartyPostalAddressLocationOwnerParty"
+                        },
+                        {
+                            "name": "DistinctPostalAddress"
+                        },
+                        {
+                            "name": "PostalAddressLocationOwnerParty"
+                        },
+                        {
+                            "name": "ExpiredPostalAddressUnion"
+                        }
+                    ],
+                    "script": "source(output(\n\t\tmsdyn_location as string,\n\t\tmsdyn_validfrom as timestamp,\n\t\tmsdyn_name as string,\n\t\tmsdyn_zipcode as string,\n\t\tmsdyn_postbox as string,\n\t\tmsdyn_district as string,\n\t\tmsdyn_buildingcompliment as string,\n\t\tmsdyn_countryregionid as string,\n\t\tmsdyn_validto as timestamp,\n\t\tmsdyn_county as string,\n\t\tmsdyn_city as string,\n\t\tmsdyn_street as string,\n\t\tmsdyn_state as string,\n\t\tLatitude as string,\n\t\tLongitude as string,\n\t\tline1 as string,\n\t\tline2 as string,\n\t\tline3 as string,\n\t\tmsdyn_postaladdressid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CEPostalAddress\nsource(output(\n\t\tmsdyn_partynumber as string,\n\t\tmsdyn_location as string,\n\t\tmdyn_postaladdresspurposenames as string,\n\t\tmsdyn_islocationowner as boolean,\n\t\tmsdyn_isprimary as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CEPartyPostalAddress\nsource(output(\n\t\tmsdyn_postaladdresscollectionid as string,\n\t\tmsdyn_location as string,\n\t\tmsdyn_description as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOCEPostalAddressCollection\nsource(output(\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSParty\nDistinctPostalAddress, FOCEPostalAddressCollection join(lower(DistinctPostalAddress@msdyn_location) == lower(FOCEPostalAddressCollection@msdyn_location),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> PostalAddressCollection\nPostalAddressLocationOwnerParty select(mapColumn(\n\t\tmsdyn_location = DistinctPostalAddress@msdyn_location,\n\t\tmsdyn_validfrom,\n\t\tmsdyn_name,\n\t\tmsdyn_zipcode,\n\t\tmsdyn_postbox,\n\t\tmsdyn_district,\n\t\tmsdyn_buildingcompliment,\n\t\tmsdyn_countryregionid,\n\t\tmsdyn_validto,\n\t\tmsdyn_county,\n\t\tmsdyn_city,\n\t\tmsdyn_street,\n\t\tmsdyn_state,\n\t\tmsdyn_postaladdresscollectionid,\n\t\tmsdyn_partynumber,\n\t\tmdyn_postaladdresspurposenames,\n\t\tmsdyn_islocationowner,\n\t\tmsdyn_isprimary,\n\t\tline1,\n\t\tline2,\n\t\tline3,\n\t\tmsdyn_postaladdressid,\n\t\tLatitude,\n\t\tLongitude\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> PostalAddressCollectionId\nExpiredPostalAddressUnion, CDSParty join(lower(ExpiredPostalAddressUnion@msdyn_partynumber) == lower(CDSParty@msdyn_partynumber)\n\t&& msdyn_islocationowner == true(),\n\tjoinType:'left',\n\tbroadcast: 'both')~> PostalAddressPartyAssociation\nCEPostalAddress filter(msdyn_validto > currentUTC()) ~> ActivePostalAddress\nCEPostalAddress filter(msdyn_validto <= currentUTC()) ~> ExpiredPostalAddress\nCEPartyPostalAddress filter(msdyn_islocationowner) ~> CEPartyPostalAddressLocationOwner\nCEPartyPostalAddressLocationOwner select(mapColumn(\n\t\tmsdyn_partynumber,\n\t\tmsdyn_location,\n\t\tmsdyn_islocationowner,\n\t\tmsdyn_isprimary,\n\t\tmdyn_postaladdresspurposenames\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CEPartyPostalAddressLocationOwnerParty\nActivePostalAddress aggregate(groupBy(msdyn_location,\n\t\tmsdyn_validfrom,\n\t\tmsdyn_name,\n\t\tmsdyn_zipcode,\n\t\tmsdyn_postbox,\n\t\tmsdyn_district,\n\t\tmsdyn_buildingcompliment,\n\t\tmsdyn_countryregionid,\n\t\tmsdyn_validto,\n\t\tmsdyn_county,\n\t\tmsdyn_city,\n\t\tmsdyn_street,\n\t\tmsdyn_state,\n\t\tline1,\n\t\tline2,\n\t\tline3,\n\t\tmsdyn_postaladdressid,\n\t\tLatitude,\n\t\tLongitude),\n\tfirst = first(msdyn_location)) ~> DistinctPostalAddress\nPostalAddressCollection, CEPartyPostalAddressLocationOwnerParty lookup(lower(DistinctPostalAddress@msdyn_location) == lower(CEPartyPostalAddressLocationOwnerParty@msdyn_location),\n\tmultiple: false,\n\tpickup: 'first',\n\tasc(msdyn_partynumber, true),\n\tbroadcast: 'auto')~> PostalAddressLocationOwnerParty\nPostalAddressCollectionId, ExpiredPostalAddress union(byName: true)~> ExpiredPostalAddressUnion\nPostalAddressPartyAssociation sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['FOCEPostalAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tmsdyn_location,\n\t\tmsdyn_name,\n\t\tmsdyn_zipcode,\n\t\tmsdyn_postbox,\n\t\tmsdyn_district,\n\t\tmsdyn_buildingcompliment,\n\t\tmsdyn_countryregionid,\n\t\tmsdyn_county,\n\t\tmsdyn_city,\n\t\tmsdyn_street,\n\t\tmsdyn_state,\n\t\tmsdyn_postaladdresscollectionid,\n\t\tmdyn_postaladdresspurposenames,\n\t\tmsdyn_islocationowner,\n\t\tmsdyn_isprimary,\n\t\tmsdyn_partyid,\n\t\tline1,\n\t\tline2,\n\t\tline3,\n\t\tmsdyn_validto,\n\t\tmsdyn_validfrom,\n\t\tmsdyn_postaladdressid,\n\t\tmsdyn_latitude = Latitude,\n\t\tmsdyn_longitude = Longitude\n\t),\n\tpartitionBy('hash', 1)) ~> FOCEPostalAddress"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/AzureStorageConnection')]",
+                "[concat(variables('factoryId'), '/datasets/DelimitedTextOutput')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ConvertFOAddressInCSV')]",
+            "type": "Microsoft.DataFactory/factories/dataflows",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "Convert FO new address files into csv format to import through DIXF",
+                "type": "MappingDataFlow",
+                "typeProperties": {
+                    "sources": [
                         {
                             "dataset": {
                                 "referenceName": "AzureStorageConnection",
@@ -3364,74 +4018,47 @@
                                 "referenceName": "AzureStorageConnection",
                                 "type": "DatasetReference"
                             },
-                            "name": "FOPostalAddressUpdate"
+                            "name": "FONewPostalAddress"
                         }
                     ],
                     "sinks": [
                         {
                             "dataset": {
-                                "referenceName": "DelimitedTextOutput",
+                                "referenceName": "DelimitedTextImport",
                                 "type": "DatasetReference"
                             },
-                            "name": "CEPostalAddressFile"
+                            "name": "FONewPostalAddressLocationImport"
                         },
                         {
                             "dataset": {
-                                "referenceName": "DelimitedTextOutput",
+                                "referenceName": "DelimitedTextImport",
                                 "type": "DatasetReference"
                             },
-                            "name": "CEPostalAddressCollectionFile"
+                            "name": "FONewPartyPostalAddressImport"
                         },
                         {
                             "dataset": {
-                                "referenceName": "DelimitedTextOutput",
+                                "referenceName": "DelimitedTextImport",
                                 "type": "DatasetReference"
                             },
-                            "name": "CEPartyPostalAddressFile"
+                            "name": "FONewPostalAddressImport"
                         }
                     ],
                     "transformations": [
                         {
-                            "name": "FOCEPostalAddress"
-                        },
-                        {
-                            "name": "FOCEPostalAddressLocation"
-                        },
-                        {
-                            "name": "FOCEPartyPostalAddress"
-                        },
-                        {
-                            "name": "CEPostalAddressColection"
-                        },
-                        {
-                            "name": "CEPartyPostalAddress"
-                        },
-                        {
-                            "name": "CEPostalAddress"
-                        },
-                        {
-                            "name": "SplitStreet"
-                        },
-                        {
-                            "name": "FOPostalAddressUpdateExists"
-                        },
-                        {
-                            "name": "Postaladdresscollectionid"
-                        },
-                        {
-                            "name": "PartyPostalAddressId"
+                            "name": "EnumValue"
                         }
                     ],
-                    "script": "source(output(\n\t\tLocationId as string,\n\t\tValidFrom as string,\n\t\tDescription as string,\n\t\tZipCode as string,\n\t\tPostBox as string,\n\t\tDistrictName as string,\n\t\tBuildingCompliment as string,\n\t\tCountryRegionISOCode as string,\n\t\tValidTo as string,\n\t\tCounty as string,\n\t\tCity as string,\n\t\tStreet as string,\n\t\tState as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOPostalAddress\nsource(output(\n\t\tLocationId as string,\n\t\tParentLocationId as string,\n\t\tDescription as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOPostalAddressLocation\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocationId as string,\n\t\tPurpose as string,\n\t\tIsLocationOwner as boolean,\n\t\tIsPrimary as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOPartyPostalAddress\nsource(output(\n\t\tStreet as string,\n\t\tCity as string,\n\t\tState as string,\n\t\tZipCode as string,\n\t\tCountryRegionISOCode as string,\n\t\tLocationId as string,\n\t\tValidFrom as string,\n\t\tValidTo as string,\n\t\tPostBox as string,\n\t\tDistrictName as string,\n\t\tBuildingCompliment as string,\n\t\tCounty as string,\n\t\tDescription as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FONewPostalAddress\nsource(output(\n\t\tLocationId as string,\n\t\tDescription as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FONewPostalAddressLocation\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocationId as string,\n\t\tIsPrimary as boolean,\n\t\tIsLocationOwner as boolean,\n\t\tPurpose as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FONewPartyPostalAddress\nsource(output(\n\t\tLocationId as string,\n\t\tValidFrom as timestamp,\n\t\tDescription as string,\n\t\tZipCode as integer,\n\t\tPostBox as string,\n\t\tDistrictName as string,\n\t\tBuildingCompliment as string,\n\t\tCountryRegionISOCode as string,\n\t\tValidTo as timestamp,\n\t\tCounty as string,\n\t\tCity as string,\n\t\tStreet as string,\n\t\tState as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOPostalAddressUpdate\nFOPostalAddressUpdateExists, FONewPostalAddress union(byName: true)~> FOCEPostalAddress\nFOPostalAddressLocation, FONewPostalAddressLocation union(byName: true)~> FOCEPostalAddressLocation\nFOPartyPostalAddress, FONewPartyPostalAddress union(byName: true)~> FOCEPartyPostalAddress\nFOCEPostalAddressLocation select(mapColumn(\n\t\tmsdyn_location = LocationId,\n\t\tmsdyn_description = Description\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CEPostalAddressColection\nFOCEPartyPostalAddress select(mapColumn(\n\t\tmsdyn_partynumber = PartyNumber,\n\t\tmsdyn_location = LocationId,\n\t\tmdyn_postaladdresspurposenames = Purpose,\n\t\tmsdyn_islocationowner = IsLocationOwner,\n\t\tmsdyn_isprimary = IsPrimary\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CEPartyPostalAddress\nFOCEPostalAddress select(mapColumn(\n\t\tmsdyn_location = LocationId,\n\t\tmsdyn_validfrom = ValidFrom,\n\t\tmsdyn_name = Description,\n\t\tmsdyn_zipcode = ZipCode,\n\t\tmsdyn_postbox = PostBox,\n\t\tmsdyn_district = DistrictName,\n\t\tmsdyn_buildingcompliment = BuildingCompliment,\n\t\tmsdyn_countryregionid = CountryRegionISOCode,\n\t\tmsdyn_validto = ValidTo,\n\t\tmsdyn_county = County,\n\t\tmsdyn_city = City,\n\t\tmsdyn_street = Street,\n\t\tmsdyn_state = State\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CEPostalAddress\nCEPostalAddress derive(line1 = split(msdyn_street,\"\\n\")[1],\n\t\tline2 = split(msdyn_street,\"\\n\")[2],\n\t\tline3 = split(msdyn_street,\"\\n\")[3],\n\t\tmsdyn_postaladdressid = \"\") ~> SplitStreet\nFOPostalAddress, FOPostalAddressUpdate exists(lower(FOPostalAddress@LocationId) == lower(FOPostalAddressUpdate@LocationId),\n\tnegate:true,\n\tbroadcast: 'auto')~> FOPostalAddressUpdateExists\nCEPostalAddressColection derive(msdyn_postaladdresscollectionid = \"\") ~> Postaladdresscollectionid\nCEPartyPostalAddress derive(msdyn_partypostaladdressid = \"\") ~> PartyPostalAddressId\nSplitStreet sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['CEPostalAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> CEPostalAddressFile\nPostaladdresscollectionid sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['CEPostalAddressCollection.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> CEPostalAddressCollectionFile\nPartyPostalAddressId sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['CEPartyPostalAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> CEPartyPostalAddressFile"
+                    "script": "source(output(\n\t\tLocationId as string,\n\t\tDescription as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FONewPostalAddressLocation\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocationId as string,\n\t\tIsPrimary as boolean,\n\t\tIsLocationOwner as boolean,\n\t\tPurpose as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FONewPartyPostalAddress\nsource(output(\n\t\tStreet as string,\n\t\tCity as string,\n\t\tState as string,\n\t\tZipCode as string,\n\t\tCountryRegionISOCode as string,\n\t\tLocationId as string,\n\t\tValidFrom as timestamp,\n\t\tValidTo as timestamp,\n\t\tPostBox as string,\n\t\tDistrictName as string,\n\t\tBuildingCompliment as string,\n\t\tCounty as string,\n\t\tDescription as string,\n\t\tlatitude as string,\n\t\tlongitude as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FONewPostalAddress\nFONewPartyPostalAddress derive(IsPrimary = case(IsPrimary,1,0),\n\t\tIsLocationOwner = case(IsLocationOwner,1,0)) ~> EnumValue\nFONewPostalAddressLocation sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['ImportFONewPostalAddressLocation.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FONewPostalAddressLocationImport\nEnumValue sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['ImportFONewPartyPostalAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FONewPartyPostalAddressImport\nFONewPostalAddress sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['ImportFONewPostalAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FONewPostalAddressImport"
                 }
             },
             "dependsOn": [
                 "[concat(variables('factoryId'), '/datasets/AzureStorageConnection')]",
-                "[concat(variables('factoryId'), '/datasets/DelimitedTextOutput')]"
+                "[concat(variables('factoryId'), '/datasets/DelimitedTextImport')]"
             ]
         },
         {
-            "name": "[concat(parameters('factoryName'), '/DenormalizePostalAddress')]",
+            "name": "[concat(parameters('factoryName'), '/AssociatePartyPostalAddressCollection')]",
             "type": "Microsoft.DataFactory/factories/dataflows",
             "apiVersion": "2018-06-01",
             "properties": {
@@ -3443,14 +4070,21 @@
                                 "referenceName": "AzureStorageConnection",
                                 "type": "DatasetReference"
                             },
-                            "name": "FOPostalAdrress"
+                            "name": "CEPartyPostalAddress"
                         },
                         {
                             "dataset": {
                                 "referenceName": "AzureStorageConnection",
                                 "type": "DatasetReference"
                             },
-                            "name": "FOPartyPostalAddress"
+                            "name": "FOCEPostalAddressCollection"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "CDSParty"
                         }
                     ],
                     "sinks": [
@@ -3459,15 +4093,18 @@
                                 "referenceName": "DelimitedTextOutput",
                                 "type": "DatasetReference"
                             },
-                            "name": "PartyPostalAddressDenormalize"
+                            "name": "FOCEPartyPostalAddress"
                         }
                     ],
                     "transformations": [
                         {
-                            "name": "PostalAddressDenormalize"
+                            "name": "PartyPostalAddressCollection"
+                        },
+                        {
+                            "name": "PartyPostalAddressPartyId"
                         }
                     ],
-                    "script": "source(output(\n\t\tLocationId as string,\n\t\tValidFrom as string,\n\t\tDescription as string,\n\t\tZipCode as string,\n\t\tPostBox as string,\n\t\tDistrictName as string,\n\t\tBuildingCompliment as string,\n\t\tCountryRegionISOCode as string,\n\t\tValidTo as string,\n\t\tCounty as string,\n\t\tCity as string,\n\t\tStreet as string,\n\t\tState as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOPostalAdrress\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocationId as string,\n\t\tPurpose as string,\n\t\tIsLocationOwner as boolean,\n\t\tIsPrimary as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOPartyPostalAddress\nFOPostalAdrress, FOPartyPostalAddress join(lower(FOPostalAdrress@LocationId) == lower(FOPartyPostalAddress@LocationId),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> PostalAddressDenormalize\nPostalAddressDenormalize sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['FOAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> PartyPostalAddressDenormalize"
+                    "script": "source(output(\n\t\tmsdyn_partynumber as string,\n\t\tmsdyn_location as string,\n\t\tmdyn_postaladdresspurposenames as string,\n\t\tmsdyn_islocationowner as boolean,\n\t\tmsdyn_isprimary as boolean,\n\t\tmsdyn_partypostaladdressid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CEPartyPostalAddress\nsource(output(\n\t\tmsdyn_postaladdresscollectionid as string,\n\t\tmsdyn_location as string,\n\t\tmsdyn_description as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOCEPostalAddressCollection\nsource(output(\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSParty\nCEPartyPostalAddress, FOCEPostalAddressCollection join(lower(CEPartyPostalAddress@msdyn_location) == lower(FOCEPostalAddressCollection@msdyn_location),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> PartyPostalAddressCollection\nPartyPostalAddressCollection, CDSParty join(CEPartyPostalAddress@msdyn_partynumber == CDSParty@msdyn_partynumber,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> PartyPostalAddressPartyId\nPartyPostalAddressPartyId sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['FOCEPartyPostalAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FOCEPartyPostalAddress"
                 }
             },
             "dependsOn": [
@@ -3657,9 +4294,12 @@
                         },
                         {
                             "name": "CustomerAddressMatch"
+                        },
+                        {
+                            "name": "RemoveBlankAddress"
                         }
                     ],
-                    "script": "source(output(\n\t\tline1 as string,\n\t\tmsdyn_isprimary as boolean,\n\t\t{account1.msdyn_partyid} as string,\n\t\t{account1.msdyn_partynumber} as string,\n\t\tcounty as string,\n\t\taddressnumber as short,\n\t\tcustomeraddressid as string,\n\t\tmsdyn_locationid as string,\n\t\tcity as string,\n\t\tobjecttypecode as string,\n\t\tpostalcode as string,\n\t\tstateorprovince as string,\n\t\tline2 as string,\n\t\tline3 as string,\n\t\tparentid as string,\n\t\tname as string,\n\t\tPartyNumber as string,\n\t\tcountry as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSAccountAddress\nsource(output(\n\t\t{contact1.msdyn_partynumber} as string,\n\t\tline1 as string,\n\t\tpostalcode as string,\n\t\t{contact1.msdyn_partyid} as string,\n\t\tcity as string,\n\t\tcountry as string,\n\t\tmsdyn_locationid as string,\n\t\tcustomeraddressid as string,\n\t\tobjecttypecode as string,\n\t\tPartyNumber as string,\n\t\tparentid as string,\n\t\tmsdyn_isprimary as boolean,\n\t\tcounty as string,\n\t\taddressnumber as short,\n\t\tstateorprovince as string,\n\t\taddresstypecode as string,\n\t\tline2 as string,\n\t\tline3 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSContactAddress\nsource(output(\n\t\tmsdyn_location as string,\n\t\tmsdyn_validfrom as string,\n\t\tmsdyn_name as string,\n\t\tmsdyn_zipcode as string,\n\t\tmsdyn_postbox as string,\n\t\tmsdyn_district as string,\n\t\tmsdyn_buildingcompliment as string,\n\t\tmsdyn_countryregionid as string,\n\t\tmsdyn_validto as string,\n\t\tmsdyn_county as string,\n\t\tmsdyn_city as string,\n\t\tmsdyn_street as string,\n\t\tmsdyn_state as string,\n\t\tline1 as string,\n\t\tline2 as string,\n\t\tline3 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CEPostalAddress\nsource(output(\n\t\tmsdyn_partynumber as string,\n\t\tmsdyn_location as string,\n\t\tmdyn_postaladdresspurposenames as string,\n\t\tmsdyn_islocationowner as boolean,\n\t\tmsdyn_isprimary as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CEPartyPostalAddress\nsource(output(\n\t\tline1 as string,\n\t\tline2 as string,\n\t\tline3 as string,\n\t\tcity as string,\n\t\tstateorprovince as string,\n\t\tpostalcode as string,\n\t\tcountry as string,\n\t\tPartyNumber as string,\n\t\tparentid as string,\n\t\taddressnumber as short,\n\t\tcustomeraddressid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSAccountContactAddress\nsource(output(\n\t\tmsdyn_postaladdresscollectionid as string,\n\t\tmsdyn_location as string,\n\t\tmsdyn_description as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOCEPostalAddressCollection\nsource(output(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSAccount\nsource(output(\n\t\tmsdyn_sellable as boolean,\n\t\tfullname as string,\n\t\tcontactid as string,\n\t\tmsdyn_contactpersonid as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tmsdyn_contactforvendor as boolean,\n\t\tPartyNumber as string,\n\t\tCompanyCode as string,\n\t\tmsdyn_isvendor as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSContact\nTargetAccountType, TargetContactType union(byName: true)~> CDSAccountContact\nCEPostalAddress, CEPartyPostalAddress join(lower(CEPostalAddress@msdyn_location) == lower(CEPartyPostalAddress@msdyn_location),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> FOAddress\nCDSAccountContact, CustomerAddressMatch exists(lower(CDSAccountContact@parentid) == lower(CustomerAddressMatch@parentid)\n\t&& lower(CDSAccountContact@customeraddressid) == lower(CustomerAddressMatch@customeraddressid)\n\t&& lower(CDSAccountContact@PartyNumber) == lower(CustomerAddressMatch@PartyNumber),\n\tnegate:true,\n\tbroadcast: 'auto')~> CustomerAddressNotExists\nRemoveMissingPartyNumber derive(line1 = \"\",\n\t\tline2 = \"\",\n\t\tline3 = \"\",\n\t\tcity = \"\",\n\t\tstateorprovince = \"\",\n\t\tcounty = \"\",\n\t\tcountry = \"\",\n\t\tpostalcode = \"\",\n\t\tmsdyn_locationid = \"\") ~> BlankCustomerAddressAttribute\nFOAddress, CDSAccountContactAddress join(lower(iifNull(CEPostalAddress@line1,\"\",CEPostalAddress@line1)) == lower(iifNull(CDSAccountContactAddress@line1,\"\",CDSAccountContactAddress@line1))\n\t&& lower(iifNull(msdyn_city,\"\",msdyn_city)) == lower(iifNull(city,\"\",city))\n\t&& lower(iifNull(msdyn_zipcode,\"\",msdyn_zipcode)) == lower(iifNull(postalcode,\"\",postalcode))\n\t&& lower(iifNull(msdyn_countryregionid,\"\",msdyn_countryregionid)) == lower(iifNull(country,\"\",country))\n\t&& lower(iifNull(msdyn_state,\"\",msdyn_state)) == lower(iifNull(stateorprovince,\"\",stateorprovince))\n\t&& lower(msdyn_partynumber) == lower(PartyNumber),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> CustomerAddressLocation\nCustomerAddressParentType select(mapColumn(\n\t\tmsdyn_location = CEPostalAddress@msdyn_location,\n\t\tline1 = CEPostalAddress@line1,\n\t\tline2 = CEPostalAddress@line2,\n\t\tline3 = CEPostalAddress@line3,\n\t\tcity,\n\t\tstateorprovince,\n\t\tpostalcode,\n\t\tcountry,\n\t\tmsdyn_partynumber = CDSAccountContactAddress@PartyNumber,\n\t\tparentid = CDSAccountContactAddress@parentid,\n\t\taddressnumber,\n\t\tcustomeraddressid,\n\t\tmsdyn_isprimary,\n\t\tname = msdyn_name,\n\t\tTargetParentId,\n\t\tmdyn_postaladdresspurposenames,\n\t\tcounty = msdyn_county,\n\t\tmsdyn_building = msdyn_buildingcompliment,\n\t\tmsdyn_district,\n\t\tmsdyn_postbox\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CustomerAddressLocationUpdate\nFOAddress, CustomerAddressMatch exists(lower(iifNull(CEPostalAddress@msdyn_location, \"\", CEPostalAddress@msdyn_location)) == lower(iifNull(CustomerAddressMatch@msdyn_location, \"\", CustomerAddressMatch@msdyn_location))\n\t&& lower(CEPartyPostalAddress@msdyn_partynumber) == lower(PartyNumber),\n\tnegate:true,\n\tbroadcast: 'auto')~> FOAddressNotExistsCE\nFOAddressNotExistsCE, CDSAccountContactAddress exists(lower(msdyn_partynumber) == lower(PartyNumber),\n\tnegate:false,\n\tbroadcast: 'auto')~> FOAddressNotExistsCEForCA\nFOAddressNotExistsCEForCA filter(greater(toDate(msdyn_validto),toDate(currentUTC()))) ~> ActiveAddress\nMergeAccountContactParentId select(mapColumn(\n\t\tPartyNumber,\n\t\tparentid,\n\t\tTargetParentId\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CustomerAddressPartyParent\nActiveAddress, CustomerAddressPartyParent join(lower(msdyn_partynumber) == lower(PartyNumber),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> FOActiveAddressWithParentId\nCDSAccountContactAddress aggregate(groupBy(PartyNumber,\n\t\tparentid),\n\tcount = count()) ~> DistinctPartyNumber\nDistinctAddress select(mapColumn(\n\t\tmsdyn_location,\n\t\tname = msdyn_name,\n\t\tpostalcode = msdyn_zipcode,\n\t\tmsdyn_postbox,\n\t\tmsdyn_district,\n\t\tmsdyn_building = msdyn_buildingcompliment,\n\t\tcountry = msdyn_countryregionid,\n\t\tcounty = msdyn_county,\n\t\tcity = msdyn_city,\n\t\tstateorprovince = msdyn_state,\n\t\tmsdyn_partynumber,\n\t\tmdyn_postaladdresspurposenames,\n\t\tmsdyn_isprimary,\n\t\tparentid,\n\t\tTargetParentId,\n\t\tline1,\n\t\tline2,\n\t\tline3\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FOActiveCustomerAddressFields\nFOActiveAddressWithParentId aggregate(groupBy(msdyn_validfrom,\n\t\tCEPostalAddress@msdyn_location,\n\t\tmsdyn_name,\n\t\tmsdyn_zipcode,\n\t\tmsdyn_postbox,\n\t\tmsdyn_district,\n\t\tmsdyn_buildingcompliment,\n\t\tmsdyn_countryregionid,\n\t\tmsdyn_validto,\n\t\tmsdyn_county,\n\t\tmsdyn_city,\n\t\tmsdyn_street,\n\t\tmsdyn_state,\n\t\tmsdyn_partynumber,\n\t\tmdyn_postaladdresspurposenames,\n\t\tmsdyn_islocationowner,\n\t\tmsdyn_isprimary,\n\t\tPartyNumber,\n\t\tparentid,\n\t\tTargetParentId,\n\t\tline1,\n\t\tline2,\n\t\tline3),\n\tcount = count()) ~> DistinctAddress\nCustomerAddressLocationUpdate, FONewActiveCustomerAddress union(byName: true)~> FOActiveCustomerAddressMerge\nFOActiveCustomerAddressMerge, CECustomerAddressUpdateFields union(byName: true)~> BlankCustomerAddressUnion\nPostalAddressCollectionId aggregate(groupBy(line1,\n\t\tmsdyn_postaladdresscollectionid,\n\t\tline2,\n\t\tline3,\n\t\tcity,\n\t\tstateorprovince,\n\t\tpostalcode,\n\t\tcountry,\n\t\tmsdyn_partynumber,\n\t\tparentid,\n\t\taddressnumber,\n\t\tcustomeraddressid,\n\t\tmsdyn_isprimary,\n\t\tmdyn_postaladdresspurposenames,\n\t\tmsdyn_building,\n\t\tmsdyn_postbox,\n\t\tTargetParentId,\n\t\tBlankCustomerAddressUnion@msdyn_location,\n\t\tname,\n\t\tmsdyn_district),\n\tcount = count()) ~> UniqueCustomerAddress\nFOActiveCustomerAddressFields window(over(msdyn_partynumber),\n\tasc(msdyn_partynumber, true),\n\tnum = rowNumber()) ~> FOPartyNumberSequence\nBlankCustomerAddressAttribute window(over(PartyNumber),\n\tasc(PartyNumber, true),\n\tasc(addressnumber, true),\n\tnum = rowNumber()) ~> CEPartyNumberSequence\nCEPartyNumberSequence, FOPartyNumberSequence join(lower(CDSAccountContact@parentid) == lower(FOActiveCustomerAddressFields@parentid)\n\t&& CEPartyNumberSequence@num == FOPartyNumberSequence@num\n\t&& lower(PartyNumber) == lower(msdyn_partynumber),\n\tjoinType:'left',\n\tbroadcast: 'auto')~> CustomerAddressUpdate\nCustomerAddressUpdate select(mapColumn(\n\t\taddressnumber,\n\t\tcustomeraddressid,\n\t\tobjecttypecode,\n\t\taddresstypecode,\n\t\tmsdyn_location,\n\t\tname = FOActiveCustomerAddressFields@name,\n\t\tpostalcode = FOActiveCustomerAddressFields@postalcode,\n\t\tmsdyn_postbox,\n\t\tmsdyn_district,\n\t\tmsdyn_building,\n\t\tcountry = FOActiveCustomerAddressFields@country,\n\t\tcounty = FOActiveCustomerAddressFields@county,\n\t\tcity = FOActiveCustomerAddressFields@city,\n\t\tline1 = FOActiveCustomerAddressFields@line1,\n\t\tstateorprovince = FOActiveCustomerAddressFields@stateorprovince,\n\t\tmsdyn_partynumber,\n\t\tmdyn_postaladdresspurposenames,\n\t\tmsdyn_isprimary = FOActiveCustomerAddressFields@msdyn_isprimary,\n\t\tparentid = CDSAccountContact@parentid,\n\t\tnum = FOPartyNumberSequence@num,\n\t\tTargetParentId = CDSAccountContact@TargetParentId,\n\t\tline2 = FOActiveCustomerAddressFields@line2,\n\t\tline3 = FOActiveCustomerAddressFields@line3\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CECustomerAddressUpdateFields\nFOPartyNumberSequence, CECustomerAddressUpdateFields exists(lower(FOActiveCustomerAddressFields@msdyn_partynumber) == lower(CECustomerAddressUpdateFields@msdyn_partynumber)\n\t&& lower(FOActiveCustomerAddressFields@parentid) == lower(CECustomerAddressUpdateFields@parentid)\n\t&& FOPartyNumberSequence@num == CECustomerAddressUpdateFields@num,\n\tnegate:true,\n\tbroadcast: 'auto')~> FONewActiveCustomerAddress\nBlankCustomerAddressUnion, FOCEPostalAddressCollection join(lower(BlankCustomerAddressUnion@msdyn_location) == lower(FOCEPostalAddressCollection@msdyn_location),\n\tjoinType:'left',\n\tbroadcast: 'auto')~> PostalAddressCollectionId\nDistinctPartyNumber, CDSAccount join(lower(parentid) == lower(accountid),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> AccountType\nDistinctPartyNumber, CDSContact join(lower(parentid) == lower(contactid),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> ContactType\nContactType derive(TargetParentId = \"contact\") ~> ContactParentId\nAccountType derive(TargetParentId = \"account\") ~> AccountParentID\nAccountParentTarget, ContactParentTarget union(byName: true)~> MergeAccountContactParentId\nContactParentId select(mapColumn(\n\t\tPartyNumber = DistinctPartyNumber@PartyNumber,\n\t\tparentid,\n\t\tcount,\n\t\tmsdyn_sellable,\n\t\tfullname,\n\t\tcontactid,\n\t\tmsdyn_contactpersonid,\n\t\tmsdyn_partyid,\n\t\tmsdyn_partynumber,\n\t\tmsdyn_contactforvendor,\n\t\tCompanyCode,\n\t\tmsdyn_isvendor,\n\t\tTargetParentId\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactParentTarget\nAccountParentID select(mapColumn(\n\t\tPartyNumber = DistinctPartyNumber@PartyNumber,\n\t\tparentid,\n\t\tcount,\n\t\taccountid,\n\t\tCompanyCode,\n\t\taccountnumber,\n\t\tname,\n\t\tmsdyn_partyid,\n\t\tmsdyn_partynumber,\n\t\tTargetParentId\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountParentTarget\nCDSAccountAddress derive(TargetParentId = \"account\") ~> TargetAccountType\nCDSContactAddress derive(TargetParentId = \"contact\") ~> TargetContactType\nCustomerAddressLocation, CustomerAddressPartyParent join(lower(CDSAccountContactAddress@PartyNumber) == lower(CustomerAddressPartyParent@PartyNumber)\n\t&& lower(CDSAccountContactAddress@parentid) == lower(CustomerAddressPartyParent@parentid),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> CustomerAddressParentType\nCustomerAddressNotExists filter(PartyNumber!=\"\") ~> RemoveMissingPartyNumber\nUniqueCustomerAddress sort(asc(msdyn_partynumber, true),\n\tasc(customeraddressid, true)) ~> Sort1\nCustomerAddressLocation select(mapColumn(\n\t\tmsdyn_location = CEPostalAddress@msdyn_location,\n\t\tmsdyn_validfrom,\n\t\tmsdyn_name,\n\t\tmsdyn_zipcode,\n\t\tmsdyn_postbox,\n\t\tmsdyn_district,\n\t\tmsdyn_buildingcompliment,\n\t\tmsdyn_countryregionid,\n\t\tmsdyn_validto,\n\t\tmsdyn_county,\n\t\tmsdyn_city,\n\t\tmsdyn_street,\n\t\tmsdyn_state,\n\t\tline1 = CEPostalAddress@line1,\n\t\tline2 = CEPostalAddress@line2,\n\t\tline3 = CEPostalAddress@line3,\n\t\tmsdyn_partynumber,\n\t\tmsdyn_location = CEPartyPostalAddress@msdyn_location,\n\t\tmdyn_postaladdresspurposenames,\n\t\tmsdyn_islocationowner,\n\t\tmsdyn_isprimary,\n\t\tline1 = CDSAccountContactAddress@line1,\n\t\tline2 = CDSAccountContactAddress@line2,\n\t\tline3 = CDSAccountContactAddress@line3,\n\t\tcity,\n\t\tstateorprovince,\n\t\tpostalcode,\n\t\tcountry,\n\t\tPartyNumber,\n\t\tparentid,\n\t\taddressnumber,\n\t\tcustomeraddressid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CustomerAddressMatch\nSort1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['CustomerAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> CustomerAddress"
+                    "script": "source(output(\n\t\tline1 as string,\n\t\tmsdyn_isprimary as boolean,\n\t\t{account1.msdyn_partyid} as string,\n\t\t{account1.msdyn_partynumber} as string,\n\t\tcounty as string,\n\t\taddressnumber as short,\n\t\tcustomeraddressid as string,\n\t\tmsdyn_locationid as string,\n\t\tcity as string,\n\t\tobjecttypecode as string,\n\t\tpostalcode as string,\n\t\tstateorprovince as string,\n\t\tline2 as string,\n\t\tline3 as string,\n\t\tparentid as string,\n\t\tname as string,\n\t\tPartyNumber as string,\n\t\tcountry as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSAccountAddress\nsource(output(\n\t\t{contact1.msdyn_partynumber} as string,\n\t\tline1 as string,\n\t\tpostalcode as string,\n\t\t{contact1.msdyn_partyid} as string,\n\t\tcity as string,\n\t\tcountry as string,\n\t\tmsdyn_locationid as string,\n\t\tcustomeraddressid as string,\n\t\tobjecttypecode as string,\n\t\tPartyNumber as string,\n\t\tparentid as string,\n\t\tmsdyn_isprimary as boolean,\n\t\tcounty as string,\n\t\taddressnumber as short,\n\t\tstateorprovince as string,\n\t\taddresstypecode as string,\n\t\tline2 as string,\n\t\tline3 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSContactAddress\nsource(output(\n\t\tmsdyn_location as string,\n\t\tmsdyn_validfrom as string,\n\t\tmsdyn_name as string,\n\t\tmsdyn_zipcode as string,\n\t\tmsdyn_postbox as string,\n\t\tmsdyn_district as string,\n\t\tmsdyn_buildingcompliment as string,\n\t\tmsdyn_countryregionid as string,\n\t\tmsdyn_validto as string,\n\t\tmsdyn_county as string,\n\t\tmsdyn_city as string,\n\t\tmsdyn_street as string,\n\t\tmsdyn_state as string,\n\t\tline1 as string,\n\t\tline2 as string,\n\t\tline3 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CEPostalAddress\nsource(output(\n\t\tmsdyn_partynumber as string,\n\t\tmsdyn_location as string,\n\t\tmdyn_postaladdresspurposenames as string,\n\t\tmsdyn_islocationowner as boolean,\n\t\tmsdyn_isprimary as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CEPartyPostalAddress\nsource(output(\n\t\tline1 as string,\n\t\tline2 as string,\n\t\tline3 as string,\n\t\tcity as string,\n\t\tstateorprovince as string,\n\t\tpostalcode as string,\n\t\tcountry as string,\n\t\tPartyNumber as string,\n\t\tparentid as string,\n\t\taddressnumber as short,\n\t\tcustomeraddressid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSAccountContactAddress\nsource(output(\n\t\tmsdyn_postaladdresscollectionid as string,\n\t\tmsdyn_location as string,\n\t\tmsdyn_description as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOCEPostalAddressCollection\nsource(output(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSAccount\nsource(output(\n\t\tmsdyn_sellable as boolean,\n\t\tfullname as string,\n\t\tcontactid as string,\n\t\tmsdyn_contactpersonid as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tmsdyn_contactforvendor as boolean,\n\t\tPartyNumber as string,\n\t\tCompanyCode as string,\n\t\tmsdyn_isvendor as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSContact\nTargetAccountType, TargetContactType union(byName: true)~> CDSAccountContact\nCEPostalAddress, CEPartyPostalAddress join(lower(CEPostalAddress@msdyn_location) == lower(CEPartyPostalAddress@msdyn_location),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> FOAddress\nCDSAccountContact, CustomerAddressMatch exists(lower(CDSAccountContact@parentid) == lower(CustomerAddressMatch@parentid)\n\t&& lower(CDSAccountContact@customeraddressid) == lower(CustomerAddressMatch@customeraddressid)\n\t&& lower(CDSAccountContact@PartyNumber) == lower(CustomerAddressMatch@PartyNumber),\n\tnegate:true,\n\tbroadcast: 'auto')~> CustomerAddressNotExists\nRemoveMissingPartyNumber derive(line1 = \"\",\n\t\tline2 = \"\",\n\t\tline3 = \"\",\n\t\tcity = \"\",\n\t\tstateorprovince = \"\",\n\t\tcounty = \"\",\n\t\tcountry = \"\",\n\t\tpostalcode = \"\",\n\t\tmsdyn_locationid = \"\") ~> BlankCustomerAddressAttribute\nFOAddress, CDSAccountContactAddress join(lower(iifNull(CEPostalAddress@line1,\"\",CEPostalAddress@line1)) == lower(iifNull(CDSAccountContactAddress@line1,\"\",CDSAccountContactAddress@line1))\n\t&& lower(iifNull(msdyn_city,\"\",msdyn_city)) == lower(iifNull(city,\"\",city))\n\t&& lower(iifNull(msdyn_zipcode,\"\",msdyn_zipcode)) == lower(iifNull(postalcode,\"\",postalcode))\n\t&& lower(iifNull(msdyn_countryregionid,\"\",msdyn_countryregionid)) == lower(iifNull(country,\"\",country))\n\t&& lower(iifNull(msdyn_state,\"\",msdyn_state)) == lower(iifNull(stateorprovince,\"\",stateorprovince))\n\t&& lower(msdyn_partynumber) == lower(PartyNumber),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> CustomerAddressLocation\nCustomerAddressParentType select(mapColumn(\n\t\tmsdyn_location = CEPostalAddress@msdyn_location,\n\t\tline1 = CEPostalAddress@line1,\n\t\tline2 = CEPostalAddress@line2,\n\t\tline3 = CEPostalAddress@line3,\n\t\tcity,\n\t\tstateorprovince,\n\t\tpostalcode,\n\t\tcountry,\n\t\tmsdyn_partynumber = CDSAccountContactAddress@PartyNumber,\n\t\tparentid = CDSAccountContactAddress@parentid,\n\t\taddressnumber,\n\t\tcustomeraddressid,\n\t\tmsdyn_isprimary,\n\t\tname = msdyn_name,\n\t\tTargetParentId,\n\t\tmdyn_postaladdresspurposenames,\n\t\tcounty = msdyn_county,\n\t\tmsdyn_building = msdyn_buildingcompliment,\n\t\tmsdyn_district,\n\t\tmsdyn_postbox\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CustomerAddressLocationUpdate\nFOAddress, CustomerAddressMatch exists(lower(iifNull(CEPostalAddress@msdyn_location, \"\", CEPostalAddress@msdyn_location)) == lower(iifNull(CustomerAddressMatch@msdyn_location, \"\", CustomerAddressMatch@msdyn_location))\n\t&& lower(CEPartyPostalAddress@msdyn_partynumber) == lower(PartyNumber),\n\tnegate:true,\n\tbroadcast: 'auto')~> FOAddressNotExistsCE\nFOAddressNotExistsCE, CDSAccountContactAddress exists(lower(msdyn_partynumber) == lower(PartyNumber),\n\tnegate:false,\n\tbroadcast: 'auto')~> FOAddressNotExistsCEForCA\nFOAddressNotExistsCEForCA filter(greater(toDate(msdyn_validto),toDate(currentUTC()))) ~> ActiveAddress\nMergeAccountContactParentId select(mapColumn(\n\t\tPartyNumber,\n\t\tparentid,\n\t\tTargetParentId\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CustomerAddressPartyParent\nActiveAddress, CustomerAddressPartyParent join(lower(msdyn_partynumber) == lower(PartyNumber),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> FOActiveAddressWithParentId\nCDSAccountContactAddress aggregate(groupBy(PartyNumber,\n\t\tparentid),\n\tcount = count()) ~> DistinctPartyNumber\nDistinctAddress select(mapColumn(\n\t\tmsdyn_location,\n\t\tname = msdyn_name,\n\t\tpostalcode = msdyn_zipcode,\n\t\tmsdyn_postbox,\n\t\tmsdyn_district,\n\t\tmsdyn_building = msdyn_buildingcompliment,\n\t\tcountry = msdyn_countryregionid,\n\t\tcounty = msdyn_county,\n\t\tcity = msdyn_city,\n\t\tstateorprovince = msdyn_state,\n\t\tmsdyn_partynumber,\n\t\tmdyn_postaladdresspurposenames,\n\t\tmsdyn_isprimary,\n\t\tparentid,\n\t\tTargetParentId,\n\t\tline1,\n\t\tline2,\n\t\tline3\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FOActiveCustomerAddressFields\nFOActiveAddressWithParentId aggregate(groupBy(msdyn_validfrom,\n\t\tCEPostalAddress@msdyn_location,\n\t\tmsdyn_name,\n\t\tmsdyn_zipcode,\n\t\tmsdyn_postbox,\n\t\tmsdyn_district,\n\t\tmsdyn_buildingcompliment,\n\t\tmsdyn_countryregionid,\n\t\tmsdyn_validto,\n\t\tmsdyn_county,\n\t\tmsdyn_city,\n\t\tmsdyn_street,\n\t\tmsdyn_state,\n\t\tmsdyn_partynumber,\n\t\tmdyn_postaladdresspurposenames,\n\t\tmsdyn_islocationowner,\n\t\tmsdyn_isprimary,\n\t\tPartyNumber,\n\t\tparentid,\n\t\tTargetParentId,\n\t\tline1,\n\t\tline2,\n\t\tline3),\n\tcount = count()) ~> DistinctAddress\nCustomerAddressLocationUpdate, FONewActiveCustomerAddress union(byName: true)~> FOActiveCustomerAddressMerge\nFOActiveCustomerAddressMerge, CECustomerAddressUpdateFields union(byName: true)~> BlankCustomerAddressUnion\nPostalAddressCollectionId aggregate(groupBy(line1,\n\t\tmsdyn_postaladdresscollectionid,\n\t\tline2,\n\t\tline3,\n\t\tcity,\n\t\tstateorprovince,\n\t\tpostalcode,\n\t\tcountry,\n\t\tmsdyn_partynumber,\n\t\tparentid,\n\t\taddressnumber,\n\t\tcustomeraddressid,\n\t\tmsdyn_isprimary,\n\t\tmdyn_postaladdresspurposenames,\n\t\tmsdyn_building,\n\t\tmsdyn_postbox,\n\t\tTargetParentId,\n\t\tBlankCustomerAddressUnion@msdyn_location,\n\t\tname,\n\t\tmsdyn_district),\n\tcount = count()) ~> UniqueCustomerAddress\nFOActiveCustomerAddressFields window(over(msdyn_partynumber),\n\tasc(msdyn_partynumber, true),\n\tnum = rowNumber()) ~> FOPartyNumberSequence\nBlankCustomerAddressAttribute window(over(PartyNumber),\n\tasc(PartyNumber, true),\n\tasc(addressnumber, true),\n\tnum = rowNumber()) ~> CEPartyNumberSequence\nCEPartyNumberSequence, FOPartyNumberSequence join(lower(CDSAccountContact@parentid) == lower(FOActiveCustomerAddressFields@parentid)\n\t&& CEPartyNumberSequence@num == FOPartyNumberSequence@num\n\t&& lower(PartyNumber) == lower(msdyn_partynumber),\n\tjoinType:'left',\n\tbroadcast: 'auto')~> CustomerAddressUpdate\nCustomerAddressUpdate select(mapColumn(\n\t\taddressnumber,\n\t\tcustomeraddressid,\n\t\tobjecttypecode,\n\t\taddresstypecode,\n\t\tmsdyn_location,\n\t\tname = FOActiveCustomerAddressFields@name,\n\t\tpostalcode = FOActiveCustomerAddressFields@postalcode,\n\t\tmsdyn_postbox,\n\t\tmsdyn_district,\n\t\tmsdyn_building,\n\t\tcountry = FOActiveCustomerAddressFields@country,\n\t\tcounty = FOActiveCustomerAddressFields@county,\n\t\tcity = FOActiveCustomerAddressFields@city,\n\t\tline1 = FOActiveCustomerAddressFields@line1,\n\t\tstateorprovince = FOActiveCustomerAddressFields@stateorprovince,\n\t\tmsdyn_partynumber,\n\t\tmdyn_postaladdresspurposenames,\n\t\tmsdyn_isprimary = FOActiveCustomerAddressFields@msdyn_isprimary,\n\t\tparentid = CDSAccountContact@parentid,\n\t\tnum = FOPartyNumberSequence@num,\n\t\tTargetParentId = CDSAccountContact@TargetParentId,\n\t\tline2 = FOActiveCustomerAddressFields@line2,\n\t\tline3 = FOActiveCustomerAddressFields@line3\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CECustomerAddressUpdateFields\nFOPartyNumberSequence, CECustomerAddressUpdateFields exists(lower(FOActiveCustomerAddressFields@msdyn_partynumber) == lower(CECustomerAddressUpdateFields@msdyn_partynumber)\n\t&& lower(FOActiveCustomerAddressFields@parentid) == lower(CECustomerAddressUpdateFields@parentid)\n\t&& FOPartyNumberSequence@num == CECustomerAddressUpdateFields@num,\n\tnegate:true,\n\tbroadcast: 'auto')~> FONewActiveCustomerAddress\nBlankCustomerAddressUnion, FOCEPostalAddressCollection join(lower(BlankCustomerAddressUnion@msdyn_location) == lower(FOCEPostalAddressCollection@msdyn_location),\n\tjoinType:'left',\n\tbroadcast: 'auto')~> PostalAddressCollectionId\nDistinctPartyNumber, CDSAccount join(lower(parentid) == lower(accountid),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> AccountType\nDistinctPartyNumber, CDSContact join(lower(parentid) == lower(contactid),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> ContactType\nContactType derive(TargetParentId = \"contact\") ~> ContactParentId\nAccountType derive(TargetParentId = \"account\") ~> AccountParentID\nAccountParentTarget, ContactParentTarget union(byName: true)~> MergeAccountContactParentId\nContactParentId select(mapColumn(\n\t\tPartyNumber = DistinctPartyNumber@PartyNumber,\n\t\tparentid,\n\t\tcount,\n\t\tmsdyn_sellable,\n\t\tfullname,\n\t\tcontactid,\n\t\tmsdyn_contactpersonid,\n\t\tmsdyn_partyid,\n\t\tmsdyn_partynumber,\n\t\tmsdyn_contactforvendor,\n\t\tCompanyCode,\n\t\tmsdyn_isvendor,\n\t\tTargetParentId\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactParentTarget\nAccountParentID select(mapColumn(\n\t\tPartyNumber = DistinctPartyNumber@PartyNumber,\n\t\tparentid,\n\t\tcount,\n\t\taccountid,\n\t\tCompanyCode,\n\t\taccountnumber,\n\t\tname,\n\t\tmsdyn_partyid,\n\t\tmsdyn_partynumber,\n\t\tTargetParentId\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountParentTarget\nCDSAccountAddress derive(TargetParentId = \"account\") ~> TargetAccountType\nCDSContactAddress derive(TargetParentId = \"contact\") ~> TargetContactType\nCustomerAddressLocation, CustomerAddressPartyParent join(lower(CDSAccountContactAddress@PartyNumber) == lower(CustomerAddressPartyParent@PartyNumber)\n\t&& lower(CDSAccountContactAddress@parentid) == lower(CustomerAddressPartyParent@parentid),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> CustomerAddressParentType\nCustomerAddressNotExists filter(PartyNumber!=\"\") ~> RemoveMissingPartyNumber\nUniqueCustomerAddress sort(asc(msdyn_partynumber, true),\n\tasc(customeraddressid, true)) ~> Sort1\nCustomerAddressLocation select(mapColumn(\n\t\tmsdyn_location = CEPostalAddress@msdyn_location,\n\t\tmsdyn_validfrom,\n\t\tmsdyn_name,\n\t\tmsdyn_zipcode,\n\t\tmsdyn_postbox,\n\t\tmsdyn_district,\n\t\tmsdyn_buildingcompliment,\n\t\tmsdyn_countryregionid,\n\t\tmsdyn_validto,\n\t\tmsdyn_county,\n\t\tmsdyn_city,\n\t\tmsdyn_street,\n\t\tmsdyn_state,\n\t\tline1 = CEPostalAddress@line1,\n\t\tline2 = CEPostalAddress@line2,\n\t\tline3 = CEPostalAddress@line3,\n\t\tmsdyn_partynumber,\n\t\tmsdyn_location = CEPartyPostalAddress@msdyn_location,\n\t\tmdyn_postaladdresspurposenames,\n\t\tmsdyn_islocationowner,\n\t\tmsdyn_isprimary,\n\t\tline1 = CDSAccountContactAddress@line1,\n\t\tline2 = CDSAccountContactAddress@line2,\n\t\tline3 = CDSAccountContactAddress@line3,\n\t\tcity,\n\t\tstateorprovince,\n\t\tpostalcode,\n\t\tcountry,\n\t\tPartyNumber,\n\t\tparentid,\n\t\taddressnumber,\n\t\tcustomeraddressid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CustomerAddressMatch\nSort1 filter((country!=\"\" && msdyn_postaladdresscollectionid!=\"\")) ~> RemoveBlankAddress\nRemoveBlankAddress sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['CustomerAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> CustomerAddress"
                 }
             },
             "dependsOn": [
@@ -3668,7 +4308,7 @@
             ]
         },
         {
-            "name": "[concat(parameters('factoryName'), '/ConsolidateAccountAddress')]",
+            "name": "[concat(parameters('factoryName'), '/CreateCEAddress')]",
             "type": "Microsoft.DataFactory/factories/dataflows",
             "apiVersion": "2018-06-01",
             "properties": {
@@ -3680,28 +4320,70 @@
                                 "referenceName": "AzureStorageConnection",
                                 "type": "DatasetReference"
                             },
-                            "name": "CDSAccountAddress"
+                            "name": "FOPostalAddress"
                         },
                         {
                             "dataset": {
                                 "referenceName": "AzureStorageConnection",
                                 "type": "DatasetReference"
                             },
-                            "name": "CDSContactAddress"
+                            "name": "FOPostalAddressLocation"
                         },
                         {
                             "dataset": {
                                 "referenceName": "AzureStorageConnection",
                                 "type": "DatasetReference"
                             },
-                            "name": "CDSVendorAddress"
+                            "name": "FOPartyPostalAddress"
                         },
                         {
                             "dataset": {
                                 "referenceName": "AzureStorageConnection",
                                 "type": "DatasetReference"
                             },
-                            "name": "FOCountryISOCode"
+                            "name": "FONewPostalAddress"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "FONewPostalAddressLocation"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "FONewPartyPostalAddress"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "FOPostalAddressUpdate"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "CDSPostalAddressCollection"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "CDSPartyPostalAddress"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "CDSPostalAddress"
                         }
                     ],
                     "sinks": [
@@ -3710,141 +4392,71 @@
                                 "referenceName": "DelimitedTextOutput",
                                 "type": "DatasetReference"
                             },
-                            "name": "ConsolidateAccountAddress"
+                            "name": "CEPostalAddressFile"
                         },
                         {
                             "dataset": {
                                 "referenceName": "DelimitedTextOutput",
                                 "type": "DatasetReference"
                             },
-                            "name": "CDSAccountContactAddress"
+                            "name": "CEPostalAddressCollectionFile"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "DelimitedTextOutput",
+                                "type": "DatasetReference"
+                            },
+                            "name": "CEPartyPostalAddressFile"
                         }
                     ],
                     "transformations": [
                         {
-                            "name": "RemoveDuplicateAccountAddress"
+                            "name": "FOCEPostalAddress"
                         },
                         {
-                            "name": "AccountAddressSortByAddressNumber"
+                            "name": "FOCEPostalAddressLocation"
                         },
                         {
-                            "name": "ContactAddressSortByAddressNumber"
+                            "name": "FOCEPartyPostalAddress"
                         },
                         {
-                            "name": "RemoveDuplicateContacttAddress"
+                            "name": "CEPostalAddressColection"
                         },
                         {
-                            "name": "AccountContactAddress"
-                        },
-                        {
-                            "name": "AccountContactVendorAddress"
-                        },
-                        {
-                            "name": "VendorAddressAttribute"
-                        },
-                        {
-                            "name": "CountryRegionCode"
-                        },
-                        {
-                            "name": "CounrtyRegionISOCode"
-                        },
-                        {
-                            "name": "DistinctCEAddress"
-                        },
-                        {
-                            "name": "DistinctContactAddress"
-                        },
-                        {
-                            "name": "DistinctAccountAddress"
-                        }
-                    ],
-                    "script": "source(output(\n\t\tline1 as string,\n\t\tmsdyn_isprimary as boolean,\n\t\t{account1.msdyn_partyid} as string,\n\t\t{account1.msdyn_partynumber} as string,\n\t\tcounty as string,\n\t\taddressnumber as short,\n\t\tcustomeraddressid as string,\n\t\tmsdyn_locationid as string,\n\t\tcity as string,\n\t\tobjecttypecode as string,\n\t\tpostalcode as string,\n\t\tstateorprovince as string,\n\t\tline2 as string,\n\t\tline3 as string,\n\t\tparentid as string,\n\t\tname as string,\n\t\tPartyNumber as string,\n\t\tcountry as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSAccountAddress\nsource(output(\n\t\t{contact1.msdyn_partynumber} as string,\n\t\tline1 as string,\n\t\tpostalcode as string,\n\t\t{contact1.msdyn_partyid} as string,\n\t\tcity as string,\n\t\tcountry as string,\n\t\tmsdyn_locationid as integer,\n\t\tcustomeraddressid as string,\n\t\tobjecttypecode as string,\n\t\tPartyNumber as string,\n\t\tparentid as string,\n\t\tmsdyn_isprimary as boolean,\n\t\tcounty as string,\n\t\taddressnumber as short,\n\t\tstateorprovince as string,\n\t\taddresstypecode as short,\n\t\tline2 as string,\n\t\tline3 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tignoreNoFilesFound: false) ~> CDSContactAddress\nsource(output(\n\t\tmsdyn_addresscity as string,\n\t\tmsdyn_addressstateid as string,\n\t\tmsdyn_addresszipcode as string,\n\t\tmsdyn_addresscountyid as string,\n\t\tmsdyn_firstname as string,\n\t\tmsdyn_lastname as string,\n\t\tCompanyCode as string,\n\t\tmsdyn_addressstreet as string,\n\t\tmsdyn_addresscountryregionid as string,\n\t\tmsdyn_vendorpartynumber as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_vendoraccountnumber as string,\n\t\tmsdyn_vendorid as string,\n\t\tPartyNumber as string,\n\t\tmsdyn_name as string,\n\t\tmsdyn_linkedvendorinaccountsentity as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSVendorAddress\nsource(output(\n\t\tCountryRegion as string,\n\t\tISOcode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOCountryISOCode\nAccountAddressSortByAddressNumber aggregate(groupBy(line1,\n\t\tline2,\n\t\tline3,\n\t\tcity,\n\t\tstateorprovince,\n\t\tpostalcode,\n\t\tcountry,\n\t\tPartyNumber,\n\t\tparentid),\n\taddressnumber = min(addressnumber),\n\t\tcustomeraddressid = first(customeraddressid)) ~> RemoveDuplicateAccountAddress\nCDSAccountAddress sort(asc(parentid, true),\n\tasc(addressnumber, true)) ~> AccountAddressSortByAddressNumber\nCDSContactAddress sort(asc(parentid, true),\n\tasc(addressnumber, true)) ~> ContactAddressSortByAddressNumber\nContactAddressSortByAddressNumber aggregate(groupBy(line1,\n\t\tline2,\n\t\tline3,\n\t\tcity,\n\t\tstateorprovince,\n\t\tpostalcode,\n\t\tcountry,\n\t\tPartyNumber,\n\t\tparentid),\n\taddressnumber = min(addressnumber),\n\t\tcustomeraddressid = first(customeraddressid)) ~> RemoveDuplicateContacttAddress\nDistinctAccountAddress, DistinctContactAddress union(byName: true)~> AccountContactAddress\nAccountContactAddress, VendorAddressAttribute union(byName: true)~> AccountContactVendorAddress\nCDSVendorAddress select(mapColumn(\n\t\tstateorprovince = msdyn_addressstateid,\n\t\tcountry = msdyn_addresscountryregionid,\n\t\tmsdyn_vendorpartynumber,\n\t\tmsdyn_partyid,\n\t\tPartyNumber,\n\t\tline1 = msdyn_addressstreet,\n\t\tpostalcode = msdyn_addresszipcode,\n\t\tcity = msdyn_addresscity\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> VendorAddressAttribute\nAccountContactVendorAddress, FOCountryISOCode join(lower(country) == lower(CountryRegion),\n\tjoinType:'left',\n\tbroadcast: 'auto')~> CountryRegionCode\nCountryRegionCode derive(CounrtyRegionISOCode = iifNull(ISOcode, country, ISOcode)) ~> CounrtyRegionISOCode\nCounrtyRegionISOCode select(mapColumn(\n\t\tline1,\n\t\tline2,\n\t\tline3,\n\t\tcity,\n\t\tstateorprovince,\n\t\tpostalcode,\n\t\tPartyNumber,\n\t\tparentid,\n\t\taddressnumber,\n\t\tcustomeraddressid,\n\t\tmsdyn_vendorpartynumber,\n\t\tmsdyn_partyid,\n\t\tcountry = CounrtyRegionISOCode\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> DistinctCEAddress\nRemoveDuplicateContacttAddress select(mapColumn(\n\t\tline1,\n\t\tline2,\n\t\tline3,\n\t\tcity,\n\t\tstateorprovince,\n\t\tpostalcode,\n\t\tcountry,\n\t\tPartyNumber,\n\t\tparentid,\n\t\taddressnumber,\n\t\tcustomeraddressid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> DistinctContactAddress\nRemoveDuplicateAccountAddress select(mapColumn(\n\t\tline1,\n\t\tline2,\n\t\tline3,\n\t\tcity,\n\t\tstateorprovince,\n\t\tpostalcode,\n\t\tcountry,\n\t\tPartyNumber,\n\t\tparentid,\n\t\taddressnumber,\n\t\tcustomeraddressid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> DistinctAccountAddress\nDistinctCEAddress sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['CEAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> ConsolidateAccountAddress\nAccountContactAddress sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['CDSAccountContactAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> CDSAccountContactAddress"
-                }
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/datasets/AzureStorageConnection')]",
-                "[concat(variables('factoryId'), '/datasets/DelimitedTextOutput')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/AssociatePostalAddressCollection')]",
-            "type": "Microsoft.DataFactory/factories/dataflows",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "type": "MappingDataFlow",
-                "typeProperties": {
-                    "sources": [
-                        {
-                            "dataset": {
-                                "referenceName": "AzureStorageConnection",
-                                "type": "DatasetReference"
-                            },
-                            "name": "CEPostalAddress"
-                        },
-                        {
-                            "dataset": {
-                                "referenceName": "AzureStorageConnection",
-                                "type": "DatasetReference"
-                            },
                             "name": "CEPartyPostalAddress"
                         },
                         {
-                            "dataset": {
-                                "referenceName": "AzureStorageConnection",
-                                "type": "DatasetReference"
-                            },
-                            "name": "FOCEPostalAddressCollection"
+                            "name": "CEPostalAddress"
                         },
                         {
-                            "dataset": {
-                                "referenceName": "AzureStorageConnection",
-                                "type": "DatasetReference"
-                            },
-                            "name": "CDSParty"
+                            "name": "SplitStreet"
+                        },
+                        {
+                            "name": "FOPostalAddressUpdateExists"
+                        },
+                        {
+                            "name": "FONewPostalAddressLatitueLongitude"
+                        },
+                        {
+                            "name": "FOCEPostalAddressCollectionJoin"
+                        },
+                        {
+                            "name": "FOCEPostalAddressCollectionFields"
+                        },
+                        {
+                            "name": "POCEPartyPostalAddressJoin"
+                        },
+                        {
+                            "name": "PartyPostalAddressFileds"
+                        },
+                        {
+                            "name": "FOCEPostalAddressJoin"
+                        },
+                        {
+                            "name": "FOCEPostalAddressFields"
                         }
                     ],
-                    "sinks": [
-                        {
-                            "dataset": {
-                                "referenceName": "DelimitedTextOutput",
-                                "type": "DatasetReference"
-                            },
-                            "name": "FOCEPostalAddress"
-                        }
-                    ],
-                    "transformations": [
-                        {
-                            "name": "PostalAddressCollection"
-                        },
-                        {
-                            "name": "PostalAddressCollectionId"
-                        },
-                        {
-                            "name": "PostalAddressPartyAssociation"
-                        },
-                        {
-                            "name": "ActivePostalAddress"
-                        },
-                        {
-                            "name": "ExpiredPostalAddress"
-                        },
-                        {
-                            "name": "CEPartyPostalAddressLocationOwner"
-                        },
-                        {
-                            "name": "CEPartyPostalAddressLocationOwnerParty"
-                        },
-                        {
-                            "name": "DistinctPostalAddress"
-                        },
-                        {
-                            "name": "PostalAddressLocationOwnerParty"
-                        },
-                        {
-                            "name": "ExpiredPostalAddressUnion"
-                        }
-                    ],
-                    "script": "source(output(\n\t\tmsdyn_location as string,\n\t\tmsdyn_validfrom as timestamp,\n\t\tmsdyn_name as string,\n\t\tmsdyn_zipcode as string,\n\t\tmsdyn_postbox as string,\n\t\tmsdyn_district as string,\n\t\tmsdyn_buildingcompliment as string,\n\t\tmsdyn_countryregionid as string,\n\t\tmsdyn_validto as timestamp,\n\t\tmsdyn_county as string,\n\t\tmsdyn_city as string,\n\t\tmsdyn_street as string,\n\t\tmsdyn_state as string,\n\t\tline1 as string,\n\t\tline2 as string,\n\t\tline3 as string,\n\t\tmsdyn_postaladdressid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CEPostalAddress\nsource(output(\n\t\tmsdyn_partynumber as string,\n\t\tmsdyn_location as string,\n\t\tmdyn_postaladdresspurposenames as string,\n\t\tmsdyn_islocationowner as boolean,\n\t\tmsdyn_isprimary as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CEPartyPostalAddress\nsource(output(\n\t\tmsdyn_postaladdresscollectionid as string,\n\t\tmsdyn_location as string,\n\t\tmsdyn_description as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOCEPostalAddressCollection\nsource(output(\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSParty\nDistinctPostalAddress, FOCEPostalAddressCollection join(lower(DistinctPostalAddress@msdyn_location) == lower(FOCEPostalAddressCollection@msdyn_location),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> PostalAddressCollection\nPostalAddressLocationOwnerParty select(mapColumn(\n\t\tmsdyn_location = DistinctPostalAddress@msdyn_location,\n\t\tmsdyn_validfrom,\n\t\tmsdyn_name,\n\t\tmsdyn_zipcode,\n\t\tmsdyn_postbox,\n\t\tmsdyn_district,\n\t\tmsdyn_buildingcompliment,\n\t\tmsdyn_countryregionid,\n\t\tmsdyn_validto,\n\t\tmsdyn_county,\n\t\tmsdyn_city,\n\t\tmsdyn_street,\n\t\tmsdyn_state,\n\t\tmsdyn_postaladdresscollectionid,\n\t\tmsdyn_partynumber,\n\t\tmdyn_postaladdresspurposenames,\n\t\tmsdyn_islocationowner,\n\t\tmsdyn_isprimary,\n\t\tline1,\n\t\tline2,\n\t\tline3,\n\t\tmsdyn_postaladdressid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> PostalAddressCollectionId\nExpiredPostalAddressUnion, CDSParty join(lower(ExpiredPostalAddressUnion@msdyn_partynumber) == lower(CDSParty@msdyn_partynumber)\n\t&& msdyn_islocationowner == true(),\n\tjoinType:'left',\n\tbroadcast: 'both')~> PostalAddressPartyAssociation\nCEPostalAddress filter(msdyn_validto > currentUTC()) ~> ActivePostalAddress\nCEPostalAddress filter(msdyn_validto <= currentUTC()) ~> ExpiredPostalAddress\nCEPartyPostalAddress filter(msdyn_islocationowner) ~> CEPartyPostalAddressLocationOwner\nCEPartyPostalAddressLocationOwner select(mapColumn(\n\t\tmsdyn_partynumber,\n\t\tmsdyn_location,\n\t\tmsdyn_islocationowner,\n\t\tmsdyn_isprimary,\n\t\tmdyn_postaladdresspurposenames\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CEPartyPostalAddressLocationOwnerParty\nActivePostalAddress aggregate(groupBy(msdyn_location,\n\t\tmsdyn_validfrom,\n\t\tmsdyn_name,\n\t\tmsdyn_zipcode,\n\t\tmsdyn_postbox,\n\t\tmsdyn_district,\n\t\tmsdyn_buildingcompliment,\n\t\tmsdyn_countryregionid,\n\t\tmsdyn_validto,\n\t\tmsdyn_county,\n\t\tmsdyn_city,\n\t\tmsdyn_street,\n\t\tmsdyn_state,\n\t\tline1,\n\t\tline2,\n\t\tline3,\n\t\tmsdyn_postaladdressid),\n\tfirst = first(msdyn_location)) ~> DistinctPostalAddress\nPostalAddressCollection, CEPartyPostalAddressLocationOwnerParty lookup(lower(DistinctPostalAddress@msdyn_location) == lower(CEPartyPostalAddressLocationOwnerParty@msdyn_location),\n\tmultiple: false,\n\tpickup: 'first',\n\tasc(msdyn_partynumber, true),\n\tbroadcast: 'auto')~> PostalAddressLocationOwnerParty\nPostalAddressCollectionId, ExpiredPostalAddress union(byName: true)~> ExpiredPostalAddressUnion\nPostalAddressPartyAssociation sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['FOCEPostalAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tmsdyn_location,\n\t\tmsdyn_name,\n\t\tmsdyn_zipcode,\n\t\tmsdyn_postbox,\n\t\tmsdyn_district,\n\t\tmsdyn_buildingcompliment,\n\t\tmsdyn_countryregionid,\n\t\tmsdyn_county,\n\t\tmsdyn_city,\n\t\tmsdyn_street,\n\t\tmsdyn_state,\n\t\tmsdyn_postaladdresscollectionid,\n\t\tmdyn_postaladdresspurposenames,\n\t\tmsdyn_islocationowner,\n\t\tmsdyn_isprimary,\n\t\tmsdyn_partyid,\n\t\tline1,\n\t\tline2,\n\t\tline3,\n\t\tmsdyn_validto,\n\t\tmsdyn_validfrom,\n\t\tmsdyn_postaladdressid\n\t),\n\tpartitionBy('hash', 1)) ~> FOCEPostalAddress"
+                    "script": "source(output(\n\t\tLocationId as string,\n\t\tValidFrom as string,\n\t\tStreet as string,\n\t\tLatitude as string,\n\t\tDescription as string,\n\t\tValidTo as string,\n\t\tCounty as string,\n\t\tDistrictName as string,\n\t\tLongitude as string,\n\t\tCity as string,\n\t\tStreetNumber as string,\n\t\tCountryRegionId as string,\n\t\tState as string,\n\t\tPostBox as string,\n\t\tZipCode as string,\n\t\tBuildingCompliment as string,\n\t\tCountryRegionISOCode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOPostalAddress\nsource(output(\n\t\tLocationId as string,\n\t\tParentLocationId as string,\n\t\tDescription as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOPostalAddressLocation\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocationId as string,\n\t\tPurpose as string,\n\t\tIsLocationOwner as boolean,\n\t\tIsPrimary as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOPartyPostalAddress\nsource(output(\n\t\tStreet as string,\n\t\tCity as string,\n\t\tState as string,\n\t\tZipCode as string,\n\t\tCountryRegionISOCode as string,\n\t\tLocationId as string,\n\t\tValidFrom as string,\n\t\tValidTo as string,\n\t\tPostBox as string,\n\t\tDistrictName as string,\n\t\tBuildingCompliment as string,\n\t\tCounty as string,\n\t\tDescription as string,\n\t\tlatitude as string,\n\t\tlongitude as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FONewPostalAddress\nsource(output(\n\t\tLocationId as string,\n\t\tDescription as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FONewPostalAddressLocation\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocationId as string,\n\t\tIsPrimary as boolean,\n\t\tIsLocationOwner as boolean,\n\t\tPurpose as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FONewPartyPostalAddress\nsource(output(\n\t\tLocationId as string,\n\t\tValidFrom as timestamp,\n\t\tDescription as string,\n\t\tZipCode as integer,\n\t\tPostBox as string,\n\t\tDistrictName as string,\n\t\tBuildingCompliment as string,\n\t\tCountryRegionISOCode as string,\n\t\tValidTo as timestamp,\n\t\tCounty as string,\n\t\tCity as string,\n\t\tStreet as string,\n\t\tState as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOPostalAddressUpdate\nsource(output(\n\t\tmsdyn_postaladdresscollectionid as string,\n\t\tmsdyn_location as string,\n\t\tmsdyn_description as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSPostalAddressCollection\nsource(output(\n\t\tmsdyn_partypostaladdressid as string,\n\t\tmsdyn_name as string,\n\t\tcreatedon as string,\n\t\tmsdyn_postaladdresscollectionid as string,\n\t\tmsdyn_partynumber as string,\n\t\tmsdyn_location as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSPartyPostalAddress\nsource(output(\n\t\tmsdyn_postaladdressid as string,\n\t\tcreatedon as string,\n\t\tmsdyn_validfrom as string,\n\t\t{pac.msdyn_location} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSPostalAddress\nFOPostalAddressUpdateExists, FONewPostalAddressLatitueLongitude union(byName: true)~> FOCEPostalAddress\nFOPostalAddressLocation, FONewPostalAddressLocation union(byName: true)~> FOCEPostalAddressLocation\nFOPartyPostalAddress, FONewPartyPostalAddress union(byName: true)~> FOCEPartyPostalAddress\nFOCEPostalAddressLocation select(mapColumn(\n\t\tmsdyn_location = LocationId,\n\t\tmsdyn_description = Description\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CEPostalAddressColection\nFOCEPartyPostalAddress select(mapColumn(\n\t\tmsdyn_partynumber = PartyNumber,\n\t\tmsdyn_location = LocationId,\n\t\tmdyn_postaladdresspurposenames = Purpose,\n\t\tmsdyn_islocationowner = IsLocationOwner,\n\t\tmsdyn_isprimary = IsPrimary\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CEPartyPostalAddress\nFOCEPostalAddress select(mapColumn(\n\t\tmsdyn_location = LocationId,\n\t\tmsdyn_validfrom = ValidFrom,\n\t\tmsdyn_name = Description,\n\t\tmsdyn_zipcode = ZipCode,\n\t\tmsdyn_postbox = PostBox,\n\t\tmsdyn_district = DistrictName,\n\t\tmsdyn_buildingcompliment = BuildingCompliment,\n\t\tmsdyn_countryregionid = CountryRegionISOCode,\n\t\tmsdyn_validto = ValidTo,\n\t\tmsdyn_county = County,\n\t\tmsdyn_city = City,\n\t\tmsdyn_street = Street,\n\t\tmsdyn_state = State,\n\t\tLatitude,\n\t\tLongitude\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CEPostalAddress\nCEPostalAddress derive(line1 = split(msdyn_street,\"\\n\")[1],\n\t\tline2 = split(msdyn_street,\"\\n\")[2],\n\t\tline3 = split(msdyn_street,\"\\n\")[3],\n\t\tmsdyn_postaladdressid = \"\") ~> SplitStreet\nFOPostalAddress, FOPostalAddressUpdate exists(lower(FOPostalAddress@LocationId) == lower(FOPostalAddressUpdate@LocationId),\n\tnegate:true,\n\tbroadcast: 'auto')~> FOPostalAddressUpdateExists\nFONewPostalAddress select(mapColumn(\n\t\tStreet,\n\t\tCity,\n\t\tState,\n\t\tZipCode,\n\t\tCountryRegionISOCode,\n\t\tLocationId,\n\t\tValidFrom,\n\t\tValidTo,\n\t\tPostBox,\n\t\tDistrictName,\n\t\tBuildingCompliment,\n\t\tCounty,\n\t\tDescription,\n\t\tLatitude = latitude,\n\t\tLongitude = longitude\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FONewPostalAddressLatitueLongitude\nCEPostalAddressColection, CDSPostalAddressCollection join(CEPostalAddressColection@msdyn_location == CDSPostalAddressCollection@msdyn_location,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> FOCEPostalAddressCollectionJoin\nFOCEPostalAddressCollectionJoin select(mapColumn(\n\t\tmsdyn_location = CEPostalAddressColection@msdyn_location,\n\t\tmsdyn_description = CEPostalAddressColection@msdyn_description,\n\t\tmsdyn_postaladdresscollectionid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FOCEPostalAddressCollectionFields\nCEPartyPostalAddress, CDSPartyPostalAddress join(CEPartyPostalAddress@msdyn_partynumber == CDSPartyPostalAddress@msdyn_partynumber\n\t&& CEPartyPostalAddress@msdyn_location == CDSPartyPostalAddress@msdyn_location,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> POCEPartyPostalAddressJoin\nPOCEPartyPostalAddressJoin select(mapColumn(\n\t\tmsdyn_partynumber = CEPartyPostalAddress@msdyn_partynumber,\n\t\tmsdyn_location = CEPartyPostalAddress@msdyn_location,\n\t\tmdyn_postaladdresspurposenames,\n\t\tmsdyn_islocationowner,\n\t\tmsdyn_isprimary,\n\t\tmsdyn_partypostaladdressid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> PartyPostalAddressFileds\nSplitStreet, CDSPostalAddress join(msdyn_location == {pac.msdyn_location}\n\t&& toUTC(toTimestamp( CEPostalAddress@msdyn_validfrom),'UTC') == toUTC(toTimestamp(CDSPostalAddress@msdyn_validfrom),'UTC'),\n\tjoinType:'left',\n\tbroadcast: 'auto')~> FOCEPostalAddressJoin\nFOCEPostalAddressJoin select(mapColumn(\n\t\tmsdyn_location,\n\t\tmsdyn_validfrom = CEPostalAddress@msdyn_validfrom,\n\t\tmsdyn_name,\n\t\tmsdyn_zipcode,\n\t\tmsdyn_postbox,\n\t\tmsdyn_district,\n\t\tmsdyn_buildingcompliment,\n\t\tmsdyn_countryregionid,\n\t\tmsdyn_validto,\n\t\tmsdyn_county,\n\t\tmsdyn_city,\n\t\tmsdyn_street,\n\t\tmsdyn_state,\n\t\tLatitude,\n\t\tLongitude,\n\t\tline1,\n\t\tline2,\n\t\tline3,\n\t\tmsdyn_postaladdressid = CDSPostalAddress@msdyn_postaladdressid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FOCEPostalAddressFields\nFOCEPostalAddressFields sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['CEPostalAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> CEPostalAddressFile\nFOCEPostalAddressCollectionFields sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['CEPostalAddressCollection.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> CEPostalAddressCollectionFile\nPartyPostalAddressFileds sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['CEPartyPostalAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> CEPartyPostalAddressFile"
                 }
             },
             "dependsOn": [
@@ -3941,7 +4553,7 @@
                             "name": "CEToFOAttributes"
                         }
                     ],
-                    "script": "parameters{\n\tprefix as string (\"ADF-\")\n}\nsource(output(\n\t\tLocationId as string,\n\t\tValidFrom as timestamp,\n\t\tDescription as string,\n\t\tZipCode as string,\n\t\tPostBox as string,\n\t\tDistrictName as string,\n\t\tBuildingCompliment as string,\n\t\tCountryRegionISOCode as string,\n\t\tValidTo as timestamp,\n\t\tCounty as string,\n\t\tCity as string,\n\t\tStreet as string,\n\t\tState as string,\n\t\tPartyNumber as string,\n\t\tPurpose as string,\n\t\tIsLocationOwner as boolean,\n\t\tIsPrimary as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tignoreNoFilesFound: false) ~> FOAddress\nsource(output(\n\t\tline1 as string,\n\t\tline2 as string,\n\t\tline3 as string,\n\t\tcity as string,\n\t\tstateorprovince as string,\n\t\tpostalcode as string,\n\t\tcountry as string,\n\t\tPartyNumber as string,\n\t\taddressnumber as short,\n\t\tcustomeraddressid as string,\n\t\tmsdyn_vendorpartynumber as string,\n\t\tmsdyn_partyid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CEAddress\nCEAddressExists filter((line2!=\"\" || line3!=\"\")) ~> CEStreetAddressUpdate\nFOAddress, CEAddress join(lower(iifNull(Street,\"\",Street)) == lower(iifNull(line1,\"\",line1))\n\t&& lower(iifNull(FOAddress@City,\"\",FOAddress@City)) == lower(iifNull(CEAddress@city, \"\",CEAddress@city))\n\t&& lower(iifNull(State,\"\",State)) == lower(iifNull(stateorprovince,\"\",stateorprovince))\n\t&& lower(iifNull(ZipCode,\"\",ZipCode)) == lower(iifNull(postalcode,\"\",postalcode))\n\t&& lower(iifNull(CountryRegionISOCode, \"\", CountryRegionISOCode)) == lower(iifNull(country,\"\",country))\n\t&& lower(FOAddress@PartyNumber) == lower(CEAddress@PartyNumber),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> CEAddressExists\nCEStreetAddressUpdate derive(Street = concatWS(\"\\n\",line1, line2,line3)) ~> ConcatenateStreetAddress\nFilterBlankCEAddress, FOAddress exists(lower(iifNull(line1,\"\",line1)) == lower(iifNull(Street,\"\",Street))\n\t&& lower(iifNull(CEAddress@city,\"\",CEAddress@city)) == lower(iifNull(FOAddress@City,\"\",FOAddress@City))\n\t&& lower(iifNull(stateorprovince,\"\",stateorprovince)) == lower(iifNull(State,\"\",State))\n\t&& lower(iifNull(postalcode,\"\",postalcode)) == lower(iifNull(ZipCode,\"\",ZipCode))\n\t&& lower(iifNull(country, \"\", country)) == lower(iifNull(CountryRegionISOCode,\"\",CountryRegionISOCode))\n\t&& lower(CEAddress@PartyNumber) == lower(FOAddress@PartyNumber),\n\tnegate:true,\n\tbroadcast: 'auto')~> FOAddressNotExists\nFOAddressNotExists filter((line1!=\"\" || line2!=\"\" || line3!=\"\" || stateorprovince!= \"\" ||city!=\"\"||country!=\"\") && (PartyNumber!=\"\")) ~> FilterBlankAddress\nFilterBlankAddress keyGenerate(output(LocationId as long),\n\tstartAt: 1L) ~> ADFLocationId\nADFLocationId derive(Description = \"ADFAddress\",\n\t\tLocationId = concat($prefix, toString(LocationId)),\n\t\tIsPrimary = \"False\",\n\t\tIsLocationOwner = \"True\",\n\t\tPurpose = case(addressnumber==1,'Delivery',\r\ncase(addressnumber==2,'Invoice'\r\n)),\n\t\tStreet = concatWS(\"\\n\",line1, line2,line3),\n\t\tValidFrom = currentUTC(),\n\t\tValidTo = toUTC(toTimestamp(\"2154-12-31 23:59:59\"),'UTC')) ~> PostalAddressDescription\nConcatenateStreetAddress select(mapColumn(\n\t\tLocationId,\n\t\tValidFrom,\n\t\tDescription,\n\t\tZipCode,\n\t\tPostBox,\n\t\tDistrictName,\n\t\tBuildingCompliment,\n\t\tCountryRegionISOCode,\n\t\tValidTo,\n\t\tCounty,\n\t\tCity = FOAddress@City,\n\t\tStreet,\n\t\tState\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FOPostalAddressUpdateFields\nCEToFOAttributes, FOPostalAddressUpdateFields union(byName: true)~> FoPostalAddressUpdateMerge\nCEAddress filter((line1!=\"\" || line2!=\"\" || line3!=\"\" || stateorprovince!= \"\" ||city!=\"\"||country!=\"\") && (PartyNumber!=\"\")) ~> FilterBlankCEAddress\nPostalAddressDescription select(mapColumn(\n\t\tline1,\n\t\tline2,\n\t\tline3,\n\t\tCity = city,\n\t\tState = stateorprovince,\n\t\tZipCode = postalcode,\n\t\tCountryRegionISOCode = country,\n\t\tPartyNumber,\n\t\taddressnumber,\n\t\tcustomeraddressid,\n\t\tmsdyn_vendorpartynumber,\n\t\tmsdyn_partyid,\n\t\tLocationId,\n\t\tDescription,\n\t\tIsPrimary,\n\t\tIsLocationOwner,\n\t\tPurpose,\n\t\tStreet,\n\t\tValidFrom,\n\t\tValidTo\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CEToFOAttributes\nPostalAddressDescription sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['FONewPartyPostalAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tPartyNumber,\n\t\tLocationId,\n\t\tIsPrimary,\n\t\tIsLocationOwner,\n\t\tPurpose\n\t),\n\tpartitionBy('hash', 1)) ~> FONewPartyPostalAddress\nPostalAddressDescription sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['FONewPostalAddressLocation.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tLocationId,\n\t\tDescription\n\t),\n\tpartitionBy('hash', 1)) ~> FONewPostalAddressLocation\nFoPostalAddressUpdateMerge sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['FONewPostalAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tStreet,\n\t\tCity,\n\t\tState,\n\t\tZipCode,\n\t\tCountryRegionISOCode,\n\t\tLocationId,\n\t\tValidFrom,\n\t\tValidTo,\n\t\tPostBox,\n\t\tDistrictName,\n\t\tBuildingCompliment,\n\t\tCounty,\n\t\tDescription\n\t),\n\tpartitionBy('hash', 1)) ~> FONewPostalAddress\nFOPostalAddressUpdateFields sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['FOPostalAddressUpdate.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FOPostalAddressUpdate"
+                    "script": "parameters{\n\tprefix as string (\"ADF-\")\n}\nsource(output(\n\t\tLocationId as string,\n\t\tValidFrom as timestamp,\n\t\tDescription as string,\n\t\tZipCode as string,\n\t\tPostBox as string,\n\t\tDistrictName as string,\n\t\tBuildingCompliment as string,\n\t\tCountryRegionISOCode as string,\n\t\tValidTo as timestamp,\n\t\tCounty as string,\n\t\tCity as string,\n\t\tStreet as string,\n\t\tState as string,\n\t\tPartyNumber as string,\n\t\tPurpose as string,\n\t\tIsLocationOwner as boolean,\n\t\tIsPrimary as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tignoreNoFilesFound: false) ~> FOAddress\nsource(output(\n\t\tline1 as string,\n\t\tline2 as string,\n\t\tline3 as string,\n\t\tcity as string,\n\t\tstateorprovince as string,\n\t\tpostalcode as string,\n\t\tPartyNumber as string,\n\t\tparentid as string,\n\t\taddressnumber as short,\n\t\tcustomeraddressid as string,\n\t\tmsdyn_vendorpartynumber as string,\n\t\tmsdyn_partyid as string,\n\t\tcountry as string,\n\t\tlatitude as string,\n\t\tlongitude as string,\n\t\tname as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CEAddress\nCEAddressExists filter((line2!=\"\" || line3!=\"\")) ~> CEStreetAddressUpdate\nFOAddress, CEAddress join(lower(iifNull(Street,\"\",Street)) == lower(iifNull(line1,\"\",line1))\n\t&& lower(iifNull(FOAddress@City,\"\",FOAddress@City)) == lower(iifNull(CEAddress@city, \"\",CEAddress@city))\n\t&& lower(iifNull(State,\"\",State)) == lower(iifNull(stateorprovince,\"\",stateorprovince))\n\t&& lower(iifNull(ZipCode,\"\",ZipCode)) == lower(iifNull(postalcode,\"\",postalcode))\n\t&& lower(iifNull(CountryRegionISOCode, \"\", CountryRegionISOCode)) == lower(iifNull(country,\"\",country))\n\t&& lower(FOAddress@PartyNumber) == lower(CEAddress@PartyNumber),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> CEAddressExists\nCEStreetAddressUpdate derive(Street = concatWS(\"\\n\",line1, line2,line3)) ~> ConcatenateStreetAddress\nFilterBlankCEAddress, FOAddress exists(lower(iifNull(line1,\"\",line1)) == lower(iifNull(Street,\"\",Street))\n\t&& lower(iifNull(CEAddress@city,\"\",CEAddress@city)) == lower(iifNull(FOAddress@City,\"\",FOAddress@City))\n\t&& lower(iifNull(stateorprovince,\"\",stateorprovince)) == lower(iifNull(State,\"\",State))\n\t&& lower(iifNull(postalcode,\"\",postalcode)) == lower(iifNull(ZipCode,\"\",ZipCode))\n\t&& lower(iifNull(country, \"\", country)) == lower(iifNull(CountryRegionISOCode,\"\",CountryRegionISOCode))\n\t&& lower(CEAddress@PartyNumber) == lower(FOAddress@PartyNumber),\n\tnegate:true,\n\tbroadcast: 'auto')~> FOAddressNotExists\nFOAddressNotExists filter((line1!=\"\" || line2!=\"\" || line3!=\"\" || stateorprovince!= \"\" ||city!=\"\"||country!=\"\") && (PartyNumber!=\"\")) ~> FilterBlankAddress\nFilterBlankAddress keyGenerate(output(LocationId as long),\n\tstartAt: 1L) ~> ADFLocationId\nADFLocationId derive(Description = iifNull(name,\"ADFAddress\",name),\n\t\tLocationId = concat($prefix, toString(LocationId)),\n\t\tIsPrimary = \"False\",\n\t\tIsLocationOwner = \"True\",\n\t\tPurpose = case(addressnumber==1,'Delivery',\r\ncase(addressnumber==2,'Invoice'\r\n)),\n\t\tStreet = concatWS(\"\\n\",line1, line2,line3),\n\t\tValidFrom = currentUTC(),\n\t\tValidTo = toUTC(toTimestamp(\"2154-12-31 23:59:59\"),'UTC')) ~> PostalAddressDescription\nConcatenateStreetAddress select(mapColumn(\n\t\tLocationId,\n\t\tValidFrom,\n\t\tDescription,\n\t\tZipCode,\n\t\tPostBox,\n\t\tDistrictName,\n\t\tBuildingCompliment,\n\t\tCountryRegionISOCode,\n\t\tValidTo,\n\t\tCounty,\n\t\tCity = FOAddress@City,\n\t\tStreet,\n\t\tState,\n\t\tlatitude,\n\t\tlongitude\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FOPostalAddressUpdateFields\nCEToFOAttributes, FOPostalAddressUpdateFields union(byName: true)~> FoPostalAddressUpdateMerge\nCEAddress filter((line1!=\"\" || line2!=\"\" || line3!=\"\" || stateorprovince!= \"\" ||city!=\"\"||country!=\"\") && (PartyNumber!=\"\")) ~> FilterBlankCEAddress\nPostalAddressDescription select(mapColumn(\n\t\tline1,\n\t\tline2,\n\t\tline3,\n\t\tCity = city,\n\t\tState = stateorprovince,\n\t\tZipCode = postalcode,\n\t\tCountryRegionISOCode = country,\n\t\tPartyNumber,\n\t\taddressnumber,\n\t\tcustomeraddressid,\n\t\tmsdyn_vendorpartynumber,\n\t\tmsdyn_partyid,\n\t\tLocationId,\n\t\tDescription,\n\t\tIsPrimary,\n\t\tIsLocationOwner,\n\t\tPurpose,\n\t\tStreet,\n\t\tValidFrom,\n\t\tValidTo,\n\t\tlatitude,\n\t\tlongitude\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CEToFOAttributes\nPostalAddressDescription sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['FONewPartyPostalAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tPartyNumber,\n\t\tLocationId,\n\t\tIsPrimary,\n\t\tIsLocationOwner,\n\t\tPurpose\n\t),\n\tpartitionBy('hash', 1)) ~> FONewPartyPostalAddress\nPostalAddressDescription sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['FONewPostalAddressLocation.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tLocationId,\n\t\tDescription\n\t),\n\tpartitionBy('hash', 1)) ~> FONewPostalAddressLocation\nFoPostalAddressUpdateMerge sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['FONewPostalAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tStreet,\n\t\tCity,\n\t\tState,\n\t\tZipCode,\n\t\tCountryRegionISOCode,\n\t\tLocationId,\n\t\tValidFrom,\n\t\tValidTo,\n\t\tPostBox,\n\t\tDistrictName,\n\t\tBuildingCompliment,\n\t\tCounty,\n\t\tDescription,\n\t\tlatitude,\n\t\tlongitude\n\t),\n\tpartitionBy('hash', 1)) ~> FONewPostalAddress\nFOPostalAddressUpdateFields sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['FOPostalAddressUpdate.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FOPostalAddressUpdate"
                 }
             },
             "dependsOn": [
@@ -3950,7 +4562,7 @@
             ]
         },
         {
-            "name": "[concat(parameters('factoryName'), '/AssociatePartyPostalAddressCollection')]",
+            "name": "[concat(parameters('factoryName'), '/DenormalizePostalAddress')]",
             "type": "Microsoft.DataFactory/factories/dataflows",
             "apiVersion": "2018-06-01",
             "properties": {
@@ -3962,21 +4574,14 @@
                                 "referenceName": "AzureStorageConnection",
                                 "type": "DatasetReference"
                             },
-                            "name": "CEPartyPostalAddress"
+                            "name": "FOPostalAdrress"
                         },
                         {
                             "dataset": {
                                 "referenceName": "AzureStorageConnection",
                                 "type": "DatasetReference"
                             },
-                            "name": "FOCEPostalAddressCollection"
-                        },
-                        {
-                            "dataset": {
-                                "referenceName": "AzureStorageConnection",
-                                "type": "DatasetReference"
-                            },
-                            "name": "CDSParty"
+                            "name": "FOPartyPostalAddress"
                         }
                     ],
                     "sinks": [
@@ -3985,90 +4590,20 @@
                                 "referenceName": "DelimitedTextOutput",
                                 "type": "DatasetReference"
                             },
-                            "name": "FOCEPartyPostalAddress"
+                            "name": "PartyPostalAddressDenormalize"
                         }
                     ],
                     "transformations": [
                         {
-                            "name": "PartyPostalAddressCollection"
-                        },
-                        {
-                            "name": "PartyPostalAddressPartyId"
+                            "name": "PostalAddressDenormalize"
                         }
                     ],
-                    "script": "source(output(\n\t\tmsdyn_partynumber as string,\n\t\tmsdyn_location as string,\n\t\tmdyn_postaladdresspurposenames as string,\n\t\tmsdyn_islocationowner as boolean,\n\t\tmsdyn_isprimary as boolean,\n\t\tmsdyn_partypostaladdressid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CEPartyPostalAddress\nsource(output(\n\t\tmsdyn_postaladdresscollectionid as string,\n\t\tmsdyn_location as string,\n\t\tmsdyn_description as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOCEPostalAddressCollection\nsource(output(\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSParty\nCEPartyPostalAddress, FOCEPostalAddressCollection join(lower(CEPartyPostalAddress@msdyn_location) == lower(FOCEPostalAddressCollection@msdyn_location),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> PartyPostalAddressCollection\nPartyPostalAddressCollection, CDSParty join(CEPartyPostalAddress@msdyn_partynumber == CDSParty@msdyn_partynumber,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> PartyPostalAddressPartyId\nPartyPostalAddressPartyId sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['FOCEPartyPostalAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FOCEPartyPostalAddress"
+                    "script": "source(output(\n\t\tLocationId as string,\n\t\tValidFrom as string,\n\t\tDescription as string,\n\t\tZipCode as string,\n\t\tPostBox as string,\n\t\tDistrictName as string,\n\t\tBuildingCompliment as string,\n\t\tCountryRegionISOCode as string,\n\t\tValidTo as string,\n\t\tCounty as string,\n\t\tCity as string,\n\t\tStreet as string,\n\t\tState as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOPostalAdrress\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocationId as string,\n\t\tPurpose as string,\n\t\tIsLocationOwner as boolean,\n\t\tIsPrimary as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOPartyPostalAddress\nFOPostalAdrress, FOPartyPostalAddress join(lower(FOPostalAdrress@LocationId) == lower(FOPartyPostalAddress@LocationId),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> PostalAddressDenormalize\nPostalAddressDenormalize sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['FOAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> PartyPostalAddressDenormalize"
                 }
             },
             "dependsOn": [
                 "[concat(variables('factoryId'), '/datasets/AzureStorageConnection')]",
                 "[concat(variables('factoryId'), '/datasets/DelimitedTextOutput')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/ConvertFOAddressInCSV')]",
-            "type": "Microsoft.DataFactory/factories/dataflows",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "description": "Convert FO new address files into csv format to import through DIXF",
-                "type": "MappingDataFlow",
-                "typeProperties": {
-                    "sources": [
-                        {
-                            "dataset": {
-                                "referenceName": "AzureStorageConnection",
-                                "type": "DatasetReference"
-                            },
-                            "name": "FONewPostalAddressLocation"
-                        },
-                        {
-                            "dataset": {
-                                "referenceName": "AzureStorageConnection",
-                                "type": "DatasetReference"
-                            },
-                            "name": "FONewPartyPostalAddress"
-                        },
-                        {
-                            "dataset": {
-                                "referenceName": "AzureStorageConnection",
-                                "type": "DatasetReference"
-                            },
-                            "name": "FONewPostalAddress"
-                        }
-                    ],
-                    "sinks": [
-                        {
-                            "dataset": {
-                                "referenceName": "DelimitedTextImport",
-                                "type": "DatasetReference"
-                            },
-                            "name": "FONewPostalAddressLocationImport"
-                        },
-                        {
-                            "dataset": {
-                                "referenceName": "DelimitedTextImport",
-                                "type": "DatasetReference"
-                            },
-                            "name": "FONewPartyPostalAddressImport"
-                        },
-                        {
-                            "dataset": {
-                                "referenceName": "DelimitedTextImport",
-                                "type": "DatasetReference"
-                            },
-                            "name": "FONewPostalAddressImport"
-                        }
-                    ],
-                    "transformations": [
-                        {
-                            "name": "EnumValue"
-                        }
-                    ],
-                    "script": "source(output(\n\t\tLocationId as string,\n\t\tDescription as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FONewPostalAddressLocation\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocationId as string,\n\t\tIsPrimary as boolean,\n\t\tIsLocationOwner as boolean,\n\t\tPurpose as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FONewPartyPostalAddress\nsource(output(\n\t\tStreet as string,\n\t\tCity as string,\n\t\tState as string,\n\t\tZipCode as integer,\n\t\tCountryRegionISOCode as string,\n\t\tLocationId as string,\n\t\tValidFrom as timestamp,\n\t\tValidTo as timestamp,\n\t\tPostBox as string,\n\t\tDistrictName as string,\n\t\tBuildingCompliment as string,\n\t\tCounty as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FONewPostalAddress\nFONewPartyPostalAddress derive(IsPrimary = case(IsPrimary,1,0),\n\t\tIsLocationOwner = case(IsLocationOwner,1,0)) ~> EnumValue\nFONewPostalAddressLocation sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['ImportFONewPostalAddressLocation.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FONewPostalAddressLocationImport\nEnumValue sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['ImportFONewPartyPostalAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FONewPartyPostalAddressImport\nFONewPostalAddress sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['ImportFONewPostalAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FONewPostalAddressImport"
-                }
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/datasets/AzureStorageConnection')]",
-                "[concat(variables('factoryId'), '/datasets/DelimitedTextImport')]"
             ]
         }
     ]
