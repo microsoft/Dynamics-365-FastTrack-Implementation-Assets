@@ -5,7 +5,7 @@
         "factoryName": {
             "type": "string",
             "metadata": "Data Factory name",
-            "defaultValue": "ReleasePartyElectronicAddress"
+            "defaultValue": ""
         },
         "CRMLinkedService_password": {
             "type": "secureString",
@@ -403,7 +403,7 @@
                         "typeProperties": {
                             "source": {
                                 "type": "DynamicsCrmSource",
-                                "query": "<fetch version=\"1.0\" output-format=\"xml-platform\" mapping=\"logical\" distinct=\"false\">\n  <entity name=\"contact\" >\n    <attribute name=\"msdyn_partyid\" />\n    <attribute name=\"msdyn_partynumber\" />\n    <attribute name=\"contactid\" />\n    <attribute name=\"telephone1\" />\n    <attribute name=\"telephone2\" />\n    <attribute name=\"fax\" />\n    <attribute name=\"msdyn_emailaddress1description\" />\n    <attribute name=\"home2\" />\n    <attribute name=\"msdyn_primarytwitterid\" />\n    <attribute name=\"msdyn_faxdescription\" />\n    <attribute name=\"msdyn_telephone1extension\" />\n    <attribute name=\"msdyn_primaryfacebookid\" />\n    <attribute name=\"msdyn_primaryfacebookdescription\" />\n    <attribute name=\"msdyn_faxextension\" />\n    <attribute name=\"telephone3\" />\n    <attribute name=\"msdyn_primaryinkedinid\" />\n    <attribute name=\"msdyn_primarylinkedindescrption\" />\n    <attribute name=\"msdyn_primaryinkedinid\" />\n    <attribute name=\"emailaddress3\" />\n    <attribute name=\"emailaddress2\" />\n    <attribute name=\"emailaddress1\" />\n    <attribute name=\"websiteurl\" />\n    <attribute name=\"msdyn_websiteurldescription\" />\n    <attribute name=\"msdyn_telephone1description\" />\n    <attribute name=\"msdyn_primarytwitteriddescription\" />\n    <attribute name=\"msdyn_contactforvendor\" />\n    <attribute name=\"msdyn_contactfor\" />\n    <attribute name=\"fullname\" />\n    <attribute name=\"msdyn_sellable\" />\n    <attribute name=\"msdyn_linkedvendoraccount\" />\n    <attribute name=\"msdyn_isvendor\" />\n    <attribute name=\"msdyn_contactpersonid\" />\n    <link-entity name=\"cdm_company\" from=\"cdm_companyid\" to=\"msdyn_company\" link-type=\"outer\" >\n      <attribute name=\"cdm_companycode\" alias=\"CompanyCode\" />\n    </link-entity>\n    <link-entity name=\"msdyn_party\" from=\"msdyn_partyid\" to=\"msdyn_partyid\" link-type=\"inner\" >\n      <attribute name=\"msdyn_partynumber\" alias=\"PartyNumber\" />\n    </link-entity>\n  </entity>\n</fetch>"
+                                "query": "<fetch version=\"1.0\" output-format=\"xml-platform\" mapping=\"logical\" distinct=\"false\">\n  <entity name=\"contact\" >\n    <attribute name=\"msdyn_partyid\" />\n    <attribute name=\"msdyn_partynumber\" />\n    <attribute name=\"contactid\" />\n    <attribute name=\"telephone1\" />\n    <attribute name=\"telephone2\" />\n    <attribute name=\"fax\" />\n    <attribute name=\"msdyn_emailaddress1description\" />\n    <attribute name=\"home2\" />\n    <attribute name=\"msdyn_primarytwitterid\" />\n    <attribute name=\"msdyn_faxdescription\" />\n    <attribute name=\"msdyn_telephone1extension\" />\n    <attribute name=\"msdyn_primaryfacebookid\" />\n    <attribute name=\"msdyn_primaryfacebookdescription\" />\n    <attribute name=\"msdyn_faxextension\" />\n    <attribute name=\"telephone3\" />\n    <attribute name=\"msdyn_primaryinkedinid\" />\n    <attribute name=\"msdyn_primarylinkedindescrption\" />\n    <attribute name=\"msdyn_primaryinkedinid\" />\n    <attribute name=\"emailaddress3\" />\n    <attribute name=\"emailaddress2\" />\n    <attribute name=\"emailaddress1\" />\n    <attribute name=\"websiteurl\" />\n    <attribute name=\"msdyn_websiteurldescription\" />\n    <attribute name=\"msdyn_telephone1description\" />\n    <attribute name=\"msdyn_primarytwitteriddescription\" />\n    <attribute name=\"msdyn_contactforvendor\" />\n    <attribute name=\"msdyn_contactfor\" />\n    <attribute name=\"fullname\" />\n    <attribute name=\"msdyn_sellable\" />\n    <attribute name=\"msdyn_linkedvendoraccount\" />\n    <attribute name=\"msdyn_isvendor\" />\n    <attribute name=\"msdyn_contactpersonid\" />\n    <attribute name=\"mobilephone\" />\n    <link-entity name=\"cdm_company\" from=\"cdm_companyid\" to=\"msdyn_company\" link-type=\"outer\" >\n      <attribute name=\"cdm_companycode\" alias=\"CompanyCode\" />\n    </link-entity>\n    <link-entity name=\"msdyn_party\" from=\"msdyn_partyid\" to=\"msdyn_partyid\" link-type=\"inner\" >\n      <attribute name=\"msdyn_partynumber\" alias=\"PartyNumber\" />\n    </link-entity>\n  </entity>\n</fetch>"
                             },
                             "sink": {
                                 "type": "DelimitedTextSink",
@@ -422,61 +422,11 @@
                                 "mappings": [
                                     {
                                         "source": {
-                                            "name": "msdyn_sellable",
-                                            "type": "Boolean"
-                                        },
-                                        "sink": {
-                                            "name": "msdyn_sellable",
-                                            "type": "String"
-                                        }
-                                    },
-                                    {
-                                        "source": {
-                                            "name": "fullname",
+                                            "name": "msdyn_partynumber",
                                             "type": "String"
                                         },
                                         "sink": {
-                                            "name": "fullname",
-                                            "type": "String"
-                                        }
-                                    },
-                                    {
-                                        "source": {
-                                            "name": "contactid",
-                                            "type": "Guid"
-                                        },
-                                        "sink": {
-                                            "name": "contactid",
-                                            "type": "String"
-                                        }
-                                    },
-                                    {
-                                        "source": {
-                                            "name": "CompanyCode",
-                                            "type": "String"
-                                        },
-                                        "sink": {
-                                            "name": "CompanyCode",
-                                            "type": "String"
-                                        }
-                                    },
-                                    {
-                                        "source": {
-                                            "name": "msdyn_isvendor",
-                                            "type": "Boolean"
-                                        },
-                                        "sink": {
-                                            "name": "msdyn_isvendor",
-                                            "type": "String"
-                                        }
-                                    },
-                                    {
-                                        "source": {
-                                            "name": "msdyn_contactpersonid",
-                                            "type": "String"
-                                        },
-                                        "sink": {
-                                            "name": "msdyn_contactpersonid",
+                                            "name": "msdyn_partynumber",
                                             "type": "String"
                                         }
                                     },
@@ -492,31 +442,11 @@
                                     },
                                     {
                                         "source": {
-                                            "name": "msdyn_partynumber",
-                                            "type": "String"
-                                        },
-                                        "sink": {
-                                            "name": "msdyn_partynumber",
-                                            "type": "String"
-                                        }
-                                    },
-                                    {
-                                        "source": {
-                                            "name": "msdyn_contactforvendor",
+                                            "name": "msdyn_isvendor",
                                             "type": "Boolean"
                                         },
                                         "sink": {
-                                            "name": "msdyn_contactforvendor",
-                                            "type": "String"
-                                        }
-                                    },
-                                    {
-                                        "source": {
-                                            "name": "PartyNumber",
-                                            "type": "String"
-                                        },
-                                        "sink": {
-                                            "name": "PartyNumber",
+                                            "name": "msdyn_isvendor",
                                             "type": "String"
                                         }
                                     },
@@ -562,6 +492,26 @@
                                     },
                                     {
                                         "source": {
+                                            "name": "fullname",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "fullname",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_sellable",
+                                            "type": "Boolean"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_sellable",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
                                             "name": "msdyn_emailaddress1description",
                                             "type": "String"
                                         },
@@ -582,11 +532,61 @@
                                     },
                                     {
                                         "source": {
+                                            "name": "msdyn_contactforvendor",
+                                            "type": "Boolean"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_contactforvendor",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
                                             "name": "websiteurl",
                                             "type": "String"
                                         },
                                         "sink": {
                                             "name": "websiteurl",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "mobilephone",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "mobilephone",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "contactid",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "contactid",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "CompanyCode",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "CompanyCode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_linkedvendoraccount",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_linkedvendoraccount",
                                             "type": "String"
                                         }
                                     },
@@ -652,6 +652,16 @@
                                     },
                                     {
                                         "source": {
+                                            "name": "msdyn_contactpersonid",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_contactpersonid",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
                                             "name": "msdyn_primaryfacebookid",
                                             "type": "String"
                                         },
@@ -677,6 +687,16 @@
                                         },
                                         "sink": {
                                             "name": "msdyn_faxextension",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "PartyNumber",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "PartyNumber",
                                             "type": "String"
                                         }
                                     },
@@ -737,16 +757,6 @@
                                         },
                                         "sink": {
                                             "name": "msdyn_contactfor",
-                                            "type": "String"
-                                        }
-                                    },
-                                    {
-                                        "source": {
-                                            "name": "msdyn_linkedvendoraccount",
-                                            "type": "Guid"
-                                        },
-                                        "sink": {
-                                            "name": "msdyn_linkedvendoraccount",
                                             "type": "String"
                                         }
                                     }
@@ -2297,7 +2307,7 @@
                     "cancelAfter": {}
                 },
                 "annotations": [],
-                "lastPublishTime": "2021-07-26T23:34:31Z"
+                "lastPublishTime": "2022-02-25T03:42:35Z"
             },
             "dependsOn": [
                 "[concat(variables('factoryId'), '/datasets/CRMConnection')]",
@@ -2308,6 +2318,311 @@
                 "[concat(variables('factoryId'), '/dataflows/CreateFoAddress')]",
                 "[concat(variables('factoryId'), '/dataflows/AccountPrimaryAddress')]",
                 "[concat(variables('factoryId'), '/linkedServices/AzureBlobStorageService')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/DW Electronic Address')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "0-DW Maps",
+                        "description": "Dual write maps",
+                        "type": "Copy",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "DynamicsCrmSource",
+                                "query": "<fetch version=\"1.0\" output-format=\"xml-platform\" mapping=\"logical\" distinct=\"false\">\n  <entity name=\"msdyn_dualwriteruntimeconfig\">\n    <attribute name=\"msdyn_dualwriteruntimeconfigid\"/>\n    <attribute name=\"msdyn_name\"/>\n    <attribute name=\"msdyn_internalentityname\"/>\n    <attribute name=\"msdyn_externalentityname\"/>\n    <attribute name=\"statuscode\"/>\n    <attribute name=\"statecode\"/>\n  </entity>\n</fetch>"
+                            },
+                            "sink": {
+                                "type": "DelimitedTextSink",
+                                "storeSettings": {
+                                    "type": "AzureBlobStorageWriteSettings"
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextWriteSettings",
+                                    "quoteAllText": true,
+                                    "fileExtension": ".txt"
+                                }
+                            },
+                            "enableStaging": false,
+                            "translator": {
+                                "type": "TabularTranslator",
+                                "mappings": [
+                                    {
+                                        "source": {
+                                            "name": "statecode",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "statecode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_internalentityname",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_internalentityname",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_dualwriteruntimeconfigid",
+                                            "type": "Guid"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_dualwriteruntimeconfigid",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_externalentityname",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_externalentityname",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "statuscode",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "statuscode",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "msdyn_name",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "msdyn_name",
+                                            "type": "String"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "CRMConnection",
+                                "type": "DatasetReference",
+                                "parameters": {
+                                    "entityname": "msdyn_dualwriteruntimeconfig"
+                                }
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference",
+                                "parameters": {
+                                    "container": "electronicaddress",
+                                    "foldername": "input",
+                                    "filename": "DWMap.csv"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "DWMapValidation",
+                        "type": "ExecuteDataFlow",
+                        "dependsOn": [
+                            {
+                                "activity": "0-DW Maps",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "1.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "dataflow": {
+                                "referenceName": "DWMapValidation",
+                                "type": "DataFlowReference",
+                                "parameters": {},
+                                "datasetParameters": {
+                                    "DWMap": {
+                                        "container": "electronicaddress",
+                                        "foldername": "input",
+                                        "filename": "DWMap.csv"
+                                    },
+                                    "DWEnabledMaps": {
+                                        "container": "electronicaddress",
+                                        "foldername": "input",
+                                        "filename": "DWEnabledMaps.csv"
+                                    }
+                                }
+                            },
+                            "staging": {},
+                            "compute": {
+                                "coreCount": 8,
+                                "computeType": "General"
+                            },
+                            "traceLevel": "Fine"
+                        }
+                    },
+                    {
+                        "name": "DWEnabledMapsRead",
+                        "type": "Lookup",
+                        "dependsOn": [
+                            {
+                                "activity": "DWMapValidation",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "DelimitedTextSource",
+                                "storeSettings": {
+                                    "type": "AzureBlobStorageReadSettings",
+                                    "recursive": true,
+                                    "enablePartitionDiscovery": false
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextReadSettings"
+                                }
+                            },
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference",
+                                "parameters": {
+                                    "container": "electronicaddress",
+                                    "foldername": "input",
+                                    "filename": "DWEnabledMaps.csv"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "IterateMaps",
+                        "type": "ForEach",
+                        "dependsOn": [
+                            {
+                                "activity": "DWEnabledMapsRead",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "items": {
+                                "value": "@activity('DWEnabledMapsRead').output.value",
+                                "type": "Expression"
+                            },
+                            "isSequential": true,
+                            "activities": [
+                                {
+                                    "name": "Set IsDwMapEnabled",
+                                    "type": "SetVariable",
+                                    "dependsOn": [],
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "variableName": "IsDWMapsEnabled",
+                                        "value": true
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "If DWMapEnabled",
+                        "type": "IfCondition",
+                        "dependsOn": [
+                            {
+                                "activity": "IterateMaps",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "expression": {
+                                "value": "@variables('IsDWMapsEnabled')",
+                                "type": "Expression"
+                            },
+                            "ifFalseActivities": [
+                                {
+                                    "name": "DW Map Disabled",
+                                    "type": "Fail",
+                                    "dependsOn": [],
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "message": "DW Map Disabled",
+                                        "errorCode": "2"
+                                    }
+                                }
+                            ],
+                            "ifTrueActivities": [
+                                {
+                                    "name": "DW Maps Enabled",
+                                    "type": "Fail",
+                                    "dependsOn": [],
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "message": "DW Maps Enabled",
+                                        "errorCode": "1"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "policy": {
+                    "elapsedTimeMetric": {},
+                    "cancelAfter": {}
+                },
+                "variables": {
+                    "IsDWMapsEnabled": {
+                        "type": "Boolean",
+                        "defaultValue": false
+                    }
+                },
+                "annotations": [],
+                "lastPublishTime": "2022-03-08T04:57:19Z"
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/CRMConnection')]",
+                "[concat(variables('factoryId'), '/datasets/AzureStorageConnection')]",
+                "[concat(variables('factoryId'), '/dataflows/DWMapValidation')]"
             ]
         },
         {
@@ -3173,9 +3488,21 @@
                         },
                         {
                             "name": "ContactEmail3Union"
+                        },
+                        {
+                            "name": "RemoveBlankMobilePhone"
+                        },
+                        {
+                            "name": "ContactMobilePhone"
+                        },
+                        {
+                            "name": "ContactMobilePhoneType"
+                        },
+                        {
+                            "name": "ContactMobilePhoneUnion"
                         }
                     ],
-                    "script": "source(output(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\tmsdyn_faxextension as string,\n\t\tmsdyn_faxdescription as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\tmsdyn_primarylinkedinid as string,\n\t\tprimarytwitterid as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tfax as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tmsdyn_telephone1extension as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\temailaddress1 as string,\n\t\ttelephone2 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_mappedvendoraccount as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSAccount\nsource(output(\n\t\tmsdyn_sellable as boolean,\n\t\tfullname as string,\n\t\tcontactid as string,\n\t\tCompanyCode as string,\n\t\tmsdyn_isvendor as boolean,\n\t\tmsdyn_contactpersonid as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tmsdyn_contactforvendor as boolean,\n\t\tPartyNumber as string,\n\t\temailaddress1 as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\thome2 as string,\n\t\ttelephone2 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\ttelephone1 as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tfax as string,\n\t\tmsdyn_faxextension as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_faxdescription as string,\n\t\tmsdyn_telephone1extension as string,\n\t\tmsdyn_primarytwitterid as string,\n\t\tmsdyn_primaryinkedinid as string,\n\t\tmsdyn_contactfor as string,\n\t\tmsdyn_linkedvendoraccount as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSContact\nsource(output(\n\t\tCompanyCode as string,\n\t\tmsdyn_vendorpartynumber as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_vendoraccountnumber as string,\n\t\tmsdyn_name as string,\n\t\tmsdyn_vendorid as string,\n\t\tPartyNumber as string,\n\t\tmsdyn_primaryurldescription as string,\n\t\tmsdyn_primarytwitter as string,\n\t\tmsdyn_primarytelex as string,\n\t\tmsdyn_primaryphonenumberextension as string,\n\t\tmsdyn_primarytwitterdescription as string,\n\t\tmsdyn_primaryemailaddress as string,\n\t\tmsdyn_primaryfaxnumber as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_primarylinkedin as string,\n\t\tmsdyn_primarylinkedindescription as string,\n\t\tmsdyn_primaryfacebook as string,\n\t\tmsdyn_primaryemailaddressdescription as string,\n\t\tmsdyn_primarytelexdescription as string,\n\t\tmsdyn_primaryfaxnumberdescription as string,\n\t\tmsdyn_pimaryphonenumber as string,\n\t\tmsdyn_primaryfaxnumberextension as string,\n\t\tmsdyn_primaryphonenumberdescription as string,\n\t\tmsdyn_firstname as string,\n\t\tmsdyn_linkedvendorinaccountsentity as string,\n\t\tmsdyn_lastname as string,\n\t\tmsdyn_linkedvendorincontactsentity as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSVendor\nRemoveBlankAccountEmail select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = emailaddress1,\n\t\tDescription = msdyn_emailaddress1description\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountEmail\nAccountEmail derive(Type = \"Email\") ~> AccountEmailType\nCDSAccount filter(!isNull(emailaddress1) || emailaddress1==\"\") ~> RemoveBlankAccountEmail\nCDSAccount filter(!isNull(telephone1) || telephone1==\"\") ~> RemoveBlankAccountTelephone\nRemoveBlankAccountTelephone select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = telephone1,\n\t\tLocatorExtension = msdyn_telephone1extension,\n\t\tDescription = msdyn_telephone1description\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountTelephone\nAccountTelephone derive(Type = \"Phone\") ~> AccountTelephoneLocator\nAccountEmailType, AccountTelephoneLocator union(byName: true)~> AccoutEmailTelephone\nCDSAccount filter(!isNull(websiteurl) || websiteurl==\"\") ~> RemoveBlankAccountWebsiteUrl\nRemoveBlankAccountWebsiteUrl select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = websiteurl,\n\t\tDescription = msdyn_websiteurldescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountWebsiteURL\nAccountWebsiteURL derive(Type = \"URL\") ~> AccountWebsiteURLType\nAccoutEmailTelephone, AccountWebsiteURLType union(byName: true)~> AccountWebsiteURLUnion\nCDSAccount filter(!isNull(msdyn_primarylinkedinid) || msdyn_primarylinkedinid==\"\") ~> RemoveBlankAccountLinkedIn\nRemoveBlankAccountLinkedIn select(mapColumn(\n\t\tPartyNumber,\n\t\tDescription = msdyn_primarylinkedindescrption,\n\t\tLocator = msdyn_primarylinkedinid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountLinkedIn\nAccountLinkedIn derive(Type = \"LinkedIn\") ~> AccountLinkedInType\nAccountWebsiteURLUnion, AccountLinkedInType union(byName: true)~> AccountLinkedInUnion\nCDSAccount filter(!isNull(primarytwitterid) || primarytwitterid==\"\") ~> RemoveBlankAccountTwitter\nRemoveBlankAccountTwitter select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = primarytwitterid,\n\t\tDescription = msdyn_primarytwitteriddescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountTwitter\nAccountTwitter derive(Type = \"Twitter\") ~> AccountTwitterType\nAccountLinkedInUnion, AccountTwitterType union(byName: true)~> AccountTwitterUnion\nCDSAccount filter(!isNull(msdyn_primaryfacebookid)|| msdyn_primaryfacebookid==\"\") ~> RemoveBlankAccountFacebook\nRemoveBlankAccountFacebook select(mapColumn(\n\t\tPartyNumber,\n\t\tDescription = msdyn_primaryfacebookdescription,\n\t\tLocator = msdyn_primaryfacebookid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountFacebook\nAccountFacebook derive(Type = \"Facebook\") ~> AccountFacebookType\nAccountTwitterUnion, AccountFacebookType union(byName: true)~> AccountFacebookUnion\nCDSAccount filter(!isNull(fax) || fax==\"\") ~> RemoveBlankAccountFax\nRemoveBlankAccountFax select(mapColumn(\n\t\tPartyNumber,\n\t\tLocatorExtension = msdyn_faxextension,\n\t\tDescription = msdyn_faxdescription,\n\t\tLocator = fax\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountFax\nAccountFax derive(Type = \"Fax\") ~> AccountFaxType\nAccountFacebookUnion, AccountFaxType union(byName: true)~> AccountFaxUnion\nCDSContact filter(!isNull(emailaddress1) || emailaddress1==\"\") ~> RemoveBlankContactEmail\nRemoveBlankContactEmail select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = emailaddress1,\n\t\tDescription = msdyn_emailaddress1description\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ConatctEmail\nConatctEmail derive(Type = \"Email\") ~> ContactEmailType\nAccountFaxUnion, ContactEmailType union(byName: true)~> ContactEmailUnion\nCDSContact filter(!isNull(telephone1) || telephone1==\"\") ~> RemoveBlankContactTelephone\nRemoveBlankContactTelephone select(mapColumn(\n\t\tPartyNumber,\n\t\tDescription = msdyn_telephone1description,\n\t\tLocator = telephone1,\n\t\tLocatorExtension = msdyn_telephone1extension\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactTelephone\nContactTelephone derive(Type = \"Phone\") ~> ContactTelephoneType\nContactEmailUnion, ContactTelephoneType union(byName: true)~> ContactTelephoneUnion\nCDSContact filter(!isNull(fax) || fax==\"\") ~> RemoveBlankContactFax\nRemoveBlankContactFax select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = fax,\n\t\tLocatorExtension = msdyn_faxextension,\n\t\tDescription = msdyn_faxdescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactFax\nContactFax derive(Type = \"Fax\") ~> ContactFaxType\nContactTelephoneUnion, ContactFaxType union(byName: true)~> ContactFaxUnion\nCDSContact filter(!isNull(msdyn_primaryfacebookid) || msdyn_primaryfacebookid==\"\") ~> RemoveBlankContactFacebook\nRemoveBlankContactFacebook select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = msdyn_primaryfacebookid,\n\t\tDescription = msdyn_primaryfacebookdescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactFacebook\nContactFacebook derive(Type = \"Facebook\") ~> ContactFacebookType\nContactFaxUnion, ContactFacebookType union(byName: true)~> ContactFacebookUnion\nCDSContact filter(!isNull(msdyn_primarytwitterid) || msdyn_primarytwitterid==\"\") ~> RemoveBlankContactTwitter\nRemoveBlankContactTwitter select(mapColumn(\n\t\tDescription = msdyn_primarytwitteriddescription,\n\t\tPartyNumber,\n\t\tLocator = msdyn_primarytwitterid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactTwitter\nContactTwitter derive(Type = \"Twitter\") ~> ContactTwitterType\nContactFacebookUnion, ContactTwitterType union(byName: true)~> ContactTwitterUnion\nCDSContact filter(!isNull(websiteurl) || websiteurl==\"\") ~> RemoveBlankConatctWebsiteURL\nRemoveBlankConatctWebsiteURL select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = websiteurl,\n\t\tDescription = msdyn_websiteurldescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactWebsiteURL\nContactWebsiteURL derive(Type = \"URL\") ~> ContactWebsiteUrlType\nContactTwitterUnion, ContactWebsiteUrlType union(byName: true)~> ContactWebsiteUrlUnion\nCDSContact filter(!isNull(msdyn_primaryinkedinid) || msdyn_primaryinkedinid==\"\") ~> RemoveBlankContactLinkedIn\nRemoveBlankContactLinkedIn select(mapColumn(\n\t\tPartyNumber,\n\t\tDescription = msdyn_primarylinkedindescrption,\n\t\tLocator = msdyn_primaryinkedinid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactLinkedIn\nContactLinkedIn derive(Type = \"LinkedIn\") ~> ContactLinkedInType\nContactWebsiteUrlUnion, ContactLinkedInType union(byName: true)~> ContactLinkedInUnion\nCDSVendor filter(!isNull(msdyn_primaryemailaddress) || msdyn_primaryemailaddress==\"\") ~> RemoveBlankVendorEmail\nRemoveBlankVendorEmail select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = msdyn_primaryemailaddress,\n\t\tDescription = msdyn_primaryemailaddressdescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> VendorEmail\nVendorEmail derive(Type = \"Email\") ~> VendorEmailType\nCDSVendor filter(!isNull(msdyn_primaryfacebook) || msdyn_primaryfacebook==\"\") ~> RemoveBlankVendorFacebook\nRemoveBlankVendorFacebook select(mapColumn(\n\t\tPartyNumber,\n\t\tDescription = msdyn_primaryfacebookdescription,\n\t\tLocator = msdyn_primaryfacebook\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> VendorFacebook\nVendorFacebook derive(Type = \"Facebook\") ~> VendorFacebookType\nCDSVendor filter(!isNull(msdyn_primarytwitter) || msdyn_primarytwitter==\"\") ~> RemoveBlankVendorTwitter\nRemoveBlankVendorTwitter select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = msdyn_primarytwitter,\n\t\tDescription = msdyn_primarytwitterdescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> VendorTwitter\nVendorTwitter derive(Type = \"Twitter\") ~> VendorTwitterType\nCDSVendor filter(!isNull(msdyn_pimaryphonenumber) || msdyn_pimaryphonenumber==\"\") ~> RemoveBlankVendorTelephone\nRemoveBlankVendorTelephone select(mapColumn(\n\t\tPartyNumber,\n\t\tLocatorExtension = msdyn_primaryphonenumberextension,\n\t\tDescription = msdyn_primaryphonenumberdescription,\n\t\tLocator = msdyn_pimaryphonenumber\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> VendorPhone\nVendorPhone derive(Type = \"Phone\") ~> VendorPhoneType\nCDSVendor filter(!isNull(msdyn_primarylinkedin) || msdyn_primarylinkedin==\"\") ~> RemoveBlankVendorlinkedIn\nRemoveBlankVendorlinkedIn select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = msdyn_primarylinkedin,\n\t\tDescription = msdyn_primarylinkedindescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> VendorLinkedIn\nVendorLinkedIn derive(Type = \"LinkedIn\") ~> VendorLinkedInType\nCDSVendor filter(!isNull(msdyn_primaryfaxnumber) || msdyn_primaryfaxnumber==\"\") ~> RemoveBlankVendorFax\nRemoveBlankVendorFax select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = msdyn_primaryfaxnumber,\n\t\tDescription = msdyn_primaryfaxnumberdescription,\n\t\tLocatorExtension = msdyn_primaryfaxnumberextension\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> VendorFax\nVendorFax derive(Type = \"Fax\") ~> VendorFaxType\nCDSVendor filter(!isNull(msdyn_primarytelex) || msdyn_primarytelex==\"\") ~> RemoveBlankTelex\nRemoveBlankTelex select(mapColumn(\n\t\tLocator = msdyn_primarytelex,\n\t\tDescription = msdyn_primarytelexdescription,\n\t\tPartyNumber\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> VendorTelex\nVendorTelex derive(Type = \"Telex\") ~> VendorTelexType\nContactLinkedInUnion, VendorEmailType union(byName: true)~> VendorEmailUnion\nVendorEmailUnion, VendorPhoneType union(byName: true)~> VendorPhoneUnion\nVendorPhoneUnion, VendorFaxType union(byName: true)~> VendorFaxUnion\nVendorFaxUnion, VendorFacebookType union(byName: true)~> VendorFacebookUnion\nVendorFacebookUnion, VendorTwitterType union(byName: true)~> VendorTwitterUnion\nVendorTwitterUnion, VendorLinkedInType union(byName: true)~> VendorLinkedInUnion\nVendorLinkedInUnion, VendorTelexType union(byName: true)~> VendorTelexUnion\nVendorTelexUnion aggregate(groupBy(PartyNumber,\n\t\tLocator,\n\t\tType,\n\t\tDescription,\n\t\tLocatorExtension),\n\tfirst = first(PartyNumber)) ~> RemoveDuplicate\nCDSContact filter(!isNull(emailaddress2)||emailaddress2==\"\") ~> RemoveBlankContactEmail2\nRemoveBlankContactEmail2 select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = emailaddress2\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactEmail2\nContactEmail2 derive(Type = \"Email\") ~> ContactEmail2Type\nCDSContact filter(!isNull(emailaddress3)|| emailaddress3==\"\") ~> RemoveBlankContactEmail3\nRemoveBlankContactEmail3 select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = emailaddress3\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactEmail3\nContactEmail3 derive(Type = \"Email\") ~> ContactEmail3Tyoe\nCDSContact filter(!isNull(telephone2)||telephone2==\"\") ~> RemoveBlankContactTelephone2\nRemoveBlankContactTelephone2 select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = telephone2\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactTelephone2\nContactTelephone2 derive(Type = \"Phone\") ~> ContactTelephone2Type\nCDSContact filter(!isNull(telephone3) || telephone3==\"\") ~> RemoveBlankContactTelephone3\nRemoveBlankContactTelephone3 select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = telephone3\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactTelephone3\nContactTelephone3 derive(Type = \"Phone\") ~> ContactTelephone3Type\nCDSAccount filter(!isNull(emailaddress2) || emailaddress2==\"\") ~> RemoveBlankAccountEmail2\nRemoveBlankAccountEmail2 select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = emailaddress2\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountEmail2\nAccountEmail2 derive(Type = \"Email\") ~> AccountEmail2Type\nCDSAccount filter(!isNull(emailaddress3) || emailaddress3==\"\") ~> RemoveBlankAccountEmail3\nRemoveBlankAccountEmail3 select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = emailaddress3\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountEmail3\nAccountEmail3 derive(Type = \"Email\") ~> AccountEmail3Type\nCDSAccount filter(!isNull(telephone3) || telephone3==\"\") ~> RemoveBlankAccountPhone3\nRemoveBlankAccountPhone3 select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = telephone3\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountPhone3\nAccountPhone3 derive(Type = \"Phone\") ~> AccountPhone3Type\nCDSAccount filter(!isNull(telephone2) || telephone2==\"\") ~> RemoveBlankAccountPhone2\nRemoveBlankAccountPhone2 select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = telephone2\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountPhone2\nAccountPhone2 derive(Type = \"Phone\") ~> AccountPhone2Type\nAccountPhone2Type, AccountPhone3Type union(byName: true)~> AccountPhonn3TypeUnion\nAccountPhonn3TypeUnion, AccountEmail2Type union(byName: true)~> AccountEmail2Union\nAccountEmail2Union, AccountEmail3Type union(byName: true)~> AccountEmail3Union\nAccountEmail3Union, ContactTelephone2Type union(byName: true)~> ContactPhone2Union\nContactPhone2Union, ContactTelephone3Type union(byName: true)~> ContactPhone3Union\nContactPhone3Union, ContactEmail2Type union(byName: true)~> ContactEmail2Union\nContactEmail2Union, ContactEmail3Tyoe union(byName: true)~> ContactEmail3Union\nRemoveDuplicate sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\tmsdyn_primarylinkedinid as string,\n\t\tprimarytwitterid as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tmsdyn_telephone1extension as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\temailaddress1 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_mappedvendoraccount as string\n\t),\n\tpartitionFileNames:['CEPrimaryElectronicAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> CEElectronicAddress\nContactEmail3Union sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\tmsdyn_primarylinkedinid as string,\n\t\tprimarytwitterid as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tmsdyn_telephone1extension as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\temailaddress1 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_mappedvendoraccount as string\n\t),\n\tpartitionFileNames:['CENonPrimaryAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> CENonPrimaryAddress"
+                    "script": "source(output(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\tmsdyn_faxextension as string,\n\t\tmsdyn_faxdescription as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\tmsdyn_primarylinkedinid as string,\n\t\tprimarytwitterid as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tfax as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tmsdyn_telephone1extension as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\temailaddress1 as string,\n\t\ttelephone2 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_mappedvendoraccount as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSAccount\nsource(output(\n\t\tmsdyn_partynumber as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_isvendor as boolean,\n\t\temailaddress1 as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\tmsdyn_telephone1description as string,\n\t\tfullname as string,\n\t\tmsdyn_sellable as boolean,\n\t\tmsdyn_emailaddress1description as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\tmsdyn_contactforvendor as boolean,\n\t\twebsiteurl as string,\n\t\tmobilephone as string,\n\t\tcontactid as string,\n\t\tCompanyCode as string,\n\t\tmsdyn_linkedvendoraccount as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\thome2 as string,\n\t\ttelephone2 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\ttelephone1 as string,\n\t\tmsdyn_contactpersonid as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tfax as string,\n\t\tmsdyn_faxextension as string,\n\t\tPartyNumber as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_faxdescription as string,\n\t\tmsdyn_telephone1extension as string,\n\t\tmsdyn_primarytwitterid as string,\n\t\tmsdyn_primaryinkedinid as string,\n\t\tmsdyn_contactfor as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSContact\nsource(output(\n\t\tCompanyCode as string,\n\t\tmsdyn_vendorpartynumber as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_vendoraccountnumber as string,\n\t\tmsdyn_name as string,\n\t\tmsdyn_vendorid as string,\n\t\tPartyNumber as string,\n\t\tmsdyn_primaryurldescription as string,\n\t\tmsdyn_primarytwitter as string,\n\t\tmsdyn_primarytelex as string,\n\t\tmsdyn_primaryphonenumberextension as string,\n\t\tmsdyn_primarytwitterdescription as string,\n\t\tmsdyn_primaryemailaddress as string,\n\t\tmsdyn_primaryfaxnumber as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_primarylinkedin as string,\n\t\tmsdyn_primarylinkedindescription as string,\n\t\tmsdyn_primaryfacebook as string,\n\t\tmsdyn_primaryemailaddressdescription as string,\n\t\tmsdyn_primarytelexdescription as string,\n\t\tmsdyn_primaryfaxnumberdescription as string,\n\t\tmsdyn_pimaryphonenumber as string,\n\t\tmsdyn_primaryfaxnumberextension as string,\n\t\tmsdyn_primaryphonenumberdescription as string,\n\t\tmsdyn_firstname as string,\n\t\tmsdyn_linkedvendorinaccountsentity as string,\n\t\tmsdyn_lastname as string,\n\t\tmsdyn_linkedvendorincontactsentity as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSVendor\nRemoveBlankAccountEmail select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = emailaddress1,\n\t\tDescription = msdyn_emailaddress1description\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountEmail\nAccountEmail derive(Type = \"Email\") ~> AccountEmailType\nCDSAccount filter(!isNull(emailaddress1) || emailaddress1==\"\") ~> RemoveBlankAccountEmail\nCDSAccount filter(!isNull(telephone1) || telephone1==\"\") ~> RemoveBlankAccountTelephone\nRemoveBlankAccountTelephone select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = telephone1,\n\t\tLocatorExtension = msdyn_telephone1extension,\n\t\tDescription = msdyn_telephone1description\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountTelephone\nAccountTelephone derive(Type = \"Phone\") ~> AccountTelephoneLocator\nAccountEmailType, AccountTelephoneLocator union(byName: true)~> AccoutEmailTelephone\nCDSAccount filter(!isNull(websiteurl) || websiteurl==\"\") ~> RemoveBlankAccountWebsiteUrl\nRemoveBlankAccountWebsiteUrl select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = websiteurl,\n\t\tDescription = msdyn_websiteurldescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountWebsiteURL\nAccountWebsiteURL derive(Type = \"URL\") ~> AccountWebsiteURLType\nAccoutEmailTelephone, AccountWebsiteURLType union(byName: true)~> AccountWebsiteURLUnion\nCDSAccount filter(!isNull(msdyn_primarylinkedinid) || msdyn_primarylinkedinid==\"\") ~> RemoveBlankAccountLinkedIn\nRemoveBlankAccountLinkedIn select(mapColumn(\n\t\tPartyNumber,\n\t\tDescription = msdyn_primarylinkedindescrption,\n\t\tLocator = msdyn_primarylinkedinid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountLinkedIn\nAccountLinkedIn derive(Type = \"LinkedIn\") ~> AccountLinkedInType\nAccountWebsiteURLUnion, AccountLinkedInType union(byName: true)~> AccountLinkedInUnion\nCDSAccount filter(!isNull(primarytwitterid) || primarytwitterid==\"\") ~> RemoveBlankAccountTwitter\nRemoveBlankAccountTwitter select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = primarytwitterid,\n\t\tDescription = msdyn_primarytwitteriddescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountTwitter\nAccountTwitter derive(Type = \"Twitter\") ~> AccountTwitterType\nAccountLinkedInUnion, AccountTwitterType union(byName: true)~> AccountTwitterUnion\nCDSAccount filter(!isNull(msdyn_primaryfacebookid)|| msdyn_primaryfacebookid==\"\") ~> RemoveBlankAccountFacebook\nRemoveBlankAccountFacebook select(mapColumn(\n\t\tPartyNumber,\n\t\tDescription = msdyn_primaryfacebookdescription,\n\t\tLocator = msdyn_primaryfacebookid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountFacebook\nAccountFacebook derive(Type = \"Facebook\") ~> AccountFacebookType\nAccountTwitterUnion, AccountFacebookType union(byName: true)~> AccountFacebookUnion\nCDSAccount filter(!isNull(fax) || fax==\"\") ~> RemoveBlankAccountFax\nRemoveBlankAccountFax select(mapColumn(\n\t\tPartyNumber,\n\t\tLocatorExtension = msdyn_faxextension,\n\t\tDescription = msdyn_faxdescription,\n\t\tLocator = fax\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountFax\nAccountFax derive(Type = \"Fax\") ~> AccountFaxType\nAccountFacebookUnion, AccountFaxType union(byName: true)~> AccountFaxUnion\nCDSContact filter(!isNull(emailaddress1) || emailaddress1==\"\") ~> RemoveBlankContactEmail\nRemoveBlankContactEmail select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = emailaddress1,\n\t\tDescription = msdyn_emailaddress1description\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ConatctEmail\nConatctEmail derive(Type = \"Email\") ~> ContactEmailType\nAccountFaxUnion, ContactEmailType union(byName: true)~> ContactEmailUnion\nCDSContact filter(!isNull(telephone1) || telephone1==\"\") ~> RemoveBlankContactTelephone\nRemoveBlankContactTelephone select(mapColumn(\n\t\tPartyNumber,\n\t\tDescription = msdyn_telephone1description,\n\t\tLocator = telephone1,\n\t\tLocatorExtension = msdyn_telephone1extension\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactTelephone\nContactTelephone derive(Type = \"Phone\") ~> ContactTelephoneType\nContactEmailUnion, ContactTelephoneType union(byName: true)~> ContactTelephoneUnion\nCDSContact filter(!isNull(fax) || fax==\"\") ~> RemoveBlankContactFax\nRemoveBlankContactFax select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = fax,\n\t\tLocatorExtension = msdyn_faxextension,\n\t\tDescription = msdyn_faxdescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactFax\nContactFax derive(Type = \"Fax\") ~> ContactFaxType\nContactTelephoneUnion, ContactFaxType union(byName: true)~> ContactFaxUnion\nCDSContact filter(!isNull(msdyn_primaryfacebookid) || msdyn_primaryfacebookid==\"\") ~> RemoveBlankContactFacebook\nRemoveBlankContactFacebook select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = msdyn_primaryfacebookid,\n\t\tDescription = msdyn_primaryfacebookdescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactFacebook\nContactFacebook derive(Type = \"Facebook\") ~> ContactFacebookType\nContactFaxUnion, ContactFacebookType union(byName: true)~> ContactFacebookUnion\nCDSContact filter(!isNull(msdyn_primarytwitterid) || msdyn_primarytwitterid==\"\") ~> RemoveBlankContactTwitter\nRemoveBlankContactTwitter select(mapColumn(\n\t\tDescription = msdyn_primarytwitteriddescription,\n\t\tPartyNumber,\n\t\tLocator = msdyn_primarytwitterid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactTwitter\nContactTwitter derive(Type = \"Twitter\") ~> ContactTwitterType\nContactFacebookUnion, ContactTwitterType union(byName: true)~> ContactTwitterUnion\nCDSContact filter(!isNull(websiteurl) || websiteurl==\"\") ~> RemoveBlankConatctWebsiteURL\nRemoveBlankConatctWebsiteURL select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = websiteurl,\n\t\tDescription = msdyn_websiteurldescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactWebsiteURL\nContactWebsiteURL derive(Type = \"URL\") ~> ContactWebsiteUrlType\nContactTwitterUnion, ContactWebsiteUrlType union(byName: true)~> ContactWebsiteUrlUnion\nCDSContact filter(!isNull(msdyn_primaryinkedinid) || msdyn_primaryinkedinid==\"\") ~> RemoveBlankContactLinkedIn\nRemoveBlankContactLinkedIn select(mapColumn(\n\t\tPartyNumber,\n\t\tDescription = msdyn_primarylinkedindescrption,\n\t\tLocator = msdyn_primaryinkedinid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactLinkedIn\nContactLinkedIn derive(Type = \"LinkedIn\") ~> ContactLinkedInType\nContactWebsiteUrlUnion, ContactLinkedInType union(byName: true)~> ContactLinkedInUnion\nCDSVendor filter(!isNull(msdyn_primaryemailaddress) || msdyn_primaryemailaddress==\"\") ~> RemoveBlankVendorEmail\nRemoveBlankVendorEmail select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = msdyn_primaryemailaddress,\n\t\tDescription = msdyn_primaryemailaddressdescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> VendorEmail\nVendorEmail derive(Type = \"Email\") ~> VendorEmailType\nCDSVendor filter(!isNull(msdyn_primaryfacebook) || msdyn_primaryfacebook==\"\") ~> RemoveBlankVendorFacebook\nRemoveBlankVendorFacebook select(mapColumn(\n\t\tPartyNumber,\n\t\tDescription = msdyn_primaryfacebookdescription,\n\t\tLocator = msdyn_primaryfacebook\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> VendorFacebook\nVendorFacebook derive(Type = \"Facebook\") ~> VendorFacebookType\nCDSVendor filter(!isNull(msdyn_primarytwitter) || msdyn_primarytwitter==\"\") ~> RemoveBlankVendorTwitter\nRemoveBlankVendorTwitter select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = msdyn_primarytwitter,\n\t\tDescription = msdyn_primarytwitterdescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> VendorTwitter\nVendorTwitter derive(Type = \"Twitter\") ~> VendorTwitterType\nCDSVendor filter(!isNull(msdyn_pimaryphonenumber) || msdyn_pimaryphonenumber==\"\") ~> RemoveBlankVendorTelephone\nRemoveBlankVendorTelephone select(mapColumn(\n\t\tPartyNumber,\n\t\tLocatorExtension = msdyn_primaryphonenumberextension,\n\t\tDescription = msdyn_primaryphonenumberdescription,\n\t\tLocator = msdyn_pimaryphonenumber\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> VendorPhone\nVendorPhone derive(Type = \"Phone\") ~> VendorPhoneType\nCDSVendor filter(!isNull(msdyn_primarylinkedin) || msdyn_primarylinkedin==\"\") ~> RemoveBlankVendorlinkedIn\nRemoveBlankVendorlinkedIn select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = msdyn_primarylinkedin,\n\t\tDescription = msdyn_primarylinkedindescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> VendorLinkedIn\nVendorLinkedIn derive(Type = \"LinkedIn\") ~> VendorLinkedInType\nCDSVendor filter(!isNull(msdyn_primaryfaxnumber) || msdyn_primaryfaxnumber==\"\") ~> RemoveBlankVendorFax\nRemoveBlankVendorFax select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = msdyn_primaryfaxnumber,\n\t\tDescription = msdyn_primaryfaxnumberdescription,\n\t\tLocatorExtension = msdyn_primaryfaxnumberextension\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> VendorFax\nVendorFax derive(Type = \"Fax\") ~> VendorFaxType\nCDSVendor filter(!isNull(msdyn_primarytelex) || msdyn_primarytelex==\"\") ~> RemoveBlankTelex\nRemoveBlankTelex select(mapColumn(\n\t\tLocator = msdyn_primarytelex,\n\t\tDescription = msdyn_primarytelexdescription,\n\t\tPartyNumber\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> VendorTelex\nVendorTelex derive(Type = \"Telex\") ~> VendorTelexType\nContactLinkedInUnion, VendorEmailType union(byName: true)~> VendorEmailUnion\nVendorEmailUnion, VendorPhoneType union(byName: true)~> VendorPhoneUnion\nVendorPhoneUnion, VendorFaxType union(byName: true)~> VendorFaxUnion\nVendorFaxUnion, VendorFacebookType union(byName: true)~> VendorFacebookUnion\nVendorFacebookUnion, VendorTwitterType union(byName: true)~> VendorTwitterUnion\nVendorTwitterUnion, VendorLinkedInType union(byName: true)~> VendorLinkedInUnion\nVendorLinkedInUnion, VendorTelexType union(byName: true)~> VendorTelexUnion\nVendorTelexUnion aggregate(groupBy(PartyNumber,\n\t\tLocator,\n\t\tType,\n\t\tDescription,\n\t\tLocatorExtension),\n\tfirst = first(PartyNumber)) ~> RemoveDuplicate\nCDSContact filter(!isNull(emailaddress2)||emailaddress2==\"\") ~> RemoveBlankContactEmail2\nRemoveBlankContactEmail2 select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = emailaddress2\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactEmail2\nContactEmail2 derive(Type = \"Email\") ~> ContactEmail2Type\nCDSContact filter(!isNull(emailaddress3)|| emailaddress3==\"\") ~> RemoveBlankContactEmail3\nRemoveBlankContactEmail3 select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = emailaddress3\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactEmail3\nContactEmail3 derive(Type = \"Email\") ~> ContactEmail3Tyoe\nCDSContact filter(!isNull(telephone2)||telephone2==\"\") ~> RemoveBlankContactTelephone2\nRemoveBlankContactTelephone2 select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = telephone2\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactTelephone2\nContactTelephone2 derive(Type = \"Phone\") ~> ContactTelephone2Type\nCDSContact filter(!isNull(telephone3) || telephone3==\"\") ~> RemoveBlankContactTelephone3\nRemoveBlankContactTelephone3 select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = telephone3\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactTelephone3\nContactTelephone3 derive(Type = \"Phone\") ~> ContactTelephone3Type\nCDSAccount filter(!isNull(emailaddress2) || emailaddress2==\"\") ~> RemoveBlankAccountEmail2\nRemoveBlankAccountEmail2 select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = emailaddress2\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountEmail2\nAccountEmail2 derive(Type = \"Email\") ~> AccountEmail2Type\nCDSAccount filter(!isNull(emailaddress3) || emailaddress3==\"\") ~> RemoveBlankAccountEmail3\nRemoveBlankAccountEmail3 select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = emailaddress3\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountEmail3\nAccountEmail3 derive(Type = \"Email\") ~> AccountEmail3Type\nCDSAccount filter(!isNull(telephone3) || telephone3==\"\") ~> RemoveBlankAccountPhone3\nRemoveBlankAccountPhone3 select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = telephone3\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountPhone3\nAccountPhone3 derive(Type = \"Phone\") ~> AccountPhone3Type\nCDSAccount filter(!isNull(telephone2) || telephone2==\"\") ~> RemoveBlankAccountPhone2\nRemoveBlankAccountPhone2 select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator = telephone2\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccountPhone2\nAccountPhone2 derive(Type = \"Phone\") ~> AccountPhone2Type\nAccountPhone2Type, AccountPhone3Type union(byName: true)~> AccountPhonn3TypeUnion\nAccountPhonn3TypeUnion, AccountEmail2Type union(byName: true)~> AccountEmail2Union\nAccountEmail2Union, AccountEmail3Type union(byName: true)~> AccountEmail3Union\nAccountEmail3Union, ContactTelephone2Type union(byName: true)~> ContactPhone2Union\nContactPhone2Union, ContactTelephone3Type union(byName: true)~> ContactPhone3Union\nContactPhone3Union, ContactEmail2Type union(byName: true)~> ContactEmail2Union\nContactEmail2Union, ContactEmail3Tyoe union(byName: true)~> ContactEmail3Union\nCDSContact filter(!isNull(mobilephone) || mobilephone==\"\") ~> RemoveBlankMobilePhone\nRemoveBlankMobilePhone select(mapColumn(\n\t\tLocator = mobilephone,\n\t\tPartyNumber\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactMobilePhone\nContactMobilePhone derive(Type = \"Phone\",\n\t\tIsMobile = true()) ~> ContactMobilePhoneType\nContactEmail3Union, ContactMobilePhoneType union(byName: true)~> ContactMobilePhoneUnion\nRemoveDuplicate sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\tmsdyn_primarylinkedinid as string,\n\t\tprimarytwitterid as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tmsdyn_telephone1extension as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\temailaddress1 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_mappedvendoraccount as string\n\t),\n\tpartitionFileNames:['CEPrimaryElectronicAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> CEElectronicAddress\nContactMobilePhoneUnion sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\tmsdyn_primarylinkedinid as string,\n\t\tprimarytwitterid as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tmsdyn_telephone1extension as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\temailaddress1 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_mappedvendoraccount as string\n\t),\n\tpartitionFileNames:['CENonPrimaryAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> CENonPrimaryAddress"
                 }
             },
             "dependsOn": [
@@ -3301,14 +3628,89 @@
                         },
                         {
                             "name": "IsPrimaryFlag"
+                        },
+                        {
+                            "name": "IsPrimary"
+                        },
+                        {
+                            "name": "IsMobile"
+                        },
+                        {
+                            "name": "IsMobilePhone"
                         }
                     ],
-                    "script": "parameters{\n\tprefix as string (\"ADF-EA-\"),\n\tSource as boolean (false())\n}\nsource(output(\n\t\tPartyNumber as string,\n\t\tElectronicAddressId as string,\n\t\tIsInstantMessage as boolean,\n\t\tIsMobilePhone as boolean,\n\t\tCountryRegionCode as string,\n\t\tPurpose as string,\n\t\tLocator as string,\n\t\tLocatorExtension as string,\n\t\tLocationId as string,\n\t\tDescription as string,\n\t\tIsPrimary as boolean,\n\t\tType as string,\n\t\tIsPrivate as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOElectronicAddress\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocator as string,\n\t\tType as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CENonPrimaryAddress\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocator as string,\n\t\tDescription as string,\n\t\tType as string,\n\t\tLocatorExtension as string,\n\t\tIsPrimary as boolean,\n\t\tElectronicAddressId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> PrimaryAddress\nsource(output(\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSParty\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocator as string,\n\t\tType as string,\n\t\tDescription as string,\n\t\tLocatorExtension as string,\n\t\tfirst as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CEPrimaryElectronicAddress\nCENonPrimaryAddress, FOElectronicAddress exists(CENonPrimaryAddress@PartyNumber == FOElectronicAddress@PartyNumber\n\t&& CENonPrimaryAddress@Locator == FOElectronicAddress@Locator\n\t&& CENonPrimaryAddress@Type == FOElectronicAddress@Type,\n\tnegate:true,\n\tbroadcast: 'auto')~> CEAddressNotExistsInFO\nCEPrimaryAddressNotExistsInFOUnion1 keyGenerate(output(ElectronicAddressId as long),\n\tstartAt: 1L) ~> GenerateElectronicAddressId\nGenerateElectronicAddressId derive(ElectronicAddressId = concat($prefix, toString(ElectronicAddressId))) ~> PrefixElectronicAddressId\nFOElectronicAddress, PrimaryAddress exists(FOElectronicAddress@ElectronicAddressId == PrimaryAddress@ElectronicAddressId,\n\tnegate:true,\n\tbroadcast: 'auto')~> FilterPrimaryAddress\nFilterPrimaryAddress, PrimaryAddressUnion union(byName: true)~> FOCEAddresssUnion\nFOCEAddresssUnion, CDSParty join(PartyNumber == msdyn_partynumber,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> ElectornicAddressParty\nFOCEPrimaryAddressNotExistsInFOUnion derive(Type = case(lower(Type)=='phone',192350001,\r\ncase(lower(Type)=='email',192350002,\r\ncase(lower(Type)=='url',192350003,\r\ncase(lower(Type)=='telex',192350004,\r\ncase(lower(Type)=='fax',192350005,\r\ncase(lower(Type)=='facebook',192350006,\r\ncase(lower(Type)=='twitter',192350007,\r\ncase(lower(Type)=='linkedin',192350008\r\n)))))))),\n\t\tmsdyn_partyelectronicaddressid = \"\") ~> Enum\nPrefixElectronicAddressId, PrimaryAddress union(byName: true)~> PrimaryAddressUnion\nFOSource, PrimaryAddress exists(FOSource@ElectronicAddressId == PrimaryAddress@ElectronicAddressId,\n\tnegate:true,\n\tbroadcast: 'auto')~> RemoveFOPrimaryAddress\nPrimaryAddressUnion split($Source,\n\tdisjoint: false) ~> Source@(FO, CE)\nRemoveFOPrimaryAddress, CESource union(byName: true)~> FOCElectronicAddressUnion\nSource@CE select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator,\n\t\tType,\n\t\tElectronicAddressId,\n\t\tDescription,\n\t\tLocatorExtension,\n\t\tIsPrimary\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CESource\nSource@FO select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator,\n\t\tType,\n\t\tElectronicAddressId,\n\t\tDescription,\n\t\tLocatorExtension,\n\t\tIsPrimary\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FOSource\nCEPrimaryElectronicAddress, PrimaryAddress exists(lower(CEPrimaryElectronicAddress@PartyNumber) == lower(PrimaryAddress@PartyNumber)\n\t&& lower(CEPrimaryElectronicAddress@Locator) == lower(PrimaryAddress@Locator)\n\t&& lower(CEPrimaryElectronicAddress@Type) == lower(PrimaryAddress@Type)\n\t&& lower(iifNull(CEPrimaryElectronicAddress@Description,\"\",CEPrimaryElectronicAddress@Description)) == lower(iifNull(PrimaryAddress@Description,\"\",PrimaryAddress@Description))\n\t&& lower(iifNull(CEPrimaryElectronicAddress@LocatorExtension,\"\",CEPrimaryElectronicAddress@LocatorExtension)) == lower(iifNull(PrimaryAddress@LocatorExtension,\"\",PrimaryAddress@LocatorExtension)),\n\tnegate:true,\n\tbroadcast: 'auto')~> RemovePrimaryAddressFromCE\nRemovePrimaryAddressFromCE, FilterPrimaryAddress exists(lower(CEPrimaryElectronicAddress@PartyNumber) == lower(FOElectronicAddress@PartyNumber)\n\t&& lower(CEPrimaryElectronicAddress@Locator) == lower(FOElectronicAddress@Locator)\n\t&& lower(CEPrimaryElectronicAddress@Type) == lower(FOElectronicAddress@Type),\n\tnegate:true,\n\tbroadcast: 'auto')~> RemoveFOAddressFromCE\nRemoveFOAddressFromCE select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator,\n\t\tType,\n\t\tDescription,\n\t\tLocatorExtension\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CEPrimaryAddressNotExistsInFO\nElectornicAddressParty, CEPrimaryAddressNotExistsInFO union(byName: true)~> FOCEPrimaryAddressNotExistsInFOUnion\nCEAddressNotExistsInFO, CEPrimaryAddressNotExistsInFO union(byName: true)~> CEPrimaryAddressNotExistsInFOUnion1\nFOCElectronicAddressUnion derive(IsPrimary = case(IsPrimary,1,0)) ~> IsPrimaryFlag\nIsPrimaryFlag sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\tmsdyn_primarylinkedinid as string,\n\t\tprimarytwitterid as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tmsdyn_telephone1extension as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\temailaddress1 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_mappedvendoraccount as string\n\t),\n\tpartitionFileNames:['ImportFONewElectronicAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FONewElectronicAddress\nEnum sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\tmsdyn_primarylinkedinid as string,\n\t\tprimarytwitterid as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tmsdyn_telephone1extension as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\temailaddress1 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_mappedvendoraccount as string\n\t),\n\tpartitionFileNames:['FOCEElectronicAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FOCEElectronicAddress"
+                    "script": "parameters{\n\tprefix as string (\"ADF-EA-\"),\n\tSource as boolean (false())\n}\nsource(output(\n\t\tPartyNumber as string,\n\t\tElectronicAddressId as string,\n\t\tIsInstantMessage as boolean,\n\t\tIsMobilePhone as boolean,\n\t\tCountryRegionCode as string,\n\t\tPurpose as string,\n\t\tLocator as string,\n\t\tLocatorExtension as string,\n\t\tLocationId as string,\n\t\tDescription as string,\n\t\tIsPrimary as boolean,\n\t\tType as string,\n\t\tIsPrivate as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOElectronicAddress\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocator as string,\n\t\tType as string,\n\t\tIsMobile as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CENonPrimaryAddress\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocator as string,\n\t\tDescription as string,\n\t\tType as string,\n\t\tLocatorExtension as string,\n\t\tIsPrimary as boolean,\n\t\tElectronicAddressId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> PrimaryAddress\nsource(output(\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSParty\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocator as string,\n\t\tType as string,\n\t\tDescription as string,\n\t\tLocatorExtension as string,\n\t\tfirst as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CEPrimaryElectronicAddress\nCENonPrimaryAddress, FOElectronicAddress exists(CENonPrimaryAddress@PartyNumber == FOElectronicAddress@PartyNumber\n\t&& CENonPrimaryAddress@Locator == FOElectronicAddress@Locator\n\t&& CENonPrimaryAddress@Type == FOElectronicAddress@Type,\n\tnegate:true,\n\tbroadcast: 'auto')~> CEAddressNotExistsInFO\nCEPrimaryAddressNotExistsInFOUnion1 keyGenerate(output(ElectronicAddressId as long),\n\tstartAt: 1L) ~> GenerateElectronicAddressId\nGenerateElectronicAddressId derive(ElectronicAddressId = concat($prefix, toString(ElectronicAddressId))) ~> PrefixElectronicAddressId\nFOElectronicAddress, PrimaryAddress exists(FOElectronicAddress@ElectronicAddressId == PrimaryAddress@ElectronicAddressId,\n\tnegate:true,\n\tbroadcast: 'auto')~> FilterPrimaryAddress\nIsMobile, PrimaryAddressUnion union(byName: true)~> FOCEAddresssUnion\nIsMobilePhone, CDSParty join(PartyNumber == msdyn_partynumber,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> ElectornicAddressParty\nFOCEPrimaryAddressNotExistsInFOUnion derive(Type = case(lower(Type)=='phone',192350001,\r\ncase(lower(Type)=='email',192350002,\r\ncase(lower(Type)=='url',192350003,\r\ncase(lower(Type)=='telex',192350004,\r\ncase(lower(Type)=='fax',192350005,\r\ncase(lower(Type)=='facebook',192350006,\r\ncase(lower(Type)=='twitter',192350007,\r\ncase(lower(Type)=='linkedin',192350008\r\n)))))))),\n\t\tmsdyn_partyelectronicaddressid = \"\") ~> Enum\nPrefixElectronicAddressId, PrimaryAddress union(byName: true)~> PrimaryAddressUnion\nFOSource, PrimaryAddress exists(FOSource@ElectronicAddressId == PrimaryAddress@ElectronicAddressId,\n\tnegate:true,\n\tbroadcast: 'auto')~> RemoveFOPrimaryAddress\nPrimaryAddressUnion split($Source,\n\tdisjoint: false) ~> Source@(FO, CE)\nRemoveFOPrimaryAddress, CESource union(byName: true)~> FOCElectronicAddressUnion\nSource@CE select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator,\n\t\tType,\n\t\tElectronicAddressId,\n\t\tDescription,\n\t\tLocatorExtension,\n\t\tIsPrimary,\n\t\tIsMobile\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CESource\nSource@FO select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator,\n\t\tType,\n\t\tElectronicAddressId,\n\t\tDescription,\n\t\tLocatorExtension,\n\t\tIsPrimary,\n\t\tIsMobile\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FOSource\nCEPrimaryElectronicAddress, PrimaryAddress exists(lower(CEPrimaryElectronicAddress@PartyNumber) == lower(PrimaryAddress@PartyNumber)\n\t&& lower(CEPrimaryElectronicAddress@Locator) == lower(PrimaryAddress@Locator)\n\t&& lower(CEPrimaryElectronicAddress@Type) == lower(PrimaryAddress@Type)\n\t&& lower(iifNull(CEPrimaryElectronicAddress@Description,\"\",CEPrimaryElectronicAddress@Description)) == lower(iifNull(PrimaryAddress@Description,\"\",PrimaryAddress@Description))\n\t&& lower(iifNull(CEPrimaryElectronicAddress@LocatorExtension,\"\",CEPrimaryElectronicAddress@LocatorExtension)) == lower(iifNull(PrimaryAddress@LocatorExtension,\"\",PrimaryAddress@LocatorExtension)),\n\tnegate:true,\n\tbroadcast: 'auto')~> RemovePrimaryAddressFromCE\nRemovePrimaryAddressFromCE, FilterPrimaryAddress exists(lower(CEPrimaryElectronicAddress@PartyNumber) == lower(FOElectronicAddress@PartyNumber)\n\t&& lower(CEPrimaryElectronicAddress@Locator) == lower(FOElectronicAddress@Locator)\n\t&& lower(CEPrimaryElectronicAddress@Type) == lower(FOElectronicAddress@Type),\n\tnegate:true,\n\tbroadcast: 'auto')~> RemoveFOAddressFromCE\nIsPrimary select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator,\n\t\tType,\n\t\tDescription,\n\t\tLocatorExtension,\n\t\tIsPrimary\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CEPrimaryAddressNotExistsInFO\nElectornicAddressParty, CEPrimaryAddressNotExistsInFO union(byName: true)~> FOCEPrimaryAddressNotExistsInFOUnion\nCEAddressNotExistsInFO, CEPrimaryAddressNotExistsInFO union(byName: true)~> CEPrimaryAddressNotExistsInFOUnion1\nFOCElectronicAddressUnion derive(IsPrimary = case(IsPrimary,1,0)) ~> IsPrimaryFlag\nRemoveFOAddressFromCE derive(IsPrimary = iif((lower(Type)==\"email\" || lower(Type)==\"phone\"), true(), false() )) ~> IsPrimary\nFilterPrimaryAddress select(mapColumn(\n\t\tPartyNumber,\n\t\tElectronicAddressId,\n\t\tIsInstantMessage,\n\t\tIsMobile = IsMobilePhone,\n\t\tCountryRegionCode,\n\t\tPurpose,\n\t\tLocator,\n\t\tLocatorExtension,\n\t\tLocationId,\n\t\tDescription,\n\t\tIsPrimary,\n\t\tType,\n\t\tIsPrivate\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> IsMobile\nFOCEAddresssUnion select(mapColumn(\n\t\tPartyNumber,\n\t\tElectronicAddressId,\n\t\tIsInstantMessage,\n\t\tIsMobilePhone = IsMobile,\n\t\tCountryRegionCode,\n\t\tPurpose,\n\t\tLocator,\n\t\tLocatorExtension,\n\t\tLocationId,\n\t\tDescription,\n\t\tIsPrimary,\n\t\tType,\n\t\tIsPrivate\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> IsMobilePhone\nIsPrimaryFlag sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\tmsdyn_primarylinkedinid as string,\n\t\tprimarytwitterid as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tmsdyn_telephone1extension as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\temailaddress1 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_mappedvendoraccount as string\n\t),\n\tpartitionFileNames:['ImportFONewElectronicAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FONewElectronicAddress\nEnum sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\tmsdyn_primarylinkedinid as string,\n\t\tprimarytwitterid as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tmsdyn_telephone1extension as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\temailaddress1 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_mappedvendoraccount as string\n\t),\n\tpartitionFileNames:['FOCEElectronicAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FOCEElectronicAddress"
                 }
             },
             "dependsOn": [
                 "[concat(variables('factoryId'), '/datasets/AzureStorageConnection')]",
                 "[concat(variables('factoryId'), '/datasets/DelimitedTextOutput')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/DWMapValidation')]",
+            "type": "Microsoft.DataFactory/factories/dataflows",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "type": "MappingDataFlow",
+                "typeProperties": {
+                    "sources": [
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "DWMap"
+                        }
+                    ],
+                    "sinks": [
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "DWEnabledMaps"
+                        }
+                    ],
+                    "transformations": [
+                        {
+                            "name": "FilterDWMap"
+                        },
+                        {
+                            "name": "MapEntityName"
+                        }
+                    ],
+                    "scriptLines": [
+                        "source(output(",
+                        "          statecode as boolean,",
+                        "          msdyn_internalentityname as string,",
+                        "          msdyn_dualwriteruntimeconfigid as string,",
+                        "          msdyn_externalentityname as string,",
+                        "          statuscode as boolean,",
+                        "          msdyn_name as string",
+                        "     ),",
+                        "     allowSchemaDrift: true,",
+                        "     validateSchema: false,",
+                        "     ignoreNoFilesFound: false) ~> DWMap",
+                        "DWMap filter(lower(msdyn_internalentityname)==\"msdyn_party\" || lower(msdyn_internalentityname)==\"msdyn_contactforparty\" || lower(msdyn_internalentityname)==\"account\"  ||lower(msdyn_internalentityname)==\"contact\" || lower(msdyn_internalentityname)==\"msdyn_vendor\" ||\r",
+                        "lower(msdyn_internalentityname)==\"msdyn_postaladdresscollection\"  || lower(msdyn_internalentityname)==\"msdyn_partypostaladdress\" || lower(msdyn_internalentityname)==\"msdyn_postaladdress\" || lower(msdyn_internalentityname)==\"customeraddress\" ||\r",
+                        "lower(msdyn_internalentityname)==\"msdyn_partyelectronicaddress\") ~> FilterDWMap",
+                        "FilterDWMap select(mapColumn(",
+                        "          msdyn_internalentityname",
+                        "     ),",
+                        "     skipDuplicateMapInputs: true,",
+                        "     skipDuplicateMapOutputs: true) ~> MapEntityName",
+                        "MapEntityName sink(allowSchemaDrift: true,",
+                        "     validateSchema: false,",
+                        "     partitionFileNames:['DWEnabledMaps.csv'],",
+                        "     skipDuplicateMapInputs: true,",
+                        "     skipDuplicateMapOutputs: true,",
+                        "     partitionBy('hash', 1)) ~> DWEnabledMaps"
+                    ]
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/AzureStorageConnection')]"
             ]
         }
     ]
