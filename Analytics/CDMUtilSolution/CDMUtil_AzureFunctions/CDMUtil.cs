@@ -210,10 +210,6 @@ namespace CDMUtil
             //get configurations data 
             AppConfigurations c = GetAppConfigurations(null, context, eventGridEvent);
 
-            // Wait for a minute sometime we see the <TableName> folder is not present and view creation fails
-            // TODO: Improve implementation to check if the folder is created.
-            System.Threading.Thread.Sleep(60000);
-
             log.LogInformation(eventGridEvent.Data.ToString());
             // Read Manifest metadata
             log.Log(LogLevel.Information, "Reading Manifest metadata");
@@ -221,7 +217,9 @@ namespace CDMUtil
 
             ManifestReader.manifestToSQLMetadata(c, metadataList, log, c.rootFolder);
 
-            
+            //sometimes the JSON file is dropped before the folder path exists, wait for the folder to exist before attempting to create the table
+            ManifestReader.WaitForFolderPathsToExist(c, metadataList, log).Wait();
+
             if (!String.IsNullOrEmpty(c.synapseOptions.targetSparkEndpoint))
             {
                 SparkHandler.executeSpark(c, metadataList, log);
