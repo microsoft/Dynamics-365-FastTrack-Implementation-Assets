@@ -47,7 +47,7 @@ namespace CDMUtil.Manifest
                 {
                     //the path doesnt exist
                     logger.LogWarning($"Folder {folderPath} does not exist, waiting {secondsToWait} seconds then trying again, attempt {i + 1} of {maxTries}");
-                    System.Threading.Thread.Sleep(secondsToWait * 1000);
+                    await Task.Delay(secondsToWait * 1000);
                 }
             }
         }
@@ -288,6 +288,12 @@ namespace CDMUtil.Manifest
                         break;
                     case "update_mask":
                         columnAttribute.maximumLength = 200;
+                        break;
+                    case "createdby":
+                        columnAttribute.maximumLength = 20;
+                        break;
+                    case "modifiedby":
+                        columnAttribute.maximumLength = 20;
                         break;
                 }
                 var traitsCollection = cdmAttribute.AppliedTraits;
