@@ -104,7 +104,7 @@ namespace CDMUtil.Manifest
                         else
                             tableList.Remove(entityName);
                     }
-
+                    
                     var entSelected = manifestHandler.cdmCorpus.FetchObjectAsync<CdmEntityDefinition>(eDef.EntityPath, manifest).Result;
 
                     if (entSelected.ExhibitsTraits.Count() > 1 && entSelected.ExhibitsTraits.Where(x => x.NamedReference == "has.sqlViewDefinition").Count() > 0)
@@ -118,6 +118,7 @@ namespace CDMUtil.Manifest
                             string viewDefinition = cdmTrait.Arguments.First().Value;
                             //update view dependencies
                             updateViewDependencies(entityName, viewDefinition, metadataList, c, logger);
+                            TSqlSyntaxHandler.updateViewSyntax(c, metadataList);
                         }
                     }
                     else
