@@ -127,12 +127,12 @@ namespace CDMUtil.Manifest
                         string dataFilePath = "https://" + Regex.Replace($"{adlsContext.StorageAccount}/{adlsContext.FileSytemName}/{dataLocation}", @"/+", @"/");
                         string metadataFilePath = "https://" + Regex.Replace($"{adlsContext.StorageAccount}/{adlsContext.FileSytemName}/{localRoot}/{manifestName}", @"/+", @"/");
                         string cdcDataFileFilePath = "https://" + Regex.Replace($"{adlsContext.StorageAccount}/{adlsContext.FileSytemName}/ChangeFeed/{entityName}/*.csv", @"/+", @"/");
-                        
+
                         if (dataFilePath.Contains("ChangeFeed/") && c.synapseOptions.schema == "dbo")
                         {
                             entityName = "_cdc_" + entityName;
                         }
-                       
+
                         var columnAttributes = getColumnAttributes(entSelected, c, logger);
 
                         metadataList.Add(new SQLMetadata()
@@ -173,7 +173,7 @@ namespace CDMUtil.Manifest
                     //update view dependencies
                     updateViewDependencies(entity.Key, entity.Value, metadataList, c, logger);
                 }
-                updateViewSyntax = true;                
+                updateViewSyntax = true;
             }
 
             // Process sub tables and super tables from list file
@@ -183,7 +183,7 @@ namespace CDMUtil.Manifest
                 var subTableSuperTableList = JsonConvert.DeserializeObject<IEnumerable<Artifacts>>(artifactsStr);
                 logger.LogInformation($"Process sub tables and super tables");
                 foreach (var subTable in subTableSuperTableList)
-                {   
+                {
                     updateViewsForSubTableSuperTables(subTable.Key, subTable.Value, metadataList, c, logger);
                 }
                 updateViewSyntax = true;
@@ -299,15 +299,28 @@ namespace CDMUtil.Manifest
 
                     if (argumentDefinition.Value is CdmEntityReference)
                     {
-                        var contEntDef = argumentDefinition.Value.FetchObjectDefinition<CdmConstantEntityDefinition>();
-                        if (contEntDef != null)
+                        if (c.synapseOptions.TranslateEnum)
                         {
-                            columnAttribute.constantValueList = contEntDef;
-                            columnAttribute.maximumLength = 10;
+                            var contEntDef = argumentDefinition.Value.FetchObjectDefinition<CdmConstantEntityDefinition>();
+                            if (contEntDef != null)
+                            {
+                                columnAttribute.constantValueList = contEntDef;
+                                var maxLen = 0;
+                                //set the maximumLength to the longest length of the enum text values
+                                foreach (var constantValue in contEntDef.ConstantValues)
+                                {
+                                    maxLen = constantValue[2].Length > maxLen ? constantValue[2].Length : maxLen;
+                                }
+                                columnAttribute.maximumLength = maxLen;
+                            }
+                        }
+                        else
+                        {
+                            // if not translating enums, the underlying data type should be Int32
+                            columnAttribute.dataType = "Int32";
                         }
                     }
                 }
-
                 columnAttributes.Add(columnAttribute);
             }
             return columnAttributes;
@@ -334,8 +347,8 @@ namespace CDMUtil.Manifest
                             dependentTables = dependency.dependentTables
                         });
                     }
-                }                
-            }            
+                }
+            }
         }
 
         static void updateViewDependencies(string entityName, string viewDefinition, List<SQLMetadata> metadata, AppConfigurations configurations, ILogger logger)
@@ -432,7 +445,7 @@ namespace CDMUtil.Manifest
             {
                 logger.LogInformation($"creating subManifest {manifestName}");
                 CdmManifestDefinition manifest;
-                
+
                 try
                 {
                     manifest = await cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(manifestName + ".manifest.cdm.json");
@@ -442,13 +455,13 @@ namespace CDMUtil.Manifest
                     manifest = cdmCorpus.MakeObject<CdmManifestDefinition>(CdmObjectType.ManifestDef, manifestName + ".manifest.cdm.json");
                     localRoot.Documents.Add(manifest, manifestName + ".manifest.cdm.json");
                 }
-                
+
                 if (manifest != null)
                 {
                     CdmManifestDeclarationDefinition subManifest = null;
-                    
+
                     subManifest = cdmCorpus.MakeObject<CdmManifestDeclarationDefinition>(CdmObjectType.ManifestDeclarationDef, nextFolder, simpleNameRef: false);
-                   
+
                     if (subManifest != null)
                     {
                         subManifest.ManifestName = nextFolder;
@@ -478,7 +491,7 @@ namespace CDMUtil.Manifest
                 logger.LogError(e.Message);
                 logger.LogError(e.StackTrace);
                 logger.LogError(e.Message);
-                
+
             }
             return created;
         }
@@ -588,13 +601,13 @@ namespace CDMUtil.Manifest
                     // Make the temp manifest and add it to the root of the local documents in the corpus
                     manifest = cdmCorpus.MakeObject<CdmManifestDefinition>(CdmObjectType.ManifestDef, manifestName);
                 }
-                
+
                 // Add an import to the foundations doc so the traits about partitons will resolve nicely
                 manifest.Imports.Add(FoundationJsonPath);
 
                 // Add to root folder.
                 adlsRoot.Documents.Add(manifest, $"{manifestName}.manifest.cdm.json");
-                
+
                 if (manifest != null)
                 {
                     foreach (EntityDefinition entityDefinition in EntityDefinitions)
@@ -1001,9 +1014,5 @@ namespace CDMUtil.Manifest
 
             cdmCorpus.Storage.DefaultNamespace = "adls"; // local is our default. so any paths that start out navigating without a device tag will assume local
         }
-
-
-
     }
-
 }
