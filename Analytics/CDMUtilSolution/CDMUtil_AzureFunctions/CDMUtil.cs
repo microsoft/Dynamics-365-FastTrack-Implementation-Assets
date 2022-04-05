@@ -205,7 +205,8 @@ namespace CDMUtil
         public static void CDMToSynapseView([EventGridTrigger] EventGridEvent eventGridEvent, ILogger log, ExecutionContext context)
         {
 
-            dynamic data = eventGridEvent.Data;
+            dynamic eventData = eventGridEvent.Data;
+            string ManifestURL = eventData.url;
 
             //get configurations data 
             AppConfigurations c = GetAppConfigurations(null, context, eventGridEvent);
@@ -218,7 +219,11 @@ namespace CDMUtil
             ManifestReader.manifestToSQLMetadata(c, metadataList, log, c.rootFolder);
 
             //sometimes the JSON file is dropped before the folder path exists, wait for the folder to exist before attempting to create the table
-            ManifestReader.WaitForFolderPathsToExist(c, metadataList, log).Wait();
+            // Applies only to Tables and ChangeFeed folder
+            if (ManifestURL.Contains("/Entities/") == false)
+            {
+                ManifestReader.WaitForFolderPathsToExist(c, metadataList, log).Wait();
+            }
 
             if (!String.IsNullOrEmpty(c.synapseOptions.targetSparkEndpoint))
             {

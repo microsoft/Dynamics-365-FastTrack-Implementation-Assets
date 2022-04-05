@@ -309,3 +309,4 @@ __pycache__/
 /Analytics/EntityStoreTools/EntityStoreMetadataExporter/Properties/launchSettings.json
 /Analytics/EntityStoreTools/EntityStoreToSynapse/Properties/launchSettings.json
 /Analytics/EntityStoreTools/SchemaComparer/Properties/launchSettings.json
+/Analytics/CDMUtilSolution/CDMUtil_AzureFunctions/Properties/ServiceDependencies/SALABCDMUtil - Zip Deploy/profile.arm.json
