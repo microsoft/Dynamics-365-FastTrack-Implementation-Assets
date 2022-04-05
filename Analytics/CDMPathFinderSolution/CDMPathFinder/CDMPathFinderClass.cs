@@ -24,9 +24,23 @@ namespace CDMPathFinder
 
         public string GetAllTablesPath()
         {
-            BlobContainerClient container = new BlobContainerClient(ConnectionString, ContainerName);
-            BlobClient client = container.GetBlobClient(TablesManifestPath);
-            return this.GetTablesPath(container, TablesManifestPath);
+            string retVal = string.Empty;
+            try
+            {
+                BlobContainerClient container = new BlobContainerClient(ConnectionString, ContainerName);
+                BlobClient client = container.GetBlobClient(TablesManifestPath);
+                retVal = this.GetTablesPath(container, TablesManifestPath);
+            }
+            catch (Exception e)
+            {
+                retVal = "An error occurred while contacting the Storage Account" + Environment.NewLine;
+                while (e != null)
+                {
+                    retVal += e.Message + Environment.NewLine;
+                    e = e.InnerException;
+                }
+            }
+            return retVal;
         }
 
 
