@@ -5,6 +5,7 @@
     <UserSecretsId>777f94a0-176d-470e-92b0-208b040d4ddc</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.11.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.EventGrid" Version="2.1.0" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.13" />
   </ItemGroup>
