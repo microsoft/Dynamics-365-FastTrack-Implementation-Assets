@@ -174,11 +174,11 @@ namespace CDMUtil
 
             if (!String.IsNullOrEmpty(c.synapseOptions.targetSparkEndpoint))
             {
-                statementsList = await SQLHandler.sqlMetadataToDDL(metadataList, c, log);
+                statementsList = SparkHandler.metadataToSparkStmt(metadataList, c, log);
             }
             else
             {
-                statementsList = SparkHandler.metadataToSparkStmt(metadataList, c, log);
+                statementsList = await SQLHandler.sqlMetadataToDDL(metadataList, c, log);
             }
 
 
@@ -233,6 +233,47 @@ namespace CDMUtil
             {
                 SQLHandler.executeSQL(c, metadataList, log);
             }
+
+        }
+        [FunctionName("getTableMetadata")]
+        public static async Task<IActionResult> getTableMetadata(
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
+        ILogger log, ExecutionContext context)
+        {
+            log.LogInformation("HTTP trigger getTableMetadata...");
+
+            string containerURL = req.Headers["BlobContainerURL"];
+           
+            string tables = req.Headers["Tables"];
+            Uri containerURI = new Uri(containerURL);
+            /*
+            try
+            {
+                StorageCredentials storageCredentials = new StorageCredentials(myAccountName, myAccountKey);
+                var account = new CloudStorageAccount(new StorageCredentials(), true);
+                var blobClient = account.CreateCloudBlobClient();
+                var container = blobClient.GetContainerReference("blob-container-name");
+                var blobs = container.ListBlobs(prefix: "container-directory", useFlatBlobListing: true);
+
+                BlobContainerClient blobContainerClinet = new BlobContainerClient(containerURI);
+                BlobClient client = blobContainerClinet.GetBlobClient(TablesManifestPath);
+               
+            }
+            catch (Exception e)
+            {
+                retVal = "An error occurred while contacting the Storage Account" + Environment.NewLine;
+                while (e != null)
+                {
+                    retVal += e.Message + Environment.NewLine;
+                    e = e.InnerException;
+                }
+            }
+            // Read Manifest metadata
+            log.Log(LogLevel.Information, "Reading metadata");
+            
+           */
+
+            return new OkObjectResult(null);
         }
         public static string getConfigurationValue(HttpRequest req, string token, string url = null)
         {

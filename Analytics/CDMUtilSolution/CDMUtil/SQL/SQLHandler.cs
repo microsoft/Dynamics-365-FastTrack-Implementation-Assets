@@ -183,11 +183,10 @@ namespace CDMUtil.SQL
                     }
                     break;
                 case "SynapseTable":
-                    template = @"If (OBJECT_ID('{0}.{1}') is not NULL)   
-                                drop table  {0}.{1} ;  
+                    template = @"If (OBJECT_ID('{0}.{1}') is NULL)   
                                 create  TABLE {0}.{1} ({2}) 
-                                WITH (DISTRIBUTION = ROUND_ROBIN, CLUSTERED COLUMNSTORE INDEX);
-                                EXEC [dbo].[DataLakeToSynapse_InsertIntoControlTableForCopy] @TableName = '{0}.{1}', @DataLocation = '{8}', @FileFormat ='{5}',  @MetadataLocation = '{9}', @CDCDataLocation = '{10}';";
+                                WITH (DISTRIBUTION = HASH(RecId), CLUSTERED COLUMNSTORE INDEX);
+                                EXEC [dbo].[DataLakeToSynapse_InsertIntoControlTableForCopy] @TableName = '{0}.{1}', @DataLocation = '{8}', @FileFormat ='CSV',  @MetadataLocation = '{9}', @CDCDataLocation = '{10}';";
                     break;
 
             }
