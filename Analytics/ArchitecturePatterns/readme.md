@@ -15,8 +15,9 @@ Following diagram highlight the architecture patterns
 
 ## Overview
 
+
 ## Demo
-<a href="Lakehouse/DeltaLakeUsingServerlessFull_updated.mp4" title="Delta Lake Using Serverless"><img src="Lakehouse.png" alt="Lakehouse" /></a>
+https://user-images.githubusercontent.com/65608469/164779488-7edd01ca-da41-4da3-9ff2-53bd7203d3dc.mp4
 
 
 ## Synapse pipeline templates
