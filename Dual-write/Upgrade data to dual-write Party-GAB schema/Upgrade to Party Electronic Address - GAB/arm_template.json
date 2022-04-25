@@ -45,6 +45,293 @@
     },
     "resources": [
         {
+            "name": "[concat(parameters('factoryName'), '/CRMLinkedService')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "CRM Linked service to connect CRM environment",
+                "annotations": [],
+                "type": "DynamicsCrm",
+                "typeProperties": {
+                    "deploymentType": "Online",
+                    "serviceUri": "",
+                    "authenticationType": "Office365",
+                    "username": "[parameters('CRMLinkedService_properties_typeProperties_username')]",
+                    "password": {
+                        "type": "SecureString",
+                        "value": "[parameters('CRMLinkedService_password')]"
+                    }
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/AzureBlobStorageService')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureBlobStorage",
+                "typeProperties": {
+                    "connectionString": "[parameters('AzureBlobStorageService_connectionString')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/DynamicsAXService')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "DynamicsAXService",
+                "annotations": [],
+                "type": "DynamicsAX",
+                "typeProperties": {
+                    "url": "[parameters('DynamicsAXService_properties_typeProperties_url')]",
+                    "tenant": "[parameters('DynamicsAXService_properties_typeProperties_tenant')]",
+                    "aadResourceId": "[parameters('DynamicsAXService_properties_typeProperties_aadResourceId')]",
+                    "servicePrincipalId": "[parameters('DynamicsAXService_properties_typeProperties_servicePrincipalId')]",
+                    "servicePrincipalKey": {
+                        "type": "SecureString",
+                        "value": "[parameters('DynamicsAXService_servicePrincipalKey')]"
+                    }
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/CRMConnection')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "CRMLinkedService",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "entityname": {
+                        "type": "string"
+                    }
+                },
+                "annotations": [],
+                "type": "DynamicsCrmEntity",
+                "schema": [],
+                "typeProperties": {
+                    "entityName": {
+                        "value": "@dataset().entityname",
+                        "type": "Expression"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/CRMLinkedService')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/AzureStorageConnection')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "AzureBlobStorageService",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "container": {
+                        "type": "string"
+                    },
+                    "foldername": {
+                        "type": "string"
+                    },
+                    "filename": {
+                        "type": "string"
+                    }
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "fileName": {
+                            "value": "@dataset().filename",
+                            "type": "Expression"
+                        },
+                        "folderPath": {
+                            "value": "@dataset().foldername",
+                            "type": "Expression"
+                        },
+                        "container": {
+                            "value": "@dataset().container",
+                            "type": "Expression"
+                        }
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/AzureBlobStorageService')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/DelimitedTextOutput')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "AzureBlobStorageService",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "folderPath": "input",
+                        "container": "electronicaddress"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "name": "accountid",
+                        "type": "String"
+                    },
+                    {
+                        "name": "CompanyCode",
+                        "type": "String"
+                    },
+                    {
+                        "name": "accountnumber",
+                        "type": "String"
+                    },
+                    {
+                        "name": "name",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_partyid",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_partynumber",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PartyNumber",
+                        "type": "String"
+                    },
+                    {
+                        "name": "telephone1",
+                        "type": "String"
+                    },
+                    {
+                        "name": "websiteurl",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_websiteurldescription",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_primaryfacebookdescription",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_telephone1description",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_primarylinkedindescrption",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_primarylinkedinid",
+                        "type": "String"
+                    },
+                    {
+                        "name": "primarytwitterid",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_primarytwitteriddescription",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_emailaddress1description",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_primaryfacebookid",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_telephone1extension",
+                        "type": "String"
+                    },
+                    {
+                        "name": "emailaddress2",
+                        "type": "String"
+                    },
+                    {
+                        "name": "emailaddress3",
+                        "type": "String"
+                    },
+                    {
+                        "name": "emailaddress1",
+                        "type": "String"
+                    },
+                    {
+                        "name": "telephone3",
+                        "type": "String"
+                    },
+                    {
+                        "name": "msdyn_mappedvendoraccount",
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/AzureBlobStorageService')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/DynamicsAXConnection')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "DynamicsAXConnection",
+                "linkedServiceName": {
+                    "referenceName": "DynamicsAXService",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "entitypath": {
+                        "type": "string"
+                    }
+                },
+                "annotations": [],
+                "type": "DynamicsAXResource",
+                "schema": [],
+                "typeProperties": {
+                    "path": {
+                        "value": "@dataset().entitypath",
+                        "type": "Expression"
+                    },
+                    "retrieveEnumValuesAsString": true
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/DynamicsAXService')]"
+            ]
+        },
+        {
             "name": "[concat(parameters('factoryName'), '/ElectronicAddress')]",
             "type": "Microsoft.DataFactory/factories/pipelines",
             "apiVersion": "2018-06-01",
@@ -1445,6 +1732,12 @@
                                 "dependencyConditions": [
                                     "Succeeded"
                                 ]
+                            },
+                            {
+                                "activity": "1-6-Retrieve electronic address from Dataverse",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
                             }
                         ],
                         "policy": {
@@ -1494,6 +1787,11 @@
                                         "container": "electronicaddress",
                                         "foldername": "input",
                                         "filename": "CEPrimaryElectronicAddress.csv"
+                                    },
+                                    "CDSPartyElectronicAddress": {
+                                        "container": "electronicaddress",
+                                        "foldername": "input",
+                                        "filename": "CDSPartyElectronicAddress.csv"
                                     },
                                     "FONewElectronicAddress": {},
                                     "FOCEElectronicAddress": {}
@@ -2300,35 +2598,10 @@
                                 }
                             }
                         ]
-                    }
-                ],
-                "policy": {
-                    "elapsedTimeMetric": {},
-                    "cancelAfter": {}
-                },
-                "annotations": [],
-                "lastPublishTime": "2022-02-25T03:42:35Z"
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/datasets/CRMConnection')]",
-                "[concat(variables('factoryId'), '/datasets/AzureStorageConnection')]",
-                "[concat(variables('factoryId'), '/datasets/DynamicsAXConnection')]",
-                "[concat(variables('factoryId'), '/dataflows/ConsolidateAddresses')]",
-                "[concat(variables('factoryId'), '/dataflows/MergePrimaryAddress')]",
-                "[concat(variables('factoryId'), '/dataflows/CreateFoAddress')]",
-                "[concat(variables('factoryId'), '/dataflows/AccountPrimaryAddress')]",
-                "[concat(variables('factoryId'), '/linkedServices/AzureBlobStorageService')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/DW Electronic Address')]",
-            "type": "Microsoft.DataFactory/factories/pipelines",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "activities": [
+                    },
                     {
-                        "name": "0-DW Maps",
-                        "description": "Dual write maps",
+                        "name": "1-6-Retrieve electronic address from Dataverse",
+                        "description": "Retrieve electronic address from Dataverse",
                         "type": "Copy",
                         "dependsOn": [],
                         "policy": {
@@ -2342,7 +2615,7 @@
                         "typeProperties": {
                             "source": {
                                 "type": "DynamicsCrmSource",
-                                "query": "<fetch version=\"1.0\" output-format=\"xml-platform\" mapping=\"logical\" distinct=\"false\">\n  <entity name=\"msdyn_dualwriteruntimeconfig\">\n    <attribute name=\"msdyn_dualwriteruntimeconfigid\"/>\n    <attribute name=\"msdyn_name\"/>\n    <attribute name=\"msdyn_internalentityname\"/>\n    <attribute name=\"msdyn_externalentityname\"/>\n    <attribute name=\"statuscode\"/>\n    <attribute name=\"statecode\"/>\n  </entity>\n</fetch>"
+                                "query": "<fetch version=\"1.0\" output-format=\"xml-platform\" mapping=\"logical\" distinct=\"false\">\n<entity name=\"msdyn_partyelectronicaddress\">\n<attribute name=\"msdyn_partyelectronicaddressid\"/>\n<attribute name=\"msdyn_electronicaddressnumber\"/>\n<attribute name=\"msdyn_partyid\"/>\n<order attribute=\"msdyn_electronicaddressnumber\" descending=\"false\"/>\n<link-entity name=\"msdyn_party\" from=\"msdyn_partyid\" to=\"msdyn_partyid\" link-type=\"inner\" alias=\"aa\">\n<attribute name=\"msdyn_partynumber\"/>\n</link-entity>\n</entity>\n</fetch>"
                             },
                             "sink": {
                                 "type": "DelimitedTextSink",
@@ -2361,61 +2634,41 @@
                                 "mappings": [
                                     {
                                         "source": {
-                                            "name": "statecode",
-                                            "type": "Int32"
-                                        },
-                                        "sink": {
-                                            "name": "statecode",
-                                            "type": "String"
-                                        }
-                                    },
-                                    {
-                                        "source": {
-                                            "name": "msdyn_internalentityname",
-                                            "type": "String"
-                                        },
-                                        "sink": {
-                                            "name": "msdyn_internalentityname",
-                                            "type": "String"
-                                        }
-                                    },
-                                    {
-                                        "source": {
-                                            "name": "msdyn_dualwriteruntimeconfigid",
+                                            "name": "msdyn_partyelectronicaddressid",
                                             "type": "Guid"
                                         },
                                         "sink": {
-                                            "name": "msdyn_dualwriteruntimeconfigid",
+                                            "name": "msdyn_partyelectronicaddressid",
                                             "type": "String"
                                         }
                                     },
                                     {
                                         "source": {
-                                            "name": "msdyn_externalentityname",
+                                            "name": "msdyn_electronicaddressnumber",
                                             "type": "String"
                                         },
                                         "sink": {
-                                            "name": "msdyn_externalentityname",
+                                            "name": "msdyn_electronicaddressnumber",
                                             "type": "String"
                                         }
                                     },
                                     {
                                         "source": {
-                                            "name": "statuscode",
-                                            "type": "Int32"
+                                            "name": "msdyn_partyid",
+                                            "type": "Guid"
                                         },
                                         "sink": {
-                                            "name": "statuscode",
+                                            "name": "msdyn_partyid",
                                             "type": "String"
                                         }
                                     },
                                     {
                                         "source": {
-                                            "name": "msdyn_name",
+                                            "name": "aa.msdyn_partynumber",
                                             "type": "String"
                                         },
                                         "sink": {
-                                            "name": "msdyn_name",
+                                            "name": "aa.msdyn_partynumber",
                                             "type": "String"
                                         }
                                     }
@@ -2427,7 +2680,7 @@
                                 "referenceName": "CRMConnection",
                                 "type": "DatasetReference",
                                 "parameters": {
-                                    "entityname": "msdyn_dualwriteruntimeconfig"
+                                    "entityname": "msdyn_partyelectronicaddress"
                                 }
                             }
                         ],
@@ -2438,486 +2691,35 @@
                                 "parameters": {
                                     "container": "electronicaddress",
                                     "foldername": "input",
-                                    "filename": "DWMap.csv"
+                                    "filename": "CDSPartyElectronicAddress.csv"
                                 }
                             }
                         ]
-                    },
-                    {
-                        "name": "DWMapValidation",
-                        "type": "ExecuteDataFlow",
-                        "dependsOn": [
-                            {
-                                "activity": "0-DW Maps",
-                                "dependencyConditions": [
-                                    "Succeeded"
-                                ]
-                            }
-                        ],
-                        "policy": {
-                            "timeout": "1.00:00:00",
-                            "retry": 0,
-                            "retryIntervalInSeconds": 30,
-                            "secureOutput": false,
-                            "secureInput": false
-                        },
-                        "userProperties": [],
-                        "typeProperties": {
-                            "dataflow": {
-                                "referenceName": "DWMapValidation",
-                                "type": "DataFlowReference",
-                                "parameters": {},
-                                "datasetParameters": {
-                                    "DWMap": {
-                                        "container": "electronicaddress",
-                                        "foldername": "input",
-                                        "filename": "DWMap.csv"
-                                    },
-                                    "DWEnabledMaps": {
-                                        "container": "electronicaddress",
-                                        "foldername": "input",
-                                        "filename": "DWEnabledMaps.csv"
-                                    }
-                                }
-                            },
-                            "staging": {},
-                            "compute": {
-                                "coreCount": 8,
-                                "computeType": "General"
-                            },
-                            "traceLevel": "Fine"
-                        }
-                    },
-                    {
-                        "name": "DWEnabledMapsRead",
-                        "type": "Lookup",
-                        "dependsOn": [
-                            {
-                                "activity": "DWMapValidation",
-                                "dependencyConditions": [
-                                    "Succeeded"
-                                ]
-                            }
-                        ],
-                        "policy": {
-                            "timeout": "7.00:00:00",
-                            "retry": 0,
-                            "retryIntervalInSeconds": 30,
-                            "secureOutput": false,
-                            "secureInput": false
-                        },
-                        "userProperties": [],
-                        "typeProperties": {
-                            "source": {
-                                "type": "DelimitedTextSource",
-                                "storeSettings": {
-                                    "type": "AzureBlobStorageReadSettings",
-                                    "recursive": true,
-                                    "enablePartitionDiscovery": false
-                                },
-                                "formatSettings": {
-                                    "type": "DelimitedTextReadSettings"
-                                }
-                            },
-                            "dataset": {
-                                "referenceName": "AzureStorageConnection",
-                                "type": "DatasetReference",
-                                "parameters": {
-                                    "container": "electronicaddress",
-                                    "foldername": "input",
-                                    "filename": "DWEnabledMaps.csv"
-                                }
-                            }
-                        }
-                    },
-                    {
-                        "name": "IterateMaps",
-                        "type": "ForEach",
-                        "dependsOn": [
-                            {
-                                "activity": "DWEnabledMapsRead",
-                                "dependencyConditions": [
-                                    "Succeeded"
-                                ]
-                            }
-                        ],
-                        "userProperties": [],
-                        "typeProperties": {
-                            "items": {
-                                "value": "@activity('DWEnabledMapsRead').output.value",
-                                "type": "Expression"
-                            },
-                            "isSequential": true,
-                            "activities": [
-                                {
-                                    "name": "Set IsDwMapEnabled",
-                                    "type": "SetVariable",
-                                    "dependsOn": [],
-                                    "userProperties": [],
-                                    "typeProperties": {
-                                        "variableName": "IsDWMapsEnabled",
-                                        "value": true
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "name": "If DWMapEnabled",
-                        "type": "IfCondition",
-                        "dependsOn": [
-                            {
-                                "activity": "IterateMaps",
-                                "dependencyConditions": [
-                                    "Succeeded"
-                                ]
-                            }
-                        ],
-                        "userProperties": [],
-                        "typeProperties": {
-                            "expression": {
-                                "value": "@variables('IsDWMapsEnabled')",
-                                "type": "Expression"
-                            },
-                            "ifFalseActivities": [
-                                {
-                                    "name": "DW Map Disabled",
-                                    "type": "Fail",
-                                    "dependsOn": [],
-                                    "userProperties": [],
-                                    "typeProperties": {
-                                        "message": "DW Map Disabled",
-                                        "errorCode": "2"
-                                    }
-                                }
-                            ],
-                            "ifTrueActivities": [
-                                {
-                                    "name": "DW Maps Enabled",
-                                    "type": "Fail",
-                                    "dependsOn": [],
-                                    "userProperties": [],
-                                    "typeProperties": {
-                                        "message": "DW Maps Enabled",
-                                        "errorCode": "1"
-                                    }
-                                }
-                            ]
-                        }
                     }
                 ],
                 "policy": {
                     "elapsedTimeMetric": {},
                     "cancelAfter": {}
                 },
-                "variables": {
-                    "IsDWMapsEnabled": {
-                        "type": "Boolean",
-                        "defaultValue": false
-                    }
-                },
                 "annotations": [],
-                "lastPublishTime": "2022-03-08T04:57:19Z"
+                "lastPublishTime": "2022-04-21T21:23:24Z"
             },
             "dependsOn": [
                 "[concat(variables('factoryId'), '/datasets/CRMConnection')]",
                 "[concat(variables('factoryId'), '/datasets/AzureStorageConnection')]",
-                "[concat(variables('factoryId'), '/dataflows/DWMapValidation')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/CRMConnection')]",
-            "type": "Microsoft.DataFactory/factories/datasets",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "linkedServiceName": {
-                    "referenceName": "CRMLinkedService",
-                    "type": "LinkedServiceReference"
-                },
-                "parameters": {
-                    "entityname": {
-                        "type": "string"
-                    }
-                },
-                "annotations": [],
-                "type": "DynamicsCrmEntity",
-                "schema": [],
-                "typeProperties": {
-                    "entityName": {
-                        "value": "@dataset().entityname",
-                        "type": "Expression"
-                    }
-                }
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/CRMLinkedService')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/AzureStorageConnection')]",
-            "type": "Microsoft.DataFactory/factories/datasets",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "linkedServiceName": {
-                    "referenceName": "AzureBlobStorageService",
-                    "type": "LinkedServiceReference"
-                },
-                "parameters": {
-                    "container": {
-                        "type": "string"
-                    },
-                    "foldername": {
-                        "type": "string"
-                    },
-                    "filename": {
-                        "type": "string"
-                    }
-                },
-                "annotations": [],
-                "type": "DelimitedText",
-                "typeProperties": {
-                    "location": {
-                        "type": "AzureBlobStorageLocation",
-                        "fileName": {
-                            "value": "@dataset().filename",
-                            "type": "Expression"
-                        },
-                        "folderPath": {
-                            "value": "@dataset().foldername",
-                            "type": "Expression"
-                        },
-                        "container": {
-                            "value": "@dataset().container",
-                            "type": "Expression"
-                        }
-                    },
-                    "columnDelimiter": ",",
-                    "escapeChar": "\\",
-                    "firstRowAsHeader": true,
-                    "quoteChar": "\""
-                },
-                "schema": []
-            },
-            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/DynamicsAXConnection')]",
+                "[concat(variables('factoryId'), '/dataflows/ConsolidateAddresses')]",
+                "[concat(variables('factoryId'), '/dataflows/MergePrimaryAddress')]",
+                "[concat(variables('factoryId'), '/dataflows/CreateFoAddress')]",
+                "[concat(variables('factoryId'), '/dataflows/AccountPrimaryAddress')]",
                 "[concat(variables('factoryId'), '/linkedServices/AzureBlobStorageService')]"
             ]
         },
         {
-            "name": "[concat(parameters('factoryName'), '/DynamicsAXConnection')]",
-            "type": "Microsoft.DataFactory/factories/datasets",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "description": "DynamicsAXConnection",
-                "linkedServiceName": {
-                    "referenceName": "DynamicsAXService",
-                    "type": "LinkedServiceReference"
-                },
-                "parameters": {
-                    "entitypath": {
-                        "type": "string"
-                    }
-                },
-                "annotations": [],
-                "type": "DynamicsAXResource",
-                "schema": [],
-                "typeProperties": {
-                    "path": {
-                        "value": "@dataset().entitypath",
-                        "type": "Expression"
-                    },
-                    "retrieveEnumValuesAsString": true
-                }
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/DynamicsAXService')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/DelimitedTextOutput')]",
-            "type": "Microsoft.DataFactory/factories/datasets",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "linkedServiceName": {
-                    "referenceName": "AzureBlobStorageService",
-                    "type": "LinkedServiceReference"
-                },
-                "annotations": [],
-                "type": "DelimitedText",
-                "typeProperties": {
-                    "location": {
-                        "type": "AzureBlobStorageLocation",
-                        "folderPath": "input",
-                        "container": "electronicaddress"
-                    },
-                    "columnDelimiter": ",",
-                    "escapeChar": "\\",
-                    "firstRowAsHeader": true,
-                    "quoteChar": "\""
-                },
-                "schema": [
-                    {
-                        "name": "accountid",
-                        "type": "String"
-                    },
-                    {
-                        "name": "CompanyCode",
-                        "type": "String"
-                    },
-                    {
-                        "name": "accountnumber",
-                        "type": "String"
-                    },
-                    {
-                        "name": "name",
-                        "type": "String"
-                    },
-                    {
-                        "name": "msdyn_partyid",
-                        "type": "String"
-                    },
-                    {
-                        "name": "msdyn_partynumber",
-                        "type": "String"
-                    },
-                    {
-                        "name": "PartyNumber",
-                        "type": "String"
-                    },
-                    {
-                        "name": "telephone1",
-                        "type": "String"
-                    },
-                    {
-                        "name": "websiteurl",
-                        "type": "String"
-                    },
-                    {
-                        "name": "msdyn_websiteurldescription",
-                        "type": "String"
-                    },
-                    {
-                        "name": "msdyn_primaryfacebookdescription",
-                        "type": "String"
-                    },
-                    {
-                        "name": "msdyn_telephone1description",
-                        "type": "String"
-                    },
-                    {
-                        "name": "msdyn_primarylinkedindescrption",
-                        "type": "String"
-                    },
-                    {
-                        "name": "msdyn_primarylinkedinid",
-                        "type": "String"
-                    },
-                    {
-                        "name": "primarytwitterid",
-                        "type": "String"
-                    },
-                    {
-                        "name": "msdyn_primarytwitteriddescription",
-                        "type": "String"
-                    },
-                    {
-                        "name": "msdyn_emailaddress1description",
-                        "type": "String"
-                    },
-                    {
-                        "name": "msdyn_primaryfacebookid",
-                        "type": "String"
-                    },
-                    {
-                        "name": "msdyn_telephone1extension",
-                        "type": "String"
-                    },
-                    {
-                        "name": "emailaddress2",
-                        "type": "String"
-                    },
-                    {
-                        "name": "emailaddress3",
-                        "type": "String"
-                    },
-                    {
-                        "name": "emailaddress1",
-                        "type": "String"
-                    },
-                    {
-                        "name": "telephone3",
-                        "type": "String"
-                    },
-                    {
-                        "name": "msdyn_mappedvendoraccount",
-                        "type": "String"
-                    }
-                ]
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/linkedServices/AzureBlobStorageService')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/CRMLinkedService')]",
-            "type": "Microsoft.DataFactory/factories/linkedServices",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "description": "CRM Linked service to connect CRM environment",
-                "annotations": [],
-                "type": "DynamicsCrm",
-                "typeProperties": {
-                    "deploymentType": "Online",
-                    "serviceUri": "",
-                    "authenticationType": "Office365",
-                    "username": "[parameters('CRMLinkedService_properties_typeProperties_username')]",
-                    "password": {
-                        "type": "SecureString",
-                        "value": "[parameters('CRMLinkedService_password')]"
-                    }
-                }
-            },
-            "dependsOn": []
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/AzureBlobStorageService')]",
-            "type": "Microsoft.DataFactory/factories/linkedServices",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "annotations": [],
-                "type": "AzureBlobStorage",
-                "typeProperties": {
-                    "connectionString": "[parameters('AzureBlobStorageService_connectionString')]"
-                }
-            },
-            "dependsOn": []
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/DynamicsAXService')]",
-            "type": "Microsoft.DataFactory/factories/linkedServices",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "description": "DynamicsAXService",
-                "annotations": [],
-                "type": "DynamicsAX",
-                "typeProperties": {
-                    "url": "[parameters('DynamicsAXService_properties_typeProperties_url')]",
-                    "tenant": "[parameters('DynamicsAXService_properties_typeProperties_tenant')]",
-                    "aadResourceId": "[parameters('DynamicsAXService_properties_typeProperties_aadResourceId')]",
-                    "servicePrincipalId": "[parameters('DynamicsAXService_properties_typeProperties_servicePrincipalId')]",
-                    "servicePrincipalKey": {
-                        "type": "SecureString",
-                        "value": "[parameters('DynamicsAXService_servicePrincipalKey')]"
-                    }
-                }
-            },
-            "dependsOn": []
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/MergePrimaryAddress')]",
+            "name": "[concat(parameters('factoryName'), '/DWMapValidation')]",
             "type": "Microsoft.DataFactory/factories/dataflows",
             "apiVersion": "2018-06-01",
             "properties": {
-                "description": "Merge primary address from FO and CE",
                 "type": "MappingDataFlow",
                 "typeProperties": {
                     "sources": [
@@ -2926,54 +2728,57 @@
                                 "referenceName": "AzureStorageConnection",
                                 "type": "DatasetReference"
                             },
-                            "name": "CEPrimaryElectronicAddress"
-                        },
-                        {
-                            "dataset": {
-                                "referenceName": "AzureStorageConnection",
-                                "type": "DatasetReference"
-                            },
-                            "name": "FOElectronicAddress"
+                            "name": "DWMap"
                         }
                     ],
                     "sinks": [
                         {
                             "dataset": {
-                                "referenceName": "DelimitedTextOutput",
+                                "referenceName": "AzureStorageConnection",
                                 "type": "DatasetReference"
                             },
-                            "name": "FOCEPrimaryAddress"
+                            "name": "DWEnabledMaps"
                         }
                     ],
                     "transformations": [
                         {
-                            "name": "PrimaryFOAddress"
+                            "name": "FilterDWMap"
                         },
                         {
-                            "name": "PrimaryAddress"
-                        },
-                        {
-                            "name": "Source"
-                        },
-                        {
-                            "name": "FOPrimaryAddress"
-                        },
-                        {
-                            "name": "CEPrimaryAddress"
-                        },
-                        {
-                            "name": "CEAddress"
-                        },
-                        {
-                            "name": "PrimaryAddressUnion"
+                            "name": "MapEntityName"
                         }
                     ],
-                    "script": "parameters{\n\tIsFOSource as boolean (false())\n}\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocator as string,\n\t\tDescription as string,\n\t\tType as string,\n\t\tLocatorExtension as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CEPrimaryElectronicAddress\nsource(output(\n\t\tPartyNumber as string,\n\t\tElectronicAddressId as string,\n\t\tIsInstantMessage as boolean,\n\t\tIsMobilePhone as boolean,\n\t\tCountryRegionCode as string,\n\t\tPurpose as string,\n\t\tLocator as string,\n\t\tLocatorExtension as string,\n\t\tLocationId as string,\n\t\tDescription as string,\n\t\tIsPrimary as boolean,\n\t\tType as string,\n\t\tIsPrivate as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOElectronicAddress\nFOElectronicAddress filter(IsPrimary) ~> PrimaryFOAddress\nCEPrimaryElectronicAddress, PrimaryFOAddress join(lower(CEPrimaryElectronicAddress@PartyNumber) == lpad(lower(FOElectronicAddress@PartyNumber),9,\"0\")\n\t&& lower(CEPrimaryElectronicAddress@Locator) != lower(FOElectronicAddress@Locator)\n\t&& lower(CEPrimaryElectronicAddress@Type) == lower(FOElectronicAddress@Type)\n\t&& lower(iifNull(CEPrimaryElectronicAddress@LocatorExtension, \"\", CEPrimaryElectronicAddress@LocatorExtension)) == lower(iifNull(FOElectronicAddress@LocatorExtension, \"\", FOElectronicAddress@LocatorExtension)),\n\tjoinType:'inner',\n\tbroadcast: 'both')~> PrimaryAddress\nCEAddress split(!$IsFOSource,\n\tdisjoint: false) ~> Source@(CE, FO)\nSource@FO select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator,\n\t\tDescription,\n\t\tType,\n\t\tLocatorExtension,\n\t\tElectronicAddressId,\n\t\tIsPrimary\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FOPrimaryAddress\nSource@CE select(mapColumn(\n\t\tPartyNumber = CEPartyNumber,\n\t\tLocator = CELocator,\n\t\tDescription = CEDescription,\n\t\tType = CEType,\n\t\tLocatorExtension = CELocatorExtension,\n\t\tIsPrimary,\n\t\tElectronicAddressId\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CEPrimaryAddress\nPrimaryAddress select(mapColumn(\n\t\tCEPartyNumber = CEPrimaryElectronicAddress@PartyNumber,\n\t\tCELocator = CEPrimaryElectronicAddress@Locator,\n\t\tCEDescription = CEPrimaryElectronicAddress@Description,\n\t\tCEType = CEPrimaryElectronicAddress@Type,\n\t\tCELocatorExtension = CEPrimaryElectronicAddress@LocatorExtension,\n\t\tPartyNumber = FOElectronicAddress@PartyNumber,\n\t\tElectronicAddressId,\n\t\tIsInstantMessage,\n\t\tIsMobilePhone,\n\t\tCountryRegionCode,\n\t\tPurpose,\n\t\tLocator = FOElectronicAddress@Locator,\n\t\tLocatorExtension = FOElectronicAddress@LocatorExtension,\n\t\tLocationId,\n\t\tDescription = FOElectronicAddress@Description,\n\t\tIsPrimary,\n\t\tType = FOElectronicAddress@Type,\n\t\tIsPrivate\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CEAddress\nCEPrimaryAddress, FOPrimaryAddress union(byName: true)~> PrimaryAddressUnion\nPrimaryAddressUnion sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\tmsdyn_primarylinkedinid as string,\n\t\tprimarytwitterid as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tmsdyn_telephone1extension as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\temailaddress1 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_mappedvendoraccount as string\n\t),\n\tpartitionFileNames:['PrimaryAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FOCEPrimaryAddress"
+                    "scriptLines": [
+                        "source(output(",
+                        "          statecode as boolean,",
+                        "          msdyn_internalentityname as string,",
+                        "          msdyn_dualwriteruntimeconfigid as string,",
+                        "          msdyn_externalentityname as string,",
+                        "          statuscode as boolean,",
+                        "          msdyn_name as string",
+                        "     ),",
+                        "     allowSchemaDrift: true,",
+                        "     validateSchema: false,",
+                        "     ignoreNoFilesFound: false) ~> DWMap",
+                        "DWMap filter(lower(msdyn_internalentityname)==\"msdyn_party\" || lower(msdyn_internalentityname)==\"msdyn_contactforparty\" || lower(msdyn_internalentityname)==\"account\"  ||lower(msdyn_internalentityname)==\"contact\" || lower(msdyn_internalentityname)==\"msdyn_vendor\" ||\r",
+                        "lower(msdyn_internalentityname)==\"msdyn_postaladdresscollection\"  || lower(msdyn_internalentityname)==\"msdyn_partypostaladdress\" || lower(msdyn_internalentityname)==\"msdyn_postaladdress\" || lower(msdyn_internalentityname)==\"customeraddress\" ||\r",
+                        "lower(msdyn_internalentityname)==\"msdyn_partyelectronicaddress\") ~> FilterDWMap",
+                        "FilterDWMap select(mapColumn(",
+                        "          msdyn_internalentityname",
+                        "     ),",
+                        "     skipDuplicateMapInputs: true,",
+                        "     skipDuplicateMapOutputs: true) ~> MapEntityName",
+                        "MapEntityName sink(allowSchemaDrift: true,",
+                        "     validateSchema: false,",
+                        "     partitionFileNames:['DWEnabledMaps.csv'],",
+                        "     skipDuplicateMapInputs: true,",
+                        "     skipDuplicateMapOutputs: true,",
+                        "     partitionBy('hash', 1)) ~> DWEnabledMaps"
+                    ]
                 }
             },
             "dependsOn": [
-                "[concat(variables('factoryId'), '/datasets/AzureStorageConnection')]",
-                "[concat(variables('factoryId'), '/datasets/DelimitedTextOutput')]"
+                "[concat(variables('factoryId'), '/datasets/AzureStorageConnection')]"
             ]
         },
         {
@@ -3089,6 +2894,217 @@
                         }
                     ],
                     "script": "source(output(\n\t\tPartyNumber as string,\n\t\tElectronicAddressId as string,\n\t\tIsInstantMessage as boolean,\n\t\tIsMobilePhone as boolean,\n\t\tCountryRegionCode as string,\n\t\tPurpose as string,\n\t\tLocator as string,\n\t\tLocatorExtension as string,\n\t\tLocationId as string,\n\t\tDescription as string,\n\t\tIsPrimary as boolean,\n\t\tType as string,\n\t\tIsPrivate as boolean,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOCEElectronicAddress\nsource(output(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\tmsdyn_faxextension as string,\n\t\tmsdyn_faxdescription as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\tmsdyn_primarylinkedinid as string,\n\t\tprimarytwitterid as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tfax as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tmsdyn_telephone1extension as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\temailaddress1 as string,\n\t\ttelephone2 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_mappedvendoraccount as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSAccount\nsource(output(\n\t\tmsdyn_sellable as boolean,\n\t\tfullname as string,\n\t\tcontactid as string,\n\t\tCompanyCode as string,\n\t\tmsdyn_isvendor as boolean,\n\t\tmsdyn_contactpersonid as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tmsdyn_contactforvendor as boolean,\n\t\tPartyNumber as string,\n\t\temailaddress1 as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\thome2 as string,\n\t\ttelephone2 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\ttelephone1 as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tfax as string,\n\t\tmsdyn_faxextension as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_faxdescription as string,\n\t\tmsdyn_telephone1extension as string,\n\t\tmsdyn_primarytwitterid as string,\n\t\tmsdyn_primaryinkedinid as string,\n\t\tmsdyn_contactfor as string,\n\t\tmsdyn_linkedvendoraccount as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSContact\nFOCEElectronicAddress filter(IsPrimary && !isNull(msdyn_partynumber) && msdyn_partynumber!=\"\") ~> PrimaryElectronicAddress\nPrimaryElectronicAddress select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator,\n\t\tLocatorExtension,\n\t\tDescription,\n\t\tmsdyn_partyid,\n\t\tType\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ElectornicAddressAttribute\nElectornicAddressAttribute filter(lower(Type)==\"192350002\") ~> PartyEmail\nElectornicAddressAttribute filter(lower(Type)==\"192350001\") ~> PartyPhone\nPartyEmailAddress1, PartyTelephone1 join(PartyEmailAddress1@PartyNumber == PartyTelephone1@PartyNumber,\n\tjoinType:'outer',\n\tbroadcast: 'auto')~> PartyEmailPhone\nPartyEmail select(mapColumn(\n\t\tPartyNumber,\n\t\temailaddress1 = Locator,\n\t\tmsdyn_emailaddress1description = Description,\n\t\tType\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> PartyEmailAddress1\nPartyPhone select(mapColumn(\n\t\tPartyNumber,\n\t\ttelephone1 = Locator,\n\t\tmsdyn_telephone1extension = LocatorExtension,\n\t\tmsdyn_telephone1description = Description\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> PartyTelephone1\nElectornicAddressAttribute filter(lower(Type)==\"192350007\") ~> PartyTwitter\nPartyTwitter select(mapColumn(\n\t\tPartyNumber,\n\t\tprimarytwitterid = Locator,\n\t\tmsdyn_primarytwitteriddescription = Description\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> PartyTwitterPrimary\nPartyEmailPhone, PartyTwitterPrimary join(PartyEmailAddress1@PartyNumber == PartyTwitterPrimary@PartyNumber,\n\tjoinType:'outer',\n\tbroadcast: 'auto')~> PartyPhonTwitter\nElectornicAddressAttribute filter(lower(Type)==\"192350005\") ~> PartyFax\nPartyFax select(mapColumn(\n\t\tPartyNumber,\n\t\tfax = Locator,\n\t\tmsdyn_faxdescription = Description,\n\t\tmsdyn_faxextension = LocatorExtension\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> PartyFaxPrimary\nPartyPhonTwitter, PartyFaxPrimary join(PartyEmailAddress1@PartyNumber == PartyFaxPrimary@PartyNumber,\n\tjoinType:'outer',\n\tbroadcast: 'auto')~> PartyTwitterFax\nElectornicAddressAttribute filter(lower(Type)==\"192350003\") ~> PartyURL\nPartyURL select(mapColumn(\n\t\tPartyNumber,\n\t\twebsiteurl = Locator,\n\t\tmsdyn_websiteurldescription = Description\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> PartyURLPrimary\nPartyTwitterFax, PartyURLPrimary join(PartyEmailAddress1@PartyNumber == PartyURLPrimary@PartyNumber,\n\tjoinType:'outer',\n\tbroadcast: 'auto')~> PartyFaxURL\nPartyFaxURL select(mapColumn(\n\t\tPartyNumber = PartyEmailAddress1@PartyNumber,\n\t\temailaddress1,\n\t\tmsdyn_emailaddress1description,\n\t\ttelephone1,\n\t\tmsdyn_telephone1extension,\n\t\tmsdyn_telephone1description,\n\t\tPartyNumber = PartyTwitterPrimary@PartyNumber,\n\t\tprimarytwitterid,\n\t\tmsdyn_primarytwitteriddescription,\n\t\tfax,\n\t\tmsdyn_faxdescription,\n\t\tmsdyn_faxextension,\n\t\twebsiteurl,\n\t\tmsdyn_websiteurldescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FOCEPrimaryAddress\nCDSAccount, FOCEPrimaryAddress join(lower(CDSAccount@PartyNumber) == lower(FOCEPrimaryAddress@PartyNumber),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> AccoountPrimaryAddressUpdate\nAccoountPrimaryAddressUpdate select(mapColumn(\n\t\taccountid,\n\t\temailaddress1 = FOCEPrimaryAddress@emailaddress1,\n\t\tmsdyn_emailaddress1description = FOCEPrimaryAddress@msdyn_emailaddress1description,\n\t\ttelephone1 = FOCEPrimaryAddress@telephone1,\n\t\tmsdyn_telephone1extension = FOCEPrimaryAddress@msdyn_telephone1extension,\n\t\tmsdyn_telephone1description = FOCEPrimaryAddress@msdyn_telephone1description,\n\t\tprimarytwitterid = FOCEPrimaryAddress@primarytwitterid,\n\t\tmsdyn_primarytwitteriddescription = FOCEPrimaryAddress@msdyn_primarytwitteriddescription,\n\t\tfax = FOCEPrimaryAddress@fax,\n\t\tmsdyn_faxdescription = FOCEPrimaryAddress@msdyn_faxdescription,\n\t\tmsdyn_faxextension = FOCEPrimaryAddress@msdyn_faxextension,\n\t\twebsiteurl = FOCEPrimaryAddress@websiteurl,\n\t\tmsdyn_websiteurldescription = FOCEPrimaryAddress@msdyn_websiteurldescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AccontPrimaryAddressFields\nCDSContact, FOCEPrimaryAddress join(lower(msdyn_partynumber) == lower(FOCEPrimaryAddress@PartyNumber),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> ContactPrimaryAddressUpdate\nContactPrimaryAddressUpdate select(mapColumn(\n\t\tcontactid,\n\t\temailaddress1 = FOCEPrimaryAddress@emailaddress1,\n\t\tmsdyn_emailaddress1description = FOCEPrimaryAddress@msdyn_emailaddress1description,\n\t\ttelephone1 = FOCEPrimaryAddress@telephone1,\n\t\tmsdyn_telephone1extension = FOCEPrimaryAddress@msdyn_telephone1extension,\n\t\tmsdyn_telephone1description = FOCEPrimaryAddress@msdyn_telephone1description,\n\t\tfax = FOCEPrimaryAddress@fax,\n\t\tmsdyn_faxdescription = FOCEPrimaryAddress@msdyn_faxdescription,\n\t\tmsdyn_faxextension = FOCEPrimaryAddress@msdyn_faxextension,\n\t\twebsiteurl = FOCEPrimaryAddress@websiteurl,\n\t\tmsdyn_websiteurldescription = FOCEPrimaryAddress@msdyn_websiteurldescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ContactPrimaryAddressFields\nAccontPrimaryAddressFields sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\tmsdyn_primarylinkedinid as string,\n\t\tprimarytwitterid as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tmsdyn_telephone1extension as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\temailaddress1 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_mappedvendoraccount as string\n\t),\n\tpartitionFileNames:['AccountPrimaryAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> AccountPrimaryAddress\nContactPrimaryAddressFields sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\tmsdyn_primarylinkedinid as string,\n\t\tprimarytwitterid as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tmsdyn_telephone1extension as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\temailaddress1 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_mappedvendoraccount as string\n\t),\n\tpartitionFileNames:['ContactPrimaryAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> ContactPrimaryAddress"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/AzureStorageConnection')]",
+                "[concat(variables('factoryId'), '/datasets/DelimitedTextOutput')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/MergePrimaryAddress')]",
+            "type": "Microsoft.DataFactory/factories/dataflows",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "Merge primary address from FO and CE",
+                "type": "MappingDataFlow",
+                "typeProperties": {
+                    "sources": [
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "CEPrimaryElectronicAddress"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "FOElectronicAddress"
+                        }
+                    ],
+                    "sinks": [
+                        {
+                            "dataset": {
+                                "referenceName": "DelimitedTextOutput",
+                                "type": "DatasetReference"
+                            },
+                            "name": "FOCEPrimaryAddress"
+                        }
+                    ],
+                    "transformations": [
+                        {
+                            "name": "PrimaryFOAddress"
+                        },
+                        {
+                            "name": "PrimaryAddress"
+                        },
+                        {
+                            "name": "Source"
+                        },
+                        {
+                            "name": "FOPrimaryAddress"
+                        },
+                        {
+                            "name": "CEPrimaryAddress"
+                        },
+                        {
+                            "name": "CEAddress"
+                        },
+                        {
+                            "name": "PrimaryAddressUnion"
+                        }
+                    ],
+                    "script": "parameters{\n\tIsFOSource as boolean (false())\n}\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocator as string,\n\t\tDescription as string,\n\t\tType as string,\n\t\tLocatorExtension as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CEPrimaryElectronicAddress\nsource(output(\n\t\tPartyNumber as string,\n\t\tElectronicAddressId as string,\n\t\tIsInstantMessage as boolean,\n\t\tIsMobilePhone as boolean,\n\t\tCountryRegionCode as string,\n\t\tPurpose as string,\n\t\tLocator as string,\n\t\tLocatorExtension as string,\n\t\tLocationId as string,\n\t\tDescription as string,\n\t\tIsPrimary as boolean,\n\t\tType as string,\n\t\tIsPrivate as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOElectronicAddress\nFOElectronicAddress filter(IsPrimary) ~> PrimaryFOAddress\nCEPrimaryElectronicAddress, PrimaryFOAddress join(lower(CEPrimaryElectronicAddress@PartyNumber) == lpad(lower(FOElectronicAddress@PartyNumber),9,\"0\")\n\t&& lower(CEPrimaryElectronicAddress@Locator) != lower(FOElectronicAddress@Locator)\n\t&& lower(CEPrimaryElectronicAddress@Type) == lower(FOElectronicAddress@Type)\n\t&& lower(iifNull(CEPrimaryElectronicAddress@LocatorExtension, \"\", CEPrimaryElectronicAddress@LocatorExtension)) == lower(iifNull(FOElectronicAddress@LocatorExtension, \"\", FOElectronicAddress@LocatorExtension)),\n\tjoinType:'inner',\n\tbroadcast: 'both')~> PrimaryAddress\nCEAddress split(!$IsFOSource,\n\tdisjoint: false) ~> Source@(CE, FO)\nSource@FO select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator,\n\t\tDescription,\n\t\tType,\n\t\tLocatorExtension,\n\t\tElectronicAddressId,\n\t\tIsPrimary\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FOPrimaryAddress\nSource@CE select(mapColumn(\n\t\tPartyNumber = CEPartyNumber,\n\t\tLocator = CELocator,\n\t\tDescription = CEDescription,\n\t\tType = CEType,\n\t\tLocatorExtension = CELocatorExtension,\n\t\tIsPrimary,\n\t\tElectronicAddressId\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CEPrimaryAddress\nPrimaryAddress select(mapColumn(\n\t\tCEPartyNumber = CEPrimaryElectronicAddress@PartyNumber,\n\t\tCELocator = CEPrimaryElectronicAddress@Locator,\n\t\tCEDescription = CEPrimaryElectronicAddress@Description,\n\t\tCEType = CEPrimaryElectronicAddress@Type,\n\t\tCELocatorExtension = CEPrimaryElectronicAddress@LocatorExtension,\n\t\tPartyNumber = FOElectronicAddress@PartyNumber,\n\t\tElectronicAddressId,\n\t\tIsInstantMessage,\n\t\tIsMobilePhone,\n\t\tCountryRegionCode,\n\t\tPurpose,\n\t\tLocator = FOElectronicAddress@Locator,\n\t\tLocatorExtension = FOElectronicAddress@LocatorExtension,\n\t\tLocationId,\n\t\tDescription = FOElectronicAddress@Description,\n\t\tIsPrimary,\n\t\tType = FOElectronicAddress@Type,\n\t\tIsPrivate\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CEAddress\nCEPrimaryAddress, FOPrimaryAddress union(byName: true)~> PrimaryAddressUnion\nPrimaryAddressUnion sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\tmsdyn_primarylinkedinid as string,\n\t\tprimarytwitterid as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tmsdyn_telephone1extension as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\temailaddress1 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_mappedvendoraccount as string\n\t),\n\tpartitionFileNames:['PrimaryAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FOCEPrimaryAddress"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/AzureStorageConnection')]",
+                "[concat(variables('factoryId'), '/datasets/DelimitedTextOutput')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/CreateFoAddress')]",
+            "type": "Microsoft.DataFactory/factories/dataflows",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "Create new addresses which does not exists in FO",
+                "type": "MappingDataFlow",
+                "typeProperties": {
+                    "sources": [
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "FOElectronicAddress"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "CENonPrimaryAddress"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "PrimaryAddress"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "CDSParty"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "CEPrimaryElectronicAddress"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "AzureStorageConnection",
+                                "type": "DatasetReference"
+                            },
+                            "name": "CDSPartyElectronicAddress"
+                        }
+                    ],
+                    "sinks": [
+                        {
+                            "dataset": {
+                                "referenceName": "DelimitedTextOutput",
+                                "type": "DatasetReference"
+                            },
+                            "name": "FONewElectronicAddress"
+                        },
+                        {
+                            "dataset": {
+                                "referenceName": "DelimitedTextOutput",
+                                "type": "DatasetReference"
+                            },
+                            "name": "FOCEElectronicAddress"
+                        }
+                    ],
+                    "transformations": [
+                        {
+                            "name": "CEAddressNotExistsInFO"
+                        },
+                        {
+                            "name": "GenerateElectronicAddressId"
+                        },
+                        {
+                            "name": "PrefixElectronicAddressId"
+                        },
+                        {
+                            "name": "FilterPrimaryAddress"
+                        },
+                        {
+                            "name": "FOCEAddresssUnion"
+                        },
+                        {
+                            "name": "ElectornicAddressParty"
+                        },
+                        {
+                            "name": "Enum"
+                        },
+                        {
+                            "name": "PrimaryAddressUnion"
+                        },
+                        {
+                            "name": "RemoveFOPrimaryAddress"
+                        },
+                        {
+                            "name": "Source"
+                        },
+                        {
+                            "name": "FOCElectronicAddressUnion"
+                        },
+                        {
+                            "name": "CESource"
+                        },
+                        {
+                            "name": "FOSource"
+                        },
+                        {
+                            "name": "RemovePrimaryAddressFromCE"
+                        },
+                        {
+                            "name": "RemoveFOAddressFromCE"
+                        },
+                        {
+                            "name": "CEPrimaryAddressNotExistsInFO"
+                        },
+                        {
+                            "name": "CEPrimaryAddressNotExistsInFOUnion1"
+                        },
+                        {
+                            "name": "IsPrimaryFlag"
+                        },
+                        {
+                            "name": "IsPrimary"
+                        },
+                        {
+                            "name": "IsMobile"
+                        },
+                        {
+                            "name": "IsMobilePhone"
+                        },
+                        {
+                            "name": "CDSPartyElectronicAddressJoin"
+                        },
+                        {
+                            "name": "SelectElectronicAddress"
+                        }
+                    ],
+                    "script": "parameters{\n\tprefix as string (\"ADF-EA-\"),\n\tSource as boolean (false())\n}\nsource(output(\n\t\tPartyNumber as string,\n\t\tElectronicAddressId as string,\n\t\tIsInstantMessage as boolean,\n\t\tIsMobilePhone as boolean,\n\t\tCountryRegionCode as string,\n\t\tPurpose as string,\n\t\tLocator as string,\n\t\tLocatorExtension as string,\n\t\tLocationId as string,\n\t\tDescription as string,\n\t\tIsPrimary as boolean,\n\t\tType as string,\n\t\tIsPrivate as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOElectronicAddress\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocator as string,\n\t\tType as string,\n\t\tIsMobile as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CENonPrimaryAddress\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocator as string,\n\t\tDescription as string,\n\t\tType as string,\n\t\tLocatorExtension as string,\n\t\tIsPrimary as boolean,\n\t\tElectronicAddressId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> PrimaryAddress\nsource(output(\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSParty\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocator as string,\n\t\tType as string,\n\t\tDescription as string,\n\t\tLocatorExtension as string,\n\t\tfirst as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CEPrimaryElectronicAddress\nsource(output(\n\t\tmsdyn_partyelectronicaddressid as string,\n\t\tmsdyn_electronicaddressnumber as string,\n\t\tmsdyn_partyid as string,\n\t\t{aa.msdyn_partynumber} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSPartyElectronicAddress\nCENonPrimaryAddress, FOElectronicAddress exists(CENonPrimaryAddress@PartyNumber == FOElectronicAddress@PartyNumber\n\t&& CENonPrimaryAddress@Locator == FOElectronicAddress@Locator\n\t&& CENonPrimaryAddress@Type == FOElectronicAddress@Type,\n\tnegate:true,\n\tbroadcast: 'auto')~> CEAddressNotExistsInFO\nCEPrimaryAddressNotExistsInFOUnion1 keyGenerate(output(ElectronicAddressId as long),\n\tstartAt: 1L,\n\tstepValue: 1L) ~> GenerateElectronicAddressId\nGenerateElectronicAddressId derive(ElectronicAddressId = concat($prefix, toString(ElectronicAddressId))) ~> PrefixElectronicAddressId\nFOElectronicAddress, PrimaryAddress exists(FOElectronicAddress@ElectronicAddressId == PrimaryAddress@ElectronicAddressId,\n\tnegate:true,\n\tbroadcast: 'auto')~> FilterPrimaryAddress\nIsMobile, PrimaryAddressUnion union(byName: true)~> FOCEAddresssUnion\nIsMobilePhone, CDSParty join(PartyNumber == msdyn_partynumber,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> ElectornicAddressParty\nElectornicAddressParty derive(Type = case(lower(Type)=='phone',192350001,\r\ncase(lower(Type)=='email',192350002,\r\ncase(lower(Type)=='url',192350003,\r\ncase(lower(Type)=='telex',192350004,\r\ncase(lower(Type)=='fax',192350005,\r\ncase(lower(Type)=='facebook',192350006,\r\ncase(lower(Type)=='twitter',192350007,\r\ncase(lower(Type)=='linkedin',192350008\r\n)))))))),\n\t\tmsdyn_partyelectronicaddressid = \"\") ~> Enum\nPrefixElectronicAddressId, PrimaryAddress union(byName: true)~> PrimaryAddressUnion\nFOSource, PrimaryAddress exists(FOSource@ElectronicAddressId == PrimaryAddress@ElectronicAddressId,\n\tnegate:true,\n\tbroadcast: 'auto')~> RemoveFOPrimaryAddress\nPrimaryAddressUnion split($Source,\n\tdisjoint: false) ~> Source@(FO, CE)\nRemoveFOPrimaryAddress, CESource union(byName: true)~> FOCElectronicAddressUnion\nSource@CE select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator,\n\t\tType,\n\t\tElectronicAddressId,\n\t\tDescription,\n\t\tLocatorExtension,\n\t\tIsPrimary,\n\t\tIsMobile\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CESource\nSource@FO select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator,\n\t\tType,\n\t\tElectronicAddressId,\n\t\tDescription,\n\t\tLocatorExtension,\n\t\tIsPrimary,\n\t\tIsMobile\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FOSource\nCEPrimaryElectronicAddress, PrimaryAddress exists(lower(CEPrimaryElectronicAddress@PartyNumber) == lower(PrimaryAddress@PartyNumber)\n\t&& lower(CEPrimaryElectronicAddress@Locator) == lower(PrimaryAddress@Locator)\n\t&& lower(CEPrimaryElectronicAddress@Type) == lower(PrimaryAddress@Type)\n\t&& lower(iifNull(CEPrimaryElectronicAddress@Description,\"\",CEPrimaryElectronicAddress@Description)) == lower(iifNull(PrimaryAddress@Description,\"\",PrimaryAddress@Description))\n\t&& lower(iifNull(CEPrimaryElectronicAddress@LocatorExtension,\"\",CEPrimaryElectronicAddress@LocatorExtension)) == lower(iifNull(PrimaryAddress@LocatorExtension,\"\",PrimaryAddress@LocatorExtension)),\n\tnegate:true,\n\tbroadcast: 'auto')~> RemovePrimaryAddressFromCE\nRemovePrimaryAddressFromCE, FilterPrimaryAddress exists(lower(CEPrimaryElectronicAddress@PartyNumber) == lower(FOElectronicAddress@PartyNumber)\n\t&& lower(CEPrimaryElectronicAddress@Locator) == lower(FOElectronicAddress@Locator)\n\t&& lower(CEPrimaryElectronicAddress@Type) == lower(FOElectronicAddress@Type),\n\tnegate:true,\n\tbroadcast: 'auto')~> RemoveFOAddressFromCE\nIsPrimary select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator,\n\t\tType,\n\t\tDescription,\n\t\tLocatorExtension,\n\t\tIsPrimary\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CEPrimaryAddressNotExistsInFO\nCEAddressNotExistsInFO, CEPrimaryAddressNotExistsInFO union(byName: true)~> CEPrimaryAddressNotExistsInFOUnion1\nFOCElectronicAddressUnion derive(IsPrimary = case(IsPrimary,1,0)) ~> IsPrimaryFlag\nRemoveFOAddressFromCE derive(IsPrimary = iif((lower(Type)==\"email\" || lower(Type)==\"phone\"), true(), false() )) ~> IsPrimary\nFilterPrimaryAddress select(mapColumn(\n\t\tPartyNumber,\n\t\tElectronicAddressId,\n\t\tIsInstantMessage,\n\t\tIsMobile = IsMobilePhone,\n\t\tCountryRegionCode,\n\t\tPurpose,\n\t\tLocator,\n\t\tLocatorExtension,\n\t\tLocationId,\n\t\tDescription,\n\t\tIsPrimary,\n\t\tType,\n\t\tIsPrivate\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> IsMobile\nFOCEAddresssUnion select(mapColumn(\n\t\tPartyNumber,\n\t\tElectronicAddressId,\n\t\tIsInstantMessage,\n\t\tIsMobilePhone = IsMobile,\n\t\tCountryRegionCode,\n\t\tPurpose,\n\t\tLocator,\n\t\tLocatorExtension,\n\t\tLocationId,\n\t\tDescription,\n\t\tIsPrimary,\n\t\tType,\n\t\tIsPrivate\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> IsMobilePhone\nEnum, CDSPartyElectronicAddress join(CDSParty@msdyn_partyid == CDSPartyElectronicAddress@msdyn_partyid\n\t&& ElectronicAddressId == msdyn_electronicaddressnumber,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> CDSPartyElectronicAddressJoin\nCDSPartyElectronicAddressJoin select(mapColumn(\n\t\tPartyNumber,\n\t\tElectronicAddressId,\n\t\tIsInstantMessage,\n\t\tIsMobilePhone,\n\t\tCountryRegionCode,\n\t\tPurpose,\n\t\tLocator,\n\t\tLocatorExtension,\n\t\tLocationId,\n\t\tDescription,\n\t\tIsPrimary,\n\t\tType,\n\t\tIsPrivate,\n\t\tmsdyn_partyid = CDSParty@msdyn_partyid,\n\t\tmsdyn_partynumber,\n\t\tmsdyn_partyelectronicaddressid = CDSPartyElectronicAddress@msdyn_partyelectronicaddressid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectElectronicAddress\nIsPrimaryFlag sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\tmsdyn_primarylinkedinid as string,\n\t\tprimarytwitterid as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tmsdyn_telephone1extension as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\temailaddress1 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_mappedvendoraccount as string\n\t),\n\tpartitionFileNames:['ImportFONewElectronicAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FONewElectronicAddress\nSelectElectronicAddress sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\tmsdyn_primarylinkedinid as string,\n\t\tprimarytwitterid as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tmsdyn_telephone1extension as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\temailaddress1 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_mappedvendoraccount as string\n\t),\n\tpartitionFileNames:['FOCEElectronicAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FOCEElectronicAddress"
                 }
             },
             "dependsOn": [
@@ -3508,209 +3524,6 @@
             "dependsOn": [
                 "[concat(variables('factoryId'), '/datasets/AzureStorageConnection')]",
                 "[concat(variables('factoryId'), '/datasets/DelimitedTextOutput')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/CreateFoAddress')]",
-            "type": "Microsoft.DataFactory/factories/dataflows",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "description": "Create new addresses which does not exists in FO",
-                "type": "MappingDataFlow",
-                "typeProperties": {
-                    "sources": [
-                        {
-                            "dataset": {
-                                "referenceName": "AzureStorageConnection",
-                                "type": "DatasetReference"
-                            },
-                            "name": "FOElectronicAddress"
-                        },
-                        {
-                            "dataset": {
-                                "referenceName": "AzureStorageConnection",
-                                "type": "DatasetReference"
-                            },
-                            "name": "CENonPrimaryAddress"
-                        },
-                        {
-                            "dataset": {
-                                "referenceName": "AzureStorageConnection",
-                                "type": "DatasetReference"
-                            },
-                            "name": "PrimaryAddress"
-                        },
-                        {
-                            "dataset": {
-                                "referenceName": "AzureStorageConnection",
-                                "type": "DatasetReference"
-                            },
-                            "name": "CDSParty"
-                        },
-                        {
-                            "dataset": {
-                                "referenceName": "AzureStorageConnection",
-                                "type": "DatasetReference"
-                            },
-                            "name": "CEPrimaryElectronicAddress"
-                        }
-                    ],
-                    "sinks": [
-                        {
-                            "dataset": {
-                                "referenceName": "DelimitedTextOutput",
-                                "type": "DatasetReference"
-                            },
-                            "name": "FONewElectronicAddress"
-                        },
-                        {
-                            "dataset": {
-                                "referenceName": "DelimitedTextOutput",
-                                "type": "DatasetReference"
-                            },
-                            "name": "FOCEElectronicAddress"
-                        }
-                    ],
-                    "transformations": [
-                        {
-                            "name": "CEAddressNotExistsInFO"
-                        },
-                        {
-                            "name": "GenerateElectronicAddressId"
-                        },
-                        {
-                            "name": "PrefixElectronicAddressId"
-                        },
-                        {
-                            "name": "FilterPrimaryAddress"
-                        },
-                        {
-                            "name": "FOCEAddresssUnion"
-                        },
-                        {
-                            "name": "ElectornicAddressParty"
-                        },
-                        {
-                            "name": "Enum"
-                        },
-                        {
-                            "name": "PrimaryAddressUnion"
-                        },
-                        {
-                            "name": "RemoveFOPrimaryAddress"
-                        },
-                        {
-                            "name": "Source"
-                        },
-                        {
-                            "name": "FOCElectronicAddressUnion"
-                        },
-                        {
-                            "name": "CESource"
-                        },
-                        {
-                            "name": "FOSource"
-                        },
-                        {
-                            "name": "RemovePrimaryAddressFromCE"
-                        },
-                        {
-                            "name": "RemoveFOAddressFromCE"
-                        },
-                        {
-                            "name": "CEPrimaryAddressNotExistsInFO"
-                        },
-                        {
-                            "name": "FOCEPrimaryAddressNotExistsInFOUnion"
-                        },
-                        {
-                            "name": "CEPrimaryAddressNotExistsInFOUnion1"
-                        },
-                        {
-                            "name": "IsPrimaryFlag"
-                        },
-                        {
-                            "name": "IsPrimary"
-                        },
-                        {
-                            "name": "IsMobile"
-                        },
-                        {
-                            "name": "IsMobilePhone"
-                        }
-                    ],
-                    "script": "parameters{\n\tprefix as string (\"ADF-EA-\"),\n\tSource as boolean (false())\n}\nsource(output(\n\t\tPartyNumber as string,\n\t\tElectronicAddressId as string,\n\t\tIsInstantMessage as boolean,\n\t\tIsMobilePhone as boolean,\n\t\tCountryRegionCode as string,\n\t\tPurpose as string,\n\t\tLocator as string,\n\t\tLocatorExtension as string,\n\t\tLocationId as string,\n\t\tDescription as string,\n\t\tIsPrimary as boolean,\n\t\tType as string,\n\t\tIsPrivate as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> FOElectronicAddress\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocator as string,\n\t\tType as string,\n\t\tIsMobile as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CENonPrimaryAddress\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocator as string,\n\t\tDescription as string,\n\t\tType as string,\n\t\tLocatorExtension as string,\n\t\tIsPrimary as boolean,\n\t\tElectronicAddressId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> PrimaryAddress\nsource(output(\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CDSParty\nsource(output(\n\t\tPartyNumber as string,\n\t\tLocator as string,\n\t\tType as string,\n\t\tDescription as string,\n\t\tLocatorExtension as string,\n\t\tfirst as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CEPrimaryElectronicAddress\nCENonPrimaryAddress, FOElectronicAddress exists(CENonPrimaryAddress@PartyNumber == FOElectronicAddress@PartyNumber\n\t&& CENonPrimaryAddress@Locator == FOElectronicAddress@Locator\n\t&& CENonPrimaryAddress@Type == FOElectronicAddress@Type,\n\tnegate:true,\n\tbroadcast: 'auto')~> CEAddressNotExistsInFO\nCEPrimaryAddressNotExistsInFOUnion1 keyGenerate(output(ElectronicAddressId as long),\n\tstartAt: 1L) ~> GenerateElectronicAddressId\nGenerateElectronicAddressId derive(ElectronicAddressId = concat($prefix, toString(ElectronicAddressId))) ~> PrefixElectronicAddressId\nFOElectronicAddress, PrimaryAddress exists(FOElectronicAddress@ElectronicAddressId == PrimaryAddress@ElectronicAddressId,\n\tnegate:true,\n\tbroadcast: 'auto')~> FilterPrimaryAddress\nIsMobile, PrimaryAddressUnion union(byName: true)~> FOCEAddresssUnion\nIsMobilePhone, CDSParty join(PartyNumber == msdyn_partynumber,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> ElectornicAddressParty\nFOCEPrimaryAddressNotExistsInFOUnion derive(Type = case(lower(Type)=='phone',192350001,\r\ncase(lower(Type)=='email',192350002,\r\ncase(lower(Type)=='url',192350003,\r\ncase(lower(Type)=='telex',192350004,\r\ncase(lower(Type)=='fax',192350005,\r\ncase(lower(Type)=='facebook',192350006,\r\ncase(lower(Type)=='twitter',192350007,\r\ncase(lower(Type)=='linkedin',192350008\r\n)))))))),\n\t\tmsdyn_partyelectronicaddressid = \"\") ~> Enum\nPrefixElectronicAddressId, PrimaryAddress union(byName: true)~> PrimaryAddressUnion\nFOSource, PrimaryAddress exists(FOSource@ElectronicAddressId == PrimaryAddress@ElectronicAddressId,\n\tnegate:true,\n\tbroadcast: 'auto')~> RemoveFOPrimaryAddress\nPrimaryAddressUnion split($Source,\n\tdisjoint: false) ~> Source@(FO, CE)\nRemoveFOPrimaryAddress, CESource union(byName: true)~> FOCElectronicAddressUnion\nSource@CE select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator,\n\t\tType,\n\t\tElectronicAddressId,\n\t\tDescription,\n\t\tLocatorExtension,\n\t\tIsPrimary,\n\t\tIsMobile\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CESource\nSource@FO select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator,\n\t\tType,\n\t\tElectronicAddressId,\n\t\tDescription,\n\t\tLocatorExtension,\n\t\tIsPrimary,\n\t\tIsMobile\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FOSource\nCEPrimaryElectronicAddress, PrimaryAddress exists(lower(CEPrimaryElectronicAddress@PartyNumber) == lower(PrimaryAddress@PartyNumber)\n\t&& lower(CEPrimaryElectronicAddress@Locator) == lower(PrimaryAddress@Locator)\n\t&& lower(CEPrimaryElectronicAddress@Type) == lower(PrimaryAddress@Type)\n\t&& lower(iifNull(CEPrimaryElectronicAddress@Description,\"\",CEPrimaryElectronicAddress@Description)) == lower(iifNull(PrimaryAddress@Description,\"\",PrimaryAddress@Description))\n\t&& lower(iifNull(CEPrimaryElectronicAddress@LocatorExtension,\"\",CEPrimaryElectronicAddress@LocatorExtension)) == lower(iifNull(PrimaryAddress@LocatorExtension,\"\",PrimaryAddress@LocatorExtension)),\n\tnegate:true,\n\tbroadcast: 'auto')~> RemovePrimaryAddressFromCE\nRemovePrimaryAddressFromCE, FilterPrimaryAddress exists(lower(CEPrimaryElectronicAddress@PartyNumber) == lower(FOElectronicAddress@PartyNumber)\n\t&& lower(CEPrimaryElectronicAddress@Locator) == lower(FOElectronicAddress@Locator)\n\t&& lower(CEPrimaryElectronicAddress@Type) == lower(FOElectronicAddress@Type),\n\tnegate:true,\n\tbroadcast: 'auto')~> RemoveFOAddressFromCE\nIsPrimary select(mapColumn(\n\t\tPartyNumber,\n\t\tLocator,\n\t\tType,\n\t\tDescription,\n\t\tLocatorExtension,\n\t\tIsPrimary\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CEPrimaryAddressNotExistsInFO\nElectornicAddressParty, CEPrimaryAddressNotExistsInFO union(byName: true)~> FOCEPrimaryAddressNotExistsInFOUnion\nCEAddressNotExistsInFO, CEPrimaryAddressNotExistsInFO union(byName: true)~> CEPrimaryAddressNotExistsInFOUnion1\nFOCElectronicAddressUnion derive(IsPrimary = case(IsPrimary,1,0)) ~> IsPrimaryFlag\nRemoveFOAddressFromCE derive(IsPrimary = iif((lower(Type)==\"email\" || lower(Type)==\"phone\"), true(), false() )) ~> IsPrimary\nFilterPrimaryAddress select(mapColumn(\n\t\tPartyNumber,\n\t\tElectronicAddressId,\n\t\tIsInstantMessage,\n\t\tIsMobile = IsMobilePhone,\n\t\tCountryRegionCode,\n\t\tPurpose,\n\t\tLocator,\n\t\tLocatorExtension,\n\t\tLocationId,\n\t\tDescription,\n\t\tIsPrimary,\n\t\tType,\n\t\tIsPrivate\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> IsMobile\nFOCEAddresssUnion select(mapColumn(\n\t\tPartyNumber,\n\t\tElectronicAddressId,\n\t\tIsInstantMessage,\n\t\tIsMobilePhone = IsMobile,\n\t\tCountryRegionCode,\n\t\tPurpose,\n\t\tLocator,\n\t\tLocatorExtension,\n\t\tLocationId,\n\t\tDescription,\n\t\tIsPrimary,\n\t\tType,\n\t\tIsPrivate\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> IsMobilePhone\nIsPrimaryFlag sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\tmsdyn_primarylinkedinid as string,\n\t\tprimarytwitterid as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tmsdyn_telephone1extension as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\temailaddress1 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_mappedvendoraccount as string\n\t),\n\tpartitionFileNames:['ImportFONewElectronicAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FONewElectronicAddress\nEnum sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\taccountid as string,\n\t\tCompanyCode as string,\n\t\taccountnumber as string,\n\t\tname as string,\n\t\tmsdyn_partyid as string,\n\t\tmsdyn_partynumber as string,\n\t\tPartyNumber as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tmsdyn_websiteurldescription as string,\n\t\tmsdyn_primaryfacebookdescription as string,\n\t\tmsdyn_telephone1description as string,\n\t\tmsdyn_primarylinkedindescrption as string,\n\t\tmsdyn_primarylinkedinid as string,\n\t\tprimarytwitterid as string,\n\t\tmsdyn_primarytwitteriddescription as string,\n\t\tmsdyn_emailaddress1description as string,\n\t\tmsdyn_primaryfacebookid as string,\n\t\tmsdyn_telephone1extension as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\temailaddress1 as string,\n\t\ttelephone3 as string,\n\t\tmsdyn_mappedvendoraccount as string\n\t),\n\tpartitionFileNames:['FOCEElectronicAddress.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FOCEElectronicAddress"
-                }
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/datasets/AzureStorageConnection')]",
-                "[concat(variables('factoryId'), '/datasets/DelimitedTextOutput')]"
-            ]
-        },
-        {
-            "name": "[concat(parameters('factoryName'), '/DWMapValidation')]",
-            "type": "Microsoft.DataFactory/factories/dataflows",
-            "apiVersion": "2018-06-01",
-            "properties": {
-                "type": "MappingDataFlow",
-                "typeProperties": {
-                    "sources": [
-                        {
-                            "dataset": {
-                                "referenceName": "AzureStorageConnection",
-                                "type": "DatasetReference"
-                            },
-                            "name": "DWMap"
-                        }
-                    ],
-                    "sinks": [
-                        {
-                            "dataset": {
-                                "referenceName": "AzureStorageConnection",
-                                "type": "DatasetReference"
-                            },
-                            "name": "DWEnabledMaps"
-                        }
-                    ],
-                    "transformations": [
-                        {
-                            "name": "FilterDWMap"
-                        },
-                        {
-                            "name": "MapEntityName"
-                        }
-                    ],
-                    "scriptLines": [
-                        "source(output(",
-                        "          statecode as boolean,",
-                        "          msdyn_internalentityname as string,",
-                        "          msdyn_dualwriteruntimeconfigid as string,",
-                        "          msdyn_externalentityname as string,",
-                        "          statuscode as boolean,",
-                        "          msdyn_name as string",
-                        "     ),",
-                        "     allowSchemaDrift: true,",
-                        "     validateSchema: false,",
-                        "     ignoreNoFilesFound: false) ~> DWMap",
-                        "DWMap filter(lower(msdyn_internalentityname)==\"msdyn_party\" || lower(msdyn_internalentityname)==\"msdyn_contactforparty\" || lower(msdyn_internalentityname)==\"account\"  ||lower(msdyn_internalentityname)==\"contact\" || lower(msdyn_internalentityname)==\"msdyn_vendor\" ||\r",
-                        "lower(msdyn_internalentityname)==\"msdyn_postaladdresscollection\"  || lower(msdyn_internalentityname)==\"msdyn_partypostaladdress\" || lower(msdyn_internalentityname)==\"msdyn_postaladdress\" || lower(msdyn_internalentityname)==\"customeraddress\" ||\r",
-                        "lower(msdyn_internalentityname)==\"msdyn_partyelectronicaddress\") ~> FilterDWMap",
-                        "FilterDWMap select(mapColumn(",
-                        "          msdyn_internalentityname",
-                        "     ),",
-                        "     skipDuplicateMapInputs: true,",
-                        "     skipDuplicateMapOutputs: true) ~> MapEntityName",
-                        "MapEntityName sink(allowSchemaDrift: true,",
-                        "     validateSchema: false,",
-                        "     partitionFileNames:['DWEnabledMaps.csv'],",
-                        "     skipDuplicateMapInputs: true,",
-                        "     skipDuplicateMapOutputs: true,",
-                        "     partitionBy('hash', 1)) ~> DWEnabledMaps"
-                    ]
-                }
-            },
-            "dependsOn": [
-                "[concat(variables('factoryId'), '/datasets/AzureStorageConnection')]"
             ]
         }
     ]
