@@ -22,7 +22,8 @@ https://user-images.githubusercontent.com/65608469/165361941-dae756da-3d7e-453b-
 ![Cloud Data Warehouse](CloudDatawarehouse/CloudDataWarehouse.png)
 
 ## Solution template
-
+1. ![Copy Synapse Table](/CloudDatawarehouse/CopySynapseTable.zip)
+2. ![GL Data Materialize](/CloudDatawarehouse/GLDataMaterialize.zip)
 
 ## Demo
 
@@ -52,7 +53,10 @@ https://user-images.githubusercontent.com/65608469/164779488-7edd01ca-da41-4da3-
 
 ## Lakehouse using Databricks 
 
-### Solution templates 
+### Solution templates
+![1 Commerce_clickstream_fake_data.py](Lakehouse/Commerce_clickstream_fake_data.py)
+
+![1 Commerce-clickstream-pipeline-share](Lakehouse/Commerce-clickstream-pipeline-share.ipynb)
 
 ### Demo
 
