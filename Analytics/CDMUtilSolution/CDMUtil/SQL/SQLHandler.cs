@@ -869,10 +869,10 @@ as
             {
                 table.SchemaObject.BaseIdentifier.Value = dbName + "." + table.SchemaObject.BaseIdentifier.Value;
             }
-            else
+          /*  else
             {
                 table.SchemaObject.BaseIdentifier.Value = schema + "." + table.SchemaObject.BaseIdentifier.Value;
-            }
+            }*/
 
             base.ExplicitVisit(table);
         }
