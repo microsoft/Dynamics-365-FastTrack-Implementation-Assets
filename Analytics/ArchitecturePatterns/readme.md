@@ -8,22 +8,25 @@ Following are some of the common architecture patterns that customers are using
 # 1:Logical Data warehouse (virtualization) using Serverless pool
 
 ## Overview 
-![1.Data Virtualization Using Serverless Pool](DataVirtualization.png)
+![1.Data Virtualization Using Serverless Pool](DataVirtualization/DataVirtualization.png)
 
 ## Solution template
 
 ## Demo 
+https://user-images.githubusercontent.com/65608469/165361941-dae756da-3d7e-453b-bfd8-2286b13f4715.mp4
 
 # 2: Cloud data warehouse using Synapse Dedicated pool
 
 ## Overview 
 
-![Cloud Data Warehouse](CloudDataWarehouse.png)
+![Cloud Data Warehouse](CloudDatawarehouse/CloudDataWarehouse.png)
 
 ## Solution template
 
 
 ## Demo
+
+https://user-images.githubusercontent.com/65608469/165362039-4def15b4-42a9-4c58-bc74-491529b98e2c.mp4
 
 
 # 3:Lakehouse architecture 
@@ -36,12 +39,13 @@ https://user-images.githubusercontent.com/65608469/164785280-40e34bf8-20a2-406b-
 
 ### Synapse pipeline templates
 
-![SQL Script to get table metadata](Lakehouse/GetTablesMetadata.sql)
-![1 SilverCDMtoDelta](Lakehouse/1_Silver_CDMToDeltaLake.zip)
+1. ![SQL Script to get table metadata](Lakehouse/GetTablesMetadata.sql)
 
-![2 GoldDimTransform](Lakehouse/3_GoldTransformation_Dim.zip)
+2. ![1 SilverCDMtoDelta](Lakehouse/1_Silver_CDMToDeltaLake.zip)
 
-![3 GoldFactTransform](Lakehouse/3_GoldTransformation_Fact.zip)
+3. ![2 GoldDimTransform](Lakehouse/3_GoldTransformation_Dim.zip)
+
+4. ![3 GoldFactTransform](Lakehouse/3_GoldTransformation_Fact.zip)
 
 ### Demo
 https://user-images.githubusercontent.com/65608469/164779488-7edd01ca-da41-4da3-9ff2-53bd7203d3dc.mp4
@@ -52,9 +56,11 @@ https://user-images.githubusercontent.com/65608469/164779488-7edd01ca-da41-4da3-
 
 ### Demo
 
+
 # 4: Integrating with existing DW (SQL Servers/ Azure SQL)
 
-![IntegratinWithExistingDW](IntegratinWithExistingDW.png)
+![IntegratinWithExistingDW](SQLIntegration/IntegratinWithExistingDW.png)
+
 
 ## Solution templates
 
@@ -62,6 +68,7 @@ https://user-images.githubusercontent.com/65608469/164779488-7edd01ca-da41-4da3-
 2. ![SynapseToSQLFullExport](SQLIntegration/FullExport_SQL.zip)
 3. ![SynapseToSQLIncrementalExport](SQLIntegration/IncrementalExport_SQL.zip)
 
-## Demo
+## Demo 
+https://user-images.githubusercontent.com/65608469/165363220-bc855e56-1579-42cf-b588-43ba02c7e5ca.mp4
 
 
