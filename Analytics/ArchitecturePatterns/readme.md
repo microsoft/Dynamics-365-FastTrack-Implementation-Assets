@@ -12,8 +12,8 @@ Following are some of the common architecture patterns including demo and soluti
 
 ## Solution template
 1. [Use CDMUtil and configure to create External Table/Views on Serverless SQL Pool](../CDMUtilSolution/readme.md)
-2. [Data model SQL View](/DataVirtualization/LogicalDW_DataModelViews.sql) 
-3. [Power Bi Report](/DataVirtualization/GLReport_DataVirtualization.pbix) 
+2. [Data model SQL View](DataVirtualization/LogicalDW_DataModelViews.sql) 
+3. [Power Bi Report](DataVirtualization/GLReport_DataVirtualization.pbix) 
 
 ## Demo 
 https://user-images.githubusercontent.com/65608469/165361941-dae756da-3d7e-453b-bfd8-2286b13f4715.mp4
@@ -25,8 +25,8 @@ https://user-images.githubusercontent.com/65608469/165361941-dae756da-3d7e-453b-
 ![Cloud Data Warehouse](CloudDatawarehouse/CloudDataWarehouse.png)
 
 ## Solution template
-1. ![Copy Synapse Table](/CloudDatawarehouse/CopySynapseTable.zip)
-2. ![GL Data Materialize](/CloudDatawarehouse/GLDataMaterialize.zip)
+1. [Copy Synapse Table](/CloudDatawarehouse/CopySynapseTable.zip)
+2. [GL Data Materialize](/CloudDatawarehouse/GLDataMaterialize.zip)
 
 ## Demo
 
