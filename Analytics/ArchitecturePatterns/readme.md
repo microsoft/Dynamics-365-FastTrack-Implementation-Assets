@@ -25,8 +25,8 @@ https://user-images.githubusercontent.com/65608469/165361941-dae756da-3d7e-453b-
 ![Cloud Data Warehouse](CloudDatawarehouse/CloudDataWarehouse.png)
 
 ## Solution template
-1. [Copy Synapse Table](/CloudDatawarehouse/CopySynapseTable.zip)
-2. [GL Data Materialize](/CloudDatawarehouse/GLDataMaterialize.zip)
+1. [Copy Synapse Table](CloudDatawarehouse/CopySynapseTable.zip)
+2. [GL Data Materialize](CloudDatawarehouse/GLDataMaterialize.zip)
 
 ## Demo
 
@@ -42,13 +42,13 @@ https://user-images.githubusercontent.com/65608469/164785280-40e34bf8-20a2-406b-
 
 ### Synapse pipeline templates
 
-1. ![SQL Script to get table metadata](Lakehouse/GetTablesMetadata.sql)
+1. [SQL Script to get table metadata](Lakehouse/GetTablesMetadata.sql)
 
-2. ![1 SilverCDMtoDelta](Lakehouse/1_Silver_CDMToDeltaLake.zip)
+2. [1 SilverCDMtoDelta](Lakehouse/1_Silver_CDMToDeltaLake.zip)
 
-3. ![2 GoldDimTransform](Lakehouse/3_GoldTransformation_Dim.zip)
+3. [2 GoldDimTransform](Lakehouse/3_GoldTransformation_Dim.zip)
 
-4. ![3 GoldFactTransform](Lakehouse/3_GoldTransformation_Fact.zip)
+4. [3 GoldFactTransform](Lakehouse/3_GoldTransformation_Fact.zip)
 
 ### Demo
 https://user-images.githubusercontent.com/65608469/164779488-7edd01ca-da41-4da3-9ff2-53bd7203d3dc.mp4
