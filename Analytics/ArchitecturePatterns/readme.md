@@ -2,8 +2,8 @@
 Dynamics 365 Finance and Operations Apps, [Export to data lake](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/finance-data-azure-data-lake) feature, lets you copy data and metadata from your Finance and Operations apps into your own data lake (Azure Data Lake Storage Gen2). 
 Data that is stored in the data lake is organized in a folder structure in Common Data Model format, essentially data is stored in folders as headerless CSV and metadata as [Cdm manifest](https://docs.microsoft.com/en-us/common-data-model/cdm-manifest).  
 
-With Dynamics 365 data in the lake, there are various architecture patterns than you can be utilize to build end to end BI and reporting and integration solution.
-Following are some of the common architecture patterns that customers are using 
+With Dynamics 365 data in the lake, there are various architecture patterns that you can be utilized to build end to end BI and reporting and integration solution.
+Following are some of the common architecture patterns including demo and solution template used in the demo to help you build your POC yourself.
 
 # 1:Logical Data warehouse (virtualization) using Serverless pool
 
@@ -11,6 +11,9 @@ Following are some of the common architecture patterns that customers are using
 ![1.Data Virtualization Using Serverless Pool](DataVirtualization/DataVirtualization.png)
 
 ## Solution template
+1. [Use CDMUtil and configure to create External Table/Views on Serverless SQL Pool](../CDMUtilSolution/readme.md)
+2. [Data model SQL View](DataVirtualization/LogicalDW_DataModelViews.sql) 
+3. [Power Bi Report](DataVirtualization/GLReport_DataVirtualization.pbix) 
 
 ## Demo 
 https://user-images.githubusercontent.com/65608469/165361941-dae756da-3d7e-453b-bfd8-2286b13f4715.mp4
@@ -22,13 +25,12 @@ https://user-images.githubusercontent.com/65608469/165361941-dae756da-3d7e-453b-
 ![Cloud Data Warehouse](CloudDatawarehouse/CloudDataWarehouse.png)
 
 ## Solution template
-1. ![Copy Synapse Table](/CloudDatawarehouse/CopySynapseTable.zip)
-2. ![GL Data Materialize](/CloudDatawarehouse/GLDataMaterialize.zip)
+1. [Copy Synapse Table](CloudDatawarehouse/CopySynapseTable.zip)
+2. [GL Data Materialize](CloudDatawarehouse/GLDataMaterialize.zip)
 
 ## Demo
 
 https://user-images.githubusercontent.com/65608469/165362039-4def15b4-42a9-4c58-bc74-491529b98e2c.mp4
-
 
 # 3:Lakehouse architecture 
 
@@ -40,13 +42,13 @@ https://user-images.githubusercontent.com/65608469/164785280-40e34bf8-20a2-406b-
 
 ### Synapse pipeline templates
 
-1. ![SQL Script to get table metadata](Lakehouse/GetTablesMetadata.sql)
+1. [SQL Script to get table metadata](Lakehouse/GetTablesMetadata.sql)
 
-2. ![1 SilverCDMtoDelta](Lakehouse/1_Silver_CDMToDeltaLake.zip)
+2. [1 SilverCDMtoDelta](Lakehouse/1_Silver_CDMToDeltaLake.zip)
 
-3. ![2 GoldDimTransform](Lakehouse/3_GoldTransformation_Dim.zip)
+3. [2 GoldDimTransform](Lakehouse/3_GoldTransformation_Dim.zip)
 
-4. ![3 GoldFactTransform](Lakehouse/3_GoldTransformation_Fact.zip)
+4. [3 GoldFactTransform](Lakehouse/3_GoldTransformation_Fact.zip)
 
 ### Demo
 https://user-images.githubusercontent.com/65608469/164779488-7edd01ca-da41-4da3-9ff2-53bd7203d3dc.mp4
