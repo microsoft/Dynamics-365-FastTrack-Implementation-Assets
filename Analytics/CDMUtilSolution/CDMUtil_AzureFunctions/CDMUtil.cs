@@ -184,6 +184,23 @@ namespace CDMUtil
 
             return new OkObjectResult(JsonConvert.SerializeObject(statementsList));
         }
+        [FunctionName("getManifestDetails")]
+        public static async Task<IActionResult> getManifestDetails(
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
+        ILogger log, ExecutionContext context)
+        {
+            log.LogInformation("C# HTTP trigger function processed a request- manifestToMetadata");
+
+            //get configurations data 
+            AppConfigurations c = GetAppConfigurations(req, context);
+
+            // Read Manifest metadata
+            log.Log(LogLevel.Information, "Reading Manifest metadata");
+          
+            List<ManifestDefinition> manifestDefinitions = await ManifestReader.getManifestDefinitions(c, log);
+
+            return new OkObjectResult(JsonConvert.SerializeObject(manifestDefinitions));
+        }
         [FunctionName("getMetadata")]
         public static async Task<IActionResult> getMetadata(
          [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
@@ -235,46 +252,7 @@ namespace CDMUtil
             }
 
         }
-        [FunctionName("getTableMetadata")]
-        public static async Task<IActionResult> getTableMetadata(
-        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
-        ILogger log, ExecutionContext context)
-        {
-            log.LogInformation("HTTP trigger getTableMetadata...");
 
-            string containerURL = req.Headers["BlobContainerURL"];
-           
-            string tables = req.Headers["Tables"];
-            Uri containerURI = new Uri(containerURL);
-            /*
-            try
-            {
-                StorageCredentials storageCredentials = new StorageCredentials(myAccountName, myAccountKey);
-                var account = new CloudStorageAccount(new StorageCredentials(), true);
-                var blobClient = account.CreateCloudBlobClient();
-                var container = blobClient.GetContainerReference("blob-container-name");
-                var blobs = container.ListBlobs(prefix: "container-directory", useFlatBlobListing: true);
-
-                BlobContainerClient blobContainerClinet = new BlobContainerClient(containerURI);
-                BlobClient client = blobContainerClinet.GetBlobClient(TablesManifestPath);
-               
-            }
-            catch (Exception e)
-            {
-                retVal = "An error occurred while contacting the Storage Account" + Environment.NewLine;
-                while (e != null)
-                {
-                    retVal += e.Message + Environment.NewLine;
-                    e = e.InnerException;
-                }
-            }
-            // Read Manifest metadata
-            log.Log(LogLevel.Information, "Reading metadata");
-            
-           */
-
-            return new OkObjectResult(null);
-        }
         public static string getConfigurationValue(HttpRequest req, string token, string url = null)
         {
             string ConfigValue = null;
@@ -330,6 +308,13 @@ namespace CDMUtil
             AppConfigurations AppConfiguration = new AppConfigurations(tenantId, ManifestURL, AccessKey, connectionString, DDLType, targetSparkConnection);
 
             string AXDBConnectionString = getConfigurationValue(req, "AXDBConnectionString", ManifestURL);
+
+
+            if (AppConfiguration.tableList == null)
+            {
+                string TableNames = getConfigurationValue(req, "TableNames", ManifestURL);
+                AppConfiguration.tableList = String.IsNullOrEmpty(TableNames) ? new List<string>() { "*" } : new List<string>(TableNames.Split(','));
+            }
 
             if (AXDBConnectionString != null)
                 AppConfiguration.AXDBConnectionString = AXDBConnectionString;

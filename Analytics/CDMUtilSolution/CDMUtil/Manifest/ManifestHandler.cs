@@ -51,7 +51,52 @@ namespace CDMUtil.Manifest
                 }
             }
         }
-        public async static Task<bool> manifestToSQLMetadata(AppConfigurations c, List<SQLMetadata> metadataList, ILogger logger, string parentFolder = "")
+        public async static Task<List<ManifestDefinition>> getManifestDefinitions(AppConfigurations c, ILogger logger)
+        {
+            ManifestReader manifestHandler = new ManifestReader(c.AdlsContext, "/", logger);
+
+            List<string> files = await manifestHandler.cdmCorpus.Storage.FetchAdapter(manifestHandler.cdmCorpus.Storage.DefaultNamespace).FetchAllFilesAsync(c.rootFolder);
+            
+            List<String> filteredBlob = files.Where(b => b.EndsWith(".cdm.json") && !b.EndsWith(".manifest.cdm.json") && !b.Contains("/resolved/")).ToList();
+
+            List<String> tableList = c.tableList;
+
+            List<ManifestDefinition> metadataList = new List<ManifestDefinition>();
+
+            foreach (var blob in filteredBlob)
+            {
+                string dataPath = blob.Replace(".cdm.json", "");
+                string[] dataPathParts = dataPath.Split('/');
+                string[] manifestPathParts = dataPathParts.Take(dataPathParts.Length - 1).ToArray();
+                string TableName = dataPathParts.Last();
+
+                if (tableList != null)
+                {
+                    if (tableList.Count == 0)
+                        break;
+                    else if (tableList.First() != "*" && !tableList.Contains(TableName))
+                        continue;
+                    else
+                        tableList.Remove(TableName);
+                }
+
+                ManifestDefinition metadata = new ManifestDefinition
+                {
+                    TableName = dataPathParts.Last(),
+                    DataLocation = dataPath,
+                    ManifestName = dataPathParts[dataPathParts.Length - 2],
+                    ManifestLocation = String.Join("/", manifestPathParts)
+                };
+
+                metadataList.Add(metadata);
+            }
+
+            logger.LogDebug(JsonConvert.SerializeObject(metadataList));
+            return metadataList;
+        }
+
+  
+    public async static Task<bool> manifestToSQLMetadata(AppConfigurations c, List<SQLMetadata> metadataList, ILogger logger, string parentFolder = "")
         {
             AdlsContext adlsContext = c.AdlsContext;
             string manifestName = c.manifestName;
@@ -310,7 +355,8 @@ namespace CDMUtil.Manifest
                         if (contEntDef != null)
                         {
                             columnAttribute.constantValueList = contEntDef;
-                            columnAttribute.maximumLength = 10;
+                            columnAttribute.dataType = "int32";
+                            //columnAttribute.maximumLength = 10;
                         }
                     }
                 }
