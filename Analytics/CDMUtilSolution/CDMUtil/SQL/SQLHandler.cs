@@ -249,7 +249,7 @@ namespace CDMUtil.SQL
         {
             string sqlColumnNames = "";
             if (synapseDBOptions.TranslateEnum == true
-                && attribute.dataType.ToLower() == "string"
+                && attribute.dataType.ToLower() == "int32"
                 && attribute.constantValueList != null)
             { 
                 var constantValues = attribute.constantValueList.ConstantValues;
@@ -289,6 +289,7 @@ namespace CDMUtil.SQL
                 case "smallinteger":
                 case "int":
                 case "int32":
+                case "time":
                     sqlColumnDef = $"{attribute.name} int";
                     break;
                 case "date":
