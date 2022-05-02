@@ -2,13 +2,15 @@
 Dynamics 365 Finance and Operations Apps, [Export to data lake](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/finance-data-azure-data-lake) feature, lets you copy data and metadata from your Finance and Operations apps into your own data lake (Azure Data Lake Storage Gen2). 
 Data that is stored in the data lake is organized in a folder structure in Common Data Model format, essentially data is stored in folders as headerless CSV and metadata as [Cdm manifest](https://docs.microsoft.com/en-us/common-data-model/cdm-manifest).  
 
-With Dynamics 365 data in the lake, there are various architecture patterns that you can utilize to build end to end Analytical and integration pipelines.
-Following are some of the common architecture patterns including demo and POC solution templates to help you build your solutions yourself.
+
+With Dynamics 365 data in the lake, there are various architecture patterns that you can be utilized to build end to end BI and reporting and integration solution.
+Following are some of the common architecture patterns including demo and solution template used in the demo to help you build your POC yourself.
 
 # 1:Logical Data warehouse (virtualization) using Serverless pool
 
 ## Overview 
 ![1.Data Virtualization Using Serverless Pool](DataVirtualization/DataVirtualization.png)
+
 
 ## Solution templates
 1. [Use CDMUtil and configure to create External Table/Views on Serverless SQL Pool](../CDMUtilSolution/readme.md)
@@ -24,7 +26,9 @@ https://user-images.githubusercontent.com/65608469/165361941-dae756da-3d7e-453b-
 
 ![Cloud Data Warehouse](CloudDatawarehouse/CloudDataWarehouse.png)
 
+
 ## Solution templates
+
 1. [Copy Synapse Table](CloudDatawarehouse/CopySynapseTable.zip)
 2. [GL Data Materialize](CloudDatawarehouse/GLDataMaterialize.zip)
 
@@ -40,6 +44,7 @@ https://user-images.githubusercontent.com/65608469/164785280-40e34bf8-20a2-406b-
 ## Approach 1 - Lakehouse using Synapse pipeline and Serverless pool
 
 ### Synapse pipeline templates
+
 1. [SQL Script to get table metadata](Lakehouse/GetTablesMetadata.sql)
 2. [1 SilverCDMtoDelta](Lakehouse/1_Silver_CDMToDeltaLake.zip)
 3. [2 GoldDimTransform](Lakehouse/3_GoldTransformation_Dim.zip)
