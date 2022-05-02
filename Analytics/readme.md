@@ -9,6 +9,8 @@ Following table provides the overview of the tools available in this section
 |[TCO Cost Calculator](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Analytics/CostCalculator) | From BYOD to Data Lake Storage Gen 2 with Synapse Serverless|
 |[Entity Store Tools](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Analytics/EntityStoreTools)|Tools and process to transform EntityStore data in data lake using Synapse Analytics|
 |[Azure SQL to SQL Pipeline](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Analytics/SQLToSQLADF)|ADF and SQL based generic solution template that can be used to copy incremental data from one SQL server database to another. Solution uses SQL ChangeTracking feature on the source database to identify incremental changes and export incremental changes to destination database and merge it.|
-|[CDMPathFinderSolution](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Analytics/CDMPathFinderSolution)|Simple WPF applicatin to retreive all tables paths providing the initial Tables.manifest.cdm.json file.
+|[CDMPathFinderSolution](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Analytics/CDMPathFinderSolution)|Simple WPF applicatin to retreive all tables paths providing the initial Tables.manifest.cdm.json file.|
+|[Architecture Patterns](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Analytics/ArchitecturePatterns)|Architecture patterns and sample code solutions to build end to end Analytical pipelines. |
+|[ML Samples](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Analytics/ML-Samples)|Sample ML notebooks and solutions with commentary to showcase how ML can be incorporated into your Analytics pipelines and BI dashboards 
 
 
