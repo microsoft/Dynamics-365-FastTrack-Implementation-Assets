@@ -71,7 +71,7 @@ https://user-images.githubusercontent.com/65608469/164779488-7edd01ca-da41-4da3-
 
 <div id="lakehouse-databricks-pyspark"></div>
 
-## Approach 2 - Lakehouse using Databricks and PySpark
+## <a name="#lakehouse-databricks-pyspark">Approach 2 - Lakehouse using Databricks and PySpark</a>
 
 ### Code templates
 1. [Commerce_clickstream_fake_data.py](Lakehouse/Commerce_clickstream_fake_data.py)
