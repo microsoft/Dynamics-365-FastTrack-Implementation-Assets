@@ -27,7 +27,7 @@ Following are some of the common architecture patterns including demo and soluti
 2. [Data model SQL View](DataVirtualization/LogicalDW_DataModelViews.sql) 
 3. [Power Bi Report](DataVirtualization/GLReport_DataVirtualization.pbix) 
 
-## Demo 
+## Demo 1
 https://user-images.githubusercontent.com/65608469/165361941-dae756da-3d7e-453b-bfd8-2286b13f4715.mp4
 
 <div id="clouddw"></div>
@@ -44,7 +44,7 @@ https://user-images.githubusercontent.com/65608469/165361941-dae756da-3d7e-453b-
 1. [Copy Synapse Table](CloudDatawarehouse/CopySynapseTable.zip)
 2. [GL Data Materialize](CloudDatawarehouse/GLDataMaterialize.zip)
 
-## Demo
+## Demo 2
 https://user-images.githubusercontent.com/65608469/165362039-4def15b4-42a9-4c58-bc74-491529b98e2c.mp4
 
 <div id="lakehouse"></div>
@@ -66,7 +66,7 @@ https://user-images.githubusercontent.com/65608469/164785280-40e34bf8-20a2-406b-
 3. [2 GoldDimTransform](Lakehouse/3_GoldTransformation_Dim.zip)
 4. [3 GoldFactTransform](Lakehouse/3_GoldTransformation_Fact.zip)
 
-### Demo
+### Demo 3
 https://user-images.githubusercontent.com/65608469/164779488-7edd01ca-da41-4da3-9ff2-53bd7203d3dc.mp4
 
 <div id="lakehouse-databricks-pyspark"></div>
@@ -77,7 +77,7 @@ https://user-images.githubusercontent.com/65608469/164779488-7edd01ca-da41-4da3-
 1. [Commerce_clickstream_fake_data.py](Lakehouse/Commerce_clickstream_fake_data.py)
 2. [Commerce_clickstream_pipeline_share.ipynb](Lakehouse/Commerce_clickstream_pipeline_share.ipynb)
 
-### Demo
+### Demo 4
 https://user-images.githubusercontent.com/104534330/165651095-1321eaf8-8b1e-42cb-bbe8-0f5d10cef119.mp4
 
 
@@ -92,7 +92,7 @@ https://user-images.githubusercontent.com/104534330/165651095-1321eaf8-8b1e-42cb
 2. [SynapseToSQLFullExport](SQLIntegration/FullExport_SQL.zip)
 3. [SynapseToSQLIncrementalExport](SQLIntegration/IncrementalExport_SQL.zip)
 
-### Demo 
+### Demo 5
 https://user-images.githubusercontent.com/65608469/165363220-bc855e56-1579-42cf-b588-43ba02c7e5ca.mp4
 
 
