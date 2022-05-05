@@ -53,7 +53,7 @@ https://user-images.githubusercontent.com/65608469/164785280-40e34bf8-20a2-406b-
 ### Demo
 https://user-images.githubusercontent.com/65608469/164779488-7edd01ca-da41-4da3-9ff2-53bd7203d3dc.mp4
 
-## Approach 2 - Lakehouse using Databricks and PySpark
+## Approach 2 Lakehouse using Databricks and PySpark
 
 ### Code templates
 1. [Commerce_clickstream_fake_data.py](Lakehouse/Commerce_clickstream_fake_data.py)
