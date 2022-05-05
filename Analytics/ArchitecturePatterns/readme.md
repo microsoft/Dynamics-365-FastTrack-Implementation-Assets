@@ -6,6 +6,16 @@ Data that is stored in the data lake is organized in a folder structure in Commo
 With Dynamics 365 data in the lake, there are various architecture patterns that you can be utilized to build end to end BI and reporting and integration solution.
 Following are some of the common architecture patterns including demo and solution template used in the demo to help you build your POC yourself.
 
+# Table of Contents
+* [1:Logical Data warehouse (virtualization) using Serverless pool](#logicaldw)
+* [2:Cloud data warehouse using Synapse Dedicated pool](#clouddw)
+* [3:Lakehouse architecture](#lakehouse)
+  * [Approach 1 - Lakehouse using Synapse pipeline and Serverless pool](#lakehouse-synapse-pipeline)
+  * [Approach 2 - Lakehouse using Databricks and PySpark](#lakehouse-databricks-pyspark)
+* [4:Integrating with existing DW (SQL Servers/ Azure SQL)](#integrationdw)
+
+<div id="logicaldw"></div>
+
 # 1:Logical Data warehouse (virtualization) using Serverless pool
 
 ## Overview 
@@ -19,6 +29,8 @@ Following are some of the common architecture patterns including demo and soluti
 
 ## Demo 
 https://user-images.githubusercontent.com/65608469/165361941-dae756da-3d7e-453b-bfd8-2286b13f4715.mp4
+
+<div id="clouddw"></div>
 
 # 2:Cloud data warehouse using Synapse Dedicated pool
 
@@ -35,11 +47,15 @@ https://user-images.githubusercontent.com/65608469/165361941-dae756da-3d7e-453b-
 ## Demo
 https://user-images.githubusercontent.com/65608469/165362039-4def15b4-42a9-4c58-bc74-491529b98e2c.mp4
 
+<div id="lakehouse"></div>
+
 # 3:Lakehouse architecture 
 
 ## Lakehouse architecture overview
 
 https://user-images.githubusercontent.com/65608469/164785280-40e34bf8-20a2-406b-8350-6d169a48b3c6.mp4
+
+<div id="lakehouse-synapse-pipeline"></div>
 
 ## Approach 1 - Lakehouse using Synapse pipeline and Serverless pool
 
@@ -53,7 +69,9 @@ https://user-images.githubusercontent.com/65608469/164785280-40e34bf8-20a2-406b-
 ### Demo
 https://user-images.githubusercontent.com/65608469/164779488-7edd01ca-da41-4da3-9ff2-53bd7203d3dc.mp4
 
-## Approach 2 Lakehouse using Databricks and PySpark
+<div id="lakehouse-databricks-pyspark"></div>
+
+## Approach 2 - Lakehouse using Databricks and PySpark
 
 ### Code templates
 1. [Commerce_clickstream_fake_data.py](Lakehouse/Commerce_clickstream_fake_data.py)
@@ -63,6 +81,7 @@ https://user-images.githubusercontent.com/65608469/164779488-7edd01ca-da41-4da3-
 https://user-images.githubusercontent.com/104534330/165651095-1321eaf8-8b1e-42cb-bbe8-0f5d10cef119.mp4
 
 
+<div id="integrationdw"></div>
 
 # 4:Integrating with existing DW (SQL Servers/ Azure SQL)
 
