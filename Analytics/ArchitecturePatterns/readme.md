@@ -92,7 +92,7 @@ https://user-images.githubusercontent.com/104534330/165651095-1321eaf8-8b1e-42cb
 2. [SynapseToSQLFullExport](SQLIntegration/FullExport_SQL.zip)
 3. [SynapseToSQLIncrementalExport](SQLIntegration/IncrementalExport_SQL.zip)
 
-### Demo5
+### Demo 5
 https://user-images.githubusercontent.com/65608469/165363220-bc855e56-1579-42cf-b588-43ba02c7e5ca.mp4
 
 
