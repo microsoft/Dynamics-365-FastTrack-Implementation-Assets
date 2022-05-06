@@ -197,9 +197,40 @@ namespace CDMUtil
             // Read Manifest metadata
             log.Log(LogLevel.Information, "Reading Manifest metadata");
           
-            List<ManifestDefinition> manifestDefinitions = await ManifestReader.getManifestDefinitions(c, log);
+            ManifestDefinitions manifestDefinitions = await ManifestReader.getManifestDefinitions(c, log);
 
-            return new OkObjectResult(JsonConvert.SerializeObject(manifestDefinitions));
+            List<ManifestDefinition> manifests = manifestDefinitions.Manifests;
+            dynamic adlsConfig = manifestDefinitions.Config;
+
+           // log.LogInformation(JsonConvert.SerializeObject(manifestDefinitions));
+            List<SQLMetadata> metadataList = new List<SQLMetadata>();
+            List<SQLStatement> statementsList = new List<SQLStatement>();
+
+            foreach (ManifestDefinition manifest in manifests)
+            {
+                string manifestURL = $"https://{adlsConfig.config.hostname}{adlsConfig.config.root}{manifest.ManifestLocation}/{manifest.ManifestName}.manifest.cdm.json";
+                List<string> tableNames = manifest.Tables.Select(x => x.TableName).ToList();
+                string tables = String.Join(",", tableNames);
+                c.rootFolder = manifest.ManifestLocation;
+                c.manifestName = $"{manifest.ManifestName}.manifest.cdm.json";
+                c.tableList = tableNames;
+               
+                await ManifestReader.manifestToSQLMetadata(c, metadataList, log, c.rootFolder);
+
+                log.Log(LogLevel.Information, "Converting metadata to DDL");
+
+                if (!String.IsNullOrEmpty(c.synapseOptions.targetSparkEndpoint))
+                {
+                    statementsList = SparkHandler.metadataToSparkStmt(metadataList, c, log);
+                }
+                else
+                {
+                    statementsList = await SQLHandler.sqlMetadataToDDL(metadataList, c, log);
+                }
+            }
+         
+            return new OkObjectResult(JsonConvert.SerializeObject(
+                new {CDMMetadata= metadataList, SQLStatements =statementsList}));
         }
         [FunctionName("getMetadata")]
         public static async Task<IActionResult> getMetadata(
