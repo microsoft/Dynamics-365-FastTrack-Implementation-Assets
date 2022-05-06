@@ -34,7 +34,6 @@ namespace CDMUtil.Manifest
                 {
                     foreach (var metadata in metadataList)
                     {
-
                         //chop off /*.csv from the path
                         folderPath = metadata.dataLocation.Substring(0, metadata.dataLocation.LastIndexOf("/"));
                         ManifestReader manifestHandler = new ManifestReader(adlsContext, folderPath, logger);
@@ -51,23 +50,24 @@ namespace CDMUtil.Manifest
                 }
             }
         }
-        public async static Task<List<ManifestDefinition>> getManifestDefinitions(AppConfigurations c, ILogger logger)
+        public async static Task<ManifestDefinitions> getManifestDefinitions(AppConfigurations c, ILogger logger)
         {
             ManifestReader manifestHandler = new ManifestReader(c.AdlsContext, "/", logger);
-
-            List<string> files = await manifestHandler.cdmCorpus.Storage.FetchAdapter(manifestHandler.cdmCorpus.Storage.DefaultNamespace).FetchAllFilesAsync(c.rootFolder);
             
-            List<String> filteredBlob = files.Where(b => b.EndsWith(".cdm.json") && !b.EndsWith(".manifest.cdm.json") && !b.Contains("/resolved/")).ToList();
+            List<string> blobs =  await manifestHandler.cdmCorpus.Storage.FetchAdapter(manifestHandler.cdmCorpus.Storage.DefaultNamespace).FetchAllFilesAsync(c.rootFolder);
+
+           // logger.LogInformation($"{blobs.Count}");
+            List<String> filteredBlob = blobs.Where(b => b.EndsWith(".cdm.json") && !b.EndsWith(".manifest.cdm.json") && !b.Contains("/resolved/")).ToList();
 
             List<String> tableList = c.tableList;
 
-            List<ManifestDefinition> metadataList = new List<ManifestDefinition>();
+            List<TableManifestDefinition> metadataList = new List<TableManifestDefinition>();
 
             foreach (var blob in filteredBlob)
             {
                 string dataPath = blob.Replace(".cdm.json", "");
                 string[] dataPathParts = dataPath.Split('/');
-                string[] manifestPathParts = dataPathParts.Take(dataPathParts.Length - 1).ToArray();
+                string[] manifestPathParts = dataPathParts.Take(dataPathParts.Length - 1).ToArray();   
                 string TableName = dataPathParts.Last();
 
                 if (tableList != null)
@@ -80,7 +80,7 @@ namespace CDMUtil.Manifest
                         tableList.Remove(TableName);
                 }
 
-                ManifestDefinition metadata = new ManifestDefinition
+                TableManifestDefinition metadata = new TableManifestDefinition
                 {
                     TableName = dataPathParts.Last(),
                     DataLocation = dataPath,
@@ -91,8 +91,22 @@ namespace CDMUtil.Manifest
                 metadataList.Add(metadata);
             }
 
-            logger.LogDebug(JsonConvert.SerializeObject(metadataList));
-            return metadataList;
+            // group  by manifestpath and manifestname 
+            List<ManifestDefinition> manifests = metadataList.GroupBy(c => new { ManifestLocation = c.ManifestLocation, ManifestName = c.ManifestName })
+                                                .Select(g => new ManifestDefinition
+                                                {
+                                                    ManifestLocation = g.Key.ManifestLocation,
+                                                    ManifestName = g.Key.ManifestName,
+                                                    Tables = g.Select(table => new Table{TableName = table.TableName }).ToList()
+                                                }).ToList();
+
+           // logger.LogInformation(JsonConvert.SerializeObject(manifests));
+
+            dynamic adlsConfig = JsonConvert.DeserializeObject(manifestHandler.cdmCorpus.Storage.FetchAdapter(manifestHandler.cdmCorpus.Storage.DefaultNamespace).FetchConfig());
+
+            var mds = new ManifestDefinitions() { Tables = metadataList, Manifests = manifests, Config = adlsConfig };
+
+            return mds;
         }
 
   
@@ -347,33 +361,22 @@ namespace CDMUtil.Manifest
                 if (traitsCollection != null && traitsCollection.Where(x => x.NamedReference == "is.constrainedList.wellKnown").Count() > 0)
                 {
                     CdmTraitReference trait = cdmAttribute.AppliedTraits.Where(x => x.NamedReference == "is.constrainedList.wellKnown").First() as CdmTraitReference;
-                    CdmArgumentDefinition argumentDefinition = trait.Arguments.Where(x => x.Name == "defaultList").First();
-
-                    if (argumentDefinition.Value is CdmEntityReference)
+                    
+                    if (trait != null && trait.Arguments.Count > 0)
                     {
-                        if (c.synapseOptions.TranslateEnum)
+                        columnAttribute.dataType = "int32";
+                        CdmArgumentDefinition argumentDefinition = trait.Arguments.Where(x => x.Name == "defaultList").FirstOrDefault();
+
+                        if (argumentDefinition != null && c.synapseOptions.TranslateEnum == true && argumentDefinition.Value is CdmEntityReference)
                         {
                             var contEntDef = argumentDefinition.Value.FetchObjectDefinition<CdmConstantEntityDefinition>();
                             if (contEntDef != null)
                             {
                                 columnAttribute.constantValueList = contEntDef;
-                                var maxLen = 0;
-                                //set the maximumLength to the longest length of the enum text values
-                                foreach (var constantValue in contEntDef.ConstantValues)
-                                {
-                                    maxLen = constantValue[2].Length > maxLen ? constantValue[2].Length : maxLen;
-                                }
-                                columnAttribute.maximumLength = maxLen;
                             }
                         }
-                        else
-                        {
-
-                            columnAttribute.constantValueList = contEntDef;
-                            // if not translating enums, the underlying data type should be Int32
-                            columnAttribute.dataType = "Int32";
-                        }
                     }
+                    
                 }
                 columnAttributes.Add(columnAttribute);
             }
@@ -830,7 +833,7 @@ namespace CDMUtil.Manifest
                 string artifactsStr = await r.ReadToEndAsync();
                 var artifacts = JsonConvert.DeserializeObject<List<Artifacts>>(artifactsStr);
                 string[] tables = tableList.Split(',');
-                List<ManifestDefinition> ManifestDefinitions = new List<ManifestDefinition>();
+                List<TableManifestDefinition> ManifestDefinitions = new List<TableManifestDefinition>();
 
                 foreach (string table in tables)
                 {
@@ -852,7 +855,7 @@ namespace CDMUtil.Manifest
                     manifestLocation = value.Substring(0, (value.Length - (tableName.Length + 1)));
                     manifestName = manifestLocation.Substring(manifestLocation.LastIndexOf('/') + 1);
 
-                    ManifestDefinition md = new ManifestDefinition();
+                    TableManifestDefinition md = new TableManifestDefinition();
 
                     md.TableName = value.Substring(value.LastIndexOf("/") + 1);
                     md.DataLocation = value;
@@ -861,13 +864,13 @@ namespace CDMUtil.Manifest
 
                     ManifestDefinitions.Add(md);
                 }
-                var grouped = ManifestDefinitions.GroupBy(c => new { c.ManifestLocation, c.ManifestName })
-                                                 .Select(g => new
+                List<ManifestDefinition> grouped = ManifestDefinitions.GroupBy(c => new { ManifestLocation = c.ManifestLocation, ManifestName =c.ManifestName })
+                                                 .Select(g => new ManifestDefinition
                                                  {
                                                      ManifestLocation = g.Key.ManifestLocation,
                                                      ManifestName = g.Key.ManifestName,
-                                                     Tables = g.Select(table => new { table.TableName })
-                                                 });
+                                                     Tables = g.Select(table => new Table { TableName= table.TableName }).ToList()
+                                                 }).ToList();
 
                 var mds = new ManifestDefinitions() { Tables = ManifestDefinitions, Manifests = grouped };
 
