@@ -28,6 +28,7 @@ namespace CDMPathFinder
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
+            tbxReturn.Text = string.Empty;
             try
             {
                 if (string.IsNullOrEmpty(tbxConnectionString.Text) ||
