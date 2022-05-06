@@ -27,7 +27,7 @@ namespace CDMUtil.Context.ObjectDefinitions
         public string Value { get; set; }
         public string ViewName { get; set; } = string.Empty;
     }
-    public class ManifestDefinition
+    public class TableManifestDefinition
     {
         public string TableName { get; set; }
         public string DataLocation { get; set; }
@@ -36,14 +36,15 @@ namespace CDMUtil.Context.ObjectDefinitions
     }
     public class ManifestDefinitions
     {
-        public List<ManifestDefinition> Tables;
-        public Object Manifests;
+        public List<TableManifestDefinition> Tables;
+        public List<ManifestDefinition> Manifests;
+        public dynamic Config;
     }
     public class Table
     {
         public string TableName;
     }
-    public class Manifests
+    public class ManifestDefinition
     {
         public string ManifestLocation { get; set; }
         public string ManifestName { get; set; }
