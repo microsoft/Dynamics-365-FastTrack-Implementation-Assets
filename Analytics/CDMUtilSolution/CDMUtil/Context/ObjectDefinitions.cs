@@ -80,6 +80,7 @@ namespace CDMUtil.Context.ObjectDefinitions
         public string dataType;
         public int maximumLength;
         public dynamic constantValueList;
+        public bool? isNullable;
     }
     public class SQLStatements
     {
