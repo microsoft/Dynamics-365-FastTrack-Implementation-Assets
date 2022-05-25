@@ -256,6 +256,13 @@ namespace CDMUtil
             dynamic eventData = eventGridEvent.Data;
             string ManifestURL = eventData.url;
 
+            log.LogInformation(ManifestURL);
+
+            if (!ManifestURL.EndsWith(".cdm.json"))
+            {
+                log.LogWarning("Invalid manifestURL");
+                return;
+            }
             //get configurations data 
             AppConfigurations c = GetAppConfigurations(null, context, eventGridEvent);
 
