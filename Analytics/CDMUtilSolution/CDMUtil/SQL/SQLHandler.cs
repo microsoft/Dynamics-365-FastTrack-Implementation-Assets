@@ -279,7 +279,7 @@ namespace CDMUtil.SQL
                     break;
                 case "decimal":
                 case "double":
-                    sqlColumnDef = $"{attribute.name} numeric (32 , 6)";
+                    sqlColumnDef = $"{attribute.name} numeric ({attribute.precision} , {attribute.scale})";
                     break;
                 case "biginteger":
                 case "int64":

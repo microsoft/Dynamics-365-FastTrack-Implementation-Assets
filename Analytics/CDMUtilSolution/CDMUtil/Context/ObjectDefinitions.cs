@@ -80,6 +80,8 @@ namespace CDMUtil.Context.ObjectDefinitions
         public string dataType;
         public int maximumLength;
         public dynamic constantValueList;
+        public int precision = 32;
+        public int scale = 16;
     }
     public class SQLStatements
     {
