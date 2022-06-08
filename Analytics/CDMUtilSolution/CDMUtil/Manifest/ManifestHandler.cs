@@ -359,6 +359,17 @@ namespace CDMUtil.Manifest
                 }
                 var traitsCollection = cdmAttribute.AppliedTraits;
 
+                if (columnAttribute.dataType.ToLower() == "decimal" && traitsCollection != null && traitsCollection.Where(x => x.NamedReference == "is.dataFormat.numeric.shaped").Count() > 0)
+                {
+                    CdmTraitReference trait = cdmAttribute.AppliedTraits.Where(x => x.NamedReference == "is.dataFormat.numeric.shaped").First() as CdmTraitReference;
+
+                    if (trait != null && trait.Arguments.Count >1)
+                    {
+                        columnAttribute.precision = int.Parse(trait.Arguments[0].Value);
+                        columnAttribute.scale = int.Parse(trait.Arguments[1].Value);
+                    }
+                }
+
                 if (traitsCollection != null && traitsCollection.Where(x => x.NamedReference == "is.constrainedList.wellKnown").Count() > 0)
                 {
                     CdmTraitReference trait = cdmAttribute.AppliedTraits.Where(x => x.NamedReference == "is.constrainedList.wellKnown").First() as CdmTraitReference;

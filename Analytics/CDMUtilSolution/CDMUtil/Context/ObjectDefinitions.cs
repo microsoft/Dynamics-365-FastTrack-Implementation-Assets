@@ -81,6 +81,8 @@ namespace CDMUtil.Context.ObjectDefinitions
         public int maximumLength;
         public dynamic constantValueList;
         public bool? isNullable;
+        public int precision = 32;
+        public int scale = 16;
     }
     public class SQLStatements
     {
