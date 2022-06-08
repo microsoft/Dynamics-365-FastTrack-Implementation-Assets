@@ -248,12 +248,55 @@ namespace CDMUtil.SQL
         public static string attributeToColumnNames(ColumnAttribute attribute, SynapseDBOptions synapseDBOptions)
         {
             string sqlColumnNames = "";
+            string attributeNameModified;
+
+            if (synapseDBOptions.DDLType == "SynapseView" && attribute.isNullable == false)
+            {
+                string dataTypeDefault;
+
+                switch (attribute.dataType.ToLower())
+                {
+                    case "string":
+                        dataTypeDefault = "''";
+                        break;
+                    case "decimal":
+                    case "double":
+                    case "biginteger":
+                    case "int64":
+                    case "bigint":
+                    case "smallinteger":
+                    case "int":
+                    case "int32":
+                    case "time":
+                    case "boolean":
+                        dataTypeDefault = "0";
+                        break;
+                    case "date":
+                    case "datetime":
+                    case "datetime2":
+                        dataTypeDefault = "'1900-01-01'";
+                        break;
+                    case "guid":
+                        dataTypeDefault = "'00000000-0000-0000-0000-000000000000'";
+                        break;
+                    default:
+                        dataTypeDefault = "''";
+                        break;
+                }
+
+                attributeNameModified = $"ISNULL({attribute.name},{dataTypeDefault}) AS {attribute.name}";
+            }
+            else
+            {
+                attributeNameModified = attribute.name;
+            }
+
             if (synapseDBOptions.TranslateEnum == true
                 && attribute.dataType.ToLower() == "int32"
                 && attribute.constantValueList != null)
             { 
                 var constantValues = attribute.constantValueList.ConstantValues;
-                sqlColumnNames += $"{attribute.name}, CASE {attribute.name}";
+                sqlColumnNames += $"{attributeNameModified}, CASE {attribute.name}";
                 foreach (var constantValueList in constantValues)
                 {
                     sqlColumnNames += $"{ " When " + constantValueList[3] + " Then '" + constantValueList[2]}'";
@@ -262,7 +305,7 @@ namespace CDMUtil.SQL
             }
             else
             {
-                sqlColumnNames = $"{attribute.name}";
+                sqlColumnNames = $"{attributeNameModified}";
             }
             
             return sqlColumnNames;

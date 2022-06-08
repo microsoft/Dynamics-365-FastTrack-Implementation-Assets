@@ -317,6 +317,7 @@ namespace CDMUtil.Manifest
                 columnAttribute.name = cdmAttribute.Name;
                 columnAttribute.description = cdmAttribute.Description;
                 columnAttribute.dataType = cdmAttribute.DataType == null ? cdmAttribute.DataFormat.ToString() : cdmAttribute.DataType.NamedReference;
+                columnAttribute.isNullable = cdmAttribute.IsNullable;
 
                 columnAttribute.maximumLength = cdmAttribute.MaximumLength != null ? (int)cdmAttribute.MaximumLength : c.synapseOptions.DefaultStringLength;
                 switch (columnAttribute.dataType.ToLower())
