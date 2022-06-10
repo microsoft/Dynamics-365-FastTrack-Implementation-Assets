@@ -1,283 +1,485 @@
-Code Snippet:
-///This source code is freeware and provide you sample code snippet without warranties of any kind,
-///whether express or implied, including without limitation warranties that the code is free of defect,
-///fit for a particular purpose or non-infringing.  The entire risk as to the quality and performance of
-///the code is with the end user. 
+Note: This source code is freeware and is provided on an "as is" basis without warranties of any kind, 
+whether express or implied, including without limitation warranties that the code is free of defect, 
+fit for a particular purpose or non-infringing.  The entire risk as to the quality and performance of 
+the code is with the end user.
 
-///This job migrates documents from an on-premise archive directory to the AX database
-///It is assumed, that before running this job there are no Document Types:
-///1. suffixed with _O
-///2. with a TypeId longer than 18 characters
-•	Create a new enum e.g. AttachmentProcessed with 4 elements (Unprocessed, Processed,FileNotFound,FileLock).
-•	Create new table with three fields RefRecId, AttachmentProcessed (with above base enum), LockedFileCount (int) and populate data from DocuRef table into this table. {Alternatively, add two fields in DocuRef table [AttachmentProcessed (with above base enum), LockedFileCount (int)], the below code snippet is based on added fields in DocuRef table}. 
-•	Methods: 
-//Add suffix _O to DocuTypes of type Archive directory
-public server static void step1_renameExistingDocuType()
-{
-        Counter		counter;
-        DocuType		docuType; }
-        ttsbegin;
-        while select forUpdate crossCompany docuType
-            where docuType.FilePlace == DocuFilePlace::Archive
-            && !(docuType.TypeId like '*_O')
-        {
-            changeCompany( docuType.DataAreaId )
-            {
-                if(!DocuType::find(docuType.TypeId + '_O')) //Check if this doesn't already exist, it may do if process failed and was restarted
-                {
-                    docuType.typeId = docuType.TypeId + '_O';
-                    docuType.doUpdate();
-                    counter++;
-                }
-            }
-        }
-        ttsCommit;
-        info(strFmt("%1 existing eligible document types are renamed", counter));
-    }
 
-//Update existing DocuRef records to match the suffixed DocuTypes
-//Using direct SQL due to resolve locking issue
-public server static void step2_updateExistingDocuRef()
-{
-    UserConnection                  connection;
-    Statement                       statement;
-    str                             sqlStmt;
-    SqlStatementExecutePermission   permission;
-    
-connection = new UserConnection();
-    statement   = connection.createStatement();
-    sqlStmt = 'UPDATE T1 SET TYPEID = CONCAT (TYPEID,\'_O\') FROM DOCUREF T1 ';
-    sqlStmt = sqlStmt + 'WHERE TYPEID NOT IN (SELECT TYPEID FROM DOCUTYPE T2 WHERE T2.DATAAREAID = T1.ACTUALCOMPANYID)';
-    //sqlStmt = sqlStmt + strFmt('WHERE (T1.ACTUALCOMPANYID IN ( %1 )) ', companyListStmt);
-    //sqlStmt = sqlStmt + 'AND TYPEID NOT IN (SELECT TYPEID FROM DOCUTYPE T2 WHERE T2.DATAAREAID = T1.ACTUALCOMPANYID)';
-    connection.ttsbegin();
-    permission = new SqlStatementExecutePermission(sqlStmt);
-    permission.assert();
-    statement.executeUpdate(sqlStmt);
-    CodeAccessPermission::revertAssert();
-    connection.ttscommit();
-    connection.finalize();
-}
+Below is the contents for an XPO containing the following objects:
+Project (Private): D365UpgradeMigrateAttachments
+Class: D365UpgradeMigrateAttachments
+Enum: AttachmentProcessed
+Table (USR Layer Only): DocuRef - New fields added: AttachmentProcessed & LockedFileCount
 
-//Create new DocuTypes
-public server static void step3_insertNewDocuTypeForDatabase()
-{
-    DocuType	docuType,docuTypeDB;
-    Counter	counter;
-    
-           docuType.clear();
+Notes: 
+There are 5 steps in this process - all are called from the main() method in the class.
+Step 1. The class renames the DocuType records for types that are configured for a file share.
+Step 2. Existing DocuRef records are updated, as necessary, to reference the new DocuType created in step 1
+Step 3. New DocuType records are created based on the ones renamed in step 1, but with the storage location set to database.
+Step 4. The main file migration step, this will migrate the file share attachments to the database, new DocuRef and DocuValues records created.
+   If Step 4 fails, you can rerun that again, just comment out in the main method steps 1 through 3. Somtimes filelocks will prevent the file from being migrated to the database.
+Step 5. This will clean up the original attachment records, but only if all the records were sucessfully migrated in step 4.
+   Warning: If not all the attachments were migrated, then this step will not clean up the old records, and will result in duplicates in D365 after the upgrade.
+   
+   
+Copy contents below into Notepad, and save the file as "PrivateProject_D365UpgradeMigrateAttachments.xpo"   
 
-    ttsBegin;
-    while select crossCompany  docuType
-	where  docuType.FilePlace == DocuFilePlace::Archive && docuType.TypeId like '*_O'
-    {
-        changeCompany( docuType.DataAreaId )
-        {
-            if (!docuType::find(subStr(docuType.TypeId, 0, strLen(docuType.TypeId)-2)))
-            {
-                docuTypeDB.clear(); //must reset, otherwise throw changeCompany error
-                buf2Buf(docuType,docuTypeDB);
-                docuTypeDB.FilePlace    = DocuFilePlace::Database;
-                docuTypeDB.TypeId       = subStr(docuType.TypeId, 0, strLen(docuType.TypeId)-2);
-                docuTypeDB.ArchivePath  = '';
-                //docuTypeDB.insert(); //throw exception in batch mode
-                docuTypeDB.doInsert();
-                counter++;
-            }
-        }
-    }
-    ttsCommit;
-info(strFmt("%1 new document types are created", counter));
-}
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
 
-public server static void step4_copyFileIntoDB()
-{
-    FileIOPermission		ileIOPerm;
-    FromTime			startTime = timeNow();
-    SysOperationProgress    progressBar = new SysOperationProgress();
-    int                     recordCount, insertCount, batchCounter, numRecords, fileNotFoundCount, fileLockCount;
-    Filename                filename;
-    BinData                 binData;
-    DocuRef                 docuRef, docuRefDB;
-    DocuValue			docuValue, docuValueDel;
-    DocuType                docuType, docuTypeDB;
-    FilePath                filePath;
-    FileIOPermission		fileIOPerm;
-    System.Exception        ex;
-    #File
-    #avifiles
-    
-    startTime   = timeNow();
-    progressBar = new SysOperationProgress();
-    
-	select count(RecId) from docuRef
-            where docuRef.AttachmentProcessed  == AttachmentProcessed::Unprocessed;
-	
-	numRecords = int642int(docuRef.RecId);
-    progressBar.setCaption("Document attachment conversion");
-    progressBar.setAnimation(#AviUpdate);
-    progressBar.setTotal(numRecords);
-    
-	ttsBegin;
-    while select forUpdate crossCompany docuRef 
-		order by docuRef.valueRecId
-        where docuRef.AttachmentProcessed == AttachmentProcessed::Unprocessed
-		join  docuType
-			where docuRef.TypeId == DocuType.TypeId
-            && docuType.FilePlace == DocuFilePlace::Archive
-            && docuType.dataAreaId == docuRef.ActualCompanyId
-    {
-        progressBar.setText(strfmt("Document %1", recordCount));
-        progressBar.setCount(recordCount, 1);
+***Element: DBT
+
+; Microsoft Dynamics AX Table : DocuRef unloaded
+; --------------------------------------------------------------------------------
+  TABLEVERSION 1
+  
+  TABLE #DocuRef
+    EnforceFKRelation 0
+    FIELDS
+      FIELD #AttachmentProcessed
+        ENUM
+        PROPERTIES
+          Name                #AttachmentProcessed
+          Table               #DocuRef
+          Origin              #{DB049C67-90EF-4E5E-9A90-5ADF10169ADA}
+          EnumType            #AttachmentProcessed
+        ENDPROPERTIES
         
-        filePath = docuRef.path();
-        filename = filePath + docuRef.docuValue().FileName + '.' + docuRef.docuValue().FileType;
-        //filename = docuRef.completeFilename(); //client mode
+      FIELD #LockedFileCount
+        INT
+        PROPERTIES
+          Name                #LockedFileCount
+          Table               #DocuRef
+          Origin              #{C1F9341D-F460-40BB-8A9C-216592436D76}
+        ENDPROPERTIES
         
-        fileIOPerm = new FileIOPermission(filename, 'r');
-        fileIOPerm.assert();
-        
-        // BP deviation documented
-        // Check for file locking, empty filenames and non-existing files
-        if (!WinAPIServer::fileExists(filename) || filename == docuRef.path())
-        {
-			new OverwriteSystemfieldsPermission().assert();
-			docuRef.overwriteSystemfields(true);
-            docuRef.AttachmentProcessed  = AttachmentProcessed ::FileNotFound;
-			docuRef.(fieldNum(docuRef,ModifiedBy)) = docuRef.ModifiedBy;
-			docuRef.(fieldNum(docuRef,modifiedDateTime)) = docuRef.modifiedDateTime;
-			docuRef.doUpdate();
-			CodeAccessPermission::revertAssert();
-			fileNotFoundCount++;
-        }
-        else if(WinAPIServer::fileLocked(filename))
-        {
-			// File might be locked at present time, but may be unlocked for a later run of this job.
-			new OverwriteSystemfieldsPermission().assert();
-			docuRef.overwriteSystemfields(true);
-            if(docuRef.LockedFileCount  >= 3)
-			{
-                docuRef.AttachmentProcessed  = AttachmentProcessed::FileLock;
-			}
-            docuRef.LockedFileCount = docuRef.LockedFileCount + 1;
-            docuRef.(fieldNum(docuRef,ModifiedBy)) = docuRef.ModifiedBy;
-            docuRef.(fieldNum(docuRef,modifiedDateTime)) = docuRef.modifiedDateTime;
-            docuRef.doUpdate();
-            CodeAccessPermission::revertAssert();
-            fileLockCount ++;
-            
-        }
-        else
-        {
-            try
-            {
-                docuValueDel.clear();
-                docuValueDel = DocuValue::find(docuRef.ValueRecId);
-                docuValue.clear();
-                [docuValue.FileName, docuValue.FileType, docuValue.Path] = Docu::splitFilename(filename);
-                docuValue.Name = docuRef.Name;
-                docuValue.OriginalFileName = docuRef.originalFileName();
-                
-                binData = new BinData();
-                // LoadFile demands read permission on the file
-                new FileIOPermission(filename, #io_read).assert();
-                // BP deviation documented
-                if (binData.loadFile(filename))
-                {
-                    docuValue.File = binData.getData();
-                }
-                else
-                {
-                    throw error(strfmt("@SYS54217",filename));
-                }
-                CodeAccessPermission::revertAssert();
-                new OverwriteSystemfieldsPermission().assert();
-                
-                docuValue.overwriteSystemfields(true);
-                if (docuValueDel)
-                {
-                    docuValue.(fieldNum(docuValue, CreatedDateTime)) = docuValueDel.CreatedDateTime;
-                    docuValue.(fieldNum(docuValue, CreatedBy)) = docuValueDel.CreatedBy;
-                    docuValue.(fieldNum(docuValue, ModifiedDateTime)) = docuValueDel.ModifiedDateTime;
-                    docuValue.(fieldNum(docuValue, ModifiedBy)) = docuValueDel.ModifiedBy;
-                }
-                docuValue.doInsert();
-                docuValue.overwriteSystemfields(false);
-                
-                CodeAccessPermission::revertAssert();
-                
-                
-                // Insert docuRefDB
-                buf2Buf(docuRef, docuRefDB);
-                docuRefDB.TypeId = subStr(docuRef.TypeId, 0, strLen(docuRef.TypeId)-2);
-                docuRefDB.ValueRecId = docuValue.RecId;
-                docuRefDB.AttachmentProcessed = AttachmentProcessed::Processed;
-                
-                new OverwriteSystemfieldsPermission().assert();
-                docuRefDB.overwriteSystemfields(true);
-                
-                docuRefDB.(fieldNum(docuRef, CreatedDateTime)) = docuRef.CreatedDateTime;
-                docuRefDB.(fieldNum(docuRef, CreatedBy)) = docuRef.CreatedBy;
-                docuRefDB.(fieldNum(docuRef, ModifiedDateTime)) = docuRef.ModifiedDateTime;
-                docuRefDB.(fieldNum(docuRef, ModifiedBy)) = docuRef.ModifiedBy;
-                
-                docuRefDB.doInsert();
-                docuRef.overwriteSystemfields(false);
-                CodeAccessPermission::revertAssert();
-                
-                //Mark orginal record as processed
-                new OverwriteSystemfieldsPermission().assert();
-                docuRef.overwriteSystemfields(true);
-                
-                docuRef.AttachmentProcessed = AttachmentProcessed::Processed;
-                docuRef.(fieldNum(docuRef,modifiedDateTime)) = docuRef.modifiedDateTime;
-                docuRef.(fieldNum(docuRef,ModifiedBy)) = docuRef.ModifiedBy;
-                docuRef.doUpdate();
-                
-                docuRef.overwriteSystemfields(false);
-                CodeAccessPermission::revertAssert();
-                
-                insertCount++;
-            }
-            catch(Exception::CLRError)
-            {
-                ex = ClrInterop::getLastException();
-                if (ex != null)
-                {
-                    ex = ex.get_InnerException();
-                    if (ex != null)
-                    {
-                        error(strFmt("%1",filename));
-						error(ex.ToString());
-                    }
-                }
-            }
-        }
-        CodeAccessPermission::revertAssert();
-        recordCount ++;
-    }
-    ttsCommit;
-    info(strFmt("Total DocuRef records processed: %1", recordCount));
-    info(strFmt("Total records created: %1", insertCount));
-    info(strFmt("Total records where file does not exist: %1", fileNotFoundCount));
-    info(strFmt("Total records where file was locked: %1", fileLockCount));
-    info(strFmt("Total time consumed is  %1", timeConsumed(startTime, timeNow())));
-}
-
-public server static void step5_cleanUpDocuRef()
-{
-    DocuRef	docuRef;
-	select count(RecId) from docuRef
-        where docuRef.TypeId like '*_O'
-        && (docuRef.AttachmentProcessed ==AttachmentProcessed ::Unprocessed || docuRef.AttachmentProcessed == AttachmentProcessed ::FileLock);
+    ENDFIELDS
+    GROUPS
+    ENDGROUPS
     
-    if (docuRef.RecId==0) //All records are processed and there were no file locks, then we can delete the orginal records
-    {
-        //All records were processed clean up the previous records
-        ttsBegin;
-        delete_from docuRef where docuRef.TypeId like '*_O';
-        delete_from docuValue notexists join docuRef where docuValue.RecId == docuRef.ValueRecId;
-        delete_from docuType where docuType.TypeId like '*_O';
-        ttsCommit;
-    }
-}
+    INDICES
+    ENDINDICES
+    FULLTEXTINDICES
+    ENDFULLTEXTINDICES
+    REFERENCES
+    ENDREFERENCES
+    
+    METHODS
+    ENDMETHODS
+  ENDTABLE
+  
+
+***Element: DBE
+
+; Microsoft Dynamics AX Enumtype : AttachmentProcessed unloaded
+; --------------------------------------------------------------------------------
+  ENUMTYPEVERSION 1
+  
+  ENUMTYPE #AttachmentProcessed
+    PROPERTIES
+      Name                #AttachmentProcessed
+      UseEnumValue        #Yes
+      Origin              #{626D367C-C71C-4C97-82EE-26C88B6553EF}
+    ENDPROPERTIES
+    
+    TYPEELEMENTS
+      #Unprocessed
+      PROPERTIES
+        Name                #Unprocessed
+        Label               #Element1
+        EnumValue           #0
+      ENDPROPERTIES
+      
+      #Processed
+      PROPERTIES
+        Name                #Processed
+        Label               #Element2
+        EnumValue           #1
+      ENDPROPERTIES
+      
+      #FileNotFound
+      PROPERTIES
+        Name                #FileNotFound
+        Label               #Element3
+        EnumValue           #2
+      ENDPROPERTIES
+      
+      #FileLock
+      PROPERTIES
+        Name                #FileLock
+        Label               #Element4
+        EnumValue           #3
+      ENDPROPERTIES
+      
+    ENDTYPEELEMENTS
+  ENDENUMTYPE
+  
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: D365UpgradeMigrateAttachments unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #D365UpgradeMigrateAttachments
+    PROPERTIES
+      Name                #D365UpgradeMigrateAttachments
+      Origin              #{CF605CC9-32AB-4516-8C1F-6F0B5AC29B11}
+    ENDPROPERTIES
+    
+    METHODS
+      SOURCE #classDeclaration
+        #class D365UpgradeMigrateAttachments
+        #{
+        #
+        #}
+      ENDSOURCE
+      SOURCE #main
+        #///This source code is freeware and provide you sample code snippet without warranties of any kind,
+        #///whether express or implied, including without limitation warranties that the code is free of defect,
+        #///fit for a particular purpose or non-infringing.  The entire risk as to the quality and performance of
+        #///the code is with the end user.
+        #public static void main(Args _args)
+        #{
+        #
+        #    D365UpgradeMigrateAttachments::step1_renameExistingDocuType();
+        #    D365UpgradeMigrateAttachments::step2_updateExistingDocuRef();
+        #    D365UpgradeMigrateAttachments::step3_insertNewDocuTypeForDatabase();
+        #    D365UpgradeMigrateAttachments::step4_copyFileIntoDB();
+        #    D365UpgradeMigrateAttachments::step5_cleanUpDocuRef();
+        #
+        #}
+      ENDSOURCE
+      SOURCE #step1_renameExistingDocuType
+        #///This job migrates documents from an on-premise archive directory to the AX database
+        #///It is assumed, that before running this job there are no Document Types:
+        #///1. suffixed with _O
+        #///2. with a TypeId longer than 18 characters
+        #
+        #//Add suffix _O to DocuTypes of type Archive directory
+        #public server static void step1_renameExistingDocuType()
+        #{
+        #        Counter        counter;
+        #        DocuType        docuType;
+        #        ttsbegin;
+        #        while select forUpdate crossCompany docuType
+        #            where docuType.FilePlace == DocuFilePlace::Archive
+        #            && !(docuType.TypeId like '*_O')
+        #        {
+        #            changeCompany( docuType.DataAreaId )
+        #            {
+        #                if(!DocuType::find(docuType.TypeId + '_O')) //Check if this doesn't already exist, it may do if process failed and was restarted
+        #                {
+        #                    docuType.typeId = docuType.TypeId + '_O';
+        #                    docuType.doUpdate();
+        #                    counter++;
+        #                }
+        #            }
+        #        }
+        #        ttsCommit;
+        #        info(strFmt("%1 existing eligible document types are renamed", counter));
+        #
+        #}
+        #
+        #
+      ENDSOURCE
+      SOURCE #step2_updateExistingDocuRef
+        #//Update existing DocuRef records to match the suffixed DocuTypes
+        #//Using direct SQL due to resolve locking issue
+        #public server static void step2_updateExistingDocuRef()
+        #{
+        #    UserConnection                  connection;
+        #    Statement                       statement;
+        #    str                             sqlStmt;
+        #    SqlStatementExecutePermission   permission;
+        #
+        #    connection = new UserConnection();
+        #    statement   = connection.createStatement();
+        #    sqlStmt = 'UPDATE T1 SET TYPEID = CONCAT (TYPEID,\'_O\') FROM DOCUREF T1 ';
+        #    sqlStmt = sqlStmt + 'WHERE TYPEID NOT IN (SELECT TYPEID FROM DOCUTYPE T2 WHERE T2.DATAAREAID = T1.ACTUALCOMPANYID)';
+        #    connection.ttsbegin();
+        #    permission = new SqlStatementExecutePermission(sqlStmt);
+        #    permission.assert();
+        #    statement.executeUpdate(sqlStmt);
+        #    CodeAccessPermission::revertAssert();
+        #    connection.ttscommit();
+        #    connection.finalize();
+        #
+        #}
+        #
+        #
+      ENDSOURCE
+      SOURCE #step3_insertNewDocuTypeForDatabase
+        #//Create new DocuTypes
+        #public server static void step3_insertNewDocuTypeForDatabase()
+        #{
+        #    DocuType    docuType,docuTypeDB;
+        #    Counter    counter;
+        #
+        #    docuType.clear();
+        #
+        #    ttsBegin;
+        #    while select crossCompany  docuType
+        #    where  docuType.FilePlace == DocuFilePlace::Archive && docuType.TypeId like '*_O'
+        #    {
+        #        changeCompany( docuType.DataAreaId )
+        #        {
+        #            if (!docuType::find(subStr(docuType.TypeId, 0, strLen(docuType.TypeId)-2)))
+        #            {
+        #                docuTypeDB.clear(); //must reset, otherwise throw changeCompany error
+        #                buf2Buf(docuType,docuTypeDB);
+        #                docuTypeDB.FilePlace    = DocuFilePlace::Database;
+        #                docuTypeDB.TypeId       = subStr(docuType.TypeId, 0, strLen(docuType.TypeId)-2);
+        #                docuTypeDB.ArchivePath  = '';
+        #                docuTypeDB.doInsert();
+        #                counter++;
+        #            }
+        #        }
+        #    }
+        #    ttsCommit;
+        #    info(strFmt("%1 new document types are created", counter));
+        #
+        #}
+      ENDSOURCE
+      SOURCE #step4_copyFileIntoDB
+        #public server static void step4_copyFileIntoDB()
+        #{
+        #    FileIOPermission        ileIOPerm;
+        #    FromTime            startTime = timeNow();
+        #    SysOperationProgress    progressBar = new SysOperationProgress();
+        #    int                     recordCount, insertCount, batchCounter, numRecords, fileNotFoundCount, fileLockCount;
+        #    Filename                filename;
+        #    BinData                 binData;
+        #    DocuRef                 docuRef, docuRefDB;
+        #    DocuValue            docuValue, docuValueDel;
+        #    DocuType                docuType, docuTypeDB;
+        #    FilePath                filePath;
+        #    FileIOPermission        fileIOPerm;
+        #    System.Exception        ex;
+        #    #File
+        #    #avifiles
+        #
+        #    startTime   = timeNow();
+        #    progressBar = new SysOperationProgress();
+        #
+        #    select count(RecId) from docuRef
+        #        where docuRef.AttachmentProcessed  == AttachmentProcessed::Unprocessed;
+        #
+        #    numRecords = int642int(docuRef.RecId);
+        #    progressBar.setCaption("Document attachment conversion");
+        #    progressBar.setAnimation(#AviUpdate);
+        #    progressBar.setTotal(numRecords);
+        #
+        #    ttsBegin;
+        #    while select forUpdate crossCompany docuRef
+        #        order by docuRef.valueRecId
+        #        where docuRef.AttachmentProcessed == AttachmentProcessed::Unprocessed
+        #        join  docuType
+        #            where docuRef.TypeId == DocuType.TypeId
+        #            && docuType.FilePlace == DocuFilePlace::Archive
+        #            && docuType.dataAreaId == docuRef.ActualCompanyId
+        #    {
+        #        progressBar.setText(strfmt("Document %1", recordCount));
+        #        progressBar.setCount(recordCount, 1);
+        #
+        #        filePath = docuRef.Path();
+        #        filename = filePath + docuRef.docuValue().FileName + '.' + docuRef.docuValue().FileType;
+        #
+        #        fileIOPerm = new FileIOPermission(filename, 'r');
+        #        fileIOPerm.assert();
+        #
+        #        // BP deviation documented
+        #        // Check for file locking, empty filenames and non-existing files
+        #        if (!WinAPIServer::fileExists(filename) || filename == docuRef.path())
+        #        {
+        #            new OverwriteSystemfieldsPermission().assert();
+        #            docuRef.overwriteSystemfields(true);
+        #            docuRef.AttachmentProcessed  = AttachmentProcessed ::FileNotFound;
+        #            docuRef.(fieldNum(docuRef,ModifiedBy)) = docuRef.ModifiedBy;
+        #            docuRef.(fieldNum(docuRef,modifiedDateTime)) = docuRef.modifiedDateTime;
+        #            docuRef.doUpdate();
+        #            CodeAccessPermission::revertAssert();
+        #            fileNotFoundCount++;
+        #        }
+        #        else if(WinAPIServer::fileLocked(filename))
+        #        {
+        #            // File might be locked at present time, but may be unlocked for a later run of this job.
+        #            new OverwriteSystemfieldsPermission().assert();
+        #            docuRef.overwriteSystemfields(true);
+        #            if(docuRef.LockedFileCount  >= 3)
+        #            {
+        #                docuRef.AttachmentProcessed  = AttachmentProcessed::FileLock;
+        #            }
+        #            docuRef.LockedFileCount = docuRef.LockedFileCount + 1;
+        #            docuRef.(fieldNum(docuRef,ModifiedBy)) = docuRef.ModifiedBy;
+        #            docuRef.(fieldNum(docuRef,modifiedDateTime)) = docuRef.modifiedDateTime;
+        #            docuRef.doUpdate();
+        #            CodeAccessPermission::revertAssert();
+        #            fileLockCount ++;
+        #
+        #        }
+        #        else
+        #        {
+        #            try
+        #            {
+        #                docuValueDel.clear();
+        #                docuValueDel = DocuValue::find(docuRef.ValueRecId);
+        #                docuValue.clear();
+        #                [docuValue.FileName, docuValue.FileType, docuValue.Path] = Docu::splitFilename(filename);
+        #                docuValue.Name = docuRef.Name;
+        #                docuValue.OriginalFileName = docuRef.originalFileName();
+        #
+        #                binData = new BinData();
+        #
+        #                // BP deviation documented
+        #                if (binData.loadFile(filename))
+        #                {
+        #                    docuValue.File = binData.getData();
+        #                }
+        #                else
+        #                {
+        #                    throw error(strfmt("@SYS54217",filename));
+        #                }
+        #                CodeAccessPermission::revertAssert();
+        #                new OverwriteSystemfieldsPermission().assert();
+        #
+        #                docuValue.overwriteSystemfields(true);
+        #                if (docuValueDel)
+        #                {
+        #                    docuValue.(fieldNum(docuValue, CreatedDateTime)) = docuValueDel.CreatedDateTime;
+        #                    docuValue.(fieldNum(docuValue, CreatedBy)) = docuValueDel.CreatedBy;
+        #                    docuValue.(fieldNum(docuValue, ModifiedDateTime)) = docuValueDel.ModifiedDateTime;
+        #                    docuValue.(fieldNum(docuValue, ModifiedBy)) = docuValueDel.ModifiedBy;
+        #                }
+        #                docuValue.doInsert();
+        #                docuValue.overwriteSystemfields(false);
+        #
+        #                CodeAccessPermission::revertAssert();
+        #
+        #                // Insert docuRefDB
+        #                buf2Buf(docuRef, docuRefDB);
+        #                docuRefDB.TypeId = subStr(docuRef.TypeId, 0, strLen(docuRef.TypeId)-2);
+        #                docuRefDB.ValueRecId = docuValue.RecId;
+        #                docuRefDB.AttachmentProcessed = AttachmentProcessed::Processed;
+        #
+        #                new OverwriteSystemfieldsPermission().assert();
+        #                docuRefDB.overwriteSystemfields(true);
+        #
+        #                docuRefDB.(fieldNum(docuRef, CreatedDateTime)) = docuRef.CreatedDateTime;
+        #                docuRefDB.(fieldNum(docuRef, CreatedBy)) = docuRef.CreatedBy;
+        #                docuRefDB.(fieldNum(docuRef, ModifiedDateTime)) = docuRef.ModifiedDateTime;
+        #                docuRefDB.(fieldNum(docuRef, ModifiedBy)) = docuRef.ModifiedBy;
+        #
+        #                docuRefDB.doInsert();
+        #                docuRef.overwriteSystemfields(false);
+        #                CodeAccessPermission::revertAssert();
+        #
+        #                //Mark orginal record as processed
+        #                new OverwriteSystemfieldsPermission().assert();
+        #                docuRef.overwriteSystemfields(true);
+        #
+        #                docuRef.AttachmentProcessed = AttachmentProcessed::Processed;
+        #                docuRef.(fieldNum(docuRef,modifiedDateTime)) = docuRef.modifiedDateTime;
+        #                docuRef.(fieldNum(docuRef,ModifiedBy)) = docuRef.ModifiedBy;
+        #                docuRef.doUpdate();
+        #
+        #                docuRef.overwriteSystemfields(false);
+        #                CodeAccessPermission::revertAssert();
+        #
+        #                insertCount++;
+        #            }
+        #            catch(Exception::CLRError)
+        #            {
+        #                ex = ClrInterop::getLastException();
+        #                if (ex != null)
+        #                {
+        #                    ex = ex.get_InnerException();
+        #                    if (ex != null)
+        #                    {
+        #                        error(strFmt("%1",filename));
+        #                        error(ex.ToString());
+        #                    }
+        #                }
+        #            }
+        #        }
+        #        CodeAccessPermission::revertAssert();
+        #        recordCount ++;
+        #    }
+        #    ttsCommit;
+        #    info(strFmt("Total DocuRef records processed: %1", recordCount));
+        #    info(strFmt("Total records created: %1", insertCount));
+        #    info(strFmt("Total records where file does not exist: %1", fileNotFoundCount));
+        #    info(strFmt("Total records where file was locked: %1", fileLockCount));
+        #    info(strFmt("Total time consumed is  %1", timeConsumed(startTime, timeNow())));
+        #}
+      ENDSOURCE
+      SOURCE #step5_cleanUpDocuRef
+        #public server static void step5_cleanUpDocuRef()
+        #{
+        #    DocuRef    docuRef;
+        #    DocuValue  docuValue;
+        #    DocuType   docuType;
+        #
+        #    select count(RecId) from docuRef
+        #        where docuRef.TypeId like '*_O'
+        #        && (docuRef.AttachmentProcessed ==AttachmentProcessed ::Unprocessed || docuRef.AttachmentProcessed == AttachmentProcessed ::FileLock);
+        #
+        #    if (docuRef.RecId==0) //All records are processed and there were no file locks, then we can delete the orginal records
+        #    {
+        #        //All records were processed clean up the previous records
+        #        ttsBegin;
+        #        delete_from docuRef where docuRef.TypeId like '*_O';
+        #        delete_from docuValue notexists join docuRef where docuValue.RecId == docuRef.ValueRecId;
+        #        delete_from docuType where docuType.TypeId like '*_O';
+        #        ttsCommit;
+        #        info("Migrated Documents - originals removed, new attachment records reside in database. Ready for Upgrade!");
+        #    }
+        #    else
+        #    {
+        #        warning("Warning!!! There are still attachments that are unprocessed or have  file locks and were not migrated into the database.");
+        #        warning("Ensure you resolve these issues. Failure to ensure this cleanup completes will result in duplicate attachment records after upgrading.");
+        #    }
+        #
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: PRN
+
+; Microsoft Dynamics AX Project : D365UpgradeMigrateAttachments unloaded
+; --------------------------------------------------------------------------------
+  PROJECTVERSION 2
+  
+  PROJECT #D365UpgradeMigrateAttachments
+  PRIVATE
+  PROPERTIES
+    Name                #D365UpgradeMigrateAttachments
+    Origin              #{4453CDA5-0F50-4046-889C-8E2E96FCCA28}
+  ENDPROPERTIES
+  
+    PROJECTCLASS ProjectNode
+    BEGINNODE
+      FILETYPE 0
+      UTILTYPE 44
+      UTILOBJECTID 97
+      NODETYPE 204
+      NAME #DocuRef
+    ENDNODE
+    BEGINNODE
+      FILETYPE 0
+      UTILTYPE 40
+      UTILOBJECTID 101840
+      NODETYPE 209
+      NAME #AttachmentProcessed
+    ENDNODE
+    BEGINNODE
+      FILETYPE 0
+      UTILTYPE 45
+      UTILOBJECTID 1032748
+      NODETYPE 329
+      NAME #D365UpgradeMigrateAttachments
+    ENDNODE
+  ENDPROJECT
+  
+
+***Element: END
