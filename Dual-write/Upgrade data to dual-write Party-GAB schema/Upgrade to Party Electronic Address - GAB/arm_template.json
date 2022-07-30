@@ -1754,7 +1754,7 @@
                                 "type": "DataFlowReference",
                                 "parameters": {
                                     "prefix": {
-                                        "value": "'@{pipeline().globalParameters.ElectronicAddressIdPrefix}'",
+                                        "value": "'@{pipeline().globalParameters.ElectronicAddressIdPreffix}'",
                                         "type": "Expression"
                                     },
                                     "Source": {
