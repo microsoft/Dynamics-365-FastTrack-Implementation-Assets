@@ -1,11 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
-using CDMUtil.Context.ADLS;
+using CDMUtil.Manifest;
 using Microsoft.Data.SqlClient;
 
 namespace CDMUtil.Context.ObjectDefinitions
 {
+    public class AdlsContext
+    {
+        public string StorageAccount { get; set; }
 
+        public string ClientAppId { get; set; }
+
+        public string TenantId { get; set; }
+
+        public string ClientSecret { get; set; }
+
+        public bool MSIAuth { get; set; }
+
+        public string SharedKey { get; set; }
+
+        public string FileSytemName { get; set; }
+
+        public string EnvironmentName { get; set; }
+
+        public List<ManifestDefinition> ManifestDefinitions { get; set; }
+    }
     public class EntityList
     {
         public string manifestName { get; set; } // this will store the JSON string
@@ -107,6 +126,7 @@ namespace CDMUtil.Context.ObjectDefinitions
         public string tenantId;
         public string rootFolder;
         public string manifestName;
+        public List<ManifestDefinition> manifestDefinitions;
 
         public string AXDBConnectionString;
         public List<string> tableList;
@@ -123,64 +143,53 @@ namespace CDMUtil.Context.ObjectDefinitions
 
         public AppConfigurations()
         { }
-        public AppConfigurations(string tenant, string manifestURL, string accessKey, string targetConnectionString = "", string ddlType = "", string targetSparkConnection = "")
+        private string getManifestUri(string manifestURL)
         {
-            this.tenantId = tenant;
-
-            string manifestFilePath = manifestURL.Replace("/resolved/", "/");
+            string manifestUri = manifestURL.Replace("/resolved/", "/");
 
             if (manifestURL.EndsWith("manifest.cdm.json") || manifestURL.EndsWith("model.json"))
             {
-                manifestFilePath = manifestURL;
+                manifestUri = manifestURL;
             }
+            
             else if (manifestURL.EndsWith(".cdm.json"))
             {
-                Uri originalURI = new Uri(manifestFilePath);
+                Uri originalURI = new Uri(manifestUri);
                 string newManifestFilePath = string.Format("{0}://{1}", originalURI.Scheme, originalURI.Authority);
                 for (int i = 0; i < originalURI.Segments.Length - 1; i++)
                 {
                     newManifestFilePath += originalURI.Segments[i];
                 }
-                manifestFilePath = newManifestFilePath + originalURI.Segments[originalURI.Segments.Length - 2].Trim("/".ToCharArray()) + ".manifest.cdm.json";
+                manifestUri = newManifestFilePath + originalURI.Segments[originalURI.Segments.Length - 2].Trim("/".ToCharArray()) + ".manifest.cdm.json";
 
                 string TableName = originalURI.Segments[originalURI.Segments.Length - 1].Replace(".cdm.json", "");
-                this.tableList = new List<string>();
+
+                if (this.tableList is null)
+                {
+                    this.tableList = new List<string>();
+                }
+                
                 tableList.Add(TableName);
             }
 
-            manifestFilePath = manifestFilePath.Replace(".blob.", ".dfs.");
+            manifestUri = manifestUri.Replace(".blob.", ".dfs.");
+
+            return manifestUri;
+        }
+        public AppConfigurations(string tenant, string manifestURL, string accessKey, string targetConnectionString = "", string ddlType = "", string targetSparkConnection = "")
+        {
+            this.tenantId = tenant;
+
+            string[] manifestUrlList = manifestURL.Split(",");
+
+            Uri firstManifest = new Uri(this.getManifestUri(manifestUrlList[0]));
             
-            Uri manifestURI = new Uri(manifestFilePath);
-            string storageAccount = manifestURI.Host;
-            
-            string[] segments = manifestURI.Segments;
-
-            // Manifest URL must have at-least 3 segments storage account, container , manifest name 
-            if (segments.Length < 3)
-            {
-                throw new Exception($"Invalid ManifestURL{manifestURL}");
-            }
-
-            string container = segments[1].Trim("/".ToCharArray());
-
+            string storageAccount = firstManifest.Host;
+            string[] segments     = firstManifest.Segments;
+            int rootDirectoryPosition = (segments.Length > 3) ? 3 : 2;
             string rootDirectory = (segments.Length > 3) ? segments[1] + segments[2] : segments[1];
             string environmentName = rootDirectory.Replace(".operations.dynamics.com", "").Replace("/", "_").Replace("-", "_").Replace(".", "_");
             environmentName = environmentName.Trim("_".ToCharArray());
-
-            // get folder path
-            string folderPath = "";
-            int rootDirectoryPosition = (segments.Length > 3) ? 3 : 2;
-            for (int i = rootDirectoryPosition; i < segments.Length - 1; i++)
-            {
-                folderPath += segments[i];
-            }
-            if (String.IsNullOrEmpty(folderPath))
-            {
-                folderPath = "/";
-            }
-
-            this.rootFolder = folderPath;
-            this.manifestName = segments[segments.Length - 1]; 
 
             if (!String.IsNullOrEmpty(targetSparkConnection))
             {
@@ -188,19 +197,38 @@ namespace CDMUtil.Context.ObjectDefinitions
             }
             else
             {
-                string rootLocation = string.Format("{0}://{1}", manifestURI.Scheme, manifestURI.Authority) + "/" + rootDirectory;
+                string rootLocation = string.Format("{0}://{1}", firstManifest.Scheme, firstManifest.Authority) + "/" + rootDirectory;
                 this.synapseOptions = new SynapseDBOptions(targetConnectionString, environmentName, rootLocation, ddlType);
             }
+
             this.AdlsContext = new AdlsContext()
             {
                 StorageAccount = storageAccount,
                 FileSytemName = rootDirectory,
                 MSIAuth = String.IsNullOrEmpty(accessKey) ? true : false,
                 TenantId = tenant,
-                SharedKey = accessKey
+                SharedKey = accessKey,
+                EnvironmentName = environmentName
             };
-        }
+            
+            List <ManifestDefinition> mds = new List<ManifestDefinition>();
 
+            foreach (string manifest in manifestUrlList)
+            {
+                Uri manifestURI = new Uri(this.getManifestUri(manifest));
+                var uriSegments = manifestURI.Segments;
+                this.rootFolder = String.Join("", uriSegments[new Range(rootDirectoryPosition, uriSegments.Length - 1)]);
+                this.manifestName = uriSegments[uriSegments.Length - 1];
+
+                mds.Add(
+                    new ManifestDefinition{
+                        ManifestLocation = String.Join("", uriSegments[new Range(rootDirectoryPosition, uriSegments.Length - 1)]),
+                    ManifestName = uriSegments[uriSegments.Length - 1]
+                        });
+            }
+            this.AdlsContext.ManifestDefinitions = mds; 
+
+        }
     }
     public class SynapseDBOptions
     {
@@ -221,7 +249,7 @@ namespace CDMUtil.Context.ObjectDefinitions
         public string fileFormatName;
         public string DDLType = "SynapseView";
         public string schema = "dbo";
-        public int DefaultStringLength = 100;
+        public int DefaultStringLength = -1;
         public bool TranslateEnum = false;
         public bool createStats = false;
         public string parserVersion = "2.0";
