@@ -7,7 +7,6 @@ using Microsoft.CommonDataModel.ObjectModel.Enums;
 using Microsoft.CommonDataModel.ObjectModel.Storage;
 using System.Collections.Generic;
 using System.Linq;
-using CDMUtil.Context.ADLS;
 using CDMUtil.Context.ObjectDefinitions;
 using System.Text.RegularExpressions;
 using CDMUtil.SQL;
@@ -50,16 +49,10 @@ namespace CDMUtil.Manifest
                 }
             }
         }
-        public async static Task<ManifestDefinitions> getManifestDefinitions(AppConfigurations c, ILogger logger)
+        public async static Task<ManifestDefinitions> listBlob(AppConfigurations c, string manifestPath, ILogger logger)
         {
-            ManifestReader manifestHandler = new ManifestReader(c.AdlsContext, "/", logger);
-            
-            List<string> blobs =  await manifestHandler.cdmCorpus.Storage.FetchAdapter(manifestHandler.cdmCorpus.Storage.DefaultNamespace).FetchAllFilesAsync(c.rootFolder);
-
-           // logger.LogInformation($"{blobs.Count}");
-            List<String> filteredBlob = blobs.Where(b => b.EndsWith(".cdm.json") && !b.EndsWith(".manifest.cdm.json") && !b.Contains("/resolved/")).ToList();
-
-            List<String> tableList = c.tableList;
+        
+           /* List<String> tableList = c.tableList;
 
             List<TableManifestDefinition> metadataList = new List<TableManifestDefinition>();
 
@@ -67,7 +60,7 @@ namespace CDMUtil.Manifest
             {
                 string dataPath = blob.Replace(".cdm.json", "");
                 string[] dataPathParts = dataPath.Split('/');
-                string[] manifestPathParts = dataPathParts.Take(dataPathParts.Length - 1).ToArray();   
+                string[] manifestPathParts = dataPathParts.Take(dataPathParts.Length - 1).ToArray();
                 string TableName = dataPathParts.Last();
 
                 if (tableList != null)
@@ -97,24 +90,202 @@ namespace CDMUtil.Manifest
                                                 {
                                                     ManifestLocation = g.Key.ManifestLocation,
                                                     ManifestName = g.Key.ManifestName,
-                                                    Tables = g.Select(table => new Table{TableName = table.TableName }).ToList()
+                                                    Tables = g.Select(table => new Table { TableName = table.TableName }).ToList()
                                                 }).ToList();
 
-           // logger.LogInformation(JsonConvert.SerializeObject(manifests));
+            // logger.LogInformation(JsonConvert.SerializeObject(manifests));
 
-            dynamic adlsConfig = JsonConvert.DeserializeObject(manifestHandler.cdmCorpus.Storage.FetchAdapter(manifestHandler.cdmCorpus.Storage.DefaultNamespace).FetchConfig());
+        //    dynamic adlsConfig = JsonConvert.DeserializeObject(manifestHandler.cdmCorpus.Storage.FetchAdapter(manifestHandler.cdmCorpus.Storage.DefaultNamespace).FetchConfig());
 
             var mds = new ManifestDefinitions() { Tables = metadataList, Manifests = manifests, Config = adlsConfig };
+           */            
+            return null;
+        }
+        public static List<string> getSubManifestDefinitions(AppConfigurations c, List<ManifestDefinition> manifestDefinitions, ILogger logger)
+        {
+            List<string> blobs = new List<string>();
 
-            return mds;
+            foreach (var manifestDef in manifestDefinitions)
+            {
+                ManifestReader manifestHandler = new ManifestReader(c.AdlsContext, manifestDef.ManifestLocation, logger);
+                try
+                {
+                    CdmManifestDefinition manifest = manifestHandler.cdmCorpus.FetchObjectAsync<CdmManifestDefinition>
+                                                     (manifestDef.ManifestName, null, null, true).Result;
+
+                    if (manifest == null)
+                    {
+                        logger.LogError($"Manifest: {manifestDef.ManifestName } at Location {manifestDef.ManifestLocation} is invalid");
+                        break;
+                    }
+
+                    logger.LogInformation($"Manifest:{manifest.Name}");
+
+                    foreach (var submanifest in manifest.SubManifests)
+                    {
+                        string subManifestName = submanifest.ManifestName;
+                        string subManifestRoot = manifestDef.ManifestLocation + '/' + subManifestName;
+                        logger.LogInformation($"Sub-Manifest:{subManifestRoot}");
+                        blobs.AddRange(manifestHandler.cdmCorpus.Storage.FetchAdapter(manifestHandler.cdmCorpus.Storage.DefaultNamespace).FetchAllFilesAsync("/").Result);
+                        
+                    }
+
+                }
+                catch { }
+            }
+            return blobs;
         }
 
-  
-    public async static Task<bool> manifestToSQLMetadata(AppConfigurations c, List<SQLMetadata> metadataList, ILogger logger, string parentFolder = "")
+        public async static Task<bool> manifestToSQLMetadataV2(AppConfigurations c, List<SQLMetadata> metadataList, ILogger logger)
+        {
+            bool updateViewSyntax = false;
+            AdlsContext adlsContext = c.AdlsContext;
+            List<string> tableList= null;
+
+            foreach (ManifestDefinition md in adlsContext.ManifestDefinitions)
+            {
+                string manifestName = md.ManifestName;
+                string localRoot    = md.ManifestLocation;
+               // tableList = md.Tables.Select(i => i.TableName).ToList();
+
+                ManifestReader manifestHandler = new ManifestReader(adlsContext, localRoot, logger);
+
+                if (manifestName != "model.json" && manifestName.EndsWith(".manifest.cdm.json") == false)
+                {
+                    manifestName = manifestName + ".manifest.cdm.json";
+                }
+
+                try
+                {
+                    CdmManifestDefinition manifest = manifestHandler.cdmCorpus.FetchObjectAsync<CdmManifestDefinition>
+                                                     (manifestName, null, null, true).Result;
+
+                    if (manifest == null)
+                    {
+                        logger.LogError($"Manifest: {manifestName } at Location {localRoot} is invalid");
+                        return false;
+                    }
+
+                    logger.LogInformation($"Manifest:{manifest.Name}");
+
+                
+
+                    foreach (CdmEntityDeclarationDefinition eDef in manifest.Entities)
+                    {
+                        string entityName = eDef.EntityName;
+
+                        if (tableList != null)
+                        {
+                            if (tableList.Count == 0)
+                                break;
+                            else if (tableList.First() != "*" && !tableList.Contains(entityName))
+                                continue;
+                            else
+                                tableList.Remove(entityName);
+                        }
+
+                        var entSelected = manifestHandler.cdmCorpus.FetchObjectAsync<CdmEntityDefinition>(eDef.EntityPath, manifest).Result;
+
+                        if (entSelected.ExhibitsTraits.Count() > 1 && entSelected.ExhibitsTraits.Where(x => x.NamedReference == "has.sqlViewDefinition").Count() > 0)
+                        {
+                            // Custom traits sqlViewDefinition exists
+                            var trait = entSelected.ExhibitsTraits.Where(x => x.NamedReference == "has.sqlViewDefinition").First();
+                            CdmTraitReference cdmTrait = trait as CdmTraitReference;
+
+                            if (cdmTrait != null && cdmTrait.Arguments != null)
+                            {
+                                string viewDefinition = cdmTrait.Arguments.First().Value;
+                                //update view dependencies
+                                updateViewDependencies(entityName, viewDefinition, metadataList, c, logger);
+                                c.ProcessEntities = true;
+                            }
+                        }
+                        else
+                        {
+                            string dataLocation = getDataLocation(eDef, localRoot);
+
+                            string dataFilePath = "https://" + Regex.Replace($"{adlsContext.StorageAccount}/{adlsContext.FileSytemName}/{dataLocation}", @"/+", @"/");
+                            string metadataFilePath = "https://" + Regex.Replace($"{adlsContext.StorageAccount}/{adlsContext.FileSytemName}/{localRoot}/{manifestName}", @"/+", @"/");
+                            string cdcDataFileFilePath = "https://" + Regex.Replace($"{adlsContext.StorageAccount}/{adlsContext.FileSytemName}/ChangeFeed/{entityName}/*.csv", @"/+", @"/");
+
+                            if (dataFilePath.Contains("ChangeFeed/") && c.synapseOptions.schema == "dbo")
+                            {
+                                entityName = "_cdc_" + entityName;
+                            }
+
+                            var columnAttributes = getColumnAttributes(entSelected, c, logger);
+
+                            metadataList.Add(new SQLMetadata()
+                            {
+                                entityName = entityName,
+                                dataLocation = dataLocation,
+                                dataFilePath = dataFilePath,
+                                metadataFilePath = metadataFilePath,
+                                cdcDataFileFilePath = cdcDataFileFilePath,
+                                columnAttributes = columnAttributes
+                            });
+                        }
+                        logger.LogInformation($"Table:{entityName}");
+
+                    }
+                }
+                catch (Exception e)
+                {
+                    manifestHandler.cdmCorpus.Ctx.Events.ForEach(
+                               logEntry => logEntry.ToList().ForEach(
+                                   logEntryPair => logger.LogError($"{logEntryPair.Key}={logEntryPair.Value}")
+                               )
+                           );
+                    logger.LogError(e.Message);
+                    logger.LogError(e.StackTrace);
+                }
+               
+                // Process entities from entity list file
+                if (c.ProcessEntities && !String.IsNullOrEmpty(c.ProcessEntitiesFilePath) && File.Exists(c.ProcessEntitiesFilePath))
+                {
+                    string artifactsStr = File.ReadAllText(c.ProcessEntitiesFilePath);
+                    var entitiesList = JsonConvert.DeserializeObject<IEnumerable<Artifacts>>(artifactsStr);
+                    logger.LogInformation($"Process Entities");
+                    foreach (var entity in entitiesList)
+                    {
+                        //update view dependencies
+                        updateViewDependencies(entity.Key, entity.Value, metadataList, c, logger);
+                    }
+                    updateViewSyntax = true;
+                }
+
+                // Process sub tables and super tables from list file
+                if ( c.ProcessSubTableSuperTables && !String.IsNullOrEmpty(c.ProcessSubTableSuperTablesFilePath) && File.Exists(c.ProcessSubTableSuperTablesFilePath))
+                {
+                    string artifactsStr = File.ReadAllText(c.ProcessSubTableSuperTablesFilePath);
+                    var subTableSuperTableList = JsonConvert.DeserializeObject<IEnumerable<Artifacts>>(artifactsStr);
+                    logger.LogInformation($"Process sub tables and super tables");
+                    foreach (var subTable in subTableSuperTableList)
+                    {
+                        updateViewsForSubTableSuperTables(subTable.Key, subTable.Value, metadataList, c, logger);
+                    }
+                    updateViewSyntax = true;
+                }
+
+                
+            }
+            // at the end update the view syntax
+            if (updateViewSyntax)
+            {
+                logger.LogInformation("Start:updateViewSyntax");
+                TSqlSyntaxHandler.updateViewSyntax(c, metadataList, logger);
+                logger.LogInformation("End:updateViewSyntax");
+            }
+            return true;
+
+        }
+
+        public async static Task<bool> manifestToSQLMetadata(AppConfigurations c, List<SQLMetadata> metadataList, ILogger logger, string parentFolder = "")
         {
             AdlsContext adlsContext = c.AdlsContext;
             string manifestName = c.manifestName;
             string localRoot = c.rootFolder;
+            bool updateViewSyntax = false;
 
             List<string> tableList = c.tableList;
 
@@ -124,7 +295,7 @@ namespace CDMUtil.Manifest
             {
                 manifestName = manifestName + ".manifest.cdm.json";
             }
-
+            
             try
             {
                 CdmManifestDefinition manifest = manifestHandler.cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(manifestName, null, null, true).Result;
@@ -149,7 +320,7 @@ namespace CDMUtil.Manifest
                 }
 
                 logger.LogInformation($"Manifest:{manifest.Name}");
-
+                
                 foreach (CdmEntityDeclarationDefinition eDef in manifest.Entities)
                 {
                     string entityName = eDef.EntityName;
@@ -177,7 +348,8 @@ namespace CDMUtil.Manifest
                             string viewDefinition = cdmTrait.Arguments.First().Value;
                             //update view dependencies
                             updateViewDependencies(entityName, viewDefinition, metadataList, c, logger);
-                            TSqlSyntaxHandler.updateViewSyntax(c, metadataList);
+                            c.ProcessEntities = true;
+                            
                         }
                     }
                     else
@@ -219,9 +391,7 @@ namespace CDMUtil.Manifest
                 logger.LogError(e.Message);
                 logger.LogError(e.StackTrace);
             }
-
-            bool updateViewSyntax = false;
-
+         
             // Process entities from entity list file
             if (parentFolder == localRoot && c.ProcessEntities && !String.IsNullOrEmpty(c.ProcessEntitiesFilePath) && File.Exists(c.ProcessEntitiesFilePath))
             {
@@ -235,7 +405,7 @@ namespace CDMUtil.Manifest
                 }
                 updateViewSyntax = true;
             }
-
+            
             // Process sub tables and super tables from list file
             if (parentFolder == localRoot && c.ProcessSubTableSuperTables && !String.IsNullOrEmpty(c.ProcessSubTableSuperTablesFilePath) && File.Exists(c.ProcessSubTableSuperTablesFilePath))
             {
@@ -252,7 +422,7 @@ namespace CDMUtil.Manifest
             // at the end update the view syntax
             if (updateViewSyntax)
             {
-                TSqlSyntaxHandler.updateViewSyntax(c, metadataList);
+                TSqlSyntaxHandler.updateViewSyntax(c, metadataList, logger);
             }
 
             return true;

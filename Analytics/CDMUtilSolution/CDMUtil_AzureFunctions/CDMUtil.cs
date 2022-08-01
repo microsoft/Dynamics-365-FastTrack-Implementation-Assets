@@ -7,7 +7,6 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using CDMUtil.Context.ADLS;
 using CDMUtil.Context.ObjectDefinitions;
 using CDMUtil.Manifest;
 using System;
@@ -196,9 +195,13 @@ namespace CDMUtil
 
             // Read Manifest metadata
             log.Log(LogLevel.Information, "Reading Manifest metadata");
-          
-            ManifestDefinitions manifestDefinitions = await ManifestReader.getManifestDefinitions(c, log);
-
+            ManifestDefinitions manifestDefinitions = new ManifestDefinitions();
+            foreach (var manifest in c.AdlsContext.ManifestDefinitions)
+            {
+               
+                manifestDefinitions = await ManifestReader.listBlob(c, manifest.ManifestLocation, log);
+            }
+            
             List<ManifestDefinition> manifests = manifestDefinitions.Manifests;
             dynamic adlsConfig = manifestDefinitions.Config;
 
@@ -249,6 +252,52 @@ namespace CDMUtil
 
             return new OkObjectResult(JsonConvert.SerializeObject(metadataList));
         }
+
+        [FunctionName("ServiceBus_CDMToSynapseView")]
+        public static void Run(
+       [ServiceBusTrigger("CDMToSynapseView", Connection = "ServiceBusConnection")] dynamic eventGridData, ExecutionContext executionContext,
+       ILogger log)
+        {
+           
+            dynamic eventData = eventGridData;
+            string ManifestURL = eventData.url;
+
+            log.LogInformation(ManifestURL);
+
+            if (!ManifestURL.EndsWith(".cdm.json"))
+            {
+                log.LogWarning("Invalid manifestURL");
+                return;
+            }
+            EventGridEvent eventGridEvent = new EventGridEvent();
+            eventGridEvent.Data = eventData;
+            //get configurations data 
+            AppConfigurations c = GetAppConfigurations(null, executionContext, eventGridEvent);
+
+            log.LogInformation(eventGridEvent.Data.ToString());
+            // Read Manifest metadata
+            log.Log(LogLevel.Information, "Reading Manifest metadata");
+            List<SQLMetadata> metadataList = new List<SQLMetadata>();
+
+            ManifestReader.manifestToSQLMetadata(c, metadataList, log, c.rootFolder);
+
+            //sometimes the JSON file is dropped before the folder path exists, wait for the folder to exist before attempting to create the table
+            // Applies only to Tables and ChangeFeed folder
+            if (ManifestURL.Contains("/Entities/") == false)
+            {
+                ManifestReader.WaitForFolderPathsToExist(c, metadataList, log).Wait();
+            }
+
+            if (!String.IsNullOrEmpty(c.synapseOptions.targetSparkEndpoint))
+            {
+                SparkHandler.executeSpark(c, metadataList, log);
+            }
+            else
+            {
+                SQLHandler.executeSQL(c, metadataList, log);
+            }
+        }
+
         [FunctionName("EventGrid_CDMToSynapseView")]
         public static void CDMToSynapseView([EventGridTrigger] EventGridEvent eventGridEvent, ILogger log, ExecutionContext context)
         {
@@ -383,15 +432,15 @@ namespace CDMUtil
             AppConfiguration.SourceColumnProperties = Path.Combine(context.FunctionAppDirectory, "SourceColumnProperties.json");
             AppConfiguration.ReplaceViewSyntax = Path.Combine(context.FunctionAppDirectory, "ReplaceViewSyntax.json");
 
-
             string ProcessEntities = getConfigurationValue(req, "ProcessEntities", ManifestURL);
 
             if (ProcessEntities != null)
             {
                 AppConfiguration.ProcessEntities = bool.Parse(ProcessEntities);
-                AppConfiguration.ProcessEntitiesFilePath = Path.Combine(context.FunctionAppDirectory, "EntityList.json");
-
             }
+            
+            AppConfiguration.ProcessEntitiesFilePath = Path.Combine(context.FunctionAppDirectory, "EntityList.json");
+
             string CreateStats = getConfigurationValue(req, "CreateStats", ManifestURL);
 
             if (CreateStats != null)
