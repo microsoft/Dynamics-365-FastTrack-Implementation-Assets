@@ -318,7 +318,18 @@ namespace CDMUtil.SQL
             switch (attribute.dataType.ToLower())
             {
                 case "string":
-                    sqlColumnDef = $"{attribute.name} nvarchar({attribute.maximumLength})";
+                    if (attribute.maximumLength == -1 && synapseDBOptions.parserVersion == "1.0")
+                    {
+                        sqlColumnDef = $"{attribute.name} nvarchar(max)";
+                    }
+                    else if (attribute.maximumLength == -1 && synapseDBOptions.parserVersion == "2.0")
+                    {
+                        sqlColumnDef = $"{attribute.name} nvarchar(4000)";
+                    }
+                    else
+                    {
+                        sqlColumnDef = $"{attribute.name} nvarchar({attribute.maximumLength})";
+                    }
                     break;
                 case "decimal":
                 case "double":
@@ -381,7 +392,7 @@ namespace CDMUtil.SQL
             DataTable dataTable = handler.executeSQLQuery(queryString);
             DataTableReader dataReader = dataTable.CreateDataReader();
 
-            if (dataReader.Read())
+            if (dataReader.Read() && dataReader[0] != DBNull.Value)
             {
                 var missingTables = (string)dataReader[0];
                 if (String.IsNullOrEmpty(missingTables) == false)
@@ -596,9 +607,12 @@ order by rootNode asc, depth desc
                 SQLHandler sQLHandler = new SQLHandler(c.synapseOptions.targetDbConnectionString, c.tenantId, log);
                 sQLHandler.executeStatements(prepareDbStatement);
 
-                var statsSP = createStatsSP();
-                SQLHandler handler = new SQLHandler(c.synapseOptions.targetDbConnectionString, c.tenantId, log);
-                handler.executeStatements(statsSP);
+                if (c.synapseOptions.createStats)
+                {
+                    var statsSP = createStatsSP();
+                    SQLHandler handler = new SQLHandler(c.synapseOptions.targetDbConnectionString, c.tenantId, log);
+                    handler.executeStatements(statsSP);
+                }
             }
         }
         public static SQLStatements createControlTableAndSP(AppConfigurations c)
@@ -762,11 +776,17 @@ as
 
     public class TSqlSyntaxHandler : TSqlFragmentVisitor
     {
+        //settings
+        public bool removePartitionJoin = false;
+        public bool removeHashColumns = false;
+        public bool identifyJoinColumns = false;
+
         public bool sparkSQL;
         public string dbName;
         public string schema;
         public string outputString;
         public string inputString;
+       
         TSqlFragment tree;
         AppConfigurations c;
         readonly Dictionary<string, string> aliases = new Dictionary<string, string>();
@@ -778,13 +798,13 @@ as
         public Dictionary<string, string> SelectColumns { get { return selectColumns; } }
         public Dictionary<string, string> StatsStatements { get { return statsStatements; } }
         public string getOutputString { get { return outputString; } }
-        public TSqlSyntaxHandler(string _inputString, AppConfigurations c)
+        public TSqlSyntaxHandler(string _inputString, AppConfigurations c, ILogger logger)
         {
             sparkSQL = (String.IsNullOrEmpty(c.synapseOptions.targetSparkEndpoint)) ? false : true;
             dbName = c.synapseOptions.dbName;
             schema = c.synapseOptions.schema;
             inputString = _inputString;
-            tree = initializeTsqlParser(inputString);
+            tree = initializeTsqlParser(inputString, logger);
             if (tree != null)
             {
                 tree.Accept(this);
@@ -817,12 +837,14 @@ as
         }
         public override void ExplicitVisit(CreateViewStatement node)
         {
-            if (node.SchemaObjectName != null)
+            if (node.SchemaObjectName != null && node.SchemaObjectName.SchemaIdentifier != null)
             {
                 node.SchemaObjectName.SchemaIdentifier.Value = sparkSQL ? dbName : schema;
             }
             base.ExplicitVisit(node);
         }
+
+        //Removing partition field from join
         public override void ExplicitVisit(BooleanParenthesisExpression node)
         {
             var expression = node.Expression as BooleanComparisonExpression;
@@ -844,6 +866,7 @@ as
 
             base.ExplicitVisit(node);
         }
+        //removing #fields from select statements
         public override void ExplicitVisit(QuerySpecification node)
         {
             for (int i = 1; i < node.SelectElements.Count; i++)
@@ -871,7 +894,7 @@ as
             base.ExplicitVisit(node);
         }
 
-
+        // Get columns in the join statement
         public override void ExplicitVisit(BooleanComparisonExpression node)
         {
             ColumnReferenceExpression fristExpression = node.FirstExpression as ColumnReferenceExpression;
@@ -913,11 +936,7 @@ as
             {
                 table.SchemaObject.BaseIdentifier.Value = dbName + "." + table.SchemaObject.BaseIdentifier.Value;
             }
-          /*  else
-            {
-                table.SchemaObject.BaseIdentifier.Value = schema + "." + table.SchemaObject.BaseIdentifier.Value;
-            }*/
-
+           
             base.ExplicitVisit(table);
         }
         public void addToDictionary(string key, string value, Dictionary<string, string> dict)
@@ -927,20 +946,22 @@ as
                 dict.Add(key, value);
             }
         }
-        public static TSqlFragment initializeTsqlParser(string inputString)
+        public static TSqlFragment initializeTsqlParser(string inputString, ILogger logger)
         {
             TSqlFragment sqlFragment;
             using (var rdr = new StringReader(inputString))
             {
                 IList<ParseError> errors = null;
+                var watch = new System.Diagnostics.Stopwatch();
+              
                 var parser = new TSql150Parser(true, SqlEngineType.All);
                 sqlFragment = parser.Parse(rdr, out errors);
-
+                
                 if (errors != null && errors.Count > 0)
                 {
                     foreach (var error in errors)
                     {
-                        Console.WriteLine(error.Message);
+                        logger.LogError(error.Message);
                     }
                 }
             }
@@ -998,7 +1019,7 @@ as
             return outputString;
         }
 
-        public static void updateViewSyntax(AppConfigurations c, List<SQLMetadata> metadataList)
+        public static void updateViewSyntax(AppConfigurations c, List<SQLMetadata> metadataList, ILogger logger)
         {
             Dictionary<string, string> statsStatements = new Dictionary<string, string>();
             foreach (var view in metadataList.FindAll(a => a.viewDefinition != null))
@@ -1006,16 +1027,29 @@ as
                 string outputString = view.viewDefinition;
 
                 outputString = customSyntaxUpdate(c.ReplaceViewSyntax, outputString, view.entityName);
+                
+                var watch = new System.Diagnostics.Stopwatch();
+                watch.Start();
 
-                TSqlSyntaxHandler sqlSyntax = new TSqlSyntaxHandler(outputString, c);
+                TSqlSyntaxHandler sqlSyntax = new TSqlSyntaxHandler(outputString, c, logger);
 
                 if (sqlSyntax.tree != null)
                 {
                     outputString = sqlSyntax.outputString;
-                    sqlSyntax.StatsStatements.ToList().ForEach(x => statsStatements[x.Key] = x.Value);
+
+                    if (c.synapseOptions.createStats)
+                    {
+                        sqlSyntax.StatsStatements.ToList().ForEach(x => statsStatements[x.Key] = x.Value);
+                    }
                 }
+                
+                watch.Stop();
+                logger.LogInformation($"{view.entityName}-TSqlSyntaxHandler - {watch.ElapsedMilliseconds}");
+                //logger.LogInformation(outputString);
 
                 view.viewDefinition = outputString;
+                view.dependentTables = String.Join(",", sqlSyntax.aliases.Select(kvp => kvp.Value));
+                logger.LogInformation(view.dependentTables);
             }
             if (c.synapseOptions.createStats)
             {
