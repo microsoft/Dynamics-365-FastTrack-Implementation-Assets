@@ -32,8 +32,14 @@ namespace CDMUtil
             // Read Manifest metadata
             using (logger.BeginScope("Reading CDM"))
             {
-                logger.LogInformation($"Reading Manifest metadata {c.synapseOptions.location}{c.rootFolder}{c.manifestName}");
-                ManifestReader.manifestToSQLMetadata(c, metadataList, logger, c.rootFolder).Wait();
+                foreach (var manifestDef in c.AdlsContext.ManifestDefinitions)
+                {
+                    c.rootFolder = manifestDef.ManifestLocation;
+                    c.manifestName = manifestDef.ManifestName;
+                    logger.LogInformation($"Reading Manifest metadata {c.synapseOptions.location}{c.rootFolder}{c.manifestName}");
+                    ManifestReader.manifestToSQLMetadata(c, metadataList, logger, c.rootFolder).Wait();
+                }
+                //ManifestReader.manifestToSQLMetadataV2(c, metadataList, logger).Wait();
             }
 
             using (logger.BeginScope("Processing DDL"))
@@ -48,7 +54,7 @@ namespace CDMUtil
                 }
             }
 
-            Console.WriteLine("Press any key to exit...");            
+           Console.WriteLine("Press any key to exit...");            
             Console.ReadLine();
         }
 
@@ -124,9 +130,11 @@ namespace CDMUtil
                 if (bool.Parse(ConfigurationManager.AppSettings.Get("ProcessEntities")))
                 {
                     AppConfiguration.ProcessEntities = true;
-                    AppConfiguration.ProcessEntitiesFilePath = Path.Combine(Environment.CurrentDirectory, "Manifest", "EntityList.json");
                 }
             }
+            
+            AppConfiguration.ProcessEntitiesFilePath = Path.Combine(Environment.CurrentDirectory, "Manifest", "EntityList.json");
+            
             if (ConfigurationManager.AppSettings.Get("ProcessSubTableSuperTables") != null)
             {
                 if (bool.Parse(ConfigurationManager.AppSettings.Get("ProcessSubTableSuperTables")))
