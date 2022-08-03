@@ -30,12 +30,11 @@ Unlike CDMUtil as Azure function and console App, CDMUtil pipeline, reads the js
 Since CDUtil is just a pipeline within the Synapse or Azure Data Factory, this approach simplify the deployment and maitainance of the utilities.
 
 Following features are not yet implemented in the CDMUtil pipeline. You should continue to use CDMUtil as console App or Function App if you have been using any of these features  
-1. Schema support 
-2. Enum translation 
-3. Cleaning the Entity view definitions 
-4. Overiding the string lenght properties 
-5. Not having enhanced metadata feature on (reading un-resolved cdm.json files)
-6. AXDB connection string to retrive string lenght or view dependencies
+1. Enum translation 
+2. Cleaning the Entity view definitions 
+3. Overiding the string lenght properties 
+4. Not having enhanced metadata feature on (reading un-resolved cdm.json files)
+5. AXDB connection string to retrive string lenght or view dependencies
              
 
 **Pre-requisites**
@@ -71,7 +70,8 @@ CREATE MASTER KEY ENCRYPTION BY PASSWORD = <enter very strong password here>
 
 ***On-demand or scheduled execution*** 
 To run the pipeline for all metadata that exists in the datalake (Tables, ChangeFeed and Entities), execute the CDMUtil pipeline with appropriate parameters and leave **datapath** and **filepath** parameters blank. 
-This will copy all the all metadata files (.cdm.json) under environment folder into a single metadata.parquet files under environment folder in your data lake.    
+This will copy all the all metadata files (.cdm.json) under environment folder into a single metadata.parquet files in environment folder in your data lake. 
+Then it will use the metadata.parquet file to read the metadata information to generate and generate and execute DDL statement on the target database.    
 
 ***Trigger based run***
 When using Synapse pipeline or Azure Data Factory pipelines you can, [create a trigger that runs a pipeline in response to a storage event](https://docs.microsoft.com/en-us/azure/data-factory/how-to-create-event-trigger?tabs=data-factory). 
@@ -121,17 +121,29 @@ Following parameters are applicable for Synapse Serverless pool
 |----------------------------|:-----------------------------------|
 |DDLType                     |SynapseView or SynapseExternalTable |
 |ParserVersion               |1.0 or 2.0                          |
+|Schema                      |Schema name (Schema must exist in the database)|
 
 Serverless pool endpoint is used from linked services. All objects are created in dbo schema.
  
 ## 2. Create metadata in Synapse dedicated pool- Create tables metadata (empty tables) and populate data in control table to orchastrate data copy in dadicated pool 
 
 Following parameters are applicable for Synapse Dedicated pool 
+
 |Parameters                  |Value                               |
 |----------------------------|:-----------------------------------|
 |DDLType                     |SynapseTable                        |
-|DedicatedPoolDB             |DBName of Synapse dedicated pool    |
+|Dbname                      |DBName of Synapse dedicated pool    |
+|Schema                      |Schema name (Schema must exist in the database)|
 
-Dedicated pool endpoint is used from Linked services. All objects are created in dbo schema.
+Dedicated pool endpoint is used from Linked services. 
+
+Note: CDMUtil pipeline only create metadata (Tables) and populated metadata information in the control table. To get the data   
+#### Copy data in Synapse Tables
+1. To copy data in Synapse tables ADF or Synapse pilelines can be used. 
+2. Download [CopySynapseTable template](/Analytics/CDMUtilSolution/CopySynapseTable.zip)    
+3. Import Synapsepipeline Template ![Import Synapsepipeline Template](importsynapsepipelinetemplate.png)
+4. Provide parameters and execute CopySynapseTable pipeline to copy data to Synapse tables 
+
+CopyTable data pipeline calls stored procedure on the synapse dedicated pool and build dynamics copyInto statement using the information from the control table execute it on the dedicated pool.  
 
  
