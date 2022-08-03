@@ -16,12 +16,10 @@ CREATE TABLE [dbo].[DataLakeToSynapse_ControlTableForCopy]
 	[LastCopyMarker] [varchar](255) NULL,
 	[LastCopyStatus] [int] NULL
 )
-WITH
-(
-	DISTRIBUTION = ROUND_ROBIN,
-	CLUSTERED COLUMNSTORE INDEX
-)
+WITH (HEAP)
 GO
+
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[_metadata]') AND type in (N'U')) DROP TABLE [dbo].[_metadata] GO create table _metadata (  [FilePath] [varchar](1000) NULL,  [definitions] [varchar](max) NULL,  [Environment]   [varchar](100) NULL ) WITH(HEAP)
 
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'dbo.DataLakeToSynapse_CopyIntoTable') AND type in (N'P'))
 DROP Procedure dbo.DataLakeToSynapse_CopyIntoTable
