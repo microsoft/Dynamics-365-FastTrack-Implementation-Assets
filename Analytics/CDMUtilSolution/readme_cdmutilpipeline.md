@@ -57,14 +57,23 @@ CREATE MASTER KEY ENCRYPTION BY PASSWORD = <enter very strong password here>
 1. Create a Dedicated SQL pool if not already exists
 2. Connect to Dedicated SQL pool database and execute following SQL Script [Synapse Dedicated pool SQL ](/Analytics/CDMUtilSolution/DataTransform_SynapseDedicatedPool.sql)    
 
+Note: If you do have use case of Dedicated SQL pool, you do not have to create Dedicated SQL pool. You can still import the pipeline and use with Synapse Serverless SQL pool.
+
+
 **Deploy CDMUtil pipeline**
 
 1. Download [CDMUtil pipeline template](/Analytics/CDMUtilSolution/CDMUtilPipeline.zip)    
 2. Import Synapse pipeline Template ![Import Synapsepipeline Template](importsynapsepipelinetemplate.png)
-3. Provide Link services details for Storage account, Synapse serverless endpoint and Synapse Dedicated pool endpoint and deploy the changes 
-![Import C D M Util Pipeline](ImportCDMUtilPipeline.png)
-4.Update following highlighted parameters  
+3. Create link service of type Azure SQL for SynapseServerless endpoint by specifying the **Serverless SQL endpoint** and **Database name** and **Authentication type**
+![Serverless Endpoint](ServerlessEndpoint.png)      
+4. Create or select Default endpoints for Dedicated SQL Pool and linked storage account.
+![Import CDMUtil Pipeline](ImportCDMUtilPipeline.png)
+Note: If you do have use case of Dedicated SQL pool, you do not have to create Dedicated SQL Pool. Just select the default Synapse workspace linked service that named like **{WorkspaceName}-WorkspaceDefaultSqlServer**
+5.Update following highlighted parameters  
 ![Update Parameters](updateParameters.png)
+5. Click **Publish all** to deploy the pipeline to Synapse workspace. 
+
+Note: If you are using Azure Data Factory instead of Synapse Pipeline, same pipeline can be deployed as Data Factory following the similar steps.
 
 **Execute CDMUtil pipeline** 
 
