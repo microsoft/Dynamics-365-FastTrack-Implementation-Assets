@@ -1,4 +1,4 @@
-#POS load test sample[WIP]
+# POS load test sample
 
 ### Introduction
 
@@ -9,7 +9,7 @@ This is a sample to perfom point of sale api load testing with [Azure load testi
 1. Download Apache Jmeter
 2. Azure subscription
 
-###Configuration
+### Configuration
 
 1. Identify the CSU(commerce scale unit) url
 2. Prepare the devices and capture the device tokens.For example populate 100 devices in Dynamics 365 HQ if you are planning to simulate 100 devices. Device token can be obtained by using browser dev tools or fiddler.
