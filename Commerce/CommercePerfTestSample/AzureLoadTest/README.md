@@ -33,16 +33,17 @@ This is a sample to perfom point of sale api load testing with [Azure load testi
 
 [Compare test runs](https://docs.microsoft.com/en-us/azure/load-testing/how-to-compare-multiple-test-runs)
 
-###Monitor and test results
+### Monitor and test results
 
 [Export test results and report in third party tools](https://docs.microsoft.com/en-us/azure/load-testing/how-to-export-test-results)
 ![LoadTestRun](data/LoadTestRun.png)
 
-###Troubleshooting
+### Troubleshooting
 
 [Troubleshoot load test errors](https://docs.microsoft.com/en-us/azure/load-testing/how-to-find-download-logs)
 
-###Integration
+### Integration
+
 [Automate with github actions](https://docs.microsoft.com/en-us/azure/load-testing/tutorial-cicd-github-actions)
 [Identify performance regressions with Azure Load Testing Preview and Azure Pipelines](https://docs.microsoft.com/en-us/azure/load-testing/tutorial-cicd-azure-pipelines)
 [Deploying Azure Load Testing Preview in a virtual network (VNET)](https://docs.microsoft.com/en-us/azure/load-testing/concept-azure-load-testing-vnet-injection)
