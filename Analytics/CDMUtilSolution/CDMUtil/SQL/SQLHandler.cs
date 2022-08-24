@@ -368,7 +368,9 @@ namespace CDMUtil.SQL
                 case "guid":
                     sqlColumnDef = $"{attribute.name} uniqueidentifier";
                     break;
-
+                case "binary":
+                    sqlColumnDef = $"{attribute.name} varbinary(100)";
+                    break;
                 default:
                     sqlColumnDef = $"{attribute.name} nvarchar({attribute.maximumLength})";
                     break;
