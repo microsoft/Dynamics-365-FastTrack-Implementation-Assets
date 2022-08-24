@@ -157,7 +157,7 @@ Dedicated pool endpoint is used from Linked services.
 Note: CDMUtil pipeline only create metadata (Tables) and populated metadata information in the control table. To copy data in Synapse tables ADF or Synapse pilelines can be used.   
 
 #### Copy data in Synapse Staging Tables
-1. Download [DataLakeToDedicatedPoolCopy template](/Analytics/ArchitecturePatterns/DataLakeToDedicatedPoolCopy.zip)    
+1. Download [DataLakeToDedicatedPoolCopy template](/Analytics/ArchitecturePatterns/CloudDatawarehouse/DataLakeToDedicatedPoolCopy.zip)    
 2. Import Synapse pipeline Template ![Import Synapsepipeline Template](importsynapsepipelinetemplate.png)
 3. Provide parameters and execute DataLakeToDedicatedPoolCopy pipeline to copy data to Synapse tables 
 
@@ -177,7 +177,7 @@ Following parameters are applicable for Azure SQL Table
 Note: CDMUtil pipeline only create metadata ( empty Tables) and populated metadata information in the control tables to facilitate data copy activities.   
 
 #### Copy data in SQL Tables
-2. Download [DataLakeToSQLCopy template](/Analytics/ArchitecturePatterns/DataLakeToSQLCopy.zip)    
+2. Download [DataLakeToSQLCopy template](/Analytics/ArchitecturePatterns/SQLIntegration/DataLakeToSQLCopy.zip)    
 3. Import Synapsepipeline Template ![Import Synapsepipeline Template](importsynapsepipelinetemplate.png)
 4. Provide parameters and execute DataLakeToSQLCopy pipeline to copy data to SQL tables.
 
