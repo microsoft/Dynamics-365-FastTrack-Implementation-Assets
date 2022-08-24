@@ -509,6 +509,9 @@ namespace CDMUtil.Manifest
                     case "_sysrowid":
                         columnAttribute.dataType = "int64";
                         break;
+                     case "sysrowversionnumber":
+                        columnAttribute.dataType = "timestamp";
+                        break;
                     case "lsn":
                     case "start_lsn":
                     case "seq_val":
