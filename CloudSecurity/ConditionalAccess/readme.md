@@ -57,7 +57,7 @@ Requirements & consideration for enabling Conditional access
     b.  With Microsoft Logic Apps and Power Automate, at the time
         signing into the connector, it checks the login for Conditional
         access, however, once the connection is established, it does not
-        check the conditional accesss on each call. For example, it does
+        check the conditional access on each call. For example, it does
         not check IP of the caller each time, but it checks the IP of
         the caller at the time of signing into the connector for the
         first time.
