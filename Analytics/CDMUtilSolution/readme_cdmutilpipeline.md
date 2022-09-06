@@ -33,8 +33,7 @@ Following features are not yet implemented in the CDMUtil pipeline. You should c
 1. Enum translation 
 2. Cleaning the Entity view definitions 
 3. Overiding the string lenght properties 
-4. Not having enhanced metadata feature on (reading un-resolved cdm.json files)
-5. AXDB connection string to retrive string length or view dependencies
+4. AXDB connection string to retrive string length or view dependencies
              
 
 **Pre-requisites**
@@ -55,8 +54,6 @@ CREATE MASTER KEY ENCRYPTION BY PASSWORD = <enter very strong password here>
 ```
 ***Dedicated sql pool (optional)*** 
 1. Create a Dedicated SQL pool if not already exists
-2. Connect to Dedicated SQL pool database and execute following SQL Script [Synapse Dedicated pool SQL ](/Analytics/CDMUtilSolution/DataTransform_SynapseDedicatedPool.sql)    
-
 Note: You do not have to create Dedicated SQL pool to deploy the pipeline if you do not plan to use dedicated SQL pool.
 
 **Deploy CDMUtil pipeline**
@@ -131,6 +128,7 @@ Following are common use cases to use CDMutil with various configuration options
 Create Openrowset view or External tables and create data entities as view on serverless pool to represent logical datawarehouse. 
 
 Following parameters are applicable for Synapse Serverless pool 
+
 |Parameters                  |Value                               |
 |----------------------------|:-----------------------------------|
 |DDLType                     |SynapseView or SynapseExternalTable |
