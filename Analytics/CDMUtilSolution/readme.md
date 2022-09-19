@@ -4,7 +4,7 @@ Data that is stored in the data lake is organized in a folder structure that use
 Export to data lake feature exports data as headerless CSV and metadata as [Cdm manifest](https://docs.microsoft.com/en-us/common-data-model/cdm-manifest).  
 
 Many Microsoft and third party tools such as Power Query, Azure Data Factory, and Synapse Pipeline support reading and writing CDM, 
-however the data model from OLTP systems such as Finance Operations is highly normalized and hence must be transformed and optimized for BI and Analytical workloads. 
+however the data model from OLTP systems such as Finance and Operations is highly normalized and hence must be transformed and optimized for BI and Analytical workloads. 
 [Synapse Analytics](https://docs.microsoft.com/en-us/azure/synapse-analytics/overview-what-is) brings together the best of **SQL** and **Spark** technologies to work with your data in the data lake, provides **Pipelines** for data integration and ETL/ELT, and facilitates deep integration with other Azure services such as Power BI. 
 
 Using Synapse Analytics, Dynamics 365 customers can unlock the following scenarios:
@@ -24,7 +24,7 @@ The following diagram conceptualizes the use of Synapse Analytics at a high leve
 
 ### Prerequisites 
 
-The following prereqsuisites are required before you can use CDMUtil 
+The following prerequisites are required before you can use CDMUtil: 
 
 1. [Install Export to data lake add-in for Finance and Operations Apps](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/configure-export-data-lake).
 2. [Create Synapse Analytics Workspace](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-create-workspace). 
