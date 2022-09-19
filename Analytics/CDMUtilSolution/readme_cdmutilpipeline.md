@@ -1,39 +1,39 @@
 
 **Overview**
 
-In Dynamics 365 Finance and Operations Apps, [Export to data lake](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/finance-data-azure-data-lake) feature, lets you copy data and metadata from your Finance and Operations apps into your own data lake (Azure Data Lake Storage Gen2). 
-Data that is stored in the data lake is organized in a folder structure that uses Common Data Model format. 
-Export to data lake feature, export data as headerless CSV and metadata as [Cdm manifest](https://docs.microsoft.com/en-us/common-data-model/cdm-manifest).  
+In Dynamics 365 Finance and Operations Apps, the [Export to data lake](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/finance-data-azure-data-lake) feature lets you copy data and metadata from your Finance and Operations apps into your own data lake (Azure Data Lake Storage Gen2). 
+Data that is stored in the data lake is organized in a folder structure that uses the Common Data Model format. 
+Export to data lake feature exports data as headerless CSV files and metadata as [Cdm manifest](https://docs.microsoft.com/en-us/common-data-model/cdm-manifest).  
 
-Many Microsoft and third party tools such as Power Query, Azure Data Factory, Synapse Pipeline supports reading and writing CDM, 
-however the data model from OLTP systems such as Finance Operations is highly normalized and hence must be transformed and optimized for BI and Analytical workload. 
-[Synapse Analytics](https://docs.microsoft.com/en-us/azure/synapse-analytics/overview-what-is) brings together the best of **SQL**, **Spark** technologies to work with your data in the data lake, provides **Pipelines** for data integration and ETL/ELT, and deep integration with other Azure services such as Power BI. 
+Many Microsoft and third party tools such as Power Query, Azure Data Factory, and Synapse Pipeline support reading and writing CDM, 
+however the data model from OLTP systems such as Finance and Operations is highly normalized and hence must be transformed and optimized for BI and Analytical workloads. 
+[Synapse Analytics](https://docs.microsoft.com/en-us/azure/synapse-analytics/overview-what-is) brings together the best of **SQL** and **Spark** technologies to work with your data in the data lake, provides **Pipelines** for data integration and ETL/ELT, and facilitates deep integration with other Azure services such as Power BI. 
 
-Using Synapse Analytics Dynamics 365 customers can un-lock following scenarios 
+Using Synapse Analytics, Dynamics 365 customers can unlock following scenarios: 
 
 1. Data exploration and ad-hoc reporting using T-SQL 
 2. Logical datawarehouse using lakehouse architecture 
 3. Replace BYOD with Synapse Analytics
-4. Data transfromation and ETL/ELT using Pipelines, T-SQL and Spark
+4. Data transformation and ETL/ELT using Pipelines, T-SQL, and Spark
 5. Enterprise Datawarehousing
 6. System integration using T-SQL
 
 To get started with Synapse Analytics with data in the lake, you can use CDMUtil pipeline to convert CDM metadata in the lake to **Synapse Analytics** or **SQL metadata**. 
-CDMUtil is a Synapse/ADF pipeline that reads [Common Data Model](https://docs.microsoft.com/en-us/common-data-model/) metadata and convert and execute  **Synapse Analytics SQL pools** or **SQL Server** DDL statements. 
+CDMUtil is a Synapse/ADF pipeline that reads [Common Data Model](https://docs.microsoft.com/en-us/common-data-model/) metadata and converts and executes  **Synapse Analytics SQL pools** or **SQL Server** DDL statements. 
 
-Following diagram shows high level concept about the use of Synapse Analytics- 
+The following diagram conceptualizes the use of Synapse Analytics at a high level: 
 ![Cdm Util As Pipeline](CdmUtilAsPipeline.png)
 
 
-**Note**: We also have [CDMUtil as Azure Function or Console App](readme.md), this utility is developed in C# and utilizes the CDM SDK to read the CDM metadata and create Synapse metadata. 
-Unlike CDMUtil as Azure function and console App, CDMUtil pipeline, reads the json files directly and uses TSQL scripts to create the DDL statement required for Synapse Analytics.
-Since CDUtil is just a pipeline within the Synapse or Azure Data Factory, this approach simplify the deployment and maitainance of the utilities.
+**Note**: We also have [CDMUtil as an Azure Function or Console App](readme.md). This utility is developed in C# and utilizes the CDM SDK to read the CDM metadata and create Synapse metadata. 
+Unlike CDMUtil as an Azure function and console App, the CDMUtil pipeline reads the json files directly and uses TSQL scripts to create the DDL statements required for Synapse Analytics.
+Since CDMUtil is just a pipeline within Synapse or Azure Data Factory, this approach simplifies the deployment and maintenance of the utilities.
 
-Following features are not yet implemented in the CDMUtil pipeline. You should continue to use CDMUtil as console App or Function App if you have been using any of these features  
+However, the following features are not yet implemented in the CDMUtil pipeline. You should continue to use CDMUtil as a console App or Function App if you have been using any of the following features:
 1. Enum translation 
 2. Cleaning the Entity view definitions 
-3. Overiding the string lenght properties 
-4. AXDB connection string to retrive string length or view dependencies
+3. Overiding the string length properties 
+4. AXDB connection string to retrieve string length or view dependencies
              
 
 **Pre-requisites**
@@ -68,7 +68,7 @@ Note: You do not have to create Dedicated SQL pool to deploy the pipeline if you
 5. Create or Select **default workspace endpoint** for storage account.
 ![Import CDMUtil Pipeline](ImportCDMUtilPipeline.png)
 
-Note: You do not have to create Dedicated SQL pool to deploy the pipeline if you do not plan to use dedicated SQL pool. Just select the default Synapse workspace linked service that named like **{WorkspaceName}-WorkspaceDefaultSqlServer**
+Note: You do not have to create Dedicated SQL pool to deploy the pipeline if you do not plan to use dedicated SQL pool. Just select the default Synapse workspace linked service that you will find with a name like **{WorkspaceName}-WorkspaceDefaultSqlServer**
 
 6.Update following highlighted parameters  
 ![Update Parameters](updateParameters.png)
@@ -86,15 +86,15 @@ Then it reads the metadata.parquet file, generate and execute DDL statement on t
 
 ***Trigger based run using storage events***
 When using Synapse pipeline or Azure Data Factory pipelines you can, [create a trigger that runs a pipeline in response to a storage event](https://docs.microsoft.com/en-us/azure/data-factory/how-to-create-event-trigger?tabs=data-factory). 
-With use of storage triggers, you can trigger the run of CDMUtil pipeline when new metadata files (.cdm.json) is created or updated. This automates the metadata creation on the synapse for new tables or schema updates. 
+With use of storage triggers, you can trigger the run of CDMUtil pipeline when new metadata files (.cdm.json) are created or updated. This automates the metadata creation in Synapse for new tables or schema updates. 
 
-To setup the storage envent trigger on the CDMUtil pipeline do following 
-1. Create a new trigger , select **type** as storage events
+To setup the storage event trigger on the CDMUtil pipeline, do the following:
+1. Create a new trigger, select **type** as storage events
 2. Select your storage account from the Azure subscription dropdown or manually using its Storage account resource ID. Choose which container you wish the events to occur on.  
 3. Specify the **Blob path begins with**:yourenvironmentfolder.operations.dynamics.com/ and **Blob path ends with**:.cdm.json and select **Event**: Blob created and **Ignore empty blobs**: Yes 
 ![Create Trigger](createTrigger.png)
 
-4. Click next, for Data preview, This screen shows the existing blobs matched by your storage event trigger configuration. Click next
+4. Click Next for Data preview. This screen shows the existing blobs matched by your storage event trigger configuration. Click next
 5. On the trigger run parameters tab provide following values. This is to retrieve the folderPath and filePath of the metadata file and pass values to pipeline parameters. 
 
 |Parameters                  |Value                               |
@@ -117,7 +117,7 @@ To setup the storage envent trigger on the CDMUtil pipeline do following
 ![Update Storage Trigger](updateStorageTrigger.png)
 
 Above additional filters are applied so that storage events triggers only when a file ending with .cdm.json is created or updated under resolved folder or ends with -resolved.cdm.json.
-The reason we are looking for resolved cdm json file is because resolved .cdm.json files respresents final metadata and have all dependencies resolved.
+The reason we are looking for resolved cdm json file is because resolved.cdm.json files represent final metadata and have all dependencies resolved.
 If the CDMUtil pipeline triggers on any other files that ends with .cdm.json but its not in the resolved file format, we may get error in the subsequent execution of the pipline activities.  
 
 # CDMUtil common use cases 
@@ -152,7 +152,7 @@ Following parameters are applicable for Synapse Dedicated pool
 
 Dedicated pool endpoint is used from Linked services. 
 
-Note: CDMUtil pipeline only create metadata (Tables) and populated metadata information in the control table. To copy data in Synapse tables ADF or Synapse pilelines can be used.   
+Note: CDMUtil pipeline only creates metadata (Tables) and populated metadata information in the control table. To copy data in Synapse tables, ADF or Synapse pipelines can be used.   
 
 #### Copy data in Synapse Staging Tables
 1. Download [DataLakeToDedicatedPoolCopy template](/Analytics/ArchitecturePatterns/CloudDatawarehouse/DataLakeToDedicatedPoolCopy.zip)    
@@ -176,8 +176,8 @@ Note: CDMUtil pipeline only create metadata ( empty Tables) and populated metada
 
 #### Copy data in SQL Tables
 2. Download [DataLakeToSQLCopy template](/Analytics/ArchitecturePatterns/SQLIntegration/DataLakeToSQLCopy.zip)    
-3. Import Synapsepipeline Template ![Import Synapsepipeline Template](importsynapsepipelinetemplate.png)
+3. Import Synapse pipeline template ![Import Synapse pipeline template](importsynapsepipelinetemplate.png)
 4. Provide parameters and execute DataLakeToSQLCopy pipeline to copy data to SQL tables.
 
-DataLakeToSQLCopy reads control table to collect metadata and then use DataFlow to copy full and incremental data to SQL server.  
+DataLakeToSQLCopy reads the control table to collect metadata and then uses DataFlow to copy full and incremental data to SQL server.  
  
