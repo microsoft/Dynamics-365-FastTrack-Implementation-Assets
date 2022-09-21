@@ -5,8 +5,8 @@ In Dynamics 365 Finance and Operations Apps, the [Export to data lake](https://d
 Data that is stored in the data lake is organized in a folder structure that uses the Common Data Model format. 
 Export to data lake feature exports data as headerless CSV files and metadata as [Cdm manifest](https://docs.microsoft.com/en-us/common-data-model/cdm-manifest).  
 
-Many Microsoft and third party tools such as Power Query, Azure Data Factory, and Synapse Pipeline support reading and writing CDM, 
-however the data model from OLTP systems such as Finance and Operations is highly normalized and hence must be transformed and optimized for BI and Analytical workloads. 
+Many Microsoft and third-party tools such as Power Query, Azure Data Factory, and Synapse Pipeline support reading and writing CDM, 
+however, the data model from OLTP systems such as Finance and Operations is highly normalized and hence must be transformed and optimized for BI and Analytical workloads. 
 [Synapse Analytics](https://docs.microsoft.com/en-us/azure/synapse-analytics/overview-what-is) brings together the best of **SQL** and **Spark** technologies to work with your data in the data lake, provides **Pipelines** for data integration and ETL/ELT, and facilitates deep integration with other Azure services such as Power BI. 
 
 Using Synapse Analytics, Dynamics 365 customers can unlock following scenarios: 
@@ -32,7 +32,7 @@ Since CDMUtil is just a pipeline within Synapse or Azure Data Factory, this appr
 However, the following features are not yet implemented in the CDMUtil pipeline. You should continue to use CDMUtil as a console App or Function App if you have been using any of the following features:
 1. Enum translation 
 2. Cleaning the Entity view definitions 
-3. Overiding the string length properties 
+3. Overriding the string length properties 
 4. AXDB connection string to retrieve string length or view dependencies
              
 
@@ -107,9 +107,9 @@ To setup the storage event trigger on the CDMUtil pipeline, do the following:
 ![Triggerparameters](triggerparameters.png)
 
 3. Create and publish the changes to deploy storage events trigger. This action will create a storage event on the Azure storage account selected and associate with Synapse/ADF pipeline.
-4. Now we want to update the Storage events so that it only trigger for the files that are relavant for CDMUtil pipeline. To do that go to storage account and click on events 
+4. Now we want to update the Storage events so that it only trigger for the files that are relevant for CDMUtil pipeline. To do that go to storage account and click on events 
 5. Click on **Events Subscriptions** and select the event subscription created by Synapse pipeline.    
-6. Click on the filters tab add following addional filters 
+6. Click on the filters tab add following additional filters 
 **Key**:data.url 
 **Operator**:String contains
 **Value**: /resolved/ and -resolved. 
@@ -138,8 +138,8 @@ Following parameters are applicable for Synapse Serverless pool
 |ObjectTypes                 |Tables,Entities,ChangeFeed (Comma seperated values to control to filter object type)       |
 
  
-## 2. Create Staging tables in Synapse dedicated pool- Create tables(empty tables) to orchastrate data copy in dadicated pool 
-Create Synapse columnstore staging tables and data entities as view on dedicated pool to orchastrate data copy. 
+## 2. Create Staging tables in Synapse dedicated pool- Create tables(empty tables) to orchestrate data copy in dedicated pool 
+Create Synapse columnstore staging tables and data entities as view on dedicated pool to orchestrate data copy. 
 
 Following parameters are applicable for Synapse Dedicated pool 
 
@@ -161,8 +161,8 @@ Note: CDMUtil pipeline only creates metadata (Tables) and populated metadata inf
 
 DataLakeToDedicatedPoolCopy pipeline reads the control tables from Dedicated pool build dynamic TSQL script using copyInto statement for Full export or incremental export and execute on the dedicated pool.    
 
-## 3. Create Staging Tables in Azure SQL Server- Create tables (empty tables) to orchastrate data copy in Azure SQL Server 
-Create staging tables and data entities as view on SQL Server to orchastrate data copy. 
+## 3. Create Staging Tables in Azure SQL Server- Create tables (empty tables) to orchestrate data copy in Azure SQL Server 
+Create staging tables and data entities as view on SQL Server to orchestrate data copy. 
 
 Following parameters are applicable for Azure SQL Table 
 
