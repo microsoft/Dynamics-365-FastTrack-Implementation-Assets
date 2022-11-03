@@ -32,9 +32,9 @@ Export to data lake feature exports data as headerless CSV files and metadata as
 
 # Templates 
 
-1. CDMUtil 
-2. Data copy to Dedicated pool
-3. Data copy to SQL
+1. CDMUtil <give link>
+2. Data copy to Dedicated pool <give link>
+3. Data copy to SQL <give link>
 
 # Pre-requisites
 1. Dynamics 365 Finance and Operations [Export to data lake feature](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/configure-export-data-lake) configured with [*Enhanced metadata feature*](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/azure-data-lake-enhanced-metadata#enhanced-metadata-preview).
@@ -94,7 +94,7 @@ Make sure Test connection is successful at this stage, before saving the linked 
 8. Next step is to import another pipeline to copy data to the DB/pool created in previous steps. Note - in case of serverless pool, there is no real data copy. Pool directly access data in data lake via external tables/views using OPENROWSET technology.
 9. Import pipeline if copying to a SQL DB - <give link>
 10. Or Import pipeline if copying to dedicated pool - <give link>
-11. Specify parameters <paste image>
+11. Specify parameters - <paste image>
 12. Execute the data copy pipeline to copy data to the database/pool. This pipeline reads control table to collect metadata and then uses either "DataFlow" to copy full and incremental data to a SQL database or "Copy Into" command to copy to a dedicated pool.
 
 # Implement automated triggers
