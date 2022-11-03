@@ -65,9 +65,30 @@ ALTER ROLE db_owner add member [salabcommerce-synapse];
 ALTER ROLE db_datareader add member [salabcommerce-synapse];
 ALTER ROLE db_datawriter add member [salabcommerce-synapse];
 ```
-Make sure Test connection is successful at this stage, before Saving.
+Make sure Test connection is successful at this stage, before saving the linked service.
 
 4. Next we create another linked service for AXDB. This is to create entities in your DB. The pipeline needs to read entity dependencies from a Dynamics AXDB.
-For this, first go to LCS page and enable JIT access and note the server name, db name, user and password. ![JITaccess](JITaccess.png)
-Setup a linked service that connects to the AXDB. ![AXDB](AXDB.png)
+For this, first go to LCS page and enable JIT access and note the server name, db name, user and password. 
+![JITaccess](JITaccess.png)
+Setup a linked service that connects to the AXDB. 
+![AXDB](AXDB.png)
+In the linked service, click Test connection, it may error for some IP. You may need to allow connections from the IP to the AXDB to make this work. Go to LCS > "Enable access". Add the IP and try again. Tip - give a range for example 40.82.250.0/999, as next time, it will use a slight different IP.
 
+![enableaccess](enableaccess.png)
+
+Make sure Test connection is successful at this stage, before saving the linked service.
+
+5. Next import the CDMUtil pipeline from link provided above. Specify the linked services created or choose default.
+6. Open the pipeline and specify or confirm values for below parameters.
+
+|Parameters                                     |Value                               |
+|----------------------------                   |:-----------------------------------|
+|"StorageAccount"                               |your ADLS account name|
+|"Environment"              			|  the URL for your D365 FO environment, sandbox or production  |
+|"DDLType"                	                |  SQLTable for copying data to a SQL Server database or SynapseTable for dedicated pool or SynapseView or 	SynapseExternalTable for serverless |
+|"DbName"                               	|the name of the SQL Server database or dedicated/serverless pool|
+|"ObjectTypes"                              	|Tables,Entities (without space)|
+|"AXDB"                                        |the servername/dbname from LCS page|
+
+7. Your first pipeline is ready to go. You can execute it manually for now. Later we can setup to trigger it on an event or schedule.
+8. 
