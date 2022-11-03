@@ -79,7 +79,9 @@ In the linked service, click Test connection, it may error for some IP. You may 
 Make sure Test connection is successful at this stage, before saving the linked service.
 
 5. Next import the CDMUtil pipeline from link provided above. Specify the linked services created or choose default.
+<paste image>
 6. Open the pipeline and specify or confirm values for below parameters.
+<paste image>
 
 |Parameters                                     |Value                               |
 |----------------------------                   |:-----------------------------------|
