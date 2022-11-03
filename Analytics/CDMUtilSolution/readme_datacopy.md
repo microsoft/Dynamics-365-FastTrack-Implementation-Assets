@@ -90,5 +90,11 @@ Make sure Test connection is successful at this stage, before saving the linked 
 |"ObjectTypes"                              	|Tables,Entities (without space)|
 |"AXDB"                                        |the servername/dbname from LCS page|
 
-7. Your first pipeline is ready to go. You can execute it manually for now. Later we can setup to trigger it on an event or schedule.
-8. 
+7. Your first pipeline is ready to go. You can execute it manually for now. Later we can setup to trigger it on an event or schedule. It may take few minutes first time. You will see a number of tables and views created in the target database including few tables to store metadata and a control table. At this stage, you have created a DB/pool with all tables and views with the same schema as AXDB, utilising the CDM metadata from data lake.
+8. Next step is to import another pipeline to copy data to the DB/pool created in previous steps. Note - in case of serverless pool, there is no real data copy. Pool directly access data in data lake via external tables/views using OPENROWSET technology.
+9. Import pipeline if copying to a SQL DB - <give link>
+10. Or Import pipeline if copying to dedicated pool - <give link>
+11. Specify parameters <paste image>
+12. Execute the data copy pipeline to copy data to the database/pool. This pipeline reads control table to collect metadata and then uses either "DataFlow" to copy full and incremental data to a SQL database or "Copy Into" command to copy to a dedicated pool.
+
+# Implement automated triggers
