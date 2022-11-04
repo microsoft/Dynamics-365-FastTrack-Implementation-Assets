@@ -24,7 +24,7 @@ Export to data lake feature exports data as headerless CSV files and metadata as
 
 4. Azure Synapse Analytics - Synapse brings together the best of **SQL** and **Spark** technologies to work with your data in the data lake, provides **Pipelines** for data integration and ETL/ELT, and facilitates deep integration with other Azure services such as Power BI. 
 
-5. Serverless pool - This is the most innovative design. In this database, you don’t actually move data at all. Data sits in a data lake, on top of that we create a logical datawarehouse in Synpase. Its called serverless or virtualized as there is no upfront server provisioned. Its pay as you go. This method is cheap, quick and best for initial analysis of data.
+5. Serverless pool - Serverless is an innovative concept as in this database, you don’t actually move data at all. Data still resides in a data lake, but on top of that we create a logical datawarehouse in Synpase. Its called serverless or virtualized as there is no upfront server provisioned. Its pay as you go. This method is cheap, quick and best for initial analysis of data.
 6. Dedicated pool - This is what used to be SQL Datawarehouse. It is cloud datawarehouse, uses multi parallel processing technology to process big data. Data is copied to the datawarehouse. Its fixed price as its infrasturtcure is dedicated.
 7. Lakehouse - This is Data Lake + Data Warehouse. This concept builds on Serverless and is an Industry standard that takes data through three layers of Bronze, Silver and Gold.
 			
