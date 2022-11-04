@@ -79,7 +79,8 @@ In the linked service, click Test connection, it may error for some IP. You may 
 Make sure Test connection is successful at this stage, before saving the linked service.
 
 5. Next import the CDMUtil pipeline from link provided above. Specify the linked services created or choose default.
-<paste image>
+![Import Synapsepipeline Template](importsynapsepipelinetemplate.png)
+
 6. Open the pipeline and specify or confirm values for below parameters.
 <paste image>
 
@@ -100,3 +101,46 @@ Make sure Test connection is successful at this stage, before saving the linked 
 12. Execute the data copy pipeline to copy data to the database/pool. This pipeline reads control table to collect metadata and then uses either "DataFlow" to copy full and incremental data to a SQL database or "Copy Into" command to copy to a dedicated pool.
 
 # Implement automated triggers
+
+***On-demand or scheduled execution*** 
+To run the pipeline for all metadata that exists in the datalake (Tables, ChangeFeed and Entities), execute the CDMUtil pipeline with appropriate parameters and leave **datapath** and **filepath** parameters blank. 
+Pipeline copies all the all metadata files (.cdm.json) under environment folder into a single metadata.parquet file in your data lake. 
+Then it reads the metadata.parquet file, generate and execute DDL statement on the target database.    
+
+***Trigger based run using storage events***
+When using Synapse pipeline or Azure Data Factory pipelines you can, [create a trigger that runs a pipeline in response to a storage event](https://docs.microsoft.com/en-us/azure/data-factory/how-to-create-event-trigger?tabs=data-factory). 
+With use of storage triggers, you can trigger the run of CDMUtil pipeline when new metadata files (.cdm.json) are created or updated. This automates the metadata creation in Synapse for new tables or schema updates. 
+
+To setup the storage event trigger on the CDMUtil pipeline, do the following:
+1. Create a new trigger, select **type** as storage events
+2. Select your storage account from the Azure subscription dropdown or manually using its Storage account resource ID. Choose which container you wish the events to occur on.  
+3. Specify the **Blob path begins with**:yourenvironmentfolder.operations.dynamics.com/ and **Blob path ends with**:.cdm.json and select **Event**: Blob created and **Ignore empty blobs**: Yes 
+
+![Create Trigger](createTrigger.png)
+
+4. Click Next for Data preview. This screen shows the existing blobs matched by your storage event trigger configuration. Click next
+5. On the trigger run parameters tab provide following values. This is to retrieve the folderPath and filePath of the metadata file and pass values to pipeline parameters. 
+
+|Parameters                  |Value                               |
+|----------------------------|:-----------------------------------|
+|container                   |@split(triggerBody().folderPath,'/')[0]|
+|Environment                 |@split(triggerBody().folderPath,'/')[1]|
+|folderpath                  |@join(skip(split(triggerBody().folderPath, '/'),2), '/')|
+|filepath                    |@triggerBody().fileName|
+
+![Triggerparameters](triggerparameters.png)
+
+3. Create and publish the changes to deploy storage events trigger. This action will create a storage event on the Azure storage account selected and associate with Synapse/ADF pipeline.
+4. Now we want to update the Storage events so that it only trigger for the files that are relevant for CDMUtil pipeline. To do that go to storage account and click on events 
+5. Click on **Events Subscriptions** and select the event subscription created by Synapse pipeline.    
+6. Click on the filters tab add following additional filters 
+**Key**:data.url 
+**Operator**:String contains
+**Value**: /resolved/ and -resolved. 
+  
+![Update Storage Trigger](updateStorageTrigger.png)
+
+Above additional filters are applied so that storage events triggers only when a file ending with .cdm.json is created or updated under resolved folder or ends with -resolved.cdm.json.
+The reason we are looking for resolved cdm json file is because resolved.cdm.json files represent final metadata and have all dependencies resolved.
+If the CDMUtil pipeline triggers on any other files that ends with .cdm.json but its not in the resolved file format, we may get error in the subsequent execution of the pipline activities.  
+
