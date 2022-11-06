@@ -60,7 +60,7 @@ CDMUtil pipeline requires following linked services
 
 4.1. **Create *AXDB connection* linked service:** You must create a linked service to import the pipeline template, however retriving dependencies from AXDB is optional, if you do not have requirement to complex data entities views, you may just create a dummy linked service to complete the pipeline import
 
-  ![Linked Service A X D B Connection](../../../../../Desktop/CDMUtil/LinkedService_AXDBConnection.png)
+  ![Linked Service A X D B Connection](LinkedService_AXDBConnection.png)
 
 4.2. **Create *Target Database* linked service:** Create **Azure SQL Database** linked service to connect target database and create database objects. 
 
@@ -71,7 +71,7 @@ d. **Fully qualified domain name*** click add dynamic content and then select **
 e. **Database name** click add dynamics content and select **DbName** from parameter
 f. **Authentication type** select **System Assigned Managed Identity**
 g. Click **Create** to create the linked service. 
-![Target Database Linked Service](../../../../../Desktop/CDMUtil/Target_Database_LinkedService.png)
+![Target Database Linked Service](Target_Database_LinkedService.png)
 
 4.3. **Create **Source storage** linked service:** Create **Azure Storage Account Gen 2** linked service to connect source datalake and read cdm metadata.
 
@@ -82,7 +82,7 @@ d. **URL*** click add dynamic content and then select **StorageAccount** paramet
 e. **Authentication type** select **System Assigned Managed Identity**
 f. Click **Create** to create the linked service.
 
-![Source Storage Account Link Service](../../../../../Desktop/CDMUtil/Source_StorageAccount_LinkService.png)
+![Source Storage Account Link Service](Source_StorageAccount_LinkService.png)
 
 5. Select **linked services** and click **Open pipeline**
 
@@ -106,7 +106,7 @@ f. Click **Create** to create the linked service.
 |EntityListForDependency     |Comma seperated list of entities or views to retrieve dependency|
 
    
-![Update Parameters And Publish](../../../../../Desktop/CDMUtil/UpdateParametersAndPublish.png)
+![Update Parameters And Publish](UpdateParametersAndPublish.png)
 
 **Execute CDMUtil pipeline** 
 
@@ -116,7 +116,7 @@ f. Click **Create** to create the linked service.
 2. Click on **Debug**
 3. Change pipeline run parameter or use default values and click **ok **
 4. Pipeline will run and you can monitor the execution **Output**    
-![Debug Pipeline](../../../../../Desktop/CDMUtil/DebugPipeline.png)
+![Debug Pipeline](DebugPipeline.png)
 
 ***Add schedule or storage events***
 
@@ -131,7 +131,7 @@ Setup trigger to automated CDMUtil pipeline execution.
 
     3.1. Select **Storage account name**,  **Container**, **Blob path begins with**:yourenvironmentfolder.operations.dynamics.com/Tables/Tables and **Blob path ends with**:.manifest.cdm.json,**Event**: Blob created, **Ignore empty blobs**: Yes 
 
-    ![Create Storage Events](../../../../../Desktop/CDMUtil/CreateStorageEvents.png)
+    ![Create Storage Events](CreateStorageEvents.png)
 
    3.2 Click next, for Data preview, This screen shows the existing blobs matched by your storage event trigger configuration. Click next
 
@@ -146,8 +146,8 @@ Single pipeline to copy full and incremental data from datalake to Synapse dedic
 
 1. Download [Datalake to SQL Copy(DataLakeToSQLCopy.zip)](/Analytics/CDMUtilSolution/DataLakeToSQLCopy.zip) to local computer   
 2. Click **Import from pipeline template** open DataLakeToSQLCopy.zip file, select linked services for source data lake and target database connection 
-![Import Datalake To S Q L Copy](../../../../../Desktop/CDMUtil/ImportDatalakeToSQLCopy.png)
+![Import Datalake To SQL Copy](ImportDatalakeToSQLCopy.png)
 
-3. Update parameters and execute DataLakeToSQLCopy pipeline to copy data to Synapse tables 
+3. Update parameters and execute DataLakeToSQLCopy pipeline to copy data to Synapse or SQL tables 
 
-![Datalake To S Q L Copy Execute](../../../../../Desktop/CDMUtil/DatalakeToSQLCopy_Execute.png)
+![Datalake To SQL Copy Execute](DatalakeToSQLCopy_Execute.png)
