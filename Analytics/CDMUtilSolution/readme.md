@@ -1,47 +1,47 @@
 # Overview 
-In Dynamics 365 Finance and Operations Apps, [Export to data lake](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/finance-data-azure-data-lake) feature, lets you copy data and metadata from your Finance and Operations apps into your own data lake (Azure Data Lake Storage Gen2). 
-Data that is stored in the data lake is organized in a folder structure that uses Common Data Model format. 
-Export to data lake feature, export data as headerless CSV and metadata as [Cdm manifest](https://docs.microsoft.com/en-us/common-data-model/cdm-manifest).  
+In Dynamics 365 Finance and Operations Apps, the [Export to data lake](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/finance-data-azure-data-lake) feature lets you copy data and metadata from your Finance and Operations apps into your own data lake (Azure Data Lake Storage Gen2). 
+Data that is stored in the data lake is organized in a folder structure that uses the Common Data Model format. 
+Export to data lake feature exports data as headerless CSV and metadata as [Cdm manifest](https://docs.microsoft.com/en-us/common-data-model/cdm-manifest).  
 
-Many Microsoft and third party tools such as Power Query, Azure Data Factory, Synapse Pipeline supports reading and writing CDM, 
-however the data model from OLTP systems such as Finance Operations is highly normalized and hence must be transformed and optimized for BI and Analytical workload. 
-[Synapse Analytics](https://docs.microsoft.com/en-us/azure/synapse-analytics/overview-what-is) brings together the best of **SQL**, **Spark** technologies to work with your data in the data lake, provides **Pipelines** for data integration and ETL/ELT, and deep integration with other Azure services such as Power BI. 
+Many Microsoft and third party tools such as Power Query, Azure Data Factory, and Synapse Pipeline support reading and writing CDM, 
+however the data model from OLTP systems such as Finance and Operations is highly normalized and hence must be transformed and optimized for BI and Analytical workloads. 
+[Synapse Analytics](https://docs.microsoft.com/en-us/azure/synapse-analytics/overview-what-is) brings together the best of **SQL** and **Spark** technologies to work with your data in the data lake, provides **Pipelines** for data integration and ETL/ELT, and facilitates deep integration with other Azure services such as Power BI. 
 
-Using Synapse Analytics Dynamics 365 customers can un-lock following scenarios 
+Using Synapse Analytics, Dynamics 365 customers can unlock the following scenarios:
 
 1. Data exploration and ad-hoc reporting using T-SQL 
 2. Logical datawarehouse using lakehouse architecture 
 3. Replace BYOD with Synapse Analytics
-4. Data transfromation and ETL/ELT using Pipelines, T-SQL and Spark
+4. Data transformation and ETL/ELT using Pipelines, T-SQL, and Spark
 5. Enterprise Datawarehousing
 6. System integration using T-SQL
 
 To get started with Synapse Analytics with data in the lake, you can use CDMUtil to convert CDM metadata in the lake to Synapse Analytics metadata. CDMUtil is a client tool based on [CDM SDK](https://github.com/microsoft/CDM/tree/master/objectModel/CSharp) to read [Common Data Model](https://docs.microsoft.com/en-us/common-data-model/) metadata and convert into metadata for Synapse Analytics SQL pools and Spark pools. 
 
-Following diagram shows high level concept about the use of Synapse Analytics- 
+The following diagram conceptualizes the use of Synapse Analytics at a high level: 
 
 ![Cdmutilv2](cdmutilv2.png)
 
 ### Prerequisites 
 
-Following are pre-reqsuisites before you can use CDMUtil 
+The following prerequisites are required before you can use CDMUtil: 
 
 1. [Install Export to data lake add-in for Finance and Operations Apps](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/configure-export-data-lake).
 2. [Create Synapse Analytics Workspace](https://docs.microsoft.com/en-us/azure/synapse-analytics/quickstart-create-workspace). 
-3. [Grant Synapse Analytics Workspace managed identify, Blob data contributor access to data lake](https://docs.microsoft.com/en-us/azure/synapse-analytics/security/how-to-grant-workspace-managed-identity-permissions#grant-permissions-to-managed-identity-after-workspace-creation)
+3. [Grant Synapse Analytics Workspace managed identity, Blob data contributor access to data lake](https://docs.microsoft.com/en-us/azure/synapse-analytics/security/how-to-grant-workspace-managed-identity-permissions#grant-permissions-to-managed-identity-after-workspace-creation)
 
 # Deploying CDMUTIL
 
-As shown in the previous diagram, CDMUtil can be deployed as [**Azure Function**](https://docs.microsoft.com/en-us/azure/azure-functions/functions-overview) or **Console application** to execute manually. 
+As shown in the previous diagram, CDMUtil can be deployed as an [**Azure Function**](https://docs.microsoft.com/en-us/azure/azure-functions/functions-overview) or it can be executed manually as a **Console application**. 
 
 ## 1. Azure Function with integrated storage events (EventGrid) 
 CDMUtil can be deployed as Azure Function to convert CDM metadata to Synapse Analytics metadata. 
 
-1. [Deploy CDMUtil as Azure Function](deploycdmutil.md) as per the instruction.
+1. [Deploy CDMUtil as Azure Function](deploycdmutil.md) as per the instructions.
 2. In Azure portal, go to storage account, click on Events > + Event Subscription to create a new event subscription
 3. Give a name and select Azure Function App eventGrid_CDMToSynapseView as endpoint.
 ![Create Event Subscription](createEventSubscription.png)
-4. Click on Filters and update event filters as following:  
+4. Click on Filters and update event filters as follows:  
   4.1. Enable subject filters
     * **Subject begin with**: /blobServices/default/containers/dynamics365-financeandoperations/blobs/***environment***.sandbox.operations.dynamics.com/
     * **Subject ends with**: .cdm.json  
@@ -91,11 +91,11 @@ To run CDMUtil from local desktop, you can download and run CDMUtil executable u
 
 # How it works  
 
-Bellow is how CDMUtil works end-to-end with Export to data lake feature
+Below is how CDMUtil works end-to-end with Export to data lake feature
 
 1. Using Finance and Operations App, [Configure Tables in Finance and Operations App](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/finance-data-azure-data-lake)) service. 
 2. Data and CDM metadata (Cdm.json) gets created in data lake 
-3. *When Azure Function is configured* blob storage events is generated and triggers *Azure Function* automatically with blob URI as *ManifestURL*. 
+3. *When Azure Function is configured* blob storage events are generated and trigger *Azure Function* automatically with blob URI as *ManifestURL*. 
 4. *When running Console App* configurations are retrived from CDMUtil_ConsoleApp.dll.config file. 
 5. CDMUtil retrieve storage account URL from *ManifestURL* and connect with *AccessKey*, if access key is not provided, current user/app(MSI) credential are used (current user/application must have *Blob data reader* access to storage account).
 6. CDMutil recursively reads manifest.cdm.json and identify entities, schema and data location, convert metadata as TSQL DDL statement as per *DDLType{default:SynapseView}*.
@@ -108,10 +108,10 @@ Once view or external tables are created, you can [connect to Synapse Analytics 
 
 # CDMUtil common use cases 
 
-Following are common use cases to use CDMutil with various configuration options.
+Following are common use cases to use CDMutil with various configuration options:
 
 ## 1. Create tables as Views or External table on Synapse SQL serverless pool
-Follow the steps bellow to create views or external table on Synapse SQL Serverless pool
+Follow the steps below to create views or external tables on Synapse SQL Serverless pool.
 
 1. Using Finance and Operations App [Configure Tables in Finance and Operations App](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/finance-data-azure-data-lake) service. 
 2. Validate that data and CDM metadata (cdm.json) gets created in data lake 
@@ -124,10 +124,10 @@ Follow the steps bellow to create views or external table on Synapse SQL Serverl
 * *DDLType*: *SynapseView* or SynapseExternalTable
 * *Schema*: *dbo* 
 * *ParserVersion*: 1.0 or *2.0* 
-* *AXDBConnectionString*: AXDB ConnectionString to column string lengh if not present in the cdm metadata 
+* *AXDBConnectionString*: AXDB ConnectionString to column string length if not present in the cdm metadata 
 
 4. Run CDMUtil_ConsoleApp.exe using Command promt or Powershell and monitor result
-5. CDMutil recursively reads, convert metadata as TSQL DDL statement and execute as per *DDLType{default:SynapseView}*.  
+5. CDMutil recursively reads, converts metadata as TSQL DDL statement, and executes as per *DDLType{default:SynapseView}*.  
 6. If new Tables are added or existing tables metadata is modified in the lake, run the CDMUtil again to create or update metadata in Synapse.  
 7. When using Azure function, function will automatically trigger when cdm.json files are created or update in the data lake.
 8. Once view or external tables are created, you can [connect to Synapse Analytics pools](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/connect-overview) to query and transform data using TSQL.
@@ -198,8 +198,8 @@ You can also identify views and dependencies by connecting to database of Financ
 
 ## 3. Copy data to Synapse Table in dedicated pool (DW GEN2)
 
-If plan to use Synapse dedicated pool (Gen 2) and want to copy the Tables data from data lake to Gen2 tables using Copy activity.   
-You can use CDMUtil with DDLType = SynapseTable to collect metadata and insert details in control table to further automate the copy activity using synapse pipeline. 
+If plan to use Synapse dedicated pool (Gen 2) and want to copy the Tables data from data lake to Gen2 tables using Copy activity, 
+you can use CDMUtil with DDLType = SynapseTable to collect metadata and insert details in control table to further automate the copy activity using synapse pipeline. 
 
 #### Create metadata and control table
 
@@ -210,7 +210,7 @@ Follow the steps bellow to create metadata and control table
 2. CDMUtil will create control table and stored procedures. It will also create empty tables and populate data in control table based on the CDM metadata.For details check this sql script (![Create control table and artifacts on Synapse SQL Pool](DataTransform_SynapseDedicatedPool.sql))
 3. CDMUtil will also create data entities as view definition Synapse dedicated pool if entity parameters are provided.
 
-Data need to be copied in the dedicated pool before it can be queried. Bellow is example process to copy the data to dedicated pool.
+Data need to be copied in the dedicated pool before it can be queried. Below is a sample process to copy the data to dedicated pool.
 
 #### Copy data in Synapse Tables
 1. To copy data in Synapse tables ADF or Synapse pilelines can be used. 

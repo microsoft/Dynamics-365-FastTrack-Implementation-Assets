@@ -21,7 +21,7 @@ Step 5. This will clean up the original attachment records, but only if all the 
    Warning: If not all the attachments were migrated, then this step will not clean up the old records, and will result in duplicates in D365 after the upgrade.
    
    
-Copy contents below into Notepad, and save the file as "PrivateProject_D365UpgradeMigrateAttachments.xpo"   
+Copy contents below into Notepad, and save the file as "PrivateProject_D365UpgradeMigrateAttachments.xpo". Import and compile and sync, run class -  D365UpgradeMigrateAttachments  
 
 Exportfile for AOT version 1.0 or later
 Formatversion: 1
@@ -194,8 +194,12 @@ Formatversion: 1
         #
         #    connection = new UserConnection();
         #    statement   = connection.createStatement();
-        #    sqlStmt = 'UPDATE T1 SET TYPEID = CONCAT (TYPEID,\'_O\') FROM DOCUREF T1 ';
-        #    sqlStmt = sqlStmt + 'WHERE TYPEID NOT IN (SELECT TYPEID FROM DOCUTYPE T2 WHERE T2.DATAAREAID = T1.ACTUALCOMPANYID)';
+        #
+        #    sqlStmt = "UPDATE T1 SET TYPEID = CONCAT (TYPEID,'_O') FROM DOCUREF T1 ";
+        #    sqlStmt = sqlStmt + "JOIN DOCUVALUE T2 ON T1.VALUERECID = T2.RECID AND T2.FILE_ IS NULL AND T1.PARTITION = T2.PARTITION ";
+        #    sqlStmt = sqlStmt + "WHERE CONCAT(T1.TYPEID,'_O') IN (SELECT TYPEID FROM DOCUTYPE T3 ";
+        #    sqlStmt = sqlStmt + strFmt("WHERE T3.DATAAREAID = T1.ACTUALCOMPANYID AND T3.PARTITION = T1.PARTITION AND T3.FILEPLACE = %1)",enum2Int(DocuFilePlace::Archive));
+        #    sqlStmt = sqlStmt + strFmt("AND T1.PARTITION = %1",getCurrentPartitionRecId());
         #    connection.ttsbegin();
         #    permission = new SqlStatementExecutePermission(sqlStmt);
         #    permission.assert();
@@ -255,11 +259,14 @@ Formatversion: 1
         #    FilePath                filePath;
         #    FileIOPermission        fileIOPerm;
         #    System.Exception        ex;
+        #    Set                     permissionSet;
         #    #File
         #    #avifiles
         #
         #    startTime   = timeNow();
         #    progressBar = new SysOperationProgress();
+        #    permissionSet = new Set(Types::Class);
+        #    permissionSet.add(new OverwriteSystemFIeldsPermission());
         #
         #    select count(RecId) from docuRef
         #        where docuRef.AttachmentProcessed  == AttachmentProcessed::Unprocessed;
@@ -283,27 +290,23 @@ Formatversion: 1
         #
         #        filePath = docuRef.Path();
         #        filename = filePath + docuRef.docuValue().FileName + '.' + docuRef.docuValue().FileType;
-        #
-        #        fileIOPerm = new FileIOPermission(filename, 'r');
-        #        fileIOPerm.assert();
+        #        permissionSet.add(new FileIOPermission(filename,'r'));
+        #        CodeAccessPermission::assertMultiple(permissionSet);
         #
         #        // BP deviation documented
         #        // Check for file locking, empty filenames and non-existing files
         #        if (!WinAPIServer::fileExists(filename) || filename == docuRef.path())
         #        {
-        #            new OverwriteSystemfieldsPermission().assert();
         #            docuRef.overwriteSystemfields(true);
         #            docuRef.AttachmentProcessed  = AttachmentProcessed ::FileNotFound;
         #            docuRef.(fieldNum(docuRef,ModifiedBy)) = docuRef.ModifiedBy;
         #            docuRef.(fieldNum(docuRef,modifiedDateTime)) = docuRef.modifiedDateTime;
         #            docuRef.doUpdate();
-        #            CodeAccessPermission::revertAssert();
         #            fileNotFoundCount++;
         #        }
         #        else if(WinAPIServer::fileLocked(filename))
         #        {
         #            // File might be locked at present time, but may be unlocked for a later run of this job.
-        #            new OverwriteSystemfieldsPermission().assert();
         #            docuRef.overwriteSystemfields(true);
         #            if(docuRef.LockedFileCount  >= 3)
         #            {
@@ -313,7 +316,6 @@ Formatversion: 1
         #            docuRef.(fieldNum(docuRef,ModifiedBy)) = docuRef.ModifiedBy;
         #            docuRef.(fieldNum(docuRef,modifiedDateTime)) = docuRef.modifiedDateTime;
         #            docuRef.doUpdate();
-        #            CodeAccessPermission::revertAssert();
         #            fileLockCount ++;
         #
         #        }
@@ -475,7 +477,7 @@ Formatversion: 1
     BEGINNODE
       FILETYPE 0
       UTILTYPE 45
-      UTILOBJECTID 1032748
+      UTILOBJECTID 1032750
       NODETYPE 329
       NAME #D365UpgradeMigrateAttachments
     ENDNODE

@@ -1,12 +1,12 @@
 # Overview 
 
-SQLToADLS is a generic sample solution to export SQLServer (on-premise or Azure SQL) tables data to Azure Data lake Gen 2 storage account in [Common data model](https://docs.microsoft.com/en-us/common-data-model/) format. Solution utilize Azure data factory pipelines and Azure function based on [CDM SDK](https://github.com/microsoft/CDM/tree/master/objectModel/CSharp) to copy SQL tables data and generate CDM metadata to Azure storage account.  
+SQLToADLS is a generic sample solution to export SQLServer (on-premise or Azure SQL) tables data to Azure Data Lake Gen 2 storage account in [Common data model](https://docs.microsoft.com/en-us/common-data-model/) format. Solution utilize Azure data factory pipelines and Azure function based on [CDM SDK](https://github.com/microsoft/CDM/tree/master/objectModel/CSharp) to copy SQL tables data and generate CDM metadata to Azure storage account.  
 
 # Use cases
 You can use this Data factory solution  for following use cases
-1. Ingest on-premise SQL Database or Azure SQL database to Azure data lake in CDM format
-2. Ingest your on-premise Dynamics AX data to Azure data lake in CDM format
-3. Ingest Finance and Operations app data from Cloud Hosted Dev Environment or Tier 2 environment to Azure data lake in CDM format (A workaround to [Tables in Data Lake](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/finance-data-azure-data-lake) feature to build POC)
+1. Ingest on-premise SQL Database or Azure SQL database to Azure Data Lake in CDM format
+2. Ingest your on-premise Dynamics AX data to Azure Data Lake in CDM format
+3. Ingest Finance and Operations app data from Cloud Hosted Dev Environment or Tier 2 environment to Azure Data Lake in CDM format (A workaround to [Tables in Data Lake](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/finance-data-azure-data-lake) feature to build POC)
 
 # SQLToADLS Full Export Highlights  
 SQLToADLS solution generate folder structure, data and metadata similar to F&O Export to data lake feature. Following are some highlights of this 
