@@ -81,7 +81,7 @@ b. Create parameters **ServerName** and **DBName**
 
 c. On account selection method, select **Enter manually** 
 
-d. **Fully qualified domain name*** click add dynamic content and then select **ServerName** parameter
+d. **Fully qualified domain name** click add dynamic content and then select **ServerName** parameter
 
 e. **Database name** click add dynamics content and select **DbName** from parameter
 
@@ -89,8 +89,8 @@ f. **Authentication type** select **System Assigned Managed Identity**
 
 g. Make sure Test connection is successful at this stage, before saving the linked service.
 
-
-<JJ is this below step needed?>
+- <JJ Text says ServerName but image says DBServer ? >
+- <JJ is this below step needed?>
 Next step only needed to copy data to SQL DB (not for Serverless or Dedicated Pool). Note the Managed identity name (this is usually same as the name of the Synapse workspace) and create a contained database user in Azure SQL DB. Follow this [docs](https://learn.microsoft.com/en-us/azure/data-factory/connector-azure-sql-database?tabs=synapse-analytics#managed-identity). Docs has instructions to add an AAD Admin to the SQL Server from Azure portal and creating a user in the SQL DB as below. Replace salabcommerce-synapse with your name.
 	```SQL
 	CREATE USER [salabcommerce-synapse] FROM  EXTERNAL PROVIDER;
@@ -110,7 +110,7 @@ b. Create parameters **StorageAccount**
 
 c. On account selection method, select **Enter manually** 
 
-d. **URL*** click add dynamic content and then select **StorageAccount** parameter
+d. **URL** click add dynamic content and then select **StorageAccount** parameter
 
 e. **Authentication type** select **System Assigned Managed Identity**
 
