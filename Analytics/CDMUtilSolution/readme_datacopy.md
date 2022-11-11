@@ -119,14 +119,14 @@ f. Click **Create** to create the linked service.
 ![Source Storage Account Link Service](Source_StorageAccount_LinkService.png)
 
 
-4. In your Synapse Analytics Workspace, go to Integrate, Click + to Import the template ![Import Synapsepipeline Template](importsynapsepipelinetemplate.png)
+4. In your Synapse Analytics Workspace, go to Integrate, Click + to Import the template 
+![Import Synapsepipeline Template](importsynapsepipelinetemplate.png)
 
 5. Locate **CDMUtilPipeline.zip** from the local computer and select **Open**
 ![Import C D M Util Template](ImportCDMUtilTemplate.png)
 
 
 6. Select all the above created **linked services** and click **Open pipeline**
-
 ![Open Pipeline](OpenPipeline.png)
 
 7.Update **parameters** as below and click **Publish all** to deploy the pipeline 
