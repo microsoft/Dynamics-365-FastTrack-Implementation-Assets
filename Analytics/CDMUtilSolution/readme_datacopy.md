@@ -57,9 +57,9 @@ Also, at this stage, before importing any pipelines, you will create a number of
 
 |LinkedService       | Type        |Purpose                                  |
 |--------------------|:------------|:----------------------------------------|
-|AXDBConnection      |Azure SQL Database |To connect to a Dynamics 365 F&O Tier1 or Tier 2 database and retrieve entity dependencies |
-|Target database     |Azure SQL Database |Target database/pool to create the tables/views - Synapse serverless, Synapse Dedicated pool or SQL database|
-|Source storage      |Azure Storage Gen 2|Storage account that is configured with "Export to data lake" service|
+|3.1 AXDBConnection      |Azure SQL Database |To connect to a Dynamics 365 F&O Tier1 or Tier 2 database and retrieve entity dependencies |
+|3.2 Target database     |Azure SQL Database |Target database/pool to create the tables/views - Synapse serverless, Synapse Dedicated pool or SQL database|
+|3.3 Source storage      |Azure Storage Gen 2|Storage account that is configured with "Export to data lake" service|
 
 3.1. **Create *AXDB connection* linked service:** You must create a linked service to import the pipeline template, however retriving entity dependencies from AXDB is optional, if you do not have requirement to complex data entities/views, you may just create a dummy linked service to complete the pipeline import. For this connection, go to LCS page and enable JIT access and note the server name, db name, user and password. 
 
@@ -87,7 +87,7 @@ e. **Database name** click add dynamics content and select **DbName** from param
 f. **Authentication type** select **System Assigned Managed Identity**
 g. Make sure Test connection is successful at this stage, before saving the linked service.
 
-<JJ is this below needed?>
+<JJ is this below step needed?>
 Next step only needed to copy data to SQL DB (not for Serverless or Dedicated Pool). Note the Managed identity name (this is usually same as the name of the Synapse workspace) and create a contained database user in Azure SQL DB. Follow this [docs](https://learn.microsoft.com/en-us/azure/data-factory/connector-azure-sql-database?tabs=synapse-analytics#managed-identity). Docs has instructions to add an AAD Admin to the SQL Server from Azure portal and creating a user in the SQL DB as below. Replace salabcommerce-synapse with your name.
 	```SQL
 	CREATE USER [salabcommerce-synapse] FROM  EXTERNAL PROVIDER;
@@ -115,7 +115,6 @@ f. Click **Create** to create the linked service.
 
 5. Locate **CDMUtilPipeline.zip** from the local computer and select **Open**
 ![Import C D M Util Template](ImportCDMUtilTemplate.png)
-
 
 
 6. Select all the above created **linked services** and click **Open pipeline**
@@ -151,8 +150,9 @@ f. Click **Create** to create the linked service.
 
 a. Click on Integrate and then click **CDMUtil** to open pipeline
 b. Click on **Debug**
-c. Change pipeline run parameter or use default values and click **ok **
-d. Pipeline will run and you can monitor the execution **Output**    
+c. Change pipeline run parameter or use default values and click **ok**
+d. Pipeline will run and you can monitor the execution **Output**  
+
 ![Debug Pipeline](DebugPipeline.png)
 
 ***Add schedule or storage events***
@@ -168,7 +168,7 @@ c. **For Storage events**:
 
    1. Select **Storage account name**,  **Container**, **Blob path begins with**:yourenvironmentfolder.operations.dynamics.com/Tables/Tables and **Blob path ends with**:.manifest.cdm.json,**Event**: Blob created, **Ignore empty blobs**: Yes 
 
-    ![Create Storage Events](CreateStorageEvents.png)
+   ![Create Storage Events](CreateStorageEvents.png)
 
    2 Click next, for Data preview, This screen shows the existing blobs matched by your storage event trigger configuration. Click next
 
@@ -176,7 +176,8 @@ d. On the **Trigger Run Parameters** - override parameters or leave it blank and
 e. Create and publish the changes to deploy the trigger. 
 
         Note: This pipeline template can be deployed and executed on Azure Data Factory following  similar steps.
-	
+
+
 9. Next step is to import another pipeline to copy data to the DB/pool created in previous steps. Note - in case of serverless pool, there is no real data copy. Serverless pool directly accesses data in data lake via external tables/views using OPENROWSET technology.
 **DataLake To SQL - Incremental data copy pipeline**
 
