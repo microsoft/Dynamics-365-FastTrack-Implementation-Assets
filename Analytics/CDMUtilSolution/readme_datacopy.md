@@ -146,63 +146,49 @@ f. Click **Create** to create the linked service.
 
 8. Your first pipeline is ready to go. You can execute it manually for now. Later we can setup to trigger it on an event or schedule. It may take few minutes first time. You will see a number of tables and views created in the target database including few tables to store metadata and a control table. At this stage, you have created a DB/pool with all tables and views with the same schema as AXDB, utilising the CDM metadata from data lake.
 
+**Execute CDMUtilPipeline** 
 ***On-demand run***
 
 a. Click on Integrate and then click **CDMUtil** to open pipeline
 b. Click on **Debug**
-c. Change pipeline run parameter or use default values and click **ok**
+c. Change pipeline run parameter or use default values and click **ok **
 d. Pipeline will run and you can monitor the execution **Output**    
 ![Debug Pipeline](DebugPipeline.png)
+
+***Add schedule or storage events***
+
+Setup trigger to automated CDMUtilPipeline execution. 
+
+a. Create a new trigger , select **type** - you can use **schedule** trigger to run pipeline on schedule time or use **storage event** trigger when metadata change.
+
+b. **For Schedule trigger**: 
+    Select **Start date**, **Time zone** and **Recurrence** as appropriate.
+
+c. **For Storage events**:
+
+   1. Select **Storage account name**,  **Container**, **Blob path begins with**:yourenvironmentfolder.operations.dynamics.com/Tables/Tables and **Blob path ends with**:.manifest.cdm.json,**Event**: Blob created, **Ignore empty blobs**: Yes 
+
+    ![Create Storage Events](CreateStorageEvents.png)
+
+   2 Click next, for Data preview, This screen shows the existing blobs matched by your storage event trigger configuration. Click next
+
+d. On the **Trigger Run Parameters** - override parameters or leave it blank and click next - pipeline default parameters are used when parameters are not provided on trigger. 
+e. Create and publish the changes to deploy the trigger. 
+
+        Note: This pipeline template can be deployed and executed on Azure Data Factory following  similar steps.
 	
 9. Next step is to import another pipeline to copy data to the DB/pool created in previous steps. Note - in case of serverless pool, there is no real data copy. Serverless pool directly accesses data in data lake via external tables/views using OPENROWSET technology.
-	
-10. Import second pipeline to copy data from [link](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/DataEntitiesHandling/Analytics/CDMUtilSolution/DataLakeToSQLCopy.zip)
+**DataLake To SQL - Incremental data copy pipeline**
 
-11. Specify parameters for second pipeline - <paste image>
-	
-12. Execute the data copy pipeline to copy data to the database/pool. This pipeline reads control table to collect metadata and then uses either "DataFlow" to copy full and incremental data to a SQL database or "Copy Into" command to copy data to a dedicated pool.
+Single pipeline to copy full and incremental data from data lake to Synapse dedicated pool or Azure SQL database native tables 
 
-# Implement automated triggers
+1. Download [Datalake to SQL Copy(DataLakeToSQLCopy.zip)](/Analytics/CDMUtilSolution/DataLakeToSQLCopy.zip) to local computer   
+2. Click **Import from pipeline template** open DataLakeToSQLCopy.zip file, select linked services for source data lake and target database connection 
+![Import Datalake To SQL Copy](ImportDatalakeToSQLCopy.png)
 
-***On-demand or scheduled execution*** 
-To run the pipeline for all metadata that exists in the datalake (Tables, ChangeFeed and Entities), execute the CDMUtil pipeline with appropriate parameters and leave **datapath** and **filepath** parameters blank. 
-Pipeline copies all the all metadata files (.cdm.json) under environment folder into a single metadata.parquet file in your data lake. 
-Then it reads the metadata.parquet file, generate and execute DDL statement on the target database.    
+3. Update parameters and execute DataLakeToSQLCopy pipeline to copy data to Synapse or SQL tables 
 
-***Trigger based run using storage events***
-When using Synapse pipeline you can, [create a trigger that runs a pipeline in response to a storage event](https://docs.microsoft.com/en-us/azure/data-factory/how-to-create-event-trigger?tabs=data-factory). 
-With use of storage triggers, you can trigger the run of CDMUtil pipeline when new metadata files (.cdm.json) are created or updated. This automates the metadata creation in Synapse for new tables or schema updates. 
+![Datalake To SQL Copy Execute](DatalakeToSQLCopy_Execute.png)
 
-To setup the storage event trigger on the CDMUtil pipeline, do the following:
-1. Create a new trigger, select **type** as storage events
-2. Select your storage account from the Azure subscription dropdown or manually using its Storage account resource ID. Choose which container you wish the events to occur on.  
-3. Specify the **Blob path begins with**:yourenvironmentfolder.operations.dynamics.com/ and **Blob path ends with**:.cdm.json and select **Event**: Blob created and **Ignore empty blobs**: Yes 
-
-![Create Trigger](createTrigger.png)
-
-4. Click Next for Data preview. This screen shows the existing blobs matched by your storage event trigger configuration. Click next
-5. On the trigger run parameters tab provide following values. This is to retrieve the folderPath and filePath of the metadata file and pass values to pipeline parameters. 
-
-|Parameters                  |Value                               |
-|----------------------------|:-----------------------------------|
-|container                   |@split(triggerBody().folderPath,'/')[0]|
-|Environment                 |@split(triggerBody().folderPath,'/')[1]|
-|folderpath                  |@join(skip(split(triggerBody().folderPath, '/'),2), '/')|
-|filepath                    |@triggerBody().fileName|
-
-![Triggerparameters](triggerparameters.png)
-
-3. Create and publish the changes to deploy storage events trigger. This action will create a storage event on the Azure storage account selected and associate with Synapse pipeline.
-4. Now we want to update the Storage events so that it only trigger for the files that are relevant for CDMUtil pipeline. To do that go to storage account and click on events 
-5. Click on **Events Subscriptions** and select the event subscription created by Synapse pipeline.    
-6. Click on the filters tab add following additional filters 
-**Key**:data.url 
-**Operator**:String contains
-**Value**: /resolved/ and -resolved. 
-  
-![Update Storage Trigger](updateStorageTrigger.png)
-
-Above additional filters are applied so that storage events triggers only when a file ending with .cdm.json is created or updated under resolved folder or ends with -resolved.cdm.json.
-The reason we are looking for resolved cdm json file is because resolved.cdm.json files represent final metadata and have all dependencies resolved.
-If the CDMUtil pipeline triggers on any other files that ends with .cdm.json but its not in the resolved file format, we may get error in the subsequent execution of the pipline activities.  
+This pipeline reads control table to collect metadata and then uses either "DataFlow" to copy full and incremental data to a SQL database or "Copy Into" command to copy data to a dedicated pool.
 
