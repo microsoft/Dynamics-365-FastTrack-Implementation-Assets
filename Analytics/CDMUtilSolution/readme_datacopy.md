@@ -8,7 +8,7 @@ The main building blocks are [Export to data lake service](https://learn.microso
 Using above building blocks, an organization can come up with the right architecture for their analytical requirements. In below post, we will step through instructions on how you can setup a working solution using one of the above patterns. The templates used are provided as links. 
 
 The following diagram conceptualizes high level architecture: 
-![Cdm Util As Pipeline](CdmUtilAsPipeline.png)
+![Cdm Util As Pipeline](CDMUtilPipelineOptions.png)
 
 
 # Foundational concepts
@@ -61,15 +61,11 @@ Also, at this stage, before importing any pipelines, you will create a number of
 |3.2 Target database     |Azure SQL Database |Target database/pool to create the tables/views - Synapse serverless, Synapse Dedicated pool or SQL database|
 |3.3 Source storage      |Azure Storage Gen 2|Storage account that is configured with "Export to data lake" service|
 
-3.1. **Create *AXDB connection* linked service:** You must create a linked service to import the pipeline template, however retriving entity dependencies from AXDB is optional, if you do not have requirement to complex data entities/views, you may just create a dummy linked service to complete the pipeline import. For this connection, go to LCS page and enable JIT access and note the server name, db name, user and password. 
+3.1. **Create *AXDB connection* linked service (Optional):** You must create a linked service to import the pipeline template, however retriving entity dependencies from AXDB is optional, if you do not have requirement to complex data entities/views, you may just create a dummy linked service to complete the pipeline import. For this connection, go to LCS page and enable JIT access and note the server name, db name, user and password. 
 
 ![JITaccess](JITaccess.png)
 
-Setup a linked service that connects to the AXDB. 
-
-![AXDB](AXDB.png)
-
-In the linked service, click Test connection, it may error for some IP. You may need to allow connections from the IP to the AXDB to make this work. Go to LCS > "Enable access". Add the IP and try again. Tip - give a range for example 40.82.250.0/999, as next time, it will use a slight different IP.
+Go to Synapse workspace > Manage > Linked services and create a linked service that connects to the AXDB. In the linked service, click Test connection, it may error for some IP. You may need to allow connections from the IP to the AXDB to make this work. Go to LCS > "Enable access". Add the IP and try again. Tip - give a range for example 40.82.250.0/999, as next time, it will use a slight different IP.
 
 ![enableaccess](enableaccess.png)
 
@@ -77,15 +73,22 @@ Make sure Test connection is successful at this stage, before saving the linked 
 
 ![Linked Service A X D B Connection](LinkedService_AXDBConnection.png)
 
-3.2. **Create *Target Database* linked service:** Create **Azure SQL Database** linked service to connect target database and create database objects. 
+3.2. **Create *Target Database* linked service:** Create **Azure SQL Database** type linked service to connect target database/pool. 
 
 a. Enter a **Name** for linked service
+
 b. Create parameters **ServerName** and **DBName** 
+
 c. On account selection method, select **Enter manually** 
+
 d. **Fully qualified domain name*** click add dynamic content and then select **ServerName** parameter
+
 e. **Database name** click add dynamics content and select **DbName** from parameter
+
 f. **Authentication type** select **System Assigned Managed Identity**
+
 g. Make sure Test connection is successful at this stage, before saving the linked service.
+
 
 <JJ is this below step needed?>
 Next step only needed to copy data to SQL DB (not for Serverless or Dedicated Pool). Note the Managed identity name (this is usually same as the name of the Synapse workspace) and create a contained database user in Azure SQL DB. Follow this [docs](https://learn.microsoft.com/en-us/azure/data-factory/connector-azure-sql-database?tabs=synapse-analytics#managed-identity). Docs has instructions to add an AAD Admin to the SQL Server from Azure portal and creating a user in the SQL DB as below. Replace salabcommerce-synapse with your name.
@@ -99,19 +102,24 @@ Next step only needed to copy data to SQL DB (not for Serverless or Dedicated Po
 
 ![Target Database Linked Service](Target_Database_LinkedService.png)
 
-3.3. **Create **Source storage** linked service:** Create **Azure Storage Account Gen 2** linked service to connect source datalake and read cdm metadata.
+3.3. **Create **Source storage** linked service:** Create **Azure Storage Account Gen 2** type linked service to connect source datalake and read cdm metadata.
 
 a. Enter a **Name** for linked service
+
 b. Create parameters **StorageAccount**  
+
 c. On account selection method, select **Enter manually** 
+
 d. **URL*** click add dynamic content and then select **StorageAccount** parameter
+
 e. **Authentication type** select **System Assigned Managed Identity**
+
 f. Click **Create** to create the linked service.
 
 ![Source Storage Account Link Service](Source_StorageAccount_LinkService.png)
 
 
-4. Open Synapse Analytics Workspace, select Integrate, Click + to Import the template ![Import Synapsepipeline Template](importsynapsepipelinetemplate.png)
+4. In your Synapse Analytics Workspace, go to Integrate, Click + to Import the template ![Import Synapsepipeline Template](importsynapsepipelinetemplate.png)
 
 5. Locate **CDMUtilPipeline.zip** from the local computer and select **Open**
 ![Import C D M Util Template](ImportCDMUtilTemplate.png)
@@ -149,8 +157,11 @@ f. Click **Create** to create the linked service.
 ***On-demand run***
 
 a. Click on Integrate and then click **CDMUtil** to open pipeline
+
 b. Click on **Debug**
+
 c. Change pipeline run parameter or use default values and click **ok**
+
 d. Pipeline will run and you can monitor the execution **Output**  
 
 ![Debug Pipeline](DebugPipeline.png)
@@ -166,28 +177,27 @@ b. **For Schedule trigger**:
 
 c. **For Storage events**:
 
-   1. Select **Storage account name**,  **Container**, **Blob path begins with**:yourenvironmentfolder.operations.dynamics.com/Tables/Tables and **Blob path ends with**:.manifest.cdm.json,**Event**: Blob created, **Ignore empty blobs**: Yes 
+   c.1. Select **Storage account name**,  **Container**, **Blob path begins with**:yourenvironmentfolder.operations.dynamics.com/Tables/Tables and **Blob path ends with**:.manifest.cdm.json,**Event**: Blob created, **Ignore empty blobs**: Yes 
 
    ![Create Storage Events](CreateStorageEvents.png)
 
-   2 Click next, for Data preview, This screen shows the existing blobs matched by your storage event trigger configuration. Click next
+   c.2. Click next, for Data preview, This screen shows the existing blobs matched by your storage event trigger configuration. Click next
 
 d. On the **Trigger Run Parameters** - override parameters or leave it blank and click next - pipeline default parameters are used when parameters are not provided on trigger. 
+
 e. Create and publish the changes to deploy the trigger. 
-
-        Note: This pipeline template can be deployed and executed on Azure Data Factory following  similar steps.
-
 
 9. Next step is to import another pipeline to copy data to the DB/pool created in previous steps. Note - in case of serverless pool, there is no real data copy. Serverless pool directly accesses data in data lake via external tables/views using OPENROWSET technology.
 **DataLake To SQL - Incremental data copy pipeline**
 
 Single pipeline to copy full and incremental data from data lake to Synapse dedicated pool or Azure SQL database native tables 
 
-1. Download [Datalake to SQL Copy(DataLakeToSQLCopy.zip)](/Analytics/CDMUtilSolution/DataLakeToSQLCopy.zip) to local computer   
-2. Click **Import from pipeline template** open DataLakeToSQLCopy.zip file, select linked services for source data lake and target database connection 
+a. Download [Datalake to SQL Copy(DataLakeToSQLCopy.zip)](/Analytics/CDMUtilSolution/DataLakeToSQLCopy.zip) to local computer   
+
+b. Click **Import from pipeline template** open DataLakeToSQLCopy.zip file, select linked services for source data lake and target database connection 
 ![Import Datalake To SQL Copy](ImportDatalakeToSQLCopy.png)
 
-3. Update parameters and execute DataLakeToSQLCopy pipeline to copy data to Synapse or SQL tables 
+c. Update parameters and execute DataLakeToSQLCopy pipeline to copy data to Synapse or SQL tables 
 
 ![Datalake To SQL Copy Execute](DatalakeToSQLCopy_Execute.png)
 
