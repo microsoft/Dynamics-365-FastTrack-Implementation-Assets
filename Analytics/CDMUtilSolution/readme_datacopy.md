@@ -129,7 +129,7 @@ f. Click **Create** to create the linked service.
 6. Select all the above created **linked services** and click **Open pipeline**
 ![Open Pipeline](OpenPipeline.png)
 
-7.Update **parameters** as below and click **Publish all** to deploy the pipeline 
+7. Update **parameters** as below and click **Publish all** to deploy the pipeline 
 
 <JJ - DDLType can be specified as below ?>
 |Parameters                  |Value                                                                 |
@@ -185,7 +185,8 @@ c. **For Storage events**:
 
 d. On the **Trigger Run Parameters** - override parameters or leave it blank and click next - pipeline default parameters are used when parameters are not provided on trigger. 
 
-e. Create and publish the changes to deploy the trigger. 
+e. Create and publish the changes to deploy the trigger.
+
 
 9. Next step is to import another pipeline to copy data to the DB/pool created in previous steps. Note - in case of serverless pool, there is no real data copy. Serverless pool directly accesses data in data lake via external tables/views using OPENROWSET technology.
 **DataLake To SQL - Incremental data copy pipeline**
