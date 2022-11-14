@@ -187,9 +187,9 @@ d. On the **Trigger Run Parameters** - override parameters or leave it blank and
 
 e. Create and publish the changes to deploy the trigger.
 
+**DataLake To SQL - Incremental data copy pipeline**
 
 9. Next step is to import another pipeline to copy data to the DB/pool created in previous steps. Note - in case of serverless pool, there is no real data copy. Serverless pool directly accesses data in data lake via external tables/views using OPENROWSET technology.
-**DataLake To SQL - Incremental data copy pipeline**
 
 Single pipeline to copy full and incremental data from data lake to Synapse dedicated pool or Azure SQL database native tables 
 
