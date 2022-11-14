@@ -8,7 +8,7 @@ The main building blocks are [Export to data lake service](https://learn.microso
 Using above building blocks, an organization can come up with the right architecture for their analytical requirements. In below post, we will step through instructions on how you can setup a working solution using one of the above patterns. The templates used are provided as links. 
 
 The following diagram conceptualizes high level architecture: 
-![Cdm Util As Pipeline](CDMUtilPipelineOptions.png)
+![Cdm Util As Pipeline](CDMUtilPipeline-Options.png)
 
 
 # Foundational concepts
