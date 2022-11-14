@@ -176,7 +176,7 @@ b. **For Schedule trigger**:
     Select **Start date**, **Time zone** and **Recurrence** as appropriate.
 
 c. **For Storage events**:
-<JJ - is this trigger only for new tables schema, do we need another trigger definition for data copy?
+<JJ - is this trigger only for new tables schema, do we need another trigger definition for data copy?>
    c.1. Select **Storage account name**,  **Container**, **Blob path begins with**:yourenvironmentfolder.operations.dynamics.com/Tables/Tables and **Blob path ends with**:.manifest.cdm.json,**Event**: Blob created, **Ignore empty blobs**: Yes 
 
    ![Create Storage Events](CreateStorageEvents.png)
