@@ -5,9 +5,9 @@ Analytics for Dynamics 365 finance and operation apps requires few building bloc
 	
 The main building blocks are [Export to data lake service](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/azure-data-lake-ga-version-overview), CDMUtilPipeline, [Azure Data Lake](https://learn.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction) and [Azure Synapse Analytics](https://learn.microsoft.com/en-us/azure/synapse-analytics/overview-what-is).
 
-Using above building blocks, an organization can come up with the right architecture for their analytical requirements. In below post, we will step through instructions on how you can setup a working solution using one of the above patterns. There are 4 patterns documented, that we also elaborated on in our previous TechTalk. The templates used to deploy the solution are provided below as links. 
+Using above building blocks, an organization can come up with the right architecture for their analytical requirements. In below post, we will step through instructions on how you can setup a working solution using one of the above patterns as options. There are 4 patterns documented, that we also elaborated on in our previous TechTalk. The templates used to deploy the solution are provided below as links. 
 
-The following diagram conceptualizes high level architecture: 
+The following diagram conceptualizes high level architecture of the 4 patterns/options: 
 ![Cdm Util As Pipeline](CDMUtilPipeline-Options.png)
 
 The following table compares the 4 patterns: 
