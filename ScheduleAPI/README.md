@@ -24,7 +24,7 @@ PowerShell was chosen because it is available on any Windows10 computer without 
 2) Extract files make (sure the set switch "Unblock" on the properties from the zip file)
 3) Move the directories LIB_OData, LIB_OperationSet, LIB_Project and LIB_TASK from ScheduleAPI under ThisPC > Documents > WindowsPowerShell > Modules. You can manually create directory WindowsPowerShell and/or Modules if these directories are not on your machine.
 4) File PO_ImportTasks.ps1 can be saved to any location
-5) Setup authentication as described in the README.md file in LIB_Odata
+5) Setup authentication as described in the README.md file in LIB_Odata. Note that you will be using the native authentication flow (therefore requiring an AAD application client ID, username and password, but not a client secret), due to the current limitation that the Schedule APIs can only be used by Users with a Microsoft Project License.
 6) Use "Windows PowerShell ISE" program to open file "PO_CreateProject.ps1" and you start verifying / modifying parameters 
    Environment parameters
     * tenant
