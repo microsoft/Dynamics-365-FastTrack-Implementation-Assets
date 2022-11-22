@@ -28,14 +28,14 @@ class Task
          msdyn_projecttaskid = $this.taskId
          msdyn_subject = $this.taskName
          msdyn_LinkStatus = 192350000
-         msdyn_tasknumber = "";
-         msdyn_activitynumber = ""
+         # msdyn_tasknumber = "";
+         # msdyn_activitynumber = ""
          "msdyn_projectbucket@odata.bind" = "/msdyn_projectbuckets(" + $bucketId + ")"
       }   
       
       if ($this.effort -gt 0) { $task.msdyn_effort = $this.effort }
-      if ($this.startDate -gt 0) { $task.msdyn_scheduledstart = $this.startDate.ToString("yyyy-MM-dd")}
-      if ($this.endDate -gt 0) { $task.msdyn_scheduledend = $this.endDate.ToString("yyyy-MM-dd") }
+      if ($this.startDate -gt 0) { $task.msdyn_scheduledstart = $this.startDate.ToString("yyyy-MM-dd hh:mm")}
+      if ($this.endDate -gt 0) { $task.msdyn_scheduledend = $this.endDate.ToString("yyyy-MM-dd hh:mm") }
       return $task 
    }
 

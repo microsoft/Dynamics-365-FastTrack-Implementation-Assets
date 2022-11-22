@@ -7,7 +7,7 @@ Clear-Host
 
 #environment parameters
 $tenant      = "axsolutionsarchitecture.com"
-$environment = "https://po-demo2.crm.dynamics.com"
+$environment = "https://operations-saprojopstest.crm.dynamics.com"
 
 #data file
 $projectFile = "ProjectTasks.xlsx"
@@ -16,12 +16,12 @@ $projectFile = "ProjectTasks.xlsx"
 $showRestAPI = $true
 
 #project parameters
-$projectName    = "MDD_TestPS_01"
+$projectName    = "MAW_TestPS01"
 $companyName    = "USPM"
-$customerName   = "Adatum Corporation"
-$calendarName   = "Default Work Template"
+$customerName   = "MW Test Customer 2"
+$calendarName   = "8 hr PST template"
 $projectManager = "SA Solutions Architect"
-$startDate      = "2021-10-01"
+$startDate      = "2022-11-23 17:00"
 
 [Project] $project = [Project]::new($projectName,$tenant,$environment)
 $project.request.Debug = $showRestAPI
@@ -48,10 +48,14 @@ foreach ($task in $taskList.tasks)
 {
    if ($task.resource -ne "")
    {
-      $task.teamMemberId = $project.GetTeamMemberId($task.resource)
-      if ($task.teamMemberId -eq "")
+      [string]$teamMemberId = $project.GetTeamMemberId($task.resource)      
+      if ($teamMemberId -eq "")
       {
          $task.teamMemberId = $project.CreateTeamMember($task.resource)
+      }
+      else
+      {
+         $task.teamMemberId = $teamMemberId
       }
    }
 }
