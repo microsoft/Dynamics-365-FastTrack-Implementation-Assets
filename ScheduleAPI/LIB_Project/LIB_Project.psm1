@@ -14,6 +14,7 @@ class Project
    Project ([string] $projectName,$tenant,$environment)
    {
       $this.request = [HttpRequest]::new($tenant,$environment)
+      $this.request.Native = $true
       $this.request.Authenticate()
       $this.projectName = $projectName
       $this.GetProjectId()
