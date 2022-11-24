@@ -52,7 +52,7 @@ public final class CET_MonitoringHandlers
             var currentJobContext = BatchHeader::getCurrentBatchTask();
 
             str eventName = strFmt("@CETM:MonitoringBatchError", currentJobContext.BatchJobId, currentJobContext.Caption); // Error encountered in batch (%1 - %2)
-            SysGlobalTelemetry::logEvent(eventName);
+            CET_MonitoringLoggerDefault::logEvent(eventName);
 
             SysInfoLogStr infoStr = _args.getArg(identifierStr('txt'));
 
@@ -78,7 +78,7 @@ public final class CET_MonitoringHandlers
     public static void FeatureManagementWorkspace_EnableButton_OnClicked(FormControl _sender, FormControlEventArgs _e)
     {        
         FeatureManagementMetadata featureManagementMetadata = _sender.formRun().dataSource('FeatureManagementMetadata').cursor();
-        SysGlobalTelemetry::logEvent(strFmt("@CETM:MonitoringVeatureDisabledWkspace",  featureManagementMetadata.DisplayName));
+        CET_MonitoringLoggerDefault::logEvent(strFmt("@CETM:MonitoringVeatureDisabledWkspace",  featureManagementMetadata.DisplayName));
     }
 
 ]]></Source>
@@ -95,7 +95,7 @@ public final class CET_MonitoringHandlers
     public static void FeatureManagementWorkspace_DisableButton_OnClicked(FormControl _sender, FormControlEventArgs _e)
     {    
         FeatureManagementMetadata featureManagementMetadata = _sender.formRun().dataSource('FeatureManagementMetadata').cursor();
-        SysGlobalTelemetry::logEvent(strFmt("@CETM:MonitoringFeatureDisabledWkspace", featureManagementMetadata.DisplayName));
+        CET_MonitoringLoggerDefault::logEvent(strFmt("@CETM:MonitoringFeatureDisabledWkspace", featureManagementMetadata.DisplayName));
     }
 
 ]]></Source>
@@ -111,7 +111,7 @@ public final class CET_MonitoringHandlers
     [FormControlEventHandler(formControlStr(FeatureManagementWorkspace, EnableAllFeaturesButton), FormControlEventType::Clicked)]
     public static void FeatureManagementWorkspace_EnableAllFeaturesButton_OnClicked(FormControl _sender, FormControlEventArgs _e)
     {
-        SysGlobalTelemetry::logEvent("@CETM:MonitoringFeatureEnableAll");
+        CET_MonitoringLoggerDefault::logEvent("@CETM:MonitoringFeatureEnableAll");
     }
 
 ]]></Source>
@@ -128,7 +128,7 @@ public final class CET_MonitoringHandlers
     public static void FeatureManagementEnableFeature_DisableButton_OnClicked(FormControl _sender, FormControlEventArgs _e)
     {
         str featureName = _sender.formRun().design().caption();
-        SysGlobalTelemetry::logEvent(strFmt("@CETM:MonitoringFeatureDisabled", featureName));
+        CET_MonitoringLoggerDefault::logEvent(strFmt("@CETM:MonitoringFeatureDisabled", featureName));
     }
 
 ]]></Source>
@@ -147,7 +147,7 @@ public final class CET_MonitoringHandlers
       
         str enabledate = _sender.formRun().design().controlName(formControlStr(FeatureManagementEnableFeature, EnableDate)).valueStr();
         str featureName = _sender.formRun().design().caption();
-        SysGlobalTelemetry::logEvent(strFmt("@CETM:MonitoringFeatureScheduled", featureName, enabledate));
+        CET_MonitoringLoggerDefault::logEvent(strFmt("@CETM:MonitoringFeatureScheduled", featureName, enabledate));
     
     }
 

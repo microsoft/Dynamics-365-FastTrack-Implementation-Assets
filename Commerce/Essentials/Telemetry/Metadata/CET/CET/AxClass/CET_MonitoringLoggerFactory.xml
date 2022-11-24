@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>CET_MonitoringLoggerFactory</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public final class CET_MonitoringLoggerFactory
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getDefaultLoggerType</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get the default logger type
+    /// </summary>
+    /// <returns>The <c>CET_MonitorLoggerType</c> default logger</returns>
+    public static CET_MonitorLoggerType getDefaultLoggerType()
+    {
+        return CET_MonitorLoggerType::Default;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMonitorLogger</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get a logger
+    /// </summary>
+    /// <param name = "_loggerType">Type of logger to be created</param>
+    /// <returns>A new instance of a <c>CET_IMonitoringLogger</c> logger</returns>
+    public static CET_IMonitoringLogger getMonitorLogger(
+        CET_MonitorLoggerType _loggerType = CET_MonitoringLoggerFactory::getDefaultLoggerType())
+    {
+        SysPluginMetadataCollection metadataCollection = new SysPluginMetadataCollection();
+        
+        metadataCollection.SetManagedValue(
+            enumStr(CET_MonitorLoggerType),
+            enum2Symbol(enumNum(CET_MonitorLoggerType),
+            enum2int(_loggerType)));
+        
+        CET_IMonitoringLogger instance = SysPluginFactory::Instance(
+            identifierStr(Dynamics.AX.Application),
+            classStr(CET_IMonitoringLogger),
+            metadataCollection);
+
+        if (!instance)
+        {
+            throw error(strFmt("@SYS19306", funcName()));
+        }
+
+        return instance;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

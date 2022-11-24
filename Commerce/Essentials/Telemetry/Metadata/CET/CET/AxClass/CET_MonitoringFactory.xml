@@ -369,7 +369,7 @@ class CET_MonitoringFactory
     /// <param name = "_data">Optional:  payload</param>
     public static void logMetric(CET_EventName _eventName, CET_EventMetricValue _value, CET_EventData _data = '')
     {
-        SysGlobalTelemetry::logMetric(_eventName, _value);
+        CET_MonitoringLoggerDefault::logMetric(_eventName, _value);
 
         CET_MonitoringFactory::saveEventData(_eventName, _data, _value);
     }
@@ -386,7 +386,7 @@ class CET_MonitoringFactory
     /// <param name = "_data">Optional:  payload</param>
     public static void logEvent(CET_EventName _eventName, CET_EventData _data = '')
     {
-        SysGlobalTelemetry::logEvent(_eventName);
+        CET_MonitoringLoggerDefault::logEvent(_eventName);
 
         CET_MonitoringFactory::saveEventData(_eventName, _data);
     }

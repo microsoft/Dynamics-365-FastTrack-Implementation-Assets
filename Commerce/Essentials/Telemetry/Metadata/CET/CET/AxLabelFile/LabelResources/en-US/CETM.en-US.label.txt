@@ -75,3 +75,5 @@ MonitoringBusinessRuleParameters=Business rules parameters
 BusinessRuleParameterType=Parameter type
 MonitoringLog=Monitoring log
 MonitoringBatchEnable=Enable the monitoring batch service
+MointorLoggerType=Mointor logger type
+DefaultLogger=Default logger

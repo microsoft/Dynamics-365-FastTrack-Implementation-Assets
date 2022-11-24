@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>CET_IMonitoringLogger</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Microsoft.Dynamics.AX.Platform.Extensibility;
+
+/// <summary>
+/// Interface for logger 
+/// </summary>
+[ExportInterface()]
+public interface CET_IMonitoringLogger
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>logMetric</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Log a metric value
+    /// </summary>
+    /// <param name = "_metricName">Name of the metric</param>
+    /// <param name = "_metricValue">Metric value</param>
+    public void logMetric(str _metricName, real _metricValue)
+    {
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>logEvent</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Log an event
+    /// </summary>
+    /// <param name = "_eventName">Event name</param>
+    public void logEvent(str _eventName)
+    {
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

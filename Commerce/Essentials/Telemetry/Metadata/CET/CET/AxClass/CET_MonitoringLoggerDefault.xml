@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>CET_MonitoringLoggerDefault</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using System.ComponentModel.Composition;
+
+/// <summary>
+/// The default impementation that uses the standard monitoring and telemetry model
+/// </summary>
+[Export(identifierStr(Dynamics.AX.Application.CET_IMonitoringLogger)),
+    ExportMetadata(enumStr(CET_MonitorLoggerType), enumLiteralStr(CET_MonitorLoggerType, Default))]
+internal final class CET_MonitoringLoggerDefault implements CET_IMonitoringLogger
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>logMetric</Name>
+				<Source><![CDATA[
+    public void logMetric(str _metricName, real _metricValue)
+    {
+        SysGlobalTelemetry::logMetric(_metricName, _metricValue);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>logEvent</Name>
+				<Source><![CDATA[
+    public void logEvent(str _eventName)
+    {
+        SysGlobalTelemetry::logEvent(_eventName);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>CET_MonitoringLogger</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+internal final class CET_MonitoringLogger
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>logEvent</Name>
+				<Source><![CDATA[
+    public static void logEvent(str _eventName)
+    {
+        CET_IMonitoringLogger logger = CET_MonitoringLoggerFactory::getMonitorLogger();
+        logger.logEvent(_eventName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>logMetric</Name>
+				<Source><![CDATA[
+    public static void logMetric(str _metricName, real _metricValue)
+    {
+        CET_IMonitoringLogger logger = CET_MonitoringLoggerFactory::getMonitorLogger();
+        logger.logMetric(_metricName, _metricValue);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
