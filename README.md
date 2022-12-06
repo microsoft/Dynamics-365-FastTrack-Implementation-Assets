@@ -25,22 +25,22 @@ The Dynamics 365 FastTrack team uses this repository to share Dynamics 365 F&O a
 
 Outline the file contents of the repository. It helps users navigate the codebase, build configuration and any related assets.
 
-| File/folder       | Description                                |
-|-------------------|--------------------------------------------|
-| `Finance`         | Dymamics 365 Finance guides                |
-| `Commerce`        | Dymamics 365 Commerce guides               |
-| `Analytics`       | Dymamics 365 Analytics guides              |
-| `SQL Maintenance` | Indexes & statistics maintenance script    |
-| `Dual-write`      | Dymamics 365 Dual-write guides             |
-| `SCM`      		    | Tools for SCM and WHS solutions            |
-| `ScheduleAPI`	    | Project Operations - Schedule API example  |
-| `Cloud security`  | Dynamics 365 Cloud security guides         |
-| `Integration`     | Dynamics 365 integration samples           |
-| `.gitignore`      | Define what to ignore at commit time.      |
-| `CHANGELOG.md`    | List of changes to the sample.             |
-| `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
-| `README.md`       | This README file.                          |
-| `LICENSE`         | The license for the sample.                |
+| File/folder                            | Description                                |
+|----------------------------------------|--------------------------------------------|
+| [`Finance`](Finance)                   | Dymamics 365 Finance guides                |
+| [`Commerce`](Commerce)                 | Dymamics 365 Commerce guides               |
+| [`Analytics`](Analytics)               | Dymamics 365 Analytics guides              |
+| [`SQL Maintenance`](SQL%20Maintenance) | Indexes & statistics maintenance script    |
+| [`Dual-write`](Dual-write)             | Dymamics 365 Dual-write guides             |
+| [`SCM`](SCM)      		                 | Tools for SCM and WHS solutions            |
+| [`ScheduleAPI`](ScheduleAPI)	         | Project Operations - Schedule API example  |
+| [`Cloud security`](CloudSecurity)      | Dynamics 365 Cloud security guides         |
+| [`Integration`](Integration)           | Dynamics 365 integration samples           |
+| [`.gitignore`](.gitignore)             | Define what to ignore at commit time.      |
+| `CHANGELOG.md`                         | List of changes to the sample.             |
+| [`CONTRIBUTING.md`](#contributing)     | Guidelines for contributing to the sample. |
+| [`README.md`](Readme.md)               | This README file.                          |
+| [`LICENSE`](License)                   | The license for the sample.                |
 
 
 ### Finance guides
