@@ -27,6 +27,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 
 | File/folder       | Description                                |
 |-------------------|--------------------------------------------|
+| `Finance`         | Dymamics 365 Finance guides                |
 | `Commerce`        | Dymamics 365 Commerce guides               |
 | `Analytics`       | Dymamics 365 Analytics guides              |
 | `SQL Maintenance` | Indexes & statistics maintenance script    |
@@ -41,8 +42,11 @@ Outline the file contents of the repository. It helps users navigate the codebas
 | `README.md`       | This README file.                          |
 | `LICENSE`         | The license for the sample.                |
 
-### Commerce guides
 
+### Finance guides
+- [Finance](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Finance) 
+
+### Commerce guides
 - [POS UI Negative inventory check/prevention (CRT extension)](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Commerce/NegativeInventoryCheck)
 - [Ecommerce load test sample](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Commerce/CommercePerfTestSample)
 - [Dynamics 365 Commerce storefront E2E functional test sample](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Commerce/EcommerceE2ETestSample)

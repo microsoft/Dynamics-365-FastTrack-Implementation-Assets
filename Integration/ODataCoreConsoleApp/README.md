@@ -14,7 +14,7 @@ urlFragment: "d365-fo-odata-console"
 # Dynamics 365 for Finance and Operations sample OData console application
 
 Conceptually, this asset is similar to the OData console application sample provided at [Dynamics-AX-Integration OData Console Application](https://github.com/microsoft/Dynamics-AX-Integration/tree/master/ServiceSamples/ODataConsoleApplication). 
-Instead of the older client libraries used in the previosu sample, it has been written to take advantage of the modern [OData Connected Service](https://github.com/odata/ODataConnectedService), 
+Instead of the older client libraries used in the previous sample, it has been written to take advantage of the modern [OData Connected Service](https://github.com/odata/ODataConnectedService), 
 .Net Core and supporting NuGet packages.
 
 You will need to add the Connected service as described at https://docs.microsoft.com/en-us/odata/client/getting-started#using-the-odata-connected-service.
