@@ -1,21 +1,20 @@
 
 **Overview**
 
-In Dynamics 365 Finance and Operations Apps, [Export to data lake](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/finance-data-azure-data-lake) feature, lets you copy data and metadata from your Finance and Operations apps into your own data lake (Azure Data Lake Storage Gen2). 
-Data that is stored in the data lake is organized in a folder structure that uses Common Data Model format. 
-Export to data lake feature, export data as headerless CSV and metadata as [Cdm manifest](https://docs.microsoft.com/en-us/common-data-model/cdm-manifest).  
+In Dynamics 365 Finance and Operations Apps, the [Export to data lake](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/finance-data-azure-data-lake) feature lets you copy data and metadata from your Finance and Operations apps into your own data lake (Azure Data Lake Storage Gen2). 
+Data that is stored in the data lake is organized in a folder structure that uses the Common Data Model format. 
+Export to data lake feature exports data as headerless CSV files and metadata as [Cdm manifest](https://docs.microsoft.com/en-us/common-data-model/cdm-manifest).  
 
 To get started with Synapse Analytics with data in the lake, you can use CDMUtil pipeline to convert CDM metadata in the lake to **Synapse Analytics** or **SQL metadata**. 
-CDMUtil is a Synapse/ADF pipeline that reads [Common Data Model](https://docs.microsoft.com/en-us/common-data-model/) metadata and convert and execute  **Synapse Analytics SQL pools** or **SQL Server** DDL statements. 
+CDMUtil is a Synapse/ADF pipeline that reads [Common Data Model](https://docs.microsoft.com/en-us/common-data-model/) metadata and converts and executes  **Synapse Analytics SQL pools** or **SQL Server** DDL statements. 
 
-Following diagram shows high level concept about the use of Synapse Analytics- 
+The following diagram conceptualizes the use of Synapse Analytics at a high level: 
 ![Cdm Util As Pipeline](CdmUtilAsPipeline.png)
 
 
-**Note**: We also have [CDMUtil as Azure Function or Console App](readme.md), this utility is developed in C# and utilizes the CDM SDK to read the CDM metadata and create Synapse metadata. 
-Unlike CDMUtil as Azure function and console App, CDMUtil pipeline, reads the json files directly and uses TSQL scripts to create the DDL statement required for Synapse Analytics.
-Since CDUtil is just a pipeline within the Synapse or Azure Data Factory, this approach simplify the deployment and maitainance of the utilities.
-
+**Note**: We also have [CDMUtil as an Azure Function or Console App](readme.md). This utility is developed in C# and utilizes the CDM SDK to read the CDM metadata and create Synapse metadata. 
+Unlike CDMUtil as an Azure function and console App, the CDMUtil pipeline reads the json files directly and uses TSQL scripts to create the DDL statements required for Synapse Analytics.
+Since CDMUtil is just a pipeline within Synapse or Azure Data Factory, this approach simplifies the deployment and maintenance of the utilities.
              
 
 **Pre-requisites**
@@ -51,6 +50,7 @@ Note: You do not have to create Dedicated SQL pool to deploy the pipeline if you
 Before you can import the pipeline template, you must create a linked service to link your data store to the Synapse Workspace. 
 Linked services are much like connection strings, which define the connection information needed for the service to connect to external resources.
 CDMUtil pipeline requires following linked services 
+
 
 |LinkedService       | Type        |Purpose                                  |
 |--------------------|:------------|:----------------------------------------|
@@ -88,7 +88,6 @@ f. Click **Create** to create the linked service.
 
 ![Open Pipeline](OpenPipeline.png)
 
-
 6.Update **parameters** and click **Publish all** to deploy the pipeline 
 
 |Parameters                  |Value                                                                 |
@@ -108,8 +107,8 @@ f. Click **Create** to create the linked service.
    
 ![Update Parameters And Publish](UpdateParametersAndPublish.png)
 
-**Execute CDMUtil pipeline** 
 
+**Execute CDMUtil pipeline** 
 ***On-demand run***
 
 1. Click on Integrate and then click **CDMUtil** to open pipeline

@@ -1,13 +1,13 @@
 ---
 page_type: sample
 languages:
-- yaml
-- python
+  - yaml
+  - python
 products:
-- azure
-- azure-devops
-- azure-storage
-- Dynamics 365 Commerce
+  - azure
+  - azure-devops
+  - azure-storage
+  - Dynamics 365 Commerce
 extensions:
   services: Containerinstance
 name: Load Testing Pipeline with JMeter, ACI and Terraform
@@ -16,6 +16,8 @@ urlFragment: "jmeter-aci-terraform"
 ---
 
 # Ecommerce load Testing Pipeline with JMeter, ACI and Terraform
+
+Archived:This project is archived. Use the azure load test sample. (CommercePerfTestSample/AzureLoadTest)
 
 This project is a Commerce load testing pipeline that leverages [Apache JMeter](https://jmeter.apache.org/) as an open source load and performance testing tool and [Terraform](https://www.terraform.io/) to dynamically provision and destroy the required infrastructure on Azure.
 
@@ -29,22 +31,22 @@ This project is a Commerce load testing pipeline that leverages [Apache JMeter](
 
 The flow is triggered and controlled by an [Azure Pipeline](https://azure.microsoft.com/en-us/services/devops/pipelines/) on [Azure DevOps](https://azure.microsoft.com/en-in/services/devops/). The pipeline contains a set of tasks that are organized logically in `SETUP`, `TEST`, `RESULTS` and `TEARDOWN` groups.
 
-| Task group              | Tasks  |
-|-------------------------|--------|
-| SETUP | <li>Check if the JMeter Docker image exists</li><li>Validate the JMX file that contains the JMeter test definition</li><li>Upload JMeter JMX file to Azure Storage Account File Share</li><li>Provision the infrastructure with Terraform</li> |
-| TEST | <li>Run JMeter test execution and wait for completion</li> |
-| RESULTS | <li>Show JMeter logs</li><li>Get JMeter artifacts (e.g. logs, dashboard)</li><li>Convert JMeter tests result (JTL format) to JUnit format</li><li>Publish JUnit test results to Azure Pipelines</li><li>Publish JMeter artifacts to Azure Pipelines</li> |
-| TEARDOWN | <li>Destroy all ephemeral infrastructure with Terraform</li> |
+| Task group | Tasks                                                                                                                                                                                                                                                    |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SETUP      | <li>Check if the JMeter Docker image exists</li><li>Validate the JMX file that contains the JMeter test definition</li><li>Upload JMeter JMX file to Azure Storage Account File Share</li><li>Provision the infrastructure with Terraform</li>           |
+| TEST       | <li>Run JMeter test execution and wait for completion</li>                                                                                                                                                                                               |
+| RESULTS    | <li>Show JMeter logs</li><li>Get JMeter artifacts (e.g. logs, dashboard)</li><li>Convert JMeter tests result (JTL format) to JUnit format</li><li>Publish JUnit test results to Azure Pipelines</li><li>Publish JMeter artifacts to Azure Pipelines</li> |
+| TEARDOWN   | <li>Destroy all ephemeral infrastructure with Terraform</li>                                                                                                                                                                                             |
 
 On the `SETUP` phase, JMeter agents are provisioned as [Azure Container Instance (ACI)](https://azure.microsoft.com/en-us/services/container-instances/) using a [custom Docker image](./docker/Dockerfile) on Terraform. Through a [Remote Testing](https://jmeter.apache.org/usermanual/remote-test.html) approach, JMeter controller is responsible to configure all workers, consolidating all results and generating the resulting artifacts (dashboard, logs, etc).
 
 The infrastructure provisioned by Terraform includes:
 
-* Resource Group
-* Virtual Network (VNet)
-* Storage Account File Share
-* 1 JMeter controller on ACI
-* N JMeter workers on ACI
+- Resource Group
+- Virtual Network (VNet)
+- Storage Account File Share
+- 1 JMeter controller on ACI
+- N JMeter workers on ACI
 
 On the `RESULTS` phase, a [JMeter Report Dashboard](https://jmeter.apache.org/usermanual/generating-dashboard.html) and [Tests Results](https://docs.microsoft.com/en-us/azure/devops/pipelines/test/review-continuous-test-results-after-build?view=azure-devops) are published in the end of each load testing execution.
 
@@ -52,16 +54,16 @@ On the `RESULTS` phase, a [JMeter Report Dashboard](https://jmeter.apache.org/us
 
 You should have the following tools installed:
 
-* Shell
-* [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
-* [Azure DevOps CLI extension](https://docs.microsoft.com/en-us/azure/devops/cli/?view=azure-devops)
-* [jq](https://stedolan.github.io/jq/download/)
+- Shell
+- [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
+- [Azure DevOps CLI extension](https://docs.microsoft.com/en-us/azure/devops/cli/?view=azure-devops)
+- [jq](https://stedolan.github.io/jq/download/)
 
 You should have the following Azure resources:
 
-* [Azure DevOps Project](https://docs.microsoft.com/en-us/azure/devops/organizations/projects/create-project?view=azure-devops&tabs=preview-page)
-* [Azure Container Registry (ACR)](https://azure.microsoft.com/en-us/services/container-registry/) with Admin user enabled
-* CSU url
+- [Azure DevOps Project](https://docs.microsoft.com/en-us/azure/devops/organizations/projects/create-project?view=azure-devops&tabs=preview-page)
+- [Azure Container Registry (ACR)](https://azure.microsoft.com/en-us/services/container-registry/) with Admin user enabled
+- CSU url
 
 ## Getting Started
 
@@ -228,22 +230,22 @@ All Terraform parameters can be configured using the Variable Group `JMETER_TERR
 
 ## Limitations
 
-* **Load Test duration**
-Please note that for [Microsoft hosted agents](https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/hosted?view=azure-devops#capabilities-and-limitations), you can have pipelines that runs up to 1 hour (private project) or 6 hours (public project). You can have your own agents to bypass this limitation.
+- **Load Test duration**
+  Please note that for [Microsoft hosted agents](https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/hosted?view=azure-devops#capabilities-and-limitations), you can have pipelines that runs up to 1 hour (private project) or 6 hours (public project). You can have your own agents to bypass this limitation.
 
-* **ACI on VNET regions**
-Please note that [not all regions](https://docs.microsoft.com/en-us/azure/container-instances/container-instances-virtual-network-concepts#where-to-deploy) currently support ACI and VNET integration. If you need private JMeter agents, you can deploy it in a different region and use VNET peering between them. Also note that vCPUs and memory limits change based on regions.
+- **ACI on VNET regions**
+  Please note that [not all regions](https://docs.microsoft.com/en-us/azure/container-instances/container-instances-virtual-network-concepts#where-to-deploy) currently support ACI and VNET integration. If you need private JMeter agents, you can deploy it in a different region and use VNET peering between them. Also note that vCPUs and memory limits change based on regions.
 
 ## Additional Documentation
 
-* [Implementation Notes](./docs/implementation-notes.md)
-* [Adding plugins to JMeter Docker image](./docs/adding-jmeter-plugins.md)
-* [JMeter pipeline settings](./docs/jmeter-pipeline-settings.md)
-* [Estimating costs](./docs/estimating-costs.md)
-* [Integrating with Application Insights](./docs/integrating-application-insights.md)
+- [Implementation Notes](./docs/implementation-notes.md)
+- [Adding plugins to JMeter Docker image](./docs/adding-jmeter-plugins.md)
+- [JMeter pipeline settings](./docs/jmeter-pipeline-settings.md)
+- [Estimating costs](./docs/estimating-costs.md)
+- [Integrating with Application Insights](./docs/integrating-application-insights.md)
 
 ## External References
 
-* [User Manual: Remote Testing](https://jmeter.apache.org/usermanual/remote-test.html)
-* [User Manual: Apache JMeter Distributed Testing Step-by-step](https://jmeter.apache.org/usermanual/jmeter_distributed_testing_step_by_step.html)
-* [Azure DevOps CLI reference](https://docs.microsoft.com/en-us/cli/azure/ext/azure-devops/?view=azure-cli-latest)
+- [User Manual: Remote Testing](https://jmeter.apache.org/usermanual/remote-test.html)
+- [User Manual: Apache JMeter Distributed Testing Step-by-step](https://jmeter.apache.org/usermanual/jmeter_distributed_testing_step_by_step.html)
+- [Azure DevOps CLI reference](https://docs.microsoft.com/en-us/cli/azure/ext/azure-devops/?view=azure-cli-latest)
