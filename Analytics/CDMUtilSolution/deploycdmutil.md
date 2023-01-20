@@ -33,8 +33,8 @@ Deploy the CDMUtil solution as an Azure Function to automate end to end process 
 |SQLEndPoint        |Synapse SQL Pool endpoint connection string. If Database name is not specified - create new database, if userid and password are not specified - MSI authentication will be used.   |Server=ftd365synapseanalytics-ondemand.sql.azuresynapse.net;Authentication=ActiveDirectoryMSI; 
 |DDLType            |Synapse DDLType default:SynapseView  |<ul><li>SynapseView:Synapse views using openrowset</li><li>SynapseExternalTable:Synapse external table</li><li>SynapseTable:Synapse dedicated pool table</li></ul>| 
 |ParserVersion      |Default 2.0 , 1.0 or 2.0| 1.0| 
-|DefaultStringLength|default = 2.0 and recomended for perf    |Server=ftd365synapseanalytics-ondemand.sql.azuresynapse.net; 
-|TranslateEnum      |translate enum values, Only supported with Synapse view and when enhanced metadata is enabled.| true or false
+|DefaultStringLength|Default = 1000 and recomended for perf    |1000
+|TranslateEnum      |Translate enum values, Only supported with Synapse view and when enhanced metadata is enabled.| true or false
 
 ![Applicationsetting](applicationsetting.png)
 
