@@ -4,7 +4,7 @@ This solution combines Dynamics 365 Customer insights, Dynamics 365 Marketing, P
 
 # Architecture
 
-![Diagram Description automatically generated](media/417bbfe598d321ad2787ca08d3eb9194.png)
+![Diagram Description automatically generated](Better Together Sales Experience.png)
 
 # Dataflow
 
@@ -29,7 +29,7 @@ This solution combines Dynamics 365 Customer insights, Dynamics 365 Marketing, P
 
 # Scenario details:
 
-![Better Together Customer Experience Flow](media/0ff9ed944091e0291773529c179ef311.png)
+![Better Together Customer Experience Flow](Better Together Flow.png)
 
 The Chief Revenue officer (CRO) reviews the sales numbers after the first month of site launch and they are not as high as he was expecting. He connects with his sales analyst who leverages the Dynamics Customer Insights tools to dig into the data to understand what could be happening.
 
@@ -62,7 +62,7 @@ You can use this solution to:
 ## Pre-requisites:
 
 -   D365 Commerce with E-commerce
-    -   Setup guide: [E-commerce site overview - Commerce \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/en-us/dynamics365/commerce/online-store-overview)
+    -   Setup guide: [E-commerce site overview - Commerce \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/dynamics365/commerce/online-store-overview)
     -   Power Virtual Agent embed in E-commerce: [Commerce Chat with Power Virtual Agents module - Commerce \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/dynamics365/commerce/chat-module-pva)
 -   Dynamics 365 Marketing
     -   Setup guide: [Get started with Marketing app setup (Dynamics 365 Marketing) \| Microsoft Learn](https://learn.microsoft.com/dynamics365/marketing/get-started)
@@ -86,7 +86,7 @@ You can use this solution to:
 
 ### Step 2: Unify Customers in Dynamics 365 Customer Insights
 
-[Connect to data in a Microsoft Dataverse managed data lake - Dynamics 365 Customer Insights \| Microsoft Learn](https://learn.microsoft.com/en-us/dynamics365/customer-insights/connect-dataverse-managed-lake#connect-to-a-dataverse-managed-lake)
+[Connect to data in a Microsoft Dataverse managed data lake - Dynamics 365 Customer Insights \| Microsoft Learn](https://learn.microsoft.com/dynamics365/customer-insights/connect-dataverse-managed-lake#connect-to-a-dataverse-managed-lake)
 
 ### Step 3: Define Measure(s) and Segments in Customer Insights
 
@@ -111,13 +111,13 @@ Refer to the video at the end of this article to see the text triggers were defi
 **E-comm with Omnichannel for customer service –** Commerce chat with Omnichannel can be transferred to agent if user want to ask more personalized queries. It provides omnichannel view of customers within CE application to help answer customer specific information. Chat experience is full embedded in our E-Commerce site and works seamlessly between pages.
 
 -   Prerequisites for Omnichannel for Customer Service
-    -   Configure chat in the Omnichannel for Customer Service Administration widget and embed parameters within E-comm site. For instructions, see [Configure a chat channel](https://learn.microsoft.com/en-us/dynamics365/customer-service/set-up-chat-widget).
+    -   Configure chat in the Omnichannel for Customer Service Administration widget and embed parameters within E-comm site. For instructions, see [Configure a chat channel](https://learn.microsoft.com/dynamics365/customer-service/set-up-chat-widget).
 -   Steps:
     -   Configure the Commerce chat experience for your e-commerce site
     -   Add Commerce headquarters as an application tab for Omnichannel for Customer Service
     -   Enable a new application tab for customer agents in Dynamics 365 Omnichannel for Customer Service
     -   Add context variables in Dynamics 365 Omnichannel for Customer Service
     -   Update Content Security Policy (CSP) in site builder
-    -   Integrate PVA with Commerce Site : [Commerce Chat with Power Virtual Agents module - Commerce \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/en-us/dynamics365/commerce/chat-module-pva)
+    -   Integrate PVA with Commerce Site : [Commerce Chat with Power Virtual Agents module - Commerce \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/dynamics365/commerce/chat-module-pva)
 
-[For detailed steps, see Commerce Chat with Omnichannel for Customer Service module - Commerce \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/en-us/dynamics365/commerce/commerce-chat-module)
+[For detailed steps, see Commerce Chat with Omnichannel for Customer Service module - Commerce \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/dynamics365/commerce/commerce-chat-module)
