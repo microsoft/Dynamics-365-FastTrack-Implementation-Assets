@@ -27,7 +27,7 @@ This solution combines Dynamics 365 Customer insights, Dynamics 365 Marketing, P
 -   [Power Virtual Agent](https://powervirtualagents.microsoft.com/) (PVA) lets you create powerful AI-powered chatbots for a range of requests—from providing simple answers to common questions to resolving issues requiring complex conversations. Here, PVA is used on the online channel to help consumers have a better shopping experience and get all the information they need before they buy a product.
 -   [Dataverse](https://powerplatform.microsoft.com/dataverse/) lets you securely store and manage data that's used by business applications. It’s used here to link customer insights to marketing data.
 
-# Scenario details:
+# Scenario details
 
 ![Better Together Customer Experience Flow](BetterTogetherFlow.png)
 
