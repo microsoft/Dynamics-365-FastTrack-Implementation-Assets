@@ -4,7 +4,7 @@ This solution combines Dynamics 365 Customer insights, Dynamics 365 Marketing, P
 
 # Architecture
 
-![Diagram Description automatically generated](Better Together Sales Experience.png)
+![Diagram Description automatically generated](BetterTogetherSalesExperience.png)
 
 # Dataflow
 
