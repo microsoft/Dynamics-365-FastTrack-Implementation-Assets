@@ -59,7 +59,7 @@ You can use this solution to:
 
 # Deploying the Scenario
 
-## Pre-requisites:
+## Pre-requisites
 
 -   D365 Commerce with E-commerce
     -   Setup guide: [E-commerce site overview - Commerce \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/dynamics365/commerce/online-store-overview)
