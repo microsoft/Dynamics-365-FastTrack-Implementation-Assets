@@ -80,10 +80,11 @@ You can use this solution to:
 ### Step 1: Import site logs into Dynamics 365 Customer Insights
 
 1.  Export your site logs to a csv file.
-    1.  Use Microsoft clarity/Google tag manager to get site logs from E-commerce site.
+     
+     Use Microsoft clarity/Google tag manager to get site logs from E-commerce site.
 2.  Import csv file (sessions data) using Power query to customer Insights.
 
-    Power Query offers many different data source options and inline data transformation. It is a great option for bringing in data from external systems. In our scenario, we used Power Query to import cookies data from the E-commerce site.
+     Power Query offers many different data source options and inline data transformation. It is a great option for bringing in data from external systems. In our scenario, we used Power Query to import cookies data from the E-commerce site.
 
 ### Step 2: Unify Customers in Dynamics 365 Customer Insights
 
@@ -91,7 +92,7 @@ You can use this solution to:
 
 ### Step 3: Define Measure(s) and Segments in Customer Insights
 
-[Build segment in Customer Insights](https://learn.microsoft.com/en-us/dynamics365/customer-insights/segments?tabs=b2c)
+This documentation page explain how to define segment [Build segment in Customer Insights](https://learn.microsoft.com/dynamics365/customer-insights/segments?tabs=b2c)
 
 ### Step 4: Export Segment from CI to Marketing
 
