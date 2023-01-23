@@ -61,7 +61,10 @@ You can use this solution to:
 
 ## Pre-requisites
 
--   D365 Commerce with E-commerce
+-   Dynamics 365 demo environments 
+    - If you do not have demo environment , refer to this page [Get started with a Dynamics 365 free trial](https://dynamics.microsoft.com/dynamics-365-free-trial/)
+
+-   Dyanmics 365 Commerce with E-commerce
     -   Setup guide: [E-commerce site overview - Commerce \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/dynamics365/commerce/online-store-overview)
     -   Power Virtual Agent embed in E-commerce: [Commerce Chat with Power Virtual Agents module - Commerce \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/dynamics365/commerce/chat-module-pva)
 -   Dynamics 365 Marketing
@@ -80,8 +83,6 @@ You can use this solution to:
     1.  Use Microsoft clarity/Google tag manager to get site logs from E-commerce site.
 2.  Import csv file (sessions data) using Power query to customer Insights.
 
-    ![Graphical user interface, application Description automatically generated](CustomerInsightUsingPowerQuery.pdf)
-
     Power Query offers many different data source options and inline data transformation. It is a great option for bringing in data from external systems. In our scenario, we used Power Query to import cookies data from the E-commerce site.
 
 ### Step 2: Unify Customers in Dynamics 365 Customer Insights
@@ -89,6 +90,8 @@ You can use this solution to:
 [Connect to data in a Microsoft Dataverse managed data lake - Dynamics 365 Customer Insights \| Microsoft Learn](https://learn.microsoft.com/dynamics365/customer-insights/connect-dataverse-managed-lake#connect-to-a-dataverse-managed-lake)
 
 ### Step 3: Define Measure(s) and Segments in Customer Insights
+
+[Build segment in Customer Insights](https://learn.microsoft.com/en-us/dynamics365/customer-insights/segments?tabs=b2c)
 
 ### Step 4: Export Segment from CI to Marketing
 
@@ -104,7 +107,10 @@ This documentation page explains how to create topics for the PVA chatbot.
 
 [Use topics to design a chatbot conversation - Power Virtual Agents \| Microsoft Learn](https://learn.microsoft.com/power-virtual-agents/authoring-create-edit-topics)
 
-Refer to the video at the end of this article to see the text triggers were defined in the PVA topic.
+# Demo Video
+
+This video showcases how Dynamics 365 applications(Commerce,Power Virtual Agent, Customer Insights,Marketing) connects seamlessely to provide better shopping experience to our customers.
+[Dynamics 365 Sales Experience Video](https://aka.ms/Dynamics365SalesExperienceVideo)
 
 ## Additional reference topics
 
