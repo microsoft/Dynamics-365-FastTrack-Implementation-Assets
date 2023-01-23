@@ -80,7 +80,7 @@ You can use this solution to:
     1.  Use Microsoft clarity/Google tag manager to get site logs from E-commerce site.
 2.  Import csv file (sessions data) using Power query to customer Insights.
 
-    ![Graphical user interface, application Description automatically generated](media/2f1eb90616d64a1c1003e358c8b6141e.png)
+    ![Graphical user interface, application Description automatically generated](CustomerInsightUsingPowerQuery.pdf)
 
     Power Query offers many different data source options and inline data transformation. It is a great option for bringing in data from external systems. In our scenario, we used Power Query to import cookies data from the E-commerce site.
 
