@@ -84,7 +84,7 @@ You can use this solution to:
      Use Microsoft clarity/Google tag manager to get site logs from E-commerce site.
 2.  Import csv file (sessions data) using Power query to customer Insights.
 
-     Power Query offers many different data source options and inline data transformation. It is a great option for bringing in data from external systems. In our scenario, we used Power Query to import cookies data from the E-commerce site.
+     Power Query offers many different data source options and inline data transformation. It is a great option for bringing in data from external systems. In our scenario, we used Power Query to import cookies data from the E-commerce site. For use with demo data, you can use [Cookies data file](CookieData.csv)
 
 ### Step 2: Unify Customers in Dynamics 365 Customer Insights
 
