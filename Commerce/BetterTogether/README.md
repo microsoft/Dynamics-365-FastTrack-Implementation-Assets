@@ -31,6 +31,8 @@ This solution combines Dynamics 365 Customer insights, Dynamics 365 Marketing, P
 
 ![Better Together Customer Experience Flow](BetterTogetherFlow.png)
 
+![Better Together Customer Experience Flow](BetterTogetherFlow-small.png)
+
 The Chief Revenue officer (CRO) reviews the sales numbers after the first month of site launch and they are not as high as he was expecting. He connects with his sales analyst who leverages the Dynamics Customer Insights tools to dig into the data to understand what could be happening.
 
 Their hypothesis is that the site may not be providing enough detailed information about these products to allow a customer to feel confident in their purchases.
