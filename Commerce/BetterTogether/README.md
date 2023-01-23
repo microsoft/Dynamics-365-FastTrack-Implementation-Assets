@@ -1,4 +1,4 @@
-Better Together – Customer Sales Experience
+# Better Together – Customer Sales Experience
 
 This solution combines Dynamics 365 Customer insights, Dynamics 365 Marketing, Power Virtual Agent and Dynamics 365 commerce to provide a comprehensive sales experience and provide the best customer experience.
 
@@ -29,7 +29,7 @@ This solution combines Dynamics 365 Customer insights, Dynamics 365 Marketing, P
 
 # Scenario details:
 
-![Better Together Customer Experience Flow](Better Together Flow.png)
+![Better Together Customer Experience Flow](BetterTogetherFlow.png)
 
 The Chief Revenue officer (CRO) reviews the sales numbers after the first month of site launch and they are not as high as he was expecting. He connects with his sales analyst who leverages the Dynamics Customer Insights tools to dig into the data to understand what could be happening.
 
