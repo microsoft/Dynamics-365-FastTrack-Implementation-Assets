@@ -110,8 +110,7 @@ This documentation page explains how to create topics for the PVA chatbot.
 
 # Demo Video
 
-This video showcases how Dynamics 365 applications(Commerce,Power Virtual Agent, Customer Insights,Marketing) connects seamlessely to provide better shopping experience to our customers.
-[Dynamics 365 Sales Experience Video](https://aka.ms/Dynamics365SalesExperienceVideo)
+The [Dynamics 365 Sales Experience Video](https://aka.ms/Dynamics365SalesExperienceVideo) showcases how Dynamics 365 applications(Commerce, Power Virtual Agent, Customer Insights, Marketing) connects seamlessely to provide better shopping experience to our customers.
 
 ## Additional reference topics
 
