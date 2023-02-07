@@ -98,7 +98,7 @@ CREATE OR ALTER PROC [dbo].[publishTable]
 @TableName nvarchar(100), 
 @CDCTableName nvarchar(100),
 @PrimaryTableName nvarchar(100),
-@ColumnNames nvarchar(8000)
+@ColumnNames varchar(8000)
 as 
 begin
 	
