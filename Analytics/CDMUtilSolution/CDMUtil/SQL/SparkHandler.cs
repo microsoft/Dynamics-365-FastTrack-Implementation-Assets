@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Azure.Analytics.Synapse.Spark;
 using Azure.Analytics.Synapse.Spark.Models;
@@ -114,7 +114,7 @@ namespace CDMUtil.Spark
         {
             List<SQLStatement> sqlStatements = new List<SQLStatement>();
             string dropTemplate = @"drop table if exists {0}.{1}";
-            string template = @"create table if not exists {0}.{1} ({2}) using CSV LOCATION '{3}'";
+            string template = @"create table if not exists {0}.{1} ({2}) using CSV LOCATION '{3}' OPTIONS({5} {6} {7})";
             
             foreach (SQLMetadata metadata in metadataList)
             {
@@ -130,6 +130,9 @@ namespace CDMUtil.Spark
                     string[] segments = manifestURI.Segments;
                     string fileSystem = manifestURI.Segments[1].Replace("/", "");
                     string location = $"abfss://{fileSystem}@{manifestURI.Host}/{manifestURI.Segments[2]}{metadata.dataLocation}";
+                    string multiline = $"multiline true";
+                    string quote = $", quote '\"' ";
+                    string escape = $", escape '\"'";
                     
                     string columnDefSpark = string.Join(", ", metadata.columnAttributes.Select(i => attributeToSparkType((ColumnAttribute)i)));
 
@@ -138,7 +141,10 @@ namespace CDMUtil.Spark
                                          metadata.entityName, //1
                                          columnDefSpark, //2
                                          location,//3
-                                         metadata.viewDefinition //4
+                                         metadata.viewDefinition, //4
+                                         multiline,//5
+                                         quote,//6
+                                         escape//7
                                          );
 
                     dropsql = string.Format(dropTemplate,
