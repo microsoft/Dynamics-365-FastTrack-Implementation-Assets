@@ -37,5 +37,7 @@ This solution combines Dynamics 365 Sales, Dynamics 365 Commerce, Viva Sales and
 
 - Dynamics 365 Sales
 - Dual Write
+- Viva sales
+- Teams
     
 ## Configuration
