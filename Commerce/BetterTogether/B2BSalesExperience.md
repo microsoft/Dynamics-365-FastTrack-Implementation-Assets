@@ -9,8 +9,9 @@ This solution combines Dynamics 365 Sales, Dynamics 365 Commerce, Viva Sales and
 # Dataflow
 
 1. A customer requests a business relationship in the Dynamics 365 e-Commerce site.
-1. The request presents in Dynamics 365 Sales as an lead.
+1. The prospect in commerce presents in Dynamics 365 Sales as an lead.
 1. Within Dynamics 365 Sales a Teams meeting is created to qualify and on-board the business partner.
+2. Viva Sales is embeded to help with trancript and next steps.
  
  
 
@@ -60,7 +61,7 @@ The Chief Revenue Officer is now able to achieve his goal to increase conversion
 - Dynamics 365 Sales 
    - [Learn the basics of Dynamics 365 Sales | Microsoft Learn](https://learn.microsoft.com/dynamics365/sales/user-guide-learn-basics)
 - Dual Write
-   - [Dual-write overview - Finance & Operations | Dynamics 365 | Microsoft Learn] (https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/dual-write-overview)
+   - [Dual-write overview - Finance & Operations | Dynamics 365 | Microsoft Learn](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/dual-write-overview)
 - Viva sales
     - There are no prerequisites to the purchase of Viva Sales. However, the Viva Sales app will run on top of the Outlook and Teams applications. Hence to deploy Viva Sales you need to have access to an instance of these applications, which requires a Microsoft 365 for enterprise or Office 365 for enterprise product license. They must also have a CRM system(Dynamics 365 Sales. Salesforce,..) to connect to Viva Sales.
     - You need to be a Microsoft 365 administrator to deploy and install the Viva Sales add-in for Outlook. You need to be a Teams administrator to deploy and install Viva Sales for Teams.
@@ -77,11 +78,12 @@ The Chief Revenue Officer is now able to achieve his goal to increase conversion
 - Follow this step to fix number sequence [Number sequence issue] (https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/dual-write-prospect-to-cash#number-sequences-for-quotations-and-orders)
 - Follow steps if you have lookup field more than 10 [Lookup field issue](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/dual-write-troubleshooting-initial-sync#error-customer-map)
 
-### Step 2: 
+### Step 2: Configure Teams in Dynamics 365 Sales
 
-### Step 3:
+- [Create or manage teams in Dynamics 365 Sales | Microsoft Learn](https://learn.microsoft.com/en-us/dynamics365/sales/manage-teams?tabs=sales)
 
-### Step 4: 
+### Step 3: Install or pin Viva Sales in Teams
 
-### Step 5: 
+- [Install and pin Viva Sales in Teams | Microsoft Learn](https://learn.microsoft.com/en-us/Viva/sales/install-pin-viva-sales-teams)
+
 
