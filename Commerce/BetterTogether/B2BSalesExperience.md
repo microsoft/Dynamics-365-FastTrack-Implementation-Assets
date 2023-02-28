@@ -29,14 +29,13 @@ This solution combines Dynamics 365 Sales, Dynamics 365 Commerce, Viva Sales and
 
 # Scenario details
 
-The Chief Revenue officer (CRO) wants to increase B2B propects to customers.
-
-Their hypothesis is that prospects need more help before become business partner(customer)
+The Chief Revenue officer (CRO) wants to increase B2B propects to customers by building stronger relationship with their customer and personalize the customer buying journey.
 
 They decide to tackle this challenge with 2 initiatives:
 
--   Implementing Microsoft Teams chat in Dynamics Sales
--   Using Viva Sales in Dynamics Sales to help with next steps
+-   Implementing Dynamics sales to accelerate their sales
+-   Implementing Microsoft Teams chat in Dynamics Sales to collaborate
+-   Using Viva Sales in Dynamics Sales/team for deeper customer engagement and increased seller productivity
 
 With personal help from Sales representative and collaboration, they are able to see more customer from B2B E-commerce site .
 
@@ -46,6 +45,14 @@ The Chief Revenue Officer is now able to achieve his goal to increase conversion
 
 # Potential use cases
 
+This solution was created to enables salespeople to build stronger relationships with their customers and personalize the customer buying journey.It can be applied in industries like retail, financial services, manufacturing, and health care. It can be used by any organization that wants to bring Dynamics 365 apps together to manage pipeline, nurture sales from lead to order, and accelerate the sales.
+
+You can use this solution to:
+
+-   Gain better understanding of prospects.
+-   Target prospects to convert them to customer.
+-   Provide personalized experiernce to targeted prospects.
+-   Collaborate within organization.
 
 # Deploying the Scenario
 
@@ -86,4 +93,4 @@ The Chief Revenue Officer is now able to achieve his goal to increase conversion
 
 - [Install and pin Viva Sales in Teams | Microsoft Learn](https://learn.microsoft.com/en-us/Viva/sales/install-pin-viva-sales-teams)
 
-
+## Additional reference topics
