@@ -50,9 +50,10 @@ This solution was created to enables salespeople to build stronger relationships
 You can use this solution to:
 
 -   Gain better understanding of prospects.
--   Target prospects to convert them to customer.
+-   Target prospects to convert them to customers.
 -   Provide personalized experiernce to targeted prospects.
 -   Collaborate within organization.
+-   Self service onboarding of B2B customers.
 
 # Deploying the Scenario
 
@@ -85,12 +86,16 @@ You can use this solution to:
 - Follow this step to fix number sequence [Number sequence issue] (https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/dual-write-prospect-to-cash#number-sequences-for-quotations-and-orders)
 - Follow steps if you have lookup field more than 10 [Lookup field issue](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/dual-write-troubleshooting-initial-sync#error-customer-map)
 
-### Step 2: Configure Teams in Dynamics 365 Sales
+### Step 2: Configure exchange settings for Sales
 
-- [Create or manage teams in Dynamics 365 Sales | Microsoft Learn](https://learn.microsoft.com/en-us/dynamics365/sales/manage-teams?tabs=sales)
+[Choose the records to synchronize between customer engagement apps and Exchange - Power Platform | Microsoft Learn](https://learn.microsoft.com/power-platform/admin/choose-records-synchronize-dynamics-365-outlook-exchange)
 
-### Step 3: Install or pin Viva Sales in Teams
+### Step 3: Configure Teams in Dynamics 365 Sales
 
-- [Install and pin Viva Sales in Teams | Microsoft Learn](https://learn.microsoft.com/en-us/Viva/sales/install-pin-viva-sales-teams)
+- [Collaborate using Microsoft Teams with the Dynamics 365 Sales Enterprise license | Microsoft Learn](https://learn.microsoft.com/dynamics365/sales/manage-teams?tabs=sales)
+
+### Step 4: Install and pin Viva Sales in Teams
+
+- [Install and pin Viva Sales in Teams | Microsoft Learn](https://learn.microsoft.com/Viva/sales/install-pin-viva-sales-teams)
 
 ## Additional reference topics
