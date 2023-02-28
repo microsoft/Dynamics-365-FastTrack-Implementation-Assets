@@ -57,8 +57,10 @@ The Chief Revenue Officer is now able to achieve his goal to increase conversion
 -   Dyanmics 365 Commerce with E-commerce
     -   Setup guide: [E-commerce site overview - Commerce \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/dynamics365/commerce/online-store-overview)
 
-- Dynamics 365 Sales
+- Dynamics 365 Sales 
+   - [Learn the basics of Dynamics 365 Sales | Microsoft Learn](https://learn.microsoft.com/dynamics365/sales/user-guide-learn-basics)
 - Dual Write
+   - [Dual-write overview - Finance & Operations | Dynamics 365 | Microsoft Learn] (https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/dual-write-overview)
 - Viva sales
     - There are no prerequisites to the purchase of Viva Sales. However, the Viva Sales app will run on top of the Outlook and Teams applications. Hence to deploy Viva Sales you need to have access to an instance of these applications, which requires a Microsoft 365 for enterprise or Office 365 for enterprise product license. They must also have a CRM system(Dynamics 365 Sales. Salesforce,..) to connect to Viva Sales.
     - You need to be a Microsoft 365 administrator to deploy and install the Viva Sales add-in for Outlook. You need to be a Teams administrator to deploy and install Viva Sales for Teams.
@@ -72,9 +74,9 @@ The Chief Revenue Officer is now able to achieve his goal to increase conversion
 ### Step 1: Enable Dual write in Dynamics 365 Commerce
   
 - Follow this steps to push prospects to lead  [Party and global address book](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/party-gab#setup)
-- Follow this step to fix number sequence [conversion of prospects to customers] (https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/dual-write-prospect-to-cash#number-sequences-for-quotations-and-orders)
+- Follow this step to fix number sequence [Number sequence issue] (https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/dual-write-prospect-to-cash#number-sequences-for-quotations-and-orders)
 - Follow steps if you have lookup field more than 10 [Lookup field issue](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/dual-write-troubleshooting-initial-sync#error-customer-map)
-- 
+
 ### Step 2: 
 
 ### Step 3:
