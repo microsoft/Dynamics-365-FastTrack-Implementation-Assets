@@ -20,6 +20,20 @@ This solution combines Dynamics 365 Sales, Dynamics 365 Commerce, Viva Sales and
 
 # Scenario details
 
+The Chief Revenue officer (CRO) wants to increase B2B propects to customers.
+
+Their hypothesis is that prospects need more help before become business partner(customer)
+
+They decide to tackle this challenge with 2 initiatives:
+
+-   Implementing Microsoft Teams chat in Dynamics Sales
+-   Using Viva Sales in Dynamics Sales to help with next steps
+
+With personal help from Sales representative and collaboration, they are able to see more customer from B2B E-commerce site .
+
+This showcases how Dynamics 365 Applications - Commerce, Sales, Team, Viva Sales work together seamlessly 
+
+The Chief Revenue Officer is now able to achieve his goal to increase conversion from propects to customer.
 
 # Potential use cases
 
@@ -41,3 +55,15 @@ This solution combines Dynamics 365 Sales, Dynamics 365 Commerce, Viva Sales and
 - Teams
     
 ## Configuration
+
+
+### Step 1: 
+
+### Step 2: 
+
+### Step 3:
+
+### Step 4: 
+
+### Step 5: 
+
