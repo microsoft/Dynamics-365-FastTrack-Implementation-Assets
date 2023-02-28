@@ -52,7 +52,11 @@ The Chief Revenue Officer is now able to achieve his goal to increase conversion
 - Dynamics 365 Sales
 - Dual Write
 - Viva sales
+    - There are no prerequisites to the purchase of Viva Sales. However, the Viva Sales app will run on top of the Outlook and Teams applications. Hence to deploy Viva Sales you need to have access to an instance of these applications, which requires a Microsoft 365 for enterprise or Office 365 for enterprise product license. They must also have a CRM system(Dynamics 365 Sales. Salesforce,..) to connect to Viva Sales.
+    - You need to be a Microsoft 365 administrator to deploy and install the Viva Sales add-in for Outlook. You need to be a Teams administrator to deploy and install Viva Sales for Teams.
+    [Install Viva Sales](https://learn.microsoft.com/Viva/sales/install-viva-sales/)
 - Teams
+    - [Microsoft Teams deployment overview](https://learn.microsoft.com/microsoftteams/deploy-overview/)
     
 ## Configuration
 
