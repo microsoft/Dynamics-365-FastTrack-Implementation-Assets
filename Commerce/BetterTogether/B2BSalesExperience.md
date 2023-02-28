@@ -9,7 +9,7 @@ This solution combines Dynamics 365 Sales, Dynamics 365 Commerce, Viva Sales and
 # Dataflow
 
 1. A customer requests a business relationship in the Dynamics 365 e-Commerce site.
-1. The request presents in Dynamics 365 Sales as an opportunity.
+1. The request presents in Dynamics 365 Sales as an lead.
 1. Within Dynamics 365 Sales a Teams meeting is created to qualify and on-board the business partner.
  
  
@@ -69,8 +69,12 @@ The Chief Revenue Officer is now able to achieve his goal to increase conversion
 ## Configuration
 
 
-### Step 1: 
-
+### Step 1: Enable Dual write in Dynamics 365 Commerce
+  
+- Follow this steps to push prospects to lead  [Party and global address book](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/party-gab#setup)
+- Follow this step to fix number sequence [conversion of prospects to customers] (https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/dual-write-prospect-to-cash#number-sequences-for-quotations-and-orders)
+- Follow steps if you have lookup field more than 10 [Lookup field issue](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/dual-write-troubleshooting-initial-sync#error-customer-map)
+- 
 ### Step 2: 
 
 ### Step 3:
