@@ -31,7 +31,7 @@ This solution combines Dynamics 365 Sales, Dynamics 365 Commerce, Viva Sales and
 
 The Chief Revenue officer (CRO) wants to increase B2B propects to customers by building stronger relationship with their customer and personalize the customer buying journey.
 
-They decide to tackle this challenge with 2 initiatives:
+They decide to tackle this challenge with below initiatives:
 
 -   Implementing Dynamics sales to accelerate their sales
 -   Implementing Microsoft Teams chat in Dynamics Sales to collaborate
