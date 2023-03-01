@@ -78,13 +78,32 @@ You can use this solution to:
     - [Microsoft Teams deployment overview](https://learn.microsoft.com/microsoftteams/deploy-overview/)
     
 ## Configuration
+The following steps assume you are setting up the solution for an existing Dynamics 365 Commerce demo environment.
 
+### Step 1: Enable dual-write in Dynamics 365 Commerce
+#### Install dual-write  
+- [Make sure that you meet all the system requirements and complete all the prerequisites](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/requirements-and-prerequisites). 
+  - At step #7. the following are the seperated packages you need to apply
+      - Dual-write Application Core Solutions 
+      - Dual-write Party and Global Address Book Solutions
+      - ...
+```
+- TODO we need to tell them which of these solutions are required.
+- https://appsource.microsoft.com/en-US/marketplace/apps?exp=ubp8&search=dual-write&page=1. 
+- And, are there 2 'core' pacakges? a Dual-write Core and a Dual-write Applicaiton Core. It sure looks like there is. 
+```
+- [Link your finance and operations app environment to Dataverse by using the dual-write wizard](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/link-your-environment).
+```
+- TODO: Is there a second step where we have to do something in the specific D365 Commerce environment? Follow this steps to push prospects to lead  [Party and global address book](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/party-gab#setup)
+```
+- [Enable the table maps](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/enable-entity-map).
 
-### Step 1: Enable Dual write in Dynamics 365 Commerce
-  
-- Follow this steps to push prospects to lead  [Party and global address book](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/party-gab#setup)
+#### Troubleshooting dual-write installation and configuration
 - Follow this step to fix number sequence [Number sequence issue] (https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/dual-write-prospect-to-cash#number-sequences-for-quotations-and-orders)
-- Follow steps if you have lookup field more than 10 [Lookup field issue](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/dual-write-troubleshooting-initial-sync#error-customer-map)
+- Follow these steps if you have lookup field more than 10 values. [Lookup field issue](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/dual-write-troubleshooting-initial-sync#error-customer-map)
+
+#### Optional steps. Not required for a demo environment.
+- Optional: [Configure a <em>Dynamics 365 Sales team</em> to own records created through dual write](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/user-specified-team-owner). By default, when you enable dual-write, the root business unit’s default team will become the default owner for all rows integrated through dual-write. This may not be what you want when you want to limit access to these records to just a subset of users.
 
 ### Step 2: Configure exchange settings for Sales
 
