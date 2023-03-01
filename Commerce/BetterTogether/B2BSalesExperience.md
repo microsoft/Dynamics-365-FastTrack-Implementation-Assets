@@ -82,17 +82,18 @@ The following steps assume you are setting up the solution for an existing Dynam
 
 ### Step 1: Enable dual-write in Dynamics 365 Commerce
 #### Install dual-write  
-- [Make sure that you meet all the system requirements and complete all the prerequisites](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/requirements-and-prerequisites). 
-  - At step #7. the following are the seperated packages you need to apply
+- [Dual-write setup - Finance & Operations](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/dual-write-home-page)
+  - At step #7 in [System requirements and prerequisites](https://learn.microsoft.com/en-gb/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/requirements-and-prerequisites), the following are the seperated packages you need to apply
       - Dual-write Application Core Solutions 
       - Dual-write Party and Global Address Book Solutions
       - ...
+  - At Step #7 in, [Link your finance and operations app environment to Dataverse by using the dual-write wizard](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/link-your-environment), After applying the soluton, ensure you take the latest version of entities underneath.
 ```
 - TODO we need to tell them which of these solutions are required.
 - https://appsource.microsoft.com/en-US/marketplace/apps?exp=ubp8&search=dual-write&page=1. 
 - And, are there 2 'core' pacakges? a Dual-write Core and a Dual-write Applicaiton Core. It sure looks like there is. 
 ```
-- [Link your finance and operations app environment to Dataverse by using the dual-write wizard](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/link-your-environment).
+  
 ```
 - TODO: Is there a second step where we have to do something in the specific D365 Commerce environment? Follow this steps to push prospects to lead  [Party and global address book](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/party-gab#setup)
 ```
@@ -113,8 +114,10 @@ The following steps assume you are setting up the solution for an existing Dynam
 
 - [Collaborate using Microsoft Teams with the Dynamics 365 Sales Enterprise license | Microsoft Learn](https://learn.microsoft.com/dynamics365/sales/manage-teams?tabs=sales)
 
-### Step 4: Install and pin Viva Sales in Teams
+### Step 4: Install Viva Sales
 
-- [Install and pin Viva Sales in Teams | Microsoft Learn](https://learn.microsoft.com/Viva/sales/install-pin-viva-sales-teams)
+- [Install Viva Sales from Microsoft 365 admin center](https://learn.microsoft.com/en-gb/Viva/sales/install-viva-sales-individual-add-in-admin-center)
+- [Install and pin Viva Sales in Teams](https://learn.microsoft.com/en-gb/viva/sales/install-pin-viva-sales-teams)
 
 ## Additional reference topics
+- [Privileges and Permissions to install and configure Viva vales](https://learn.microsoft.com/en-gb/Viva/sales/install-viva-sales) 
