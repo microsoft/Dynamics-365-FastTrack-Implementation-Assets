@@ -33,9 +33,7 @@ This solution combines Dynamics 365 Sales, Dynamics 365 Commerce, Viva Sales and
 
 This solution was created to provide guided experience for lead to customer journey.
 
-salespeople to build stronger relationships with their customers and personalize the customer buying journey
-
-They decide to tackle this challenge with below initiatives:
+For that we decide to tackle this challenge with below initiatives:
 
 -   Implementing Dynamics sales to accelerate their sales
 -   Implementing Microsoft Teams chat in Dynamics Sales to collaborate
@@ -44,8 +42,6 @@ They decide to tackle this challenge with below initiatives:
 With personal help from Sales representative and collaboration, they are able to see more customer from B2B E-commerce site .
 
 This showcases how Dynamics 365 Applications - Commerce, Sales, Team, Viva Sales work together seamlessly 
-
-The Chief Revenue Officer is now able to achieve his goal to increase conversion from propects to customer.
 
 # Potential use cases
 
