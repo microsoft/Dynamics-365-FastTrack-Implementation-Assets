@@ -30,18 +30,30 @@ This solution combines Dynamics 365 Sales, Dynamics 365 Commerce, Viva Sales and
 -   [Dataverse](https://powerplatform.microsoft.com/dataverse/) lets you securely store and manage data that's used by business applications. It’s used here to link customer insights to marketing data.
 
 # Scenario details
+![Better Together B2B Sales Flow](B2BSalesFlow.png)
 
-This solution was created to provide guided experience for lead to customer journey.
+### Personas
+**Mona**: A Buyer at Northwest Traders, tasked to find new supplier for surfboards as they expand their assortments of items.
 
-For that we decide to tackle this challenge with below initiatives:
+**Daisy**: A Sales Associate at Adventure Work, follows up on leads and generates sales Opportunities.
 
--   Implementing Dynamics sales to accelerate their sales
--   Implementing Microsoft Teams chat in Dynamics Sales to collaborate
--   Using Viva Sales in Dynamics Sales/team for deeper customer engagement and increased seller productivity
 
-With personal help from Sales representative and collaboration, they are able to see more customer from B2B E-commerce site .
+Mona has been tasked to find a new supplier for surfboards as they look to expand their assortment in 2023. Mona has done extensive research and has landed on the Adventure Works e-commerce site. 
+ 
+She believes the surfboards that Adventure Works manufactures will resonate with the Northwind Traders shopper. She would like to further investigate a buying relationship with Adventure Works, so she submits a request on the website with her contact information.
 
-This showcases how Dynamics 365 Applications - Commerce, Sales, Team, Viva Sales work together seamlessly 
+After Mona's request is submitted on the Dynamics 365 Commerce B2B site, the lead information is systematically added to Dynamics 365 Sales. Sales Accelerator capabilities intelligently route and assign the lead to Daisy Phillips for follow-up. 
+
+After meeting with Mona, Daisy updates the Lead record to a Qualified state, which also systematically creates the opportunity record that Daisy will use to track the remaining progress of this sales opportunity.
+
+Daisy creates a collaboration space to work with Adventure Works team members right from Sales.
+The team works with live account details from Dynamics 365 Sales within the collaboration space so that everyone view and collaborate on the opportunity together.
+
+After collaborating with team members she updates the opportunity as Won. Marking the opportunity to Won status triggers an automated email to Mona providing her with her logon credentials.
+
+After she is logged in with her Northwind Trader purchasing credentials, she sees the agreed prices.
+
+This showcases how Dynamics 365 Applications: Commerce, Sales, and Viva Sales work together and with Microsoft Teams throughout the B2B onboarding process.
 
 # Potential use cases
 
