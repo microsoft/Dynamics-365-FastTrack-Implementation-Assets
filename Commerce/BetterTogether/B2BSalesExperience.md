@@ -63,8 +63,8 @@ You can use this solution to:
 -   Dynamics 365 demo environments 
     - If you do not have demo environment , refer to this page [Get started with a Dynamics 365 free trial](https://dynamics.microsoft.com/dynamics-365-free-trial/)
 
--   Dyanmics 365 Commerce with E-commerce
-    -   Setup guide: [E-commerce site overview - Commerce \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/dynamics365/commerce/online-store-overview)
+-   Dyanmics 365 Commerce with B2B E-commerce
+    -   Setup guide: [Set up a B2B e-commerce site - Commerce | Dynamics 365 | Microsoft Learn](https://learn.microsoft.com/en-us/dynamics365/commerce/b2b/set-up-b2b-site)
 
 - Dynamics 365 Sales 
    - [Learn the basics of Dynamics 365 Sales | Microsoft Learn](https://learn.microsoft.com/dynamics365/sales/user-guide-learn-basics)
@@ -78,26 +78,18 @@ You can use this solution to:
     - [Microsoft Teams deployment overview](https://learn.microsoft.com/microsoftteams/deploy-overview/)
     
 ## Configuration
-The following steps assume you are setting up the solution for an existing Dynamics 365 Commerce demo environment.
 
 ### Step 1: Enable dual-write in Dynamics 365 Commerce
 #### Install dual-write  
 - [Dual-write setup - Finance & Operations](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/dual-write-home-page)
-  - At step #7 in [System requirements and prerequisites](https://learn.microsoft.com/en-gb/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/requirements-and-prerequisites), the following are the seperated packages you need to apply
-      - Dual-write Application Core Solutions 
-      - Dual-write Party and Global Address Book Solutions
-      - ...
+     
   - At Step #7 in, [Link your finance and operations app environment to Dataverse by using the dual-write wizard](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/link-your-environment), After applying the soluton, ensure you take the latest version of entities underneath.
-```
-- TODO we need to tell them which of these solutions are required.
-- https://appsource.microsoft.com/en-US/marketplace/apps?exp=ubp8&search=dual-write&page=1. 
-- And, are there 2 'core' pacakges? a Dual-write Core and a Dual-write Applicaiton Core. It sure looks like there is. 
-```
-  
-```
-- TODO: Is there a second step where we have to do something in the specific D365 Commerce environment? Follow this steps to push prospects to lead  [Party and global address book](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/party-gab#setup)
-```
-- [Enable the table maps](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/enable-entity-map).
+
+For this B2B lead to cash experience , ensure that you follow all the steps in below documentation:
+
+ - [Party and global address book - Finance & Operations | Dynamics 365 | Microsoft Learn](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/party-gab)
+ - [Prospect-to-cash in dual-write - Finance & Operations | Dynamics 365 | Microsoft Learn](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/dual-write-prospect-to-cash)
+
 
 #### Troubleshooting dual-write installation and configuration
 - Follow this step to fix number sequence [Number sequence issue] (https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/dual-write-prospect-to-cash#number-sequences-for-quotations-and-orders)
