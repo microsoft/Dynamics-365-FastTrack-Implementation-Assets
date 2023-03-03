@@ -1,6 +1,6 @@
 # Better Together – B2B Lead to Cash Experience
 
-This solution combines Dynamics 365 Sales, Dynamics 365 Commerce, Viva Sales and Microsoft Teams to provide a complete B2B Sales experience.
+This solution combines Dynamics 365 Sales, Dynamics 365 Commerce, Viva Sales and Microsoft Teams to provide a complete B2B lead to cash experience.
 
 # Architecture
 
@@ -8,13 +8,12 @@ This solution combines Dynamics 365 Sales, Dynamics 365 Commerce, Viva Sales and
 
 # Dataflow
 
-1. A customer requests a business relationship in the Dynamics 365 e-Commerce site.
-1. The prospect in commerce presents in Dynamics 365 Sales as an lead.
-1. Within Dynamics 365 Sales a Teams meeting is created to qualify and on-board the business partner.
-2. Viva Sales is embeded to help with trancript and next steps.
+1. A **prospect** intiates a business relationship using the **Dynamics 365 Commerce** B2B e-Commerce site.
+1. The propsect's request lands as a **lead** in **Dynamics 365 Sales**.
+3. In Dynamics 365 Sales, an **appointment** with **Microsoft Teams** link is created to collaborate with the lead.
+4. Viva Sales is embeded to help with trancript and next steps.
  
  
-
 # Components
 
 -   [Dynamics 365 Commerce](https://dynamics.microsoft.com/commerce/capabilities/) can help retailers to deliver personalized, seamless shopping experiences across physical and digital channels. It’s used here by the end consumer to shop online. It’s also used by the retail merchandizer to create and activate a coupon code.
