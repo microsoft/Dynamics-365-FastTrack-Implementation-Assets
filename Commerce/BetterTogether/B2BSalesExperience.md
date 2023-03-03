@@ -9,9 +9,12 @@ This solution combines Dynamics 365 Sales, Dynamics 365 Commerce, Viva Sales and
 # Dataflow
 
 1. A **prospect** intiates a business relationship using the **Dynamics 365 Commerce** B2B e-Commerce site.
-1. The propsect's request lands as a **lead** in **Dynamics 365 Sales**.
+1. The prospect's request lands as a **lead** in **Dynamics 365 Sales**.
 3. In Dynamics 365 Sales, an **appointment** with **Microsoft Teams** link is created to collaborate with the lead.
-4. Viva Sales is embeded to help with trancript and next steps.
+4. In Microsoft Teams, **Viva Sales** sentiment analysis AI is used to review meeting.
+5. Microsoft Teams channel is used for internal Team collaboration.
+6. Customer account information is shared in Teams channel with Viva Sales.
+
  
  
 # Components
