@@ -31,7 +31,9 @@ This solution combines Dynamics 365 Sales, Dynamics 365 Commerce, Viva Sales and
 
 # Scenario details
 
-The Chief Revenue officer (CRO) wants to increase B2B propects to customers by building stronger relationship with their customer and personalize the customer buying journey.
+This solution was created to provide guided experience for lead to customer journey.
+
+salespeople to build stronger relationships with their customers and personalize the customer buying journey
 
 They decide to tackle this challenge with below initiatives:
 
