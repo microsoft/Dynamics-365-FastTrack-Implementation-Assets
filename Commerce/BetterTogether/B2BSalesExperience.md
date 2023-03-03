@@ -12,11 +12,11 @@ This solution combines Dynamics 365 Sales, Dynamics 365 Commerce, Viva Sales and
 1. The prospect's request lands as a **lead** in **Dynamics 365 Sales**.
 3. In Dynamics 365 Sales, an **appointment** with **Microsoft Teams** link is created to collaborate with the lead.
 4. In Microsoft Teams, **Viva Sales** sentiment analysis AI is used to review meeting.
-5. Microsoft Teams channel is used for internal Team collaboration.
-6. Customer account information is shared in Teams channel with Viva Sales.
+5. In Dynamics 365 Sales, lead get converted to **Opportunity** .
+6. Microsoft Teams channel is used for internal Team collaboration.
+7. Opportunity information is shared in Teams channel with Viva Sales.
+8. When the opportunity is won in Dynamics 365 Sales, Dynamics 365 Commerce lead converts to **customer**.
 
- 
- 
 # Components
 
 -   [Dynamics 365 Commerce](https://dynamics.microsoft.com/commerce/capabilities/) can help retailers to deliver personalized, seamless shopping experiences across physical and digital channels. It’s used here by the end consumer to shop online. It’s also used by the retail merchandizer to create and activate a coupon code.
@@ -31,9 +31,9 @@ This solution combines Dynamics 365 Sales, Dynamics 365 Commerce, Viva Sales and
 
 # Scenario details
 
-The Chief Revenue officer (CRO) wants to increase B2B propects to customers by building stronger relationship with their customer and personalize the customer buying journey.
+This solution was created to provide guided experience for lead to customer journey.
 
-They decide to tackle this challenge with below initiatives:
+For that we decide to tackle this challenge with below initiatives:
 
 -   Implementing Dynamics sales to accelerate their sales
 -   Implementing Microsoft Teams chat in Dynamics Sales to collaborate
@@ -42,8 +42,6 @@ They decide to tackle this challenge with below initiatives:
 With personal help from Sales representative and collaboration, they are able to see more customer from B2B E-commerce site .
 
 This showcases how Dynamics 365 Applications - Commerce, Sales, Team, Viva Sales work together seamlessly 
-
-The Chief Revenue Officer is now able to achieve his goal to increase conversion from propects to customer.
 
 # Potential use cases
 
