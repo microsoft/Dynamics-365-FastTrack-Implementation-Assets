@@ -1,8 +1,8 @@
 # Better Together – B2B Lead to Cash Experience
 
-This solution combines Dynamics 365 Sales, Dynamics 365 Commerce, Viva Sales and Microsoft Teams to provide a complete B2B lead to cash experience. Click on the image to launch the [click through demo](https://www.figma.com/proto/qiOBt91pMO1tfLPqFHFvPS/Commerce-%2B-Sales?page-id=454%3A256018&node-id=793-321938&viewport=317%2C97%2C0.06&scaling=scale-down) of the solution.
+This solution combines Dynamics 365 Sales, Dynamics 365 Commerce, Viva Sales and Microsoft Teams to provide a complete B2B lead to cash experience. Click on the image to launch the [click through demo](https://aka.ms/Dynamics365B2BLeadtoCashFigma) of the solution.
 
-[![Better Together B2B Splash](B2BSalesExperience.svg)](https://www.figma.com/proto/qiOBt91pMO1tfLPqFHFvPS/Commerce-%2B-Sales?page-id=454%3A256018&node-id=793-321938&viewport=317%2C97%2C0.06&scaling=scale-down)
+[![Better Together B2B Splash](B2BSalesExperience.svg)](https://aka.ms/Dynamics365B2BLeadtoCashFigma)
 
 # Architecture
 
