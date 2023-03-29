@@ -36,6 +36,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 | [`ScheduleAPI`](ScheduleAPI)	         | Project Operations - Schedule API example  |
 | [`Cloud security`](CloudSecurity)      | Dynamics 365 Cloud security guides         |
 | [`Integration`](Integration)           | Dynamics 365 integration samples           |
+| [`Monitoring and Telemetry`](MonitoringandTelemetry)           | Monitoring Dynamics 365 using App Insights           |
 | [`.gitignore`](.gitignore)             | Define what to ignore at commit time.      |
 | `CHANGELOG.md`                         | List of changes to the sample.             |
 | [`CONTRIBUTING.md`](#contributing)     | Guidelines for contributing to the sample. |
