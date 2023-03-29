@@ -5,7 +5,7 @@ By enabling Operational Insights for your environments in Commerce headquarters,
 Even if you don't want to collect this telemetry all the time, you can benefit by quickly enabling or disabling collection for specific environments. In this way, the telemetry can help you troubleshoot or debug during development or in production.
 
 This article lists some useful assets that compliment TechTalk on the Operational Insights feature in Microsoft Dynamics 365 Commerce.
-<Replace with Link to TT here>
+<Replace with Link to - TT here>
 
 First is the whitepaper with a number of useful queries to help troubleshoot issues directly in App Insights. This document describes the events and schemas that are planned for the first release of Operational Insights for POS. [Download the whitepaper](https://download.microsoft.com/download/9/2/b/92be35b0-0e24-4a4d-940d-6f4db29791c0/Operational-Insights-Commerce-POS-events-queries.pdf)
 
