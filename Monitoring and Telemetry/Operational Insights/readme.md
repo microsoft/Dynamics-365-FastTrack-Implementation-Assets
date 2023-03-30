@@ -11,7 +11,9 @@ First is the whitepaper with a number of useful queries to help troubleshoot iss
 
 Second asset is a sample dashboard with built-in queries that can give you a snapshot of solution health. This is enabled via Azure Data Explorer.
 
-### Steps:
+  ![6Dashboard](6Dashboard.png)
+  
+### Steps to import the sample dashboard:
   1. Import the file "dashboard-CSU Overview Sample".
   
   ![1ImportSample](1ImportSample.png)
