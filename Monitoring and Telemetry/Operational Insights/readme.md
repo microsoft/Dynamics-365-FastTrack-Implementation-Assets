@@ -1,3 +1,6 @@
+
+# Operational Insights
+
 Operational Insights is a Dynamics 365 Commerce feature that's designed to give customers better visibility into their service health and business functionality by sending telemetry directly to a customer-owned Application Insights account.
 
 By enabling Operational Insights for your environments in Commerce headquarters, you can collect a curated list of events from both Commerce Scale Unit (CSU) and your point-of-sale (POS) devices. These events can help you better understand how your systems are performing, and they let you monitor key technical and business metrics.
