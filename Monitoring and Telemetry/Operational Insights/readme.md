@@ -22,7 +22,7 @@ First is the whitepaper with a number of useful queries to help troubleshoot iss
 
 Second asset is a sample dashboard with built-in queries that can give you a snapshot of solution health. This is handy as you do not need to manually run queries to seek information. The dashboard is enabled via an instance of Azure Data Explorer that takes the telemetry data feeds from your configured App Insights instance.
 
-  ![6Dashboard](6Dashboard.png)
+  ![Dashboard](ADE_dashboard.png)
   
 ### Steps to import the sample dashboard:
   1. Import the file "dashboard-CSU Overview Sample".
