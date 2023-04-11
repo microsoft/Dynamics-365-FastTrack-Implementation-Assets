@@ -127,3 +127,6 @@ The [Dynamics 365 Sales Experience Video](https://aka.ms/Dynamics365SalesExperie
     -   Integrate PVA with Commerce Site : [Commerce Chat with Power Virtual Agents module - Commerce \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/dynamics365/commerce/chat-module-pva)
 
 [For detailed steps, see Commerce Chat with Omnichannel for Customer Service module - Commerce \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/dynamics365/commerce/commerce-chat-module)
+
+
+**For any questions or concerns , please contact us at DynamicCrossApp@microsoft.com**
