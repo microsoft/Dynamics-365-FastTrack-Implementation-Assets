@@ -127,3 +127,5 @@ For this B2B lead to cash experience , ensure that you follow all the steps in b
 
 ## Additional reference topics
 - [Privileges and Permissions to install and configure Viva vales](https://learn.microsoft.com/en-gb/Viva/sales/install-viva-sales) 
+
+**For any questions or concerns , please contact us at DynamicCrossApp@microsoft.com**
