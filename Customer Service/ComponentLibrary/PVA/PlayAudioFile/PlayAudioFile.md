@@ -9,7 +9,7 @@ storage URL's contain values that are filtered out by security scanning
 code when passed between systems.
 
 Prerequisites
--   Have a custom PVA
+-   Have a custom PVA Bot,  [Sample PVA Bot solution](./artifacts/PlaySecureAudioFilefromPVA_1_0_0_1.zip)
 -   Create Azure Storage Account
 -   Have a custom audio clip
 -   Install Bot Framework Composer (Instructions) [here](https://learn.microsoft.com/en-us/composer/install-composer?tabs=windows)
