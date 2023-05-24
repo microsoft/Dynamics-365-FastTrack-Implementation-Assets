@@ -1,0 +1,5 @@
+[class*=' custom-icon:'],
+[class^='custom-icon:'] {
+    display: inline-block;
+    background-size: cover;
+}
