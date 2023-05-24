@@ -1,0 +1,65 @@
+# Starter pipeline
+
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: windows-latest
+steps:
+- script: echo Hello, world!
+  displayName: 'Run a one-line script'
+
+- script: |
+    echo Add other tasks to build, test, and deploy your project.
+    echo See https://aka.ms/yaml
+  displayName: 'Run a multi-line script'
+- task: CopyFiles@2
+  inputs:
+    Contents: '**'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    CleanTargetFolder: true
+    ignoreMakeDirErrors: true
+  displayName: 'Copy files from Repo'
+- task: PowerPlatformToolInstaller@2
+  inputs:
+    DefaultVersion: true
+- task: PowerPlatformExportData@2
+  inputs:
+    authenticationType: 'PowerPlatformSPN'
+    PowerPlatformSPN: 'Optimize25CRM'
+    Environment: '$(BuildTools.EnvironmentUrl)'
+    SchemaFile: '$(Build.ArtifactStagingDirectory)\source\Optimize25Schema\schema_sample.xml'
+    DataFile: 'data.zip'
+  displayName: 'Export reports sitemap data from Source'
+- task: PowerPlatformImportData@2
+  inputs:
+    authenticationType: 'PowerPlatformSPN'
+    PowerPlatformSPN: 'Optimize25POC'
+    Environment: '$(BuildTools.EnvironmentUrl)'
+    DataFile: 'data.zip'
+  displayName: 'Import reports sitemap data to Target'
+- task: PowerShell@2  
+  inputs:
+    targetType: 'inline'
+
+    script: |
+      $ScriptContent = Get-Content "$(Build.ArtifactStagingDirectory)\AutomationScript.ps1" -Raw
+      Invoke-Expression $ScriptContent      
+      # Write your PowerShell commands here.
+      Write-Host "Assigning connection variables"   
+      $PBIAppId = '$(PBIClientId)' 
+      $PBIClientSecret = '$(PBIClientSecret)'
+      $TenantId = '$(TenantId)'    
+      $AppId = '$(CRMClientId)' 
+      $ClientSecret = '$(CRMClientSecret)'  
+      $PowerPlatformEnvironmentUrl = '$(PowerPlatformEnvironmentUrl)' 
+      $PBIAccessToken = Get-PBIAccessToken -TenantId $TenantId -PBIAppId $PBIAppId -PBIClientSecret $PBIClientSecret
+      $CRMAccessToken = Get-DVAccessToken -tenantId $TenantId -dataVerseURL $PowerPlatformEnvironmentUrl -clientId $AppId -clientSecret $ClientSecret
+      $featureId = 'f2266eb4-226f-4cf1-b422-89c5f48b40cb'      
+      $workspaceId = Get-DVWorkspaceId -dvAuthResponseObject $CRMAccessToken -dataVerseURL $PowerPlatformEnvironmentUrl -featureId $featureId
+      Write-Host $workspaceId
+      Update-DVReportReferences -pbiAccessToken $PBIAccessToken -dvAuthResponseObject $CRMAccessToken -workspaceId $workspaceId -dataVerseURL $PowerPlatformEnvironmentUrl  -featureId $featureId
