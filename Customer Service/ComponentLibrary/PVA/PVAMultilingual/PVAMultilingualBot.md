@@ -5,6 +5,6 @@ You can configure routing rules to route voice calls to appropriate agents based
 The intent of this article is to provide a sample code of a multilingual bot in Power Virtual Agents.  
 
 ## Sample code
-In the following link you can find the solution that include the PVA Bot [MultilingualPVABot_1_0_0_0.zip](./artifacts/MultilingualPVABot_1_0_0_0.zip).
+In the following link you can find the solution that include the PVA Bot [MultilingualPVABot_1_0_0_0.zip](./sampleartifacts/MultilingualPVABot_1_0_0_0.zip).
 The sample bot has been implemented the following [article](https://learn.microsoft.com/en-us/dynamics365/customer-service/set-up-multilingual-pva-bot).  
 
