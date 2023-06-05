@@ -1,0 +1,130 @@
+{
+    "subAreaMenuSelectors":{
+        "DynamicSubAreaMenuSelector": "//ul[@aria-label='{0}']//span[text()='{1}']",
+        "ServiceCaseMenuSelector": "//ul[@aria-label='Service']//span[text()='Cases']",
+		"ServiceKBMenuSelector":"//ul[@aria-label='Service']//span[text()='Knowledge Search']"
+    },
+    "viewSelectors":{
+        "MyActiveCasesSelector": "//button[@type='button']//span[text()='My Active Cases']",
+        "ActiveCasesSelector": "//div[@aria-label='Views']//label[text()='Active Cases']",
+        "DynamicViewSelector": "//div[@aria-label='Views']//label[text()='{0}']",
+        "DefaultViewSelector":"//Span[text()='Open popup to change view.']/ancestor::button"
+    },
+    "advancedFilterSelectors":{
+        "openFilterSelector": "//*[@id='open-advanced-filter']",
+        "addRowFilterMenuSelector": "//*[@id='AddMenu0']",
+        "addRowSelector":"//div[@role='menu']//span[text()='Add row']",
+        "filterFieldMenuSelector": "//input[@placeholder='Select a field']//following-sibling::button",
+        "filterFieldSelector":"//span[text()='{0}']/ancestor::button",
+        "filterOperatorMenuSelector":"//input[@aria-label='Operator']//following-sibling::button",
+        "filterOperatorSelector":"//div[@aria-label='Operator']//span[text()='Contains']",
+		"filterOperatorContainsSelect":"//div[@aria-label='Operator']//span[text()='Contains']//ancestor::button",
+        "filterInputTextSelector":"//input[@placeholder='Value']",
+        "applyFilterButtonSelector":"//*[@id='applyFilters']"
+    },
+    "gridSelectors":{
+        "gridFirstRowSelector": "[data-id='entity_control-pcf_grid_control_container'] [role='rowgroup'] [aria-rowindex='2'] [aria-colindex='2']",
+		"cswGridRowSelector": "//div[@data-id='entity_control-pcf_grid_control_container']//descendant::a[@role='link']"
+    },
+	"FormSelectors": {
+		"textAreaSelector":"//textarea[@aria-label='{0}']",
+		"EditFormSelector": "//div[@data-id='editFormRoot']",
+		"QuickCreateFormSelector": "[data-id='quickCreateRoot']"
+	},
+	"FormControlSelectors": {
+		"CheckBoxSelect": "[data-id='{0}.fieldControl-checkbox-select']",
+		"CheckBoxToggle": "input[data-id='{0}.fieldControl-checkbox-toggle']",
+		"CurrencyTextBox": "[data-id='{0}.fieldControl-currency-text-input']",
+		"DateTimeTextBox": "[data-id='{0}.fieldControl-date-time-input']",
+		"DecimalTextBox": "[data-id='{0}.fieldControl-decimal-number-text-input']",
+		"DurationComboBoxText": "[data-id='{0}.fieldControl-duration-combobox-text']",
+		"EmailActionIcon": "[data-id='{0}.fieldControl-mail-action-icon']",
+		"FloatNumberTextBox": "[data-id='{0}.fieldControl-floating-point-text-input']",
+		"LangaugeSelect": "[data-id='{0}.fieldControl-language-picker-select']",
+		"MailTextBox": "[data-id='{0}.fieldControl-mail-text-input']",
+		"MultiSelect": "[data-id='{0}-FieldSectionItemContainer'] [title='{1}']",
+		"MultiSelectTextBox": "[data-id='{0}-FieldSectionItemContainer'] [id='{0}_ledit']",
+		"OptionSet": "[data-id='{0}.fieldControl-option-set-select']",
+		"PhoneActionIcon": "[data-id='{0}.fieldControl-phone-action-icon']",
+		"PhoneTextBox": "[data-id='{0}.fieldControl-phone-text-input']",
+		"PicklistStatusComboBox": "[data-id='{0}.fieldControl-pickliststatus-comboBox-text']",
+		"RecurranceDialogEvery": "[data-id='{0}.fieldControl.everylabelEveryControlID-whole-number-text-input']",
+		"RichTextEditorBody": "[class^='cke_editable cke_editable_themed cke_contents_ltr']",
+		"RichTextEditorBodyDescription": "[class^='cke_editable cke_editable_themed cke_contents_ltr'] > div",
+		"RichTextEditorChildFrame": "[class^='cke_wysiwyg_frame']",
+		"RichTextEditorFrame": "[data-id='{0}.fieldControl_container'] [class='fullPageContentEditorFrame']",
+		"RecurrenceDialogTime": "[data-id='{0}.fieldControl_container'] input",
+		"SubjectTree": "[data-id='{0}.fieldControl-subject-tree-input']",
+		"TextBox": "[data-id='{0}.fieldControl-text-box-text']",
+		"TickerActionIcon": "[data-id='{0}.fieldControl-ticker-action-icon']",
+		"TickerTextBox": "[data-id='{0}.fieldControl-ticker-text-input']",
+		"TimeComboBox": "[id='{0}_fabric_combobox-input']",
+		"TimeZoneSelect": "[data-id='{0}.fieldControl-timezone-picker-select']",
+		"ToggleContainer": "[data-id='{0}.fieldControl-toggle-container']",
+		"TwoOptionListSelect": "[data-id='{0}.fieldControl-checkbox-select']",
+		"TwoOptionListSelectContainer": "[data-id='{0}.fieldControl-checkbox-select-container']",
+		"URLActionIcon": "[data-id='{0}.fieldControl-url-action-icon']",
+		"URLTextBox": "[data-id='{0}.fieldControl-url-text-input']",
+		"WholeNumberTextBox": "[data-id='{0}.fieldControl-whole-number-text-input']",
+		"LookupButton":"//input[@data-id='{0}.fieldControl-LookupResultsDropdown_{0}_textInputBox_with_filter_new']//following-sibling::button",
+		"TextBoxValueSelector": "//input[@data-id='{0}.fieldControl-text-box-text']"
+	},
+    "CommandBarFormButtonsSelectors": {
+		"DynamicCommandBarButtonSelector": "//span[text()='{0}']//ancestor::button",
+		"SaveButton": "//span[text()='Save']//ancestor::button"
+	},
+	"ResolveCaseFormSelector":{
+		"DynamicTextBoxSelector":"//div[@data-id='{0}']//input[@aria-label='{1}']",
+		"BillableTimeSelector":"//div[@data-id='billabletime_id']//input[@aria-label='Billable Time']",
+		"DynamicFooterButtonSelector":"//div[@data-id='dialogFooter']//button[@aria-label='{0}']"
+	},
+	"cswSelectors":{
+        "SiteMapButtonSelector": "//div[@aria-label='{0}']//button[@title='{1}']//span", 
+        "ServiceCaseMenuSelector": "//ul[@aria-label='Service']//span[text()='Cases']",
+		"smartAssistKBSearchSelector": "//button[@aria-label='Knowledge search']//span",
+		"smartAssistKBSearchTextboxSelector": "//*[@id='MscrmControls.KnowledgeControl.KnowledgeControl-ProductivityPanel-SearchTextBox']",
+		"smartAssistKBSearchResultsSelector": "//ul[@id='MscrmControls.KnowledgeControl.KnowledgeControl-kbSearchResultsListId']//button[@title='Link this article to the current record']",
+		"smartAssistKBArticleLinkedtoCaseSelector":"//ul[@id='MscrmControls.KnowledgeControl.KnowledgeControl-kbSearchResultsListId']//label[@aria-label='This article is linked to the Case record']",
+		"smartAssistKBArticleUnlinktoCaseSelector": "//ul[@id='MscrmControls.KnowledgeControl.KnowledgeControl-kbSearchResultsListId']//button[@aria-label='Unlink']",
+		"homeTabSelector":"//div[@role='tablist']//button[@aria-label='Home']",
+		"dashboardTabSelector":"//div[@role='tablist']//span[text()='Customer Service Agent Dashboard']",
+		"defaultCaseViewSelector":"//div[@aria-label='My Active Cases']",
+		"gridSelector":"//div[@aria-label='CC_ReadonlyGrid_Name']//div[@tabindex='0']",
+		"gridURLSelector":"//div[@aria-label='CC_ReadonlyGrid_Name']//div[@tabindex='0']//a[@tabindex='-1']",
+		"globalSearchButtonSelector":"//button[@id='searchLauncher-button']",
+		"searchInputSelector":"//input[@aria-label='Search box']",
+		"searchFilterSelector":"//select[@data-id='categorized-search-filter-select']",
+		"searchFilterOptionSelector":"//option[text()='Account']",
+		"searchGridSelector":"//div[@id='MscrmControls.Grid.GridControl-account-MscrmControls.Grid.GridControl.account-GridListContainer']//li",
+		"knowledgeSearchInputSelector":"//input[@id='MscrmControls.KnowledgeControl.KnowledgeControl-SearchTextBox']",
+		"knowledgeSearchResultsSelector":"//div[@id='MscrmControls.KnowledgeControl.KnowledgeControl-SearchAndDataBlockContainer']//a[@role='button']",
+		"inboxViewTabSelector":"//div[@role='tablist']//button[@aria-label='Inbox']"
+    },
+	"ReactivateCaseDialogSelector":{
+		"ReactivateButtonSelector":"//div[@data-id='confirmdialog']//button[@aria-label='Reactivate']"
+	},
+	"GlobalCommandBarSelectors":{
+		"globalQuickCreateButtonSelector":"//button[@aria-label='Create New Record. New']"
+	},
+	"CommandBarGlobalButtonsSelectors": {
+		"AccountManager": "[id='mectrl_main_trigger']",
+		"CommandBarSelector": "[data-id='topBar'] [data-lp-id*='commandbar-Global:']",
+		"CustomButton": "[data-id='new.ApplicationRibbon.{0}.Button']",
+		"Dynamics365TopBarButton": "[data-id='dynamics-button']",
+		"ListOfButtons": "[data-id='topBar'] [data-lp-id*='commandbar-Global:'] li",
+		"PersonalSettingsLauncher": "[data-id='topBar'] [data-id='personalSettingsLauncher']",
+		"PersonalSettingsLauncherFlyoutAbout": "[data-id='__flyoutRootNode'] [data-id='personalSettingsLauncher'] [data-id='SettingsMenu.About']",
+		"QuickCreateLauncher": "[data-id='topBar'] [data-id='quickCreateLauncher']",
+		"QuickCreateLauncherFlyout": "[data-id='__flyoutRootNode'] [data-id='quickCreateLauncher']",
+		"QuickCreateLauncherFlyoutButton": "[data-id*='quickCreateMenuButton_{0}']",
+		"QuickCreateLauncherActivitiesFlyout": "[id*='id'][id*='_buttoncrm_header_global_flyout']",
+		"TopBar": "[data-id='topBar']",
+		"UserInformationLauncher": "[data-id='userInformationLauncher']"
+	},
+	"QuickCreateCaseFormSelectors":{
+		"CustomerLookupSelector": "//div[@aria-label='Quick Create: Case']//input[@aria-label='Customer, Lookup']//following-sibling::button",
+		"CaseTitleSelector":"//div[@aria-label='Quick Create: Case']//input[@aria-label='Case Title']",
+		"DescriptionSelector":"//div[@aria-label='Quick Create: Case']//textarea[@aria-label='Description']",
+		"SaveCloseButtonSelector": "//div[@aria-label='Quick Create: Case']//button[@data-id='quickCreateSaveAndCloseBtn']"
+	}
+}
