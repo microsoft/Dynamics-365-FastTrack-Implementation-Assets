@@ -70,7 +70,7 @@ You can use this solution to:
 -   Dynamics 365 Marketing
     -   Setup guide: [Get started with Marketing app setup (Dynamics 365 Marketing) \| Microsoft Learn](https://learn.microsoft.com/dynamics365/marketing/get-started)
 -   Dynamics 365 Customer service
-    -       
+    -   Install Customer service: [Availability of Customer Service Hub] (https://learn.microsoft.com/dynamics365/customer-service/availability-customer-service-hub)
 -   Omnichannel customer service
     -   [Commerce Chat with Omnichannel for Customer Service module - Commerce \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/dynamics365/commerce/commerce-chat-module)
 
