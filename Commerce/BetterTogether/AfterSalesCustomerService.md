@@ -4,7 +4,7 @@ This solution combines Dynamics 365 Commerce, Dynamics 365 Marketing, Power Virt
 
 # Architecture
 
-![Diagram Description automatically generated](BetterTogetherSalesExperience.png)
+![Diagram Description automatically generated](BetterTogetherAfterSalesExperience.png)
 
 # Dataflow
 
