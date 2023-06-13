@@ -8,14 +8,14 @@ This solution combines Dynamics 365 Commerce, Dynamics 365 Marketing, Power Virt
 
 # Dataflow
 
-1.  Customers browse the Dynamics 365 eCommerce site.
-2.  eCommerce site logs are imported into Dynamics 365 Customer Insights.
-3.  Customers from Dataverse are unified with other data sources in Customer Insights.
-4.  Customer Insights links site logs to customers as activities.
-5.  Segments are defined in Customer Insights based on business requirements.
-6.  Segments are exported from Customer Insights to Dynamics 365 Marketing.
-7.  Dynamics 365 Marketing creates and sends marketing emails to segment customers.
-8.  Customers interact with the email and browse the eCommerce site.
+1.	Dynamics 365 Marketing sends promotional email to customer using Power Automate.
+2.	Customer receives email and opens eCommerce website.
+3.	Customer uses Power Virtual Agent on ecommerce website to talk with Customer agent.
+4.	Customer service Agent(CSA) uses Omni-channel customer service to access the customer data.
+5.	CSA adds the helmet to order as requested by customer. 
+6.	Dynamics 365 Commerce prompts CSA to upsell/cross-sell related products.
+7.	CSA adds a lock to the order and utilizes the Commerce reauthorization functionality to process payment using the same card on file.
+
 
 # Components
 
