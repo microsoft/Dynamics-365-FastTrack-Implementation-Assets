@@ -31,20 +31,25 @@ This solution combines Dynamics 365 Commerce, Dynamics 365 Marketing, Power Virt
 
 ![Better Together Customer Experience Flow](BetterTogetherFlow.png)
 
-The Chief Revenue officer (CRO) reviews the sales numbers after the first month of site launch and they are not as high as he was expecting. He connects with his sales analyst who leverages the Dynamics Customer Insights tools to dig into the data to understand what could be happening.
+In the quarterly review presentation with the Chief Revenue Officer (CRO), it was observed that the amount of recurring revenue from customers purchasing high-value items such as bicycles and kayaks is below anticipated levels.
 
-Their hypothesis is that the site may not be providing enough detailed information about these products to allow a customer to feel confident in their purchases.
+During the meeting , they decided to run marketing email targeting customers who buy high-value items.
 
-They decide to tackle this challenge with 2 initiatives:
+They decided to start with Bicycle category and send personalized email upselling bicycle accessories available on website for the customer.
 
--   Implementing a Power Virtual Agent chatbot on the site which will help customers who are stuck to get to the next level of engagement. Customers can engage with a virtual assistant to get additional product questions answered and get the information they need to make a final purchase.
--   Create a targeted marketing campaign for a segment of customers who fall into a behavior of dwelling but not buying. A marketing journey designed in Dynamics 365 Marketing to send E-commerce site visitors a follow-up email with a 20% off promotion to encourage them to complete their purchase.
+Customer clicks on link provided in the email to visit e-commerce site. He talks to customer service agent(CSA) via chatbot to add additional items to existing order.
 
-With this marketing campaign, sales increased from site visitors who left originally without placing an order. Data showed that a majority of those customers utilized the chatbot before making a purchase.
+In the single application , CSA is able to chat with customer and check customer existing order information with embedded Dynamics 365 Commerce.
 
-This showcases how Dynamics 365 Applications - Commerce, Power Virtual Agent, Customer Insights, and Marketing work together seamlessly to provide more personalized shopping experience to e-Commerce customers.
+The CSA possesses the ability to offer personalized suggestions pertaining to the customer's existing purchase through upselling or cross-selling feature in Dynamics 365 Commerce.
 
-The Chief Revenue Officer is now able to achieve better customer experience and increase conversion rates and revenue.
+Customer went ahead with CSA suggestions. 
+
+CSA is able reuse  the existing card without asking customer for card details again from original order to complete the payment.
+
+This story showcases how Dynamics 365 applications  - Commerce, Marketing, Power Virtual agent, Customer Service works together to improve Customer experience with personalized after Sales experience.
+
+In the next quarterly business review , The Chief Revenue Officer sees increase in repeat customer revenue for high-value items.
 
 # Potential use cases
 
@@ -67,6 +72,10 @@ You can use this solution to:
 -   Dyanmics 365 Commerce with E-commerce
     -   Setup guide: [E-commerce site overview - Commerce \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/dynamics365/commerce/online-store-overview)
     -   Power Virtual Agent embed in E-commerce: [Commerce Chat with Power Virtual Agents module - Commerce \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/dynamics365/commerce/chat-module-pva)
+-   Power Platform in LCS:
+    -  Add doc link here 
+-   Enable Dataverse solutions for Dual write
+    - Add doc link here
 -   Dynamics 365 Marketing
     -   Setup guide: [Get started with Marketing app setup (Dynamics 365 Marketing) \| Microsoft Learn](https://learn.microsoft.com/dynamics365/marketing/get-started)
 -   Dynamics 365 Customer service
@@ -77,30 +86,25 @@ You can use this solution to:
 
 ## Configuration
 
-### Step 1: Import site logs into Dynamics 365 Customer Insights
+### Step 1: Configure Dual Write
+            
+            
+### Step 2: Create Trigger in Marketing
 
-1.  Export your site logs to a csv file.
-     
-     Use Microsoft clarity/Google tag manager to get site logs from E-commerce site.
-2.  Import csv file (sessions data) using Power query to customer Insights.
+Add docs link here
 
-     Power Query offers many different data source options and inline data transformation. It is a great option for bringing in data from external systems. In our scenario, we used Power Query to import cookies data from the E-commerce site. For use with demo data, you can use [Cookies data file](CookieData.csv)
+### Step 3: Create Powerapps flow with Dataverse
 
-### Step 2: Unify Customers in Dynamics 365 Customer Insights
+This step is needed as sales line is not available OOB in marketing.
+Add export file and add link for steps
 
-[Connect to data in a Microsoft Dataverse managed data lake - Dynamics 365 Customer Insights \| Microsoft Learn](https://learn.microsoft.com/dynamics365/customer-insights/connect-dataverse-managed-lake#connect-to-a-dataverse-managed-lake)
+### Step 4: Define Journey in Marketing using Trigger
 
-### Step 3: Define Measure(s) and Segments in Customer Insights
+Add doc link here
 
-This documentation page explain how to define segment [Build segment in Customer Insights](https://learn.microsoft.com/dynamics365/customer-insights/segments?tabs=b2c)
+### Step 5: Setup Omnichannel the Customer Service admin
 
-### Step 4: Export Segment from CI to Marketing
-
-This documentation page explains how to [Use segments from Dynamics 365 Customer Insights (Dynamics 365 Marketing) \| Microsoft Learn](https://learn.microsoft.com/dynamics365/marketing/customer-insights-segments)
-
-### Step 5: Create Customer Journey in Marketing
-
-This documentation page explains how to [Create a simple customer journey (Dynamics 365 Marketing) \| Microsoft Learn](https://learn.microsoft.com/dynamics365/marketing/create-simple-customer-journey)
+Add document link and package
 
 ### Step 6: Create a Topic for the Power Virtual Agent
 
