@@ -73,13 +73,13 @@ You can use this solution to:
     -   Setup guide: [E-commerce site overview - Commerce \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/dynamics365/commerce/online-store-overview)
     -   Power Virtual Agent embed in E-commerce: [Commerce Chat with Power Virtual Agents module - Commerce \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/dynamics365/commerce/chat-module-pva)
 -   Power Platform in LCS:
-    -  Add doc link here 
+    - Setup Guide [Enable Power Platform Integration - Finance & Operations | Dynamics 365 | Microsoft Learn](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/power-platform/enable-power-platform-integration)
 -   Enable Dataverse solutions for Dual write
-    - Add doc link here
+    - Setup Guide [Enable dual-write for existing finance and operations apps - Finance & Operations | Dynamics 365 | Microsoft Learn](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/data-entities/dual-write/enable-dual-write)
 -   Dynamics 365 Marketing
     -   Setup guide: [Get started with Marketing app setup (Dynamics 365 Marketing) \| Microsoft Learn](https://learn.microsoft.com/dynamics365/marketing/get-started)
 -   Dynamics 365 Customer service
-    -   Install Customer service: [Availability of Customer Service Hub] (https://learn.microsoft.com/dynamics365/customer-service/availability-customer-service-hub)
+    -   Install Customer service: [Availability of Customer Service Hub](https://learn.microsoft.com/dynamics365/customer-service/availability-customer-service-hub)
 -   Omnichannel customer service
     -   [Commerce Chat with Omnichannel for Customer Service module - Commerce \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/dynamics365/commerce/commerce-chat-module)
 
