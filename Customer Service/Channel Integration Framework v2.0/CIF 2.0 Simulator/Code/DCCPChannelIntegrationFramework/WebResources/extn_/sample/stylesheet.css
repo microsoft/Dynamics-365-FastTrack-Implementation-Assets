@@ -1,0 +1,61 @@
+﻿.title {
+    margin-left: 10px;
+    margin-bottom: 2px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 14px;
+}
+
+.parameter {
+    display: inline-block;
+    margin-left: 10px;
+    width: 250px;
+    margin-bottom: 2px;
+}
+
+    .parameter > div {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 12px;
+    }
+
+    .parameter > button {
+        margin-left: 3px;
+        margin-right: 3px;
+        border: 0px;
+        outline: 0px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 10px;
+        text-align: center;
+    }
+
+    .parameter > select {
+        flex: 7;
+        padding-left: 5px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 12px;
+        border: 0px;
+        outline: 0px;
+        width: 100%;
+        color: blue;
+        background-color: whitesmoke;
+    }
+
+    .parameter > input {
+        flex: 7;
+        padding-left: 5px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 12px;
+        border: 0px;
+        outline: 0px;
+        width: 100%;
+        color: blue;
+        background-color: whitesmoke;
+    }
+
+.action {
+    border: 0px;
+    margin: 3px;
+    text-align: left;
+    width: 260px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 12px;
+}

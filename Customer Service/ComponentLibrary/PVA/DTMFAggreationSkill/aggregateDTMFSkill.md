@@ -12,9 +12,9 @@ The intent of this article is to provide a sample code of the custom skill that 
 ![Show Aggregate DTMF Input(#)](./images/aggregateDTMFSkill-1-AuthoringCanvas.png)  
 
 ## Sample code
-In the following link you can find the [Bot Framework Skill](./artifacts/aggregateDTMFSkill.zip) the zip file contains the  a sample Bot Framework Skill project.  
+In the following link you can find the [Bot Framework Skill](./sampleartifacts/aggregateDTMFSkill.zip) the zip file contains the  a sample Bot Framework Skill project.  
 
-In the following link you can find the [PVA bot solution](./artifacts/AggregateDTMF_1_0_0_0.zip) the zip flle is the PowerApps solution that contains the Power Virtual Agents bot.  
+In the following link you can find the [PVA bot solution](./sampleartifacts/AggregateDTMF_1_0_0_0.zip) the zip flle is the PowerApps solution that contains the Power Virtual Agents bot.  
 
 ## Setting up the environment
 To work on the bot framework skill sample code, you'll need a set of things to be successful:
@@ -23,7 +23,7 @@ To work on the bot framework skill sample code, you'll need a set of things to b
 - The [Bot Framework Composer](https://aka.ms/bf-composer-download-win) (optional, but assumed for this document)
 - A PVA Bot integrated with Dynamics 365 Customer Service Omnichannel Voice
 
-For PVA integrated in Omnichannel Voice you can import the sample solution [PVA bot solution](./artifacts/AggregateDTMF_1_0_0_0.zip) in your D365 Customer Service Omnichannel environment.
+For PVA integrated in Omnichannel Voice you can import the sample solution [PVA bot solution](./sampleartifacts/AggregateDTMF_1_0_0_0.zip) in your D365 Customer Service Omnichannel environment.
 As soon as the solution is imported you can open the PVA Bot.  
 ![Open Skill Project](./images/aggregateDTMFSkill-4-PVASolution.png)  
 From the bot you need to take the Bot Id that will be used in the Skill publishing step.  

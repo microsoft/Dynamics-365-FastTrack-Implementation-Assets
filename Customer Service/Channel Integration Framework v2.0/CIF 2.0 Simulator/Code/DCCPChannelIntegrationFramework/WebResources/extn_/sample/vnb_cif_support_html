@@ -1,0 +1,144 @@
+﻿<html>
+<head>
+<link rel="stylesheet" href="/webresources/extn_/sample/stylesheet.css">
+<script src="/Webresources/Widget/msdyn_ciLibrary.js" type="text/javascript"></script>
+<script src="/webresources/extn_/sample/script.js" type="text/javascript"></script>
+</head>
+<body id="cif-page" onload="extnSample.Actions.init()" style="width: 280px; overflow-wrap: break-word;">
+    <meta charset="UTF-8">
+    <script>
+
+    </script>
+    <meta>
+    <meta>
+    <meta>
+    <meta>
+    <meta>
+    <meta>
+    <meta>
+    <meta>
+    <meta>
+    <meta>
+    <meta>
+    <meta>
+    <br>
+    <div>
+        <div class="title">Channel</div>
+        <div class="parameter">
+            <div>Media Type (extnbr_mediatype)</div>
+            <select id="extnbr_mediatype" onchange="extnSample.Actions.onChangeMediaType()" style="color: crimson;">
+                <option value="0">Default</option>
+                <option value="1">Voice</option>
+            </select>
+        </div>
+        <div class="parameter">
+            <div>Notify Template</div>
+            <input type="text" id="extnbr_notify_template" value="N/A" disabled="false">
+        </div>
+        <div class="parameter">
+            <div>Session Template</div>
+            <input type="text" id="extnbr_session_template" value="extn_default_session" disabled="false" style="color: crimson;">
+        </div>
+        <div class="parameter">
+            <div>Session Template Custom Page</div>
+            <input type="text" id="extnbr_session_template_custompage" value="extnbr_session_template_custompage" disabled="false" style="color: crimson;">
+        </div>
+        <br>
+        <br>
+        <div class="title">Slugs and Attributes</div>
+        <div class="parameter">
+            <div>First Name (extn_firstname)</div>
+            <input type="text" id="extn_firstname" value="John" onchange="extnSample.CommonFunctions.onChangeNotifyContext();extnSample.CommonFunctions.onChangeNotifyContextForCustomPage()">
+        </div>
+        <div class="parameter">
+            <div>Last Name (extn_lastname)</div>
+            <input type="text" id="extn_lastname" value="Glynn" onchange="extnSample.CommonFunctions.onChangeNotifyContext();extnSample.CommonFunctions.onChangeNotifyContextForCustomPage()">
+        </div>
+        <div class="parameter">
+            <div>Telephone (extn_phonenumber)</div>
+            <input type="text" id="extnbr_telephone" value="+1234567890" onchange="extnSample.CommonFunctions.onChangeNotifyContext();extnSample.CommonFunctions.onChangeNotifyContextForCustomPage()">
+        </div>
+        <div class="parameter">
+            <div>Business Phone (extn_businessphone)</div>
+            <input type="text" id="extn_businessphone" value="1234567890" onchange="extnSample.CommonFunctions.onChangeNotifyContext();extnSample.CommonFunctions.onChangeNotifyContextForCustomPage()">
+        </div>
+        <div class="parameter">
+            <div>E-mail Address (extn_email_address)</div>
+            <input type="text" id="extn_email_address" value="email@address.com" onchange="extnSample.CommonFunctions.onChangeNotifyContext();extnSample.CommonFunctions.onChangeNotifyContextForCustomPage()">
+        </div>
+        <div class="parameter">
+            <div>Subject (extn_subject)</div>
+            <input type="text" id="extn_subject" value="Unable to login" onchange="extnSample.CommonFunctions.onChangeNotifyContext();extnSample.CommonFunctions.onChangeNotifyContextForCustomPage()">
+        </div>
+        <div class="parameter">
+            <div>Street Address (extn_streetaddress)</div>
+            <input type="text" id="extn_streetaddress" value="" onchange="extnSample.CommonFunctions.onChangeNotifyContext();extnSample.CommonFunctions.onChangeNotifyContextForCustomPage()">
+        </div>
+        <div class="parameter">
+            <div>City (extn_city)</div>
+            <input type="text" id="extn_city" value="" onchange="extnSample.CommonFunctions.onChangeNotifyContext();extnSample.CommonFunctions.onChangeNotifyContextForCustomPage()">
+        </div>
+        <div class="parameter">
+            <div>State (extn_State)</div>
+            <input type="text" id="extn_State" value="" onchange="extnSample.CommonFunctions.onChangeNotifyContext();extnSample.CommonFunctions.onChangeNotifyContextForCustomPage()">
+        </div>
+        <div class="parameter">
+            <div>ZipCOde (extn_zipcode)</div>
+            <input type="text" id="extn_zipcode" value="" onchange="extnSample.CommonFunctions.onChangeNotifyContext();extnSample.CommonFunctions.onChangeNotifyContextForCustomPage()">
+        </div>
+        <div class="parameter">
+            <div>Interaction/Call Id (extn_interactionid)</div>
+            <button onclick="extnSample.CommonFunctions.newGuid('extn_interactionid')">+ Guid</button>
+            <input type="text" id="extn_interactionid" disabled="true">
+        </div>
+    </div>
+    <br>
+    <div>
+        <div class="title">Customer Data Slugs</div>
+        <div class="parameter">
+            <div>Customer Name</div>
+            <input type="text" id="customerName" value="A Datum Corporation" onchange="extnSample.CommonFunctions.onChangeSessionContext()">
+        </div>
+        <div class="parameter">
+            <div>Customer Entity Name</div>
+            <select id="customerEntityName" onchange="extnSample.Actions.onChangeCustomerEntityName()">
+                <option value="account">account</option>
+                <option value="contact">contact</option>
+            </select>
+        </div>
+        <div class="parameter">
+            <div>Customer Record Id (GUID)</div>
+            <input type="text" id="customerRecordId" value="ea7092de-6dbe-ed11-83ff-00224805c952" onchange="extnSample.CommonFunctions.onChangeSessionContext()">
+        </div>
+    </div>
+    <br>
+    <br>
+    <button class="action" onclick="extnSample.Actions.notifyEvent()">Notify, accept &gt; create session || reject &gt; create task</button>
+    <button class="action" onclick="extnSample.Actions.notifyEventCustomPage()">Create Session with Custom Page</button>
+    <button class="action" onclick="extnSample.Actions.getAllSessions()">Get all sessions</button>
+    <button class="action" onclick="extnSample.Actions.getFocusedSession()">Get current session</button>
+    <button class="action" onclick="extnSample.Actions.setSessionTitle()">Change current session's title</button>
+    <button class="action" onclick="extnSample.Actions.notifyEventOnSession()">Notify new activity in other sessions</button>
+    <button class="action" onclick="extnSample.Actions.notifyUrgentEventOnSession()">Notify urgency in sessions</button>
+    <button class="action" onclick="extnSample.Actions.requestFocusOnSession()">Request focus on another session</button>
+    <button class="action" onclick="extnSample.Actions.setAppearAwayPresence()">Set presence status as Away</button>
+    <button class="action" onclick="extnSample.Actions.createCaseRecord()">Create case</button>
+    <button class="action" onclick="extnSample.Actions.closeCurrentTab()">Close current Tab</button>
+    <br>
+    <br>
+    <div class="title">Notify Input JSON & Function Definition</div>
+    <!--   <div id="notify_context"></div>-->
+    <textarea id="notify_context" name="notify_context" rows="15" cols="34" disabled="false"></textarea>
+    <br>
+    <br>
+    <div class="title">Session Input JSON</div>
+    <textarea id="session_context" name="session_context" rows="15" cols="34" disabled="false"></textarea>
+    <br>
+    <br>
+    <img id="voice_png" style="width: 260px;" src="/webresources/extn_/sample/vnb_cif_voice_png">
+    <br>
+    <img id="chat_png" style="width: 260px;" src="/webresources/extn_/sample/vnb_cif_chat_png">
+    <br>
+    <img id="white_png" style="width: 260px;" src="/webresources/extn_/sample/vnb_white_png">
+
+</body></html>

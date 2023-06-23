@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <control namespace="ClickToDialControl" constructor="ClickToDialControl" version="0.0.3" display-name-key="Outbound Dialer Control" description-key="Click To Dial Control for Phone Number" control-type="standard" >
+     <property name="phoneNumber" display-name-key="Phone Field Attribute" description-key="Phone Number Attribute" usage="bound" required="true" of-type-group="PhoneFields" />
+     <property name="showButton" display-name-key="Show Button?" usage="input" required="true" of-type="Enum">
+      <value name="Yes" display-name-key="Yes" default="true">Yes</value>
+      <value name="No" display-name-key="No">No</value>
+    </property>
+     <property name="validatePhoneNumber" display-name-key="Should control validate phone number?" usage="input" required="false" of-type="Enum">
+      <value name="Yes" display-name-key="Yes">Yes</value>
+      <value name="No" display-name-key="No" default="true">No</value>
+    </property>
+    <type-group name="PhoneFields">
+      <type>SingleLine.Phone</type>
+      <type>SingleLine.Text</type>      
+    </type-group>
+   
+    <resources>
+      <code path="index.ts" order="1"/>
+      <css path="css/Flags.css" order="2" />
+      <css path="css/Icons.css" order="2" />
+      <!-- UNCOMMENT TO ADD MORE RESOURCES
+      <css path="css/ClickToDialControl.css" order="1" />
+      <resx path="strings/ClickToDialControl.1033.resx" version="1.0.0" />
+      -->
+    </resources>    
+    <feature-usage>
+      <uses-feature name="Device.captureAudio" required="true" />
+      <uses-feature name="Device.captureImage" required="true" />
+      <uses-feature name="Device.captureVideo" required="true" />
+      <uses-feature name="Device.getBarcodeValue" required="true" />
+      <uses-feature name="Device.getCurrentPosition" required="true" />
+      <uses-feature name="Device.pickFile" required="true" />
+      <uses-feature name="Utility" required="true" />
+      <uses-feature name="WebAPI" required="true" />
+    </feature-usage>
+    
+  </control>
+</manifest>

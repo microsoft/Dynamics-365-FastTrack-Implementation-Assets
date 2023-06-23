@@ -42,4 +42,4 @@ When the customer selects Show Content, the chat displays a summary of the knowl
 For more information about showing the results in an adaptive card, go to Render results in the documentation.
 
 ## Artifacts
-Here’s the [link](./artifacts/SummarizeKBArticleusingGPT_1_0_0_1.zip) to download the solution zip file.
+Here’s the [link](./sampleartifacts/SummarizeKBArticleusingGPT_1_0_0_1.zip) to download the solution zip file.
