@@ -87,11 +87,12 @@ You can use this solution to:
 ## Configuration
 
 ### Step 1: Configure Dual Write
-            
-            
+If you have not configured dual write, you need to follow mentioned link from our B2B Lead to Cash Story.And if you have already configured dual write, make sure you review it before moving to next step
+[Enable Dual Write](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/bt-may2023/Commerce/BetterTogether/B2BSalesExperience.md#step-1-enable-dual-write-in-dynamics-365-commerce)
+
 ### Step 2: Create Trigger in Marketing
 
-Add docs link here
+[Create custom triggers in real-time marketing (Dynamics 365 Marketing) | Microsoft Learn](https://learn.microsoft.com/dynamics365/marketing/real-time-marketing-custom-triggers)
 
 ### Step 3: Create Powerapps flow with Dataverse
 
@@ -100,7 +101,7 @@ Add export file and add link for steps
 
 ### Step 4: Define Journey in Marketing using Trigger
 
-Add doc link here
+[Trigger a journey based on a Dataverse record change (Dynamics 365 Marketing) | Microsoft Learn](https://learn.microsoft.com/dynamics365/marketing/real-time-marketing-dataverse-trigger)
 
 ### Step 5: Setup Omnichannel the Customer Service admin
 
