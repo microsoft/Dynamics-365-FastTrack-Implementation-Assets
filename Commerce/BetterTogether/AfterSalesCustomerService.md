@@ -94,7 +94,7 @@ If you have not configured dual write, you need to follow mentioned link from ou
 
 [Create custom triggers in real-time marketing (Dynamics 365 Marketing) | Microsoft Learn](https://learn.microsoft.com/dynamics365/marketing/real-time-marketing-custom-triggers)
 
-### Step 3: Create Powerapps flow with Dataverse
+### Step 3: Create a Power Automate flow
 
 This step is needed as sales line is not available OOB in marketing.
 Steps to create custom database trigger - [Creat custom database trigger](https://www.ameyholden.com/articles/real-time-dynamics-marketing-custom-triggers-dataverse?rq=trigger)
@@ -103,11 +103,12 @@ Steps to create custom database trigger - [Creat custom database trigger](https:
 
 [Trigger a journey based on a Dataverse record change (Dynamics 365 Marketing) | Microsoft Learn](https://learn.microsoft.com/dynamics365/marketing/real-time-marketing-dataverse-trigger)
 
-### Step 5: Setup Omnichannel the Customer Service admin
+### Step 5: Setup an embedded Commerce application in Omnichannel Customer Service
 
-Install the [Commerce in Customer Service](CommerceCustomerServiceAddInSolutionsPackage_1_3.zip) Add-in package into your Customer Service instance. This will allow a customer service agent to login and display Dynamics 365 Commerce forms within the Customer Service application.
+Download and install the [Commerce in Customer Service Add-in solution package](CommerceCustomerServiceAddInSolutionsPackage_1_3.zip) from GitHub into your Customer Service sandbox environment. This will allow a customer service agent to use Dynamics 365 Commerce application pages within the Customer Service application. This is an unmannaged solution you can use for demonstrations or as a starting point for building and deploying a [managed solution](https://learn.microsoft.com/en-us/power-platform/alm/move-from-unmanaged-managed-alm) following best practices which are documented in the [Healthy ALM Overview](https://learn.microsoft.com/en-us/power-platform/alm/implement-healthy-alm) page. 
 
-### Step 6: Create a Topic for the Power Virtual Agent
+
+### Step 6: Create Topics for the Power Virtual Agent
 
 This documentation page explains how to create topics for the PVA chatbot.
 
