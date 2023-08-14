@@ -105,7 +105,7 @@ Steps to create custom database trigger - [Creat custom database trigger](https:
 
 ### Step 5: Setup Omnichannel the Customer Service admin
 
-Add document link and package
+Install the [Commerce in Customer Service](CommerceCustomerServiceAddInSolutionsPackage_1_3.zip) Add-in package into your Customer Service instance. This will allow a customer service agent to login and display Dynamics 365 Commerce forms within the Customer Service application.
 
 ### Step 6: Create a Topic for the Power Virtual Agent
 
