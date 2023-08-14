@@ -97,7 +97,7 @@ If you have not configured dual write, you need to follow mentioned link from ou
 ### Step 3: Create Powerapps flow with Dataverse
 
 This step is needed as sales line is not available OOB in marketing.
-Add export file and add link for steps
+Steps to create custom database trigger - [Creat custom database trigger](https://www.ameyholden.com/articles/real-time-dynamics-marketing-custom-triggers-dataverse?rq=trigger)
 
 ### Step 4: Define Journey in Marketing using Trigger
 
