@@ -52,7 +52,7 @@ CDMUtil can be deployed as Azure Function to convert CDM metadata to Synapse Ana
 (![Events Filters](https://user-images.githubusercontent.com/65608469/173087789-c45104a6-ce44-4d99-8fc7-9be3d2856caf.png)
 
 ## 2. CDMUtil Console App 
-To run CDMUtil from local desktop, you can download and run CDMUtil executable using Command prompt or Powershell. 
+To run CDMUtil from local desktop, you can download and run CDMUtil executable using Command prompt or Powershell.
 
 1. Download the Console Application executables [CDMUtilConsoleApp.zip](/Analytics/CDMUtilSolution/CDMUtilConsoleApp.zip)
 2. Extract the zip file and extract to local folder 
