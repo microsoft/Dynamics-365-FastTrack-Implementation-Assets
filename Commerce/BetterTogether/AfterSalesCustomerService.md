@@ -90,14 +90,26 @@ You can use this solution to:
 If you have not configured dual write, you need to follow mentioned link from our B2B Lead to Cash Story.And if you have already configured dual write, make sure you review it before moving to next step
 [Enable Dual Write](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/bt-may2023/Commerce/BetterTogether/B2BSalesExperience.md#step-1-enable-dual-write-in-dynamics-365-commerce)
 
-### Step 2: Create Trigger in Marketing
 
-[Create custom triggers in real-time marketing (Dynamics 365 Marketing) | Microsoft Learn](https://learn.microsoft.com/dynamics365/marketing/real-time-marketing-custom-triggers)
+
+
+### Step 2: Create Custom Trigger in Marketing
+Steps 2 and 3 are needed as the order lines table is not available directly in triggers, customer journeys, emails with the marketing application. Here is a external sample that walks through the steps to create the custom trigger and using it in Flow. [Create custom database trigger](https://www.ameyholden.com/articles/real-time-dynamics-marketing-custom-triggers-dataverse?rq=trigger).
+
+[Create custom triggers in real-time marketing (Dynamics 365 Marketing) | Microsoft Learn](https://learn.microsoft.com/dynamics365/marketing/real-time-marketing-custom-triggers). You'll use this in the next step to send data from Flow to Marketing.
 
 ### Step 3: Create a Power Automate flow
 
-This step is needed as sales line is not available OOB in marketing.
-Steps to create custom database trigger - [Creat custom database trigger](https://www.ameyholden.com/articles/real-time-dynamics-marketing-custom-triggers-dataverse?rq=trigger)
+
+
+Here is an example of the 3 important Dataverse steps you need to create in the Flow
+| Description | Screenshot |
+| :--- | ---: |
+| Use the dataverse action **When a row is added, modified, deleted**. <br><br>The Sales order line entity in dataverse is called **Order Products**. | ![](Flow1OrderLine.png) |
+| Customer is not available on the sales order line entity so we need to use the dataverse action **Get a row by ID** to fetch the related sales order header from the line. | ![](Flow2OrderHeader.png) |
+| Finally we pass data from the sales order header and line to the custom trigger we created in the previous step. <br><br> Use the dataverse action **Perform an unbound action** and select the trigger you created for the **Action Name** parameter of this step. | ![](Flow3MarketingTrigger.png) |
+
+
 
 ### Step 4: Define Journey in Marketing using Trigger
 
