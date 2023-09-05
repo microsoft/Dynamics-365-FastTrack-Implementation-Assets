@@ -1,6 +1,6 @@
-# Better Together – After Customer Customer Service
+# Better Together – After Sales Customer Service
 
-This solution combines Dynamics 365 Commerce, Dynamics 365 Marketing, Power Virtual Agent and Customer Service to provide a comprehensive after sales experience.
+This solution combines Dynamics 365 Commerce, Dynamics 365 Marketing, Power Virtual Agent and Customer Service to provide a comprehensive after sales customer experience.
 
 # Architecture
 
