@@ -1,6 +1,6 @@
-# Better Together – After Sales Customer Service
+# Better Together – After-Sales Customer Service
 
-This solution combines Dynamics 365 Commerce, Dynamics 365 Marketing, Power Virtual Agent and Customer Service to provide a comprehensive after sales customer experience.
+This solution combines Dynamics 365 Commerce, Dynamics 365 Marketing, Power Virtual Agent and Customer Service to provide a comprehensive after-sales customer experience.
 
 # Architecture
 
@@ -47,7 +47,7 @@ Customer went ahead with CSA suggestions.
 
 CSA is able reuse  the existing card without asking customer for card details again from original order to complete the payment.
 
-This story showcases how Dynamics 365 applications  - Commerce, Marketing, Power Virtual agent, Customer Service works together to improve Customer experience with personalized after Sales experience.
+This story showcases how Dynamics 365 applications  - Commerce, Marketing, Power Virtual agent, Customer Service works together to improve Customer experience with personalized after-sales experience.
 
 In the next quarterly business review , The Chief Revenue Officer sees increase in repeat customer revenue for high-value items.
 
