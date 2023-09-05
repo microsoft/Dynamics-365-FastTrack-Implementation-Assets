@@ -120,11 +120,11 @@ Here is an example of the 3 important Dataverse steps you need to create in the 
 Download and install the [Commerce in Customer Service Add-in solution package](CommerceCustomerServiceAddInSolutionsPackage_1_3.zip) from GitHub into your Customer Service sandbox environment. This will allow a customer service agent to use Dynamics 365 Commerce application pages within the Customer Service application. This is an unmannaged solution you can use for demonstrations or as a starting point for building and deploying a [managed solution](https://learn.microsoft.com/en-us/power-platform/alm/move-from-unmanaged-managed-alm) following best practices which are documented in the [Healthy ALM Overview](https://learn.microsoft.com/en-us/power-platform/alm/implement-healthy-alm) page. 
 
 
-### Step 6: Create Topics for the Power Virtual Agent
+### [Optional]  Step 6: Create Topics for the Power Virtual Agent
 
-This documentation page explains how to create topics for the PVA chatbot.
+You can setup Topic in Power Virtual Agents(PVA) for customer to engage in an automated chatbot. PVA provides ability to escalate to automated chatbot to a customer service agent(CSA).
 
-[Use topics to design a chatbot conversation - Power Virtual Agents \| Microsoft Learn](https://learn.microsoft.com/power-virtual-agents/authoring-create-edit-topics)
+[Use topics to design a chatbot conversation](https://learn.microsoft.com/power-virtual-agents/authoring-create-edit-topics) to create topics for the PVA chatbot.
 
 
 ## Additional reference topics
