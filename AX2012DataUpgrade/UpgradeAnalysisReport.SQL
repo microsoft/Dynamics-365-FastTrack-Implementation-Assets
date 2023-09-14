@@ -37,6 +37,7 @@ DECLARE @Recommendation NVARCHAR(MAX);
 --
 DECLARE @LargeTableThreshold INT = 10000 -- Threshold for large table analysis (in MB)
 DECLARE @EstimatedSavingThreshold INT = 100 -- Threshold for data cleanup operations (in MB)
+DECLARE @CleanupRecordCountThreshold INT = 1000 -- Threshold for large Inventory Cleanup 
 
 --
 -- Rule Section: Deprecated Features 
@@ -1580,6 +1581,150 @@ SET @RuleSection = 'Database Saving';
 		INSERT INTO #D365UpgradeAnalysisReport (RuleID, RuleSection, RuleName, Observation, Recommendation, AdditionalComments)
 		VALUES (@RuleId, @RuleSection, @RuleName, @Observation, @Recommendation, @AdditionalComments);
 	END
+
+	--
+	-- Rule: WHSInventReserve - Warehouse management on-hand entries cleanup
+	--
+	SET @RuleID = 515
+	SET @RuleName = 'WHSInventReserve - Warehouse management on-hand entries cleanup';
+	SET @Observation  = 'Estimate of WHSInventReserve records eligible for cleanup. This cleanup routine deletes records in the InventSum and WHSInventReserve tables. These tables are used to store on-hand information for items that are enabled for warehouse management processing (that is, WHS items). By cleaning up these records, you can significantly improve the on-hand calculations.';
+	SET @Recommendation  = 'Run cleanup: Inventory Management > Periodic tasks > Clean up > Warehouse management on-hand entries cleanup';
+	SET @AdditionalComments  = '';
+	DECLARE cleanupCursor CURSOR FOR
+	WITH WHS_TOTAL_CTE (PARTITION, DATAAREAID, WHS_TOTAL_RECORDS)
+	AS (SELECT PARTITION, DATAAREAID, COUNT (DATAAREAID) AS WHS_TOTAL_RECORDS
+	FROM WHSINVENTRESERVE
+	GROUP BY PARTITION, DATAAREAID)
+	, 
+	WHS_CLEANUP_CTE (PARTITION, DATAAREAID, WHS_CLEANUP_RECORDS)
+	AS (SELECT PARTITION, DATAAREAID, COUNT (DATAAREAID) AS WHS_CLEANUP_RECORDS
+	FROM WHSINVENTRESERVE WIR
+	WHERE AVAILORDERED=0 AND AVAILPHYSICAL=0 AND RESERVORDERED=0 AND RESERVPHYSICAL=0
+	AND EXISTS (SELECT 'x' FROM INVENTDIM ID WHERE WIR.PARTITION = ID.PARTITION AND WIR.DATAAREAID = ID.DATAAREAID AND WIR.INVENTDIMID=ID.INVENTDIMID)
+	GROUP BY PARTITION, DATAAREAID)
+ 
+	SELECT P.NAME, CTE1.DATAAREAID, CAST ((CAST((WHS_CLEANUP_RECORDS) AS DECIMAL(20,2))/(CAST((WHS_TOTAL_RECORDS) AS DECIMAL(20,2))) * 100) AS DECIMAL(5,2)) AS PERCENT_CLEANUP, CTE2.WHS_CLEANUP_RECORDS AS CLEANUP_RECORD_COUNT, CTE1.WHS_TOTAL_RECORDS AS TOTAL_RECORD_COUNT
+	FROM WHS_TOTAL_CTE CTE1
+	JOIN WHS_CLEANUP_CTE CTE2  ON CTE1.DATAAREAID = CTE2.DATAAREAID
+	JOIN PARTITIONS P ON CTE1.PARTITION = P.RECID
+	ORDER BY PERCENT_CLEANUP DESC
+
+	DECLARE  @Partition NVARCHAR(MAX), @DataAreaID NVARCHAR(MAX), @PercentCleanup NVARCHAR(MAX), @CleanupRecordCount NVARCHAR(MAX), @TotalRecordCount NVARCHAR(MAX);
+	OPEN cleanupCursor;
+	FETCH NEXT FROM cleanupCursor INTO @Partition, @DataAreaID, @PercentCleanup, @CleanupRecordCount, @TotalRecordCount;
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+		IF(@CleanupRecordCount > @CleanupRecordCountThreshold)
+		BEGIN
+			SET @AdditionalComments = @AdditionalComments + '[' + @Partition + ', ' +  @DataAreaID + ', ' + @PercentCleanup + '%, ' + @CleanupRecordCount + ', ' + @TotalRecordCount + '] | ';
+		END
+		FETCH NEXT FROM cleanupCursor INTO  @Partition, @DataAreaID, @PercentCleanup, @CleanupRecordCount, @TotalRecordCount;
+	END;
+	CLOSE cleanupCursor;
+	DEALLOCATE cleanupCursor;
+
+	IF (@AdditionalComments != '')
+	BEGIN
+		SET @AdditionalComments = 'Cleanup details for table WHSINVENTRESERVE by company (Partition, Company, % Cleanup, Cleanup Records, Total Records): ' + @AdditionalComments
+		INSERT INTO #D365UpgradeAnalysisReport (RuleID, RuleSection, RuleName, Observation, Recommendation, AdditionalComments)
+		VALUES (@RuleId, @RuleSection, @RuleName, @Observation, @Recommendation, @AdditionalComments);
+	END
+
+	--
+	-- Rule: InventSum - Warehouse management on-hand entries cleanup 
+	--
+	SET @RuleID = 520
+	SET @RuleName = 'InventSum - Warehouse management on-hand entries cleanup';
+	SET @Observation  = 'Estimate of InventSum records eligible for cleanup for items that are warehouse enabled. This cleanup routine deletes records in the InventSum and WHSInventReserve tables. These tables are used to store on-hand information for items that are enabled for warehouse management processing (that is, WHS items). By cleaning up these records, you can significantly improve the on-hand calculations.';
+	SET @Recommendation  = 'Run cleanup: Inventory Management > Periodic tasks > Clean up > Warehouse management on-hand entries cleanup';
+	SET @AdditionalComments  = '';
+	DECLARE cleanupCursor CURSOR FOR
+	WITH INVENTSUM_TOTAL_CTE (PARTITION, DATAAREAID, INVENTSUM_TOTAL_RECORDS)
+	AS (SELECT PARTITION, DATAAREAID, COUNT (DATAAREAID) AS INVENTSUM_TOTAL_RECORDS
+	FROM INVENTSUM
+	GROUP BY PARTITION, DATAAREAID)
+	,
+	INVENTSUM_CLEANUP_CTE (PARTITION, DATAAREAID, INVENTSUM_CLEANUP_RECORDS)
+	AS (SELECT PARTITION, DATAAREAID, COUNT (DATAAREAID) AS INVENTSUM_CLEANUP_RECORDS
+	FROM INVENTSUM IVS
+	WHERE CLOSED = 1 AND EXISTS  (SELECT 'x' FROM WHSINVENTRESERVE WIR WHERE AVAILORDERED=0 AND AVAILPHYSICAL=0 AND RESERVORDERED=0 AND RESERVPHYSICAL=0 AND WIR.PARTITION = IVS.PARTITION AND WIR.DATAAREAID = IVS.DATAAREAID AND WIR.INVENTDIMID = IVS.INVENTDIMID)
+	GROUP BY PARTITION, DATAAREAID
+	)
+ 
+	SELECT P.NAME, CTE1.DATAAREAID, CAST ((CAST((INVENTSUM_CLEANUP_RECORDS) AS DECIMAL(20,2))/(CAST((INVENTSUM_TOTAL_RECORDS) AS DECIMAL(20,2))) * 100) AS DECIMAL(5,2)) AS PERCENT_CLEANUP, CTE2.INVENTSUM_CLEANUP_RECORDS AS CLEANUP_RECORD_COUNT, CTE1.INVENTSUM_TOTAL_RECORDS AS TOTAL_RECORD_COUNT
+	FROM INVENTSUM_TOTAL_CTE CTE1
+	JOIN INVENTSUM_CLEANUP_CTE CTE2 ON CTE1.DATAAREAID = CTE2.DATAAREAID
+	JOIN PARTITIONS P ON CTE1.PARTITION = P.RECID
+	ORDER BY PERCENT_CLEANUP DESC
+	
+	OPEN cleanupCursor;
+	FETCH NEXT FROM cleanupCursor INTO @Partition, @DataAreaID, @PercentCleanup, @CleanupRecordCount, @TotalRecordCount;
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+		IF(@CleanupRecordCount > @CleanupRecordCountThreshold)
+		BEGIN
+			SET @AdditionalComments = @AdditionalComments + '[' + @Partition + ', ' +  @DataAreaID + ', ' + @PercentCleanup + '%, ' + @CleanupRecordCount + ', ' + @TotalRecordCount + '] | ';
+		END
+		FETCH NEXT FROM cleanupCursor INTO  @Partition, @DataAreaID, @PercentCleanup, @CleanupRecordCount, @TotalRecordCount;
+	END;
+	CLOSE cleanupCursor;
+	DEALLOCATE cleanupCursor;
+	IF (@AdditionalComments != '')
+	BEGIN
+		SET @AdditionalComments = 'Cleanup details for table INVENTSUM by company (Partition, Company, % Cleanup, Cleanup Records, Total Records): ' + @AdditionalComments
+		INSERT INTO #D365UpgradeAnalysisReport (RuleID, RuleSection, RuleName, Observation, Recommendation, AdditionalComments)
+		VALUES (@RuleId, @RuleSection, @RuleName, @Observation, @Recommendation, @AdditionalComments);
+	END
+
+	--
+	-- Rule: InventSum - On-hand entries cleanup
+	--
+	SET @RuleID = 525
+	SET @RuleName = 'InventSum - On-hand entries cleanup';
+	SET @Observation  = 'Estimate of InventSum records eligible for cleanup for items that are NOT warehouse enabled. This cleanup routine is used to delete closed and unused entries for on-hand inventory that is assigned to one or more tracking dimensions. Closed transactions contain a value of 0 (zero) for all quantities and cost values, and they are marked as closed. By deleting these transactions, you can help improve the performance of queries for on-hand inventory. Transactions won''t be deleted for on-hand inventory that isn''t assigned to tracking dimensions.';
+	SET @Recommendation  = 'Run cleanup: Inventory Management > Periodic tasks > Clean up > On-hand entries cleanup';
+	SET @AdditionalComments  = '';
+	DECLARE cleanupCursor CURSOR FOR
+	WITH INVENTSUM_TOTAL_CTE (PARTITION, DATAAREAID, INVENTSUM_TOTAL_RECORDS)
+	AS (SELECT PARTITION, DATAAREAID, COUNT (DATAAREAID) AS INVENTSUM_TOTAL_COUNT
+	FROM INVENTSUM IVS
+	GROUP BY PARTITION, DATAAREAID
+	) 
+	,
+ 	INVENTSUM_CLEANUP_CTE (PARTITION, DATAAREAID, INVENTSUM_CLEANUP_RECORDS)
+	AS (SELECT PARTITION, DATAAREAID, COUNT (DATAAREAID) AS INVENTSUM_CLEANUP_COUNT
+	FROM INVENTSUM IVS 
+	WHERE CLOSED = 1 
+	AND EXISTS (SELECT 'x' FROM INVENTTRANS IVT WHERE STATUSISSUE <> 1 AND STATUSRECEIPT <> 1 AND IVS.PARTITION = IVT.PARTITION AND IVS.DATAAREAID = IVT.DATAAREAID AND IVS.INVENTDIMID = IVT.INVENTDIMID)
+	AND NOT EXISTS (SELECT 'x' FROM WHSINVENTENABLED WIE WHERE WIE.PARTITION = IVS.PARTITION AND WIE.DATAAREAID = IVS.DATAAREAID AND WIE.ITEMID = IVS.ITEMID)
+	GROUP BY PARTITION, DATAAREAID
+	)
+ 
+	SELECT P.NAME, CTE1.DATAAREAID, CAST ((CAST((INVENTSUM_CLEANUP_RECORDS) AS DECIMAL(20,2))/(CAST((INVENTSUM_TOTAL_RECORDS) AS DECIMAL(20,2))) * 100) AS DECIMAL(5,2)) AS PERCENT_CLEANUP, CTE2.INVENTSUM_CLEANUP_RECORDS AS CLEANUP_RECORD_COUNT, CTE1.INVENTSUM_TOTAL_RECORDS AS TOTAL_RECORD_COUNT
+	FROM INVENTSUM_TOTAL_CTE CTE1
+	JOIN INVENTSUM_CLEANUP_CTE CTE2 ON CTE1.PARTITION = CTE2.PARTITION AND CTE1.DATAAREAID = CTE2.DATAAREAID
+	JOIN PARTITIONS P ON CTE1.PARTITION = P.RECID
+	ORDER BY PERCENT_CLEANUP DESC
+
+	OPEN cleanupCursor;
+	FETCH NEXT FROM cleanupCursor INTO @Partition, @DataAreaID, @PercentCleanup, @CleanupRecordCount, @TotalRecordCount;
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+		IF(@CleanupRecordCount > @CleanupRecordCountThreshold)
+		BEGIN
+			SET @AdditionalComments = @AdditionalComments + '[' + @Partition + ', ' +  @DataAreaID + ', ' + @PercentCleanup + '%, ' + @CleanupRecordCount + ', ' + @TotalRecordCount + '] | ';
+		END
+		FETCH NEXT FROM cleanupCursor INTO  @Partition, @DataAreaID, @PercentCleanup, @CleanupRecordCount, @TotalRecordCount;
+	END;
+	CLOSE cleanupCursor;
+	DEALLOCATE cleanupCursor;
+	IF (@AdditionalComments != '')
+	BEGIN
+		SET @AdditionalComments = 'Cleanup details for table INVENTSUM by company (Partition, Company, % Cleanup, Cleanup Records, Total Records): ' + @AdditionalComments
+		INSERT INTO #D365UpgradeAnalysisReport (RuleID, RuleSection, RuleName, Observation, Recommendation, AdditionalComments)
+		VALUES (@RuleId, @RuleSection, @RuleName, @Observation, @Recommendation, @AdditionalComments);
+	END
+
 
 --
 -- Additional Rule Code Template Section
