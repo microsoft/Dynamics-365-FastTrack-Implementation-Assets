@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<WebResource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <WebResourceId>{efcebfc2-20cb-ed11-b597-00224805c057}</WebResourceId>
+  <Name>extn_/sample/stylesheet.css</Name>
+  <DisplayName>extn_/sample/stylesheet.css</DisplayName>
+  <WebResourceType>2</WebResourceType>
+  <IntroducedVersion>1.0.0.0</IntroducedVersion>
+  <IsEnabledForMobileClient>0</IsEnabledForMobileClient>
+  <IsAvailableForMobileOffline>0</IsAvailableForMobileOffline>
+  <IsCustomizable>1</IsCustomizable>
+  <CanBeDeleted>1</CanBeDeleted>
+  <IsHidden>0</IsHidden>
+  <FileName>/WebResources/extn_samplestylesheetcssEFCEBFC2-20CB-ED11-B597-00224805C057</FileName>
+</WebResource>
