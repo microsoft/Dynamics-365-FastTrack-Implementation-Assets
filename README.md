@@ -19,7 +19,7 @@ Guidance on onboarding samples to docs.microsoft.com/samples: https://review.doc
 Taxonomies for products and languages: https://review.docs.microsoft.com/new-hope/information-architecture/metadata/taxonomies?branch=master
 -->
 
-The Dynamics 365 FastTrack team uses this repository to share Dynamics 365 F&O and Commerce best implementation guidelines. These may be documentation, extension code, business practices etc. 
+The Dynamics 365 FastTrack team uses this repository to share Dynamics 365 Customer Service, Dynamics 365 F&O and Commerce best implementation guidelines. These may be documentation, extension code, business practices etc. 
 
 ## Contents
 
@@ -37,6 +37,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 | [`Cloud security`](CloudSecurity)      | Dynamics 365 Cloud security guides         |
 | [`Integration`](Integration)           | Dynamics 365 integration samples           |
 | [`Monitoring and Telemetry`](MonitoringandTelemetry)           | Monitoring Dynamics 365 using App Insights           |
+| [`Customer Service`](Customer%20Service) | Dynamics 365 Customer Service samples & guides |
 | [`.gitignore`](.gitignore)             | Define what to ignore at commit time.      |
 | `CHANGELOG.md`                         | List of changes to the sample.             |
 | [`CONTRIBUTING.md`](#contributing)     | Guidelines for contributing to the sample. |
@@ -73,6 +74,9 @@ Outline the file contents of the repository. It helps users navigate the codebas
 
 ### Integration
 - [Integration](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Integration) Dynamics 365 integration samples.
+
+### Customer Service
+- [Solution Component Validator](/Customer%20Service/ALM) Sample to monitor components in solutions based on Horizontal Solution Segmentation approach.
 
 ## Contributing
 
