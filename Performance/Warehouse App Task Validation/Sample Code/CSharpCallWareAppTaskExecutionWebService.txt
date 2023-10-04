@@ -61,9 +61,9 @@ namespace WHSPerfAPICall
         //static async Task Run(long recId, string userID, string replacementVar)
         static async Task Run(long _WHSValidatorRunTaskRecId, string _userID)
         {
-            const string appId = "d71c73a8-ab3e-45ee-86f1-94f845f4bf";
-            const string appSecret = "UdZ7Q~Ze4JgGxzRevvhn5pkcHbAbhHInSin";
-            var aadClient = ConfidentialClientApplicationBuilder.Create(appId).WithAuthority("https://login.windows.net/axsolutionsarchitecture.com").WithClientSecret(appSecret).Build();
+            const string appId = "<appId>";
+            const string appSecret = "<appSecret>";
+            var aadClient = ConfidentialClientApplicationBuilder.Create(appId).WithAuthority("https://login.windows.net/<tenant>").WithClientSecret(appSecret).Build();
            
             var token = await aadClient.AcquireTokenForClient(new[] { "https://ftscmlab1.sandbox.operations.dynamics.com/.default" }).ExecuteAsync();
 
