@@ -34,6 +34,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 | [`Dual-write`](Dual-write)             | Dymamics 365 Dual-write guides             |
 | [`SCM`](SCM)      		                 | Tools for SCM and WHS solutions            |
 | [`ScheduleAPI`](ScheduleAPI)	         | Project Operations - Schedule API example  |
+| [`PO-DataMigration`](PO-DataMigration) | Project Operations - ADF data migration    |
 | [`Cloud security`](CloudSecurity)      | Dynamics 365 Cloud security guides         |
 | [`Integration`](Integration)           | Dynamics 365 integration samples           |
 | [`Monitoring and Telemetry`](MonitoringandTelemetry)           | Monitoring Dynamics 365 using App Insights           |
