@@ -68,8 +68,8 @@ Outline the file contents of the repository. It helps users navigate the codebas
 - [Small Parcel Shipping Tools](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/SCM/SPS) A sample TMS DLL is included for testing SPS scenarios without a live connection to a carrier.
 
 ### Project Operations - Schedule API
-- [Schedule API](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/ScheduleAPI) A PowerShell sample to illustrate the Schedule API for Project Operastions.
-- [Schedule API](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/PO-DataMigration) An Azure Data Factory sample to illustrate data migration for Project Operastions.
+- [Schedule API](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/ScheduleAPI) A PowerShell sample to illustrate the Schedule API for Project Operations.
+- [PO-DataMigration](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/PO-DataMigration) An Azure Data Factory sample to illustrate data migration for Project Operations.
 
 ### Cloud Security
 - [Conditional access](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/CloudSecurity/ConditionalAccess/readme.md) 
