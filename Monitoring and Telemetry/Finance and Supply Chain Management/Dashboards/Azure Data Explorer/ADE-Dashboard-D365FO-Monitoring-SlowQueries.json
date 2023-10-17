@@ -1,0 +1,369 @@
+{
+    "$schema": "https://dataexplorer.azure.com/static/d/schema/46/dashboard.json",
+    "id": "2178d083-6209-4c51-9d90-2559930a4305",
+    "eTag": "7ac01f31-bb32-447a-b391-b8a8def2d58b",
+    "schema_version": "46",
+    "title": "D365FO-Monitoring-SlowQueries",
+    "autoRefresh": {
+        "enabled": false
+    },
+    "baseQueries": [],
+    "tiles": [
+        {
+            "id": "e2c8ac0b-7ccb-4a47-9930-a1214ff41d44",
+            "title": "Slow queries reported by AOS (Top 100)",
+            "description": "",
+            "visualType": "table",
+            "pageId": "57b9f821-760e-45d0-82ee-71fb8dc71d79",
+            "layout": {
+                "x": 0,
+                "y": 9,
+                "width": 24,
+                "height": 8
+            },
+            "query": {
+                "kind": "inline",
+                "dataSource": {
+                    "kind": "inline",
+                    "dataSourceId": "99f48c40-4d08-4070-af47-32e2e6e0fda7"
+                },
+                "usedVariables": [
+                    "_city",
+                    "_endTime",
+                    "_queryType",
+                    "_startTime"
+                ],
+                "text": "customEvents\n| where timestamp  between (_startTime .. _endTime)\n| where name == \"LongRunningQuery\"\n| where isempty(['_city']) or client_City in (['_city'])\n| extend LegalEntity            = customDimensions.LegalEntity\n    ,   ExecutionMode           = customDimensions.ExecutionMode\n    ,   ExecutionTimeSeconds    = customDimensions.ExecutionTimeSeconds\n    ,   CallStack               = customDimensions.CallStack\n    ,   QueryType               = customDimensions.QueryType\n    ,   Success                 = customDimensions.Success\n    ,   JoinCount               = customDimensions.JoinCount\n    ,   ReturnedRowCount        = customDimensions.ReturnedRowCount\n| where isempty(['_queryType']) or QueryType in (['_queryType'])\n| limit 100\n| project [\"Timestamp\"]             = timestamp\n        , [\"Session ID\"]            = session_Id\n        , [\"User ID\"]               = user_Id\n        , [\"Legal Entity\"]          = LegalEntity\n        , [\"Execution Mode\"]        = ExecutionMode\n        , [\"Query Type\"]            = QueryType\n        , [\"Execution Time (s)\"]    = ExecutionTimeSeconds\n        , [\"Join Count\"]            = JoinCount\n        , [\"Returned Row Count\"]    = ReturnedRowCount\n        , Success, CallStack \n        , [\"Client City\"]           = client_City\n        , [\"Client Country\"]        = client_CountryOrRegion"
+            },
+            "visualOptions": {
+                "table__enableRenderLinks": true,
+                "colorRules": [],
+                "colorRulesDisabled": true,
+                "colorStyle": "light",
+                "crossFilterDisabled": false,
+                "drillthroughDisabled": false,
+                "crossFilter": [],
+                "drillthrough": [],
+                "table__renderLinks": []
+            }
+        },
+        {
+            "id": "5809a22f-397a-4bd8-9ca2-70c06894ba39",
+            "title": "Slow queries over time",
+            "description": "",
+            "visualType": "timechart",
+            "pageId": "57b9f821-760e-45d0-82ee-71fb8dc71d79",
+            "layout": {
+                "x": 0,
+                "y": 0,
+                "width": 8,
+                "height": 9
+            },
+            "query": {
+                "kind": "inline",
+                "dataSource": {
+                    "kind": "inline",
+                    "dataSourceId": "99f48c40-4d08-4070-af47-32e2e6e0fda7"
+                },
+                "usedVariables": [
+                    "_city",
+                    "_endTime",
+                    "_queryType",
+                    "_startTime"
+                ],
+                "text": "customEvents\n| where timestamp  between (_startTime .. _endTime)\n| where name == \"LongRunningQuery\"\n| where isempty(['_city']) or client_City in (['_city'])\n| extend LegalEntity            = customDimensions.LegalEntity\n    ,   ExecutionMode           = customDimensions.ExecutionMode\n    ,   ExecutionTimeSeconds    = customDimensions.ExecutionTimeSeconds\n    ,   CallStack               = customDimensions.CallStack\n    ,   QueryType               = customDimensions.QueryType\n    ,   Success                 = customDimensions.Success\n    ,   JoinCount               = customDimensions.JoinCount\n    ,   ReturnedRowCount        = customDimensions.ReturnedRowCount\n| where isempty(['_queryType']) or QueryType  in (['_queryType'])\n| project [\"Timestamp\"]             = timestamp\n        , [\"Name\"]                  = name\n        , [\"Session ID\"]            = session_Id\n        , [\"User ID\"]               = user_Id\n        , [\"Legal Entity\"]          = LegalEntity\n        , [\"Execution Mode\"]        = ExecutionMode\n        , [\"Query Type\"]            = QueryType\n        , [\"Execution Time (s)\"]    = ExecutionTimeSeconds\n        , [\"Join Count\"]            = JoinCount\n        , [\"Returned Row Count\"]    = ReturnedRowCount\n        , Success, CallStack \n        , [\"Client City\"]           = client_City\n        , [\"Client Country\"]        = client_CountryOrRegion\n| summarize [\"Slow Queries\"] = count() by bin(Timestamp, 1h)"
+            },
+            "visualOptions": {
+                "multipleYAxes": {
+                    "base": {
+                        "id": "-1",
+                        "label": "",
+                        "columns": [],
+                        "yAxisMaximumValue": null,
+                        "yAxisMinimumValue": null,
+                        "yAxisScale": "linear",
+                        "horizontalLines": []
+                    },
+                    "additional": [],
+                    "showMultiplePanels": false
+                },
+                "hideLegend": false,
+                "xColumnTitle": "",
+                "xColumn": null,
+                "yColumns": null,
+                "seriesColumns": null,
+                "xAxisScale": "linear",
+                "verticalLine": "",
+                "crossFilterDisabled": false,
+                "drillthroughDisabled": false,
+                "crossFilter": [],
+                "drillthrough": []
+            }
+        },
+        {
+            "id": "82e3f98d-f79f-4611-8b7e-c559d88927f0",
+            "title": "Slow queries by query type",
+            "description": "",
+            "visualType": "column",
+            "pageId": "57b9f821-760e-45d0-82ee-71fb8dc71d79",
+            "layout": {
+                "x": 8,
+                "y": 0,
+                "width": 8,
+                "height": 9
+            },
+            "query": {
+                "kind": "inline",
+                "dataSource": {
+                    "kind": "inline",
+                    "dataSourceId": "99f48c40-4d08-4070-af47-32e2e6e0fda7"
+                },
+                "usedVariables": [
+                    "_city",
+                    "_endTime",
+                    "_startTime"
+                ],
+                "text": "customEvents\n| where timestamp  between (_startTime .. _endTime)\n| where name == \"LongRunningQuery\"\n| where isempty(['_city']) or client_City in (['_city'])\n| extend LegalEntity            = customDimensions.LegalEntity\n    ,   ExecutionMode           = customDimensions.ExecutionMode\n    ,   ExecutionTimeSeconds    = customDimensions.ExecutionTimeSeconds\n    ,   CallStack               = customDimensions.CallStack\n    ,   QueryType               = customDimensions.QueryType\n    ,   Success                 = customDimensions.Success\n    ,   JoinCount               = customDimensions.JoinCount\n    ,   ReturnedRowCount        = customDimensions.ReturnedRowCount\n| project [\"Timestamp\"]             = timestamp\n        , [\"Name\"]                  = name\n        , [\"Session ID\"]            = session_Id\n        , [\"User ID\"]               = user_Id\n        , [\"Legal Entity\"]          = LegalEntity\n        , [\"Execution Mode\"]        = ExecutionMode\n        , [\"Query Type\"]            = tostring(QueryType)\n        , [\"Execution Time (s)\"]    = ExecutionTimeSeconds\n        , [\"Join Count\"]            = JoinCount\n        , [\"Returned Row Count\"]    = ReturnedRowCount\n        , Success, CallStack \n        , [\"Client City\"]           = client_City\n        , [\"Client Country\"]        = client_CountryOrRegion\n| summarize [\"Slow Queries\"] = count() by ['Query Type']\n"
+            },
+            "visualOptions": {
+                "multipleYAxes": {
+                    "base": {
+                        "id": "-1",
+                        "label": "Number of queries",
+                        "columns": [],
+                        "yAxisMaximumValue": null,
+                        "yAxisMinimumValue": null,
+                        "yAxisScale": "linear",
+                        "horizontalLines": []
+                    },
+                    "additional": [],
+                    "showMultiplePanels": false
+                },
+                "hideLegend": false,
+                "xColumnTitle": "Query Type",
+                "xColumn": null,
+                "yColumns": null,
+                "seriesColumns": null,
+                "xAxisScale": "linear",
+                "verticalLine": "",
+                "crossFilterDisabled": false,
+                "drillthroughDisabled": true,
+                "crossFilter": [
+                    {
+                        "interaction": "column",
+                        "property": "Query Type",
+                        "parameterId": "f9cae1c1-10c8-4ab1-ada6-e1a7b0cb675d",
+                        "disabled": false
+                    }
+                ],
+                "drillthrough": []
+            }
+        },
+        {
+            "id": "06cc23e1-c57c-401e-977b-c6b22b9d7963",
+            "title": "Slow queries by client country / city",
+            "description": "",
+            "visualType": "column",
+            "pageId": "57b9f821-760e-45d0-82ee-71fb8dc71d79",
+            "layout": {
+                "x": 16,
+                "y": 0,
+                "width": 8,
+                "height": 9
+            },
+            "query": {
+                "kind": "inline",
+                "dataSource": {
+                    "kind": "inline",
+                    "dataSourceId": "99f48c40-4d08-4070-af47-32e2e6e0fda7"
+                },
+                "usedVariables": [
+                    "_endTime",
+                    "_queryType",
+                    "_startTime"
+                ],
+                "text": "customEvents\n| where timestamp  between (_startTime .. _endTime)\n| where name == \"LongRunningQuery\"\n| extend LegalEntity            = customDimensions.LegalEntity\n    ,   ExecutionMode           = customDimensions.ExecutionMode\n    ,   ExecutionTimeSeconds    = customDimensions.ExecutionTimeSeconds\n    ,   CallStack               = customDimensions.CallStack\n    ,   QueryType               = customDimensions.QueryType\n    ,   Success                 = customDimensions.Success\n    ,   JoinCount               = customDimensions.JoinCount\n    ,   ReturnedRowCount        = customDimensions.ReturnedRowCount\n| where isempty(['_queryType']) or QueryType in (['_queryType'])\n| project [\"Timestamp\"]             = timestamp\n        , [\"Name\"]                  = name\n        , [\"Session ID\"]            = session_Id\n        , [\"User ID\"]               = user_Id\n        , [\"Legal Entity\"]          = LegalEntity\n        , [\"Execution Mode\"]        = ExecutionMode\n        , [\"Query Type\"]            = tostring(QueryType)\n        , [\"Execution Time (s)\"]    = ExecutionTimeSeconds\n        , [\"Join Count\"]            = JoinCount\n        , [\"Returned Row Count\"]    = ReturnedRowCount\n        , Success, CallStack \n        , [\"Client City\"]           = client_City\n        , [\"Client Country\"]        = client_CountryOrRegion\n| summarize [\"Slow Queries\"] = count() by ['Client Country'], ['Client City']\n"
+            },
+            "visualOptions": {
+                "multipleYAxes": {
+                    "base": {
+                        "id": "-1",
+                        "label": "Number of queries",
+                        "columns": [],
+                        "yAxisMaximumValue": null,
+                        "yAxisMinimumValue": null,
+                        "yAxisScale": "linear",
+                        "horizontalLines": []
+                    },
+                    "additional": [],
+                    "showMultiplePanels": false
+                },
+                "hideLegend": false,
+                "xColumnTitle": "Query Type",
+                "xColumn": null,
+                "yColumns": null,
+                "seriesColumns": null,
+                "xAxisScale": "linear",
+                "verticalLine": "",
+                "crossFilterDisabled": false,
+                "drillthroughDisabled": false,
+                "crossFilter": [
+                    {
+                        "interaction": "column",
+                        "property": "Client City",
+                        "parameterId": "b1c9bd85-d46b-4eb4-981f-e3489fb7c4a1",
+                        "disabled": false
+                    },
+                    {
+                        "disabled": false
+                    }
+                ],
+                "drillthrough": []
+            }
+        },
+        {
+            "id": "b053ab8c-0996-410b-92a0-84c625fe1135",
+            "title": "Top 25 slow queries by duration",
+            "description": "",
+            "visualType": "table",
+            "pageId": "57b9f821-760e-45d0-82ee-71fb8dc71d79",
+            "layout": {
+                "x": 0,
+                "y": 17,
+                "width": 24,
+                "height": 8
+            },
+            "query": {
+                "kind": "inline",
+                "dataSource": {
+                    "kind": "inline",
+                    "dataSourceId": "99f48c40-4d08-4070-af47-32e2e6e0fda7"
+                },
+                "usedVariables": [
+                    "_city",
+                    "_endTime",
+                    "_queryType",
+                    "_startTime"
+                ],
+                "text": "customEvents\n| where timestamp  between (_startTime .. _endTime)\n| where name == \"LongRunningQuery\"\n| where isempty(['_city']) or client_City in (['_city'])\n| extend LegalEntity            = tostring(customDimensions.LegalEntity)\n    ,   ExecutionMode           = tostring(customDimensions.ExecutionMode)\n    ,   ExecutionTimeSeconds    = tostring(customDimensions.ExecutionTimeSeconds)\n    ,   CallStack               = tostring(customDimensions.CallStack)\n    ,   QueryType               = tostring(customDimensions.QueryType)\n    ,   Success                 = tostring(customDimensions.Success)\n    ,   JoinCount               = tostring(customDimensions.JoinCount)\n    ,   ReturnedRowCount        = tostring(customDimensions.ReturnedRowCount)\n| where isempty(['_queryType']) or QueryType in (['_queryType'])\n| order by ExecutionTimeSeconds desc\n| limit 25\n| project [\"Timestamp\"]             = timestamp\n        , [\"Session ID\"]            = session_Id\n        , [\"User ID\"]               = user_Id\n        , [\"Legal Entity\"]          = LegalEntity\n        , [\"Execution Mode\"]        = ExecutionMode\n        , [\"Query Type\"]            = QueryType\n        , [\"Execution Time (s)\"]    = ExecutionTimeSeconds\n        , [\"Join Count\"]            = JoinCount\n        , [\"Returned Row Count\"]    = ReturnedRowCount\n        , Success, CallStack \n        , [\"Client City\"]           = client_City\n        , [\"Client Country\"]        = client_CountryOrRegion"
+            },
+            "visualOptions": {
+                "table__enableRenderLinks": true,
+                "colorRules": [],
+                "colorRulesDisabled": true,
+                "colorStyle": "light",
+                "crossFilterDisabled": false,
+                "drillthroughDisabled": false,
+                "crossFilter": [],
+                "drillthrough": [],
+                "table__renderLinks": []
+            }
+        }
+    ],
+    "parameters": [
+        {
+            "kind": "duration",
+            "id": "42794f52-6782-487c-b413-b6b565549995",
+            "displayName": "Time range",
+            "description": "",
+            "beginVariableName": "_startTime",
+            "endVariableName": "_endTime",
+            "defaultValue": {
+                "kind": "dynamic",
+                "count": 1,
+                "unit": "hours"
+            },
+            "showOnPages": {
+                "kind": "all"
+            }
+        },
+        {
+            "kind": "string",
+            "id": "f9cae1c1-10c8-4ab1-ada6-e1a7b0cb675d",
+            "displayName": "Query Type",
+            "description": "",
+            "variableName": "_queryType",
+            "selectionType": "array",
+            "includeAllOption": true,
+            "defaultValue": {
+                "kind": "all"
+            },
+            "dataSource": {
+                "kind": "query",
+                "columns": {
+                    "value": "QueryType"
+                },
+                "query": {
+                    "kind": "inline",
+                    "dataSource": {
+                        "kind": "inline",
+                        "dataSourceId": "99f48c40-4d08-4070-af47-32e2e6e0fda7"
+                    },
+                    "usedVariables": [
+                        "_endTime",
+                        "_startTime"
+                    ],
+                    "text": "customEvents\n| where timestamp between (_startTime .. _endTime)\n| where name == \"LongRunningQuery\"\n| project QueryType = tostring(customDimensions.QueryType)\n| distinct QueryType"
+                }
+            },
+            "showOnPages": {
+                "kind": "selection",
+                "pageIds": [
+                    "57b9f821-760e-45d0-82ee-71fb8dc71d79"
+                ]
+            }
+        },
+        {
+            "kind": "string",
+            "id": "b1c9bd85-d46b-4eb4-981f-e3489fb7c4a1",
+            "displayName": "City",
+            "description": "",
+            "variableName": "_city",
+            "selectionType": "array",
+            "includeAllOption": true,
+            "defaultValue": {
+                "kind": "all"
+            },
+            "dataSource": {
+                "kind": "query",
+                "columns": {
+                    "value": "client_City"
+                },
+                "query": {
+                    "kind": "inline",
+                    "dataSource": {
+                        "kind": "inline",
+                        "dataSourceId": "99f48c40-4d08-4070-af47-32e2e6e0fda7"
+                    },
+                    "usedVariables": [
+                        "_endTime",
+                        "_startTime"
+                    ],
+                    "text": "customEvents\n| where timestamp between (_startTime .. _endTime)\n| where name == 'LongRunningQuery'\n| distinct client_City\n"
+                }
+            },
+            "showOnPages": {
+                "kind": "selection",
+                "pageIds": [
+                    "57b9f821-760e-45d0-82ee-71fb8dc71d79"
+                ]
+            }
+        }
+    ],
+    "dataSources": [
+        {
+            "id": "99f48c40-4d08-4070-af47-32e2e6e0fda7",
+            "name": "KSAppInsights1037",
+            "clusterUri": "https://ade.applicationinsights.io/subscriptions/47620b96-6792-4a5d-9c55-d719e70721c1/resourcegroups/KSAppInsights1037/providers/microsoft.insights/components/KSAppInsights1037",
+            "database": "KSAppInsights1037",
+            "kind": "manual-kusto",
+            "scopeId": "kusto"
+        }
+    ],
+    "pages": [
+        {
+            "name": "Slow Queries",
+            "id": "57b9f821-760e-45d0-82ee-71fb8dc71d79"
+        }
+    ]
+}
