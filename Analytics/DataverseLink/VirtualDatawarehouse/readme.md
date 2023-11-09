@@ -3,11 +3,11 @@ Step 1: Create a new database in Synapse Serveless SQL pool.
 ```sql
 --STEP 1: Create a new database in Synapse serverless 
 -- TODO: UPDATE Database as needed, 
-IF NOT EXISTS (SELECT 1 FROM sys.databases WHERE name = 'dataverse_financecds_unqc2dfa2ec0ee14ae4a9036c9734cba_new')
-	create database [dataverse_financecds_unqc2dfa2ec0ee14ae4a9036c9734cba_new]
+IF NOT EXISTS (SELECT 1 FROM sys.databases WHERE name = 'YourNewDataBaseName')
+	create database [YourNewDataBaseName]
 
 -- STEP 2: Switch to new database created
---use [dataverse_financecds_unqc2dfa2ec0ee14ae4a9036c9734cba_new]
+--use [YourNewDataBaseName]
 
 --Step 3 : Create Master Key  
 -- Create Marker KEY Encryption if not exist - this is required to create database scope credentials 
@@ -35,7 +35,7 @@ Step 3: Run the following script to create openrowset views for all the delta ta
 -- Transition Export to data lake to Synapse link for DV easily.
 
 	-- TODO:UPDATE @StorageDS VALUE: Storage account URL including container
-	declare @StorageDS nvarchar(1000) = 'https://ftfinanced365fo.dfs.core.windows.net/dataverse-financecds-unqc2dfa2ec0ee14ae4a9036c9734cba'
+	declare @StorageDS nvarchar(1000) = 'https://YourDatalake.dfs.core.windows.net/YourContainer'
 	declare @sourcechema nvarchar(100) = 'dbo'
 	-- TODO: Set the flag @incrementalCSV = 1 when  storage account is setup for Incremental folder (CSV data), 0 when synpse link is setup with delta conversion
     declare @incrementalCSV int = 0;
