@@ -33,7 +33,7 @@ alt="Synapse Link for Dataverse" width="2000" height="500" border="10" />
 ### Data virtualization 
 
 <img src="datavirtualization.png" 
-alt="Synapse Link for Dataverse" width="100" height="100" border="10" />
+alt="Synapse Link for Dataverse" width="300" height="100" border="300" />
 
 
 
