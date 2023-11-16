@@ -2,10 +2,7 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'dvtosql')
 BEGIN
     EXEC('CREATE SCHEMA dvtosql')
 END
-
 GO
-
---create database finance_sandbox_operations_dynamics_com_dataverse
 
 CREATE OR ALTER PROC dvtosql.source_SetupExternalDataSource(@StorageDS nvarchar(2000), @SaaSToken nvarchar(1000) ='',
 @storageDSUriScheme nvarchar(100) = 'adls:', @externalds_name nvarchar(1000) OUTPUT)
@@ -115,7 +112,13 @@ FROM (SELECT
 )y;', '{externaldatasource}', @externaldatasource) ;
 
 --print(@getenumtranslation);
-execute sp_executesql @getenumtranslation, @ParmDefinition, @enumtranslation=@enumtranslation OUTPUT;
+begin try
+execute sp_executesql @getenumtranslation, @ParmDefinition, @enumtranslation=@enumtranslation OUTPUT; 
+end try 
+begin catch
+
+END CATCH;
+
 
 set @modeljson = isnull(@modeljson, '{}') ;
 set @enumtranslation = isnull(@enumtranslation, '{}') ;
@@ -381,94 +384,6 @@ execute sp_executesql @ddl_fno_derived_tables;
 
 GO
 
-
-CREATE or ALTER PROC dvtosql.target_GetSetSQLMetadata
-(
-	@tableschema nvarchar(10), 
-	@StorageDS nvarchar(2000) = '', 
-	@sqlMetadata nvarchar(max) = '{}', 
-	@datetime_markercolumn nvarchar(100)= 'SinkModifiedOn',
-	@bigint_markercolumn nvarchar(100) = 'versionnumber',
-	@lastdatetimemarker nvarchar(max) = '1900-01-01',
-	@controltable nvarchar(max) OUTPUT
-)
-AS
-
-declare  @storageaccount nvarchar(1000);
-declare  @container nvarchar(1000);
-declare  @externalds_name nvarchar(1000);
-
-if @StorageDS != ''
-begin
-	set @storageaccount = (select value from string_split(@StorageDS, '/', 1) where ordinal = 3)
-	set @container = (select value from string_split(@StorageDS, '/', 1) where ordinal = 4)
-end
-
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dvtosql].[_controltableforcopy]') AND type in (N'U'))
-	CREATE TABLE [dvtosql].[_controltableforcopy]
-	(
-		[tableschema] [varchar](20) null,
-		[tablename] [varchar](255) null,
-		[datetime_markercolumn] varchar(100),
-		[bigint_markercolumn] varchar(100),
-		[storageaccount] varchar(1000) null,
-		[container] varchar(1000) null,
-		[environment] varchar(1000) null,
-		[datapath] varchar(1000) null,
-		[lastcopystartdatetime] [datetime2](7) null,
-		[lastcopyenddatetime] [datetime2](7) null,
-		[lastdatetimemarker] [datetime2](7) default '1/1/1900',
-		[lastbigintmarker] bigint default -1,
-		[lastcopystatus] [int] default 0,
-		[refreshinterval] [int] default 60,
-		[active] int default 1,
-		[selectcolumns] nvarchar(max) null,
-		[datatypes] nvarchar(max) null,
-		[columnnames] nvarchar(max) null,
-		[distribution] nvarchar(400) default 'round_robin'
-	);
-	
-
-With sqlmetadata as 
-(
-	select * 
-	from openjson(@sqlmetadata) with([tablename] NVARCHAR(200), [selectcolumns] NVARCHAR(MAX), datatypes NVARCHAR(MAX), columnnames NVARCHAR(MAX)) t
-)
-MERGE INTO [dvtosql].[_controltableforcopy] AS target
-	USING sqlmetadata AS source
-	ON target.tableschema = @tableschema and  target.tablename = source.tablename
-	WHEN MATCHED AND (target.datatypes != source.datatypes) THEN 
-		UPDATE SET  target.datatypes = source.datatypes, target.selectcolumns = source.selectcolumns, target.columnnames = source.columnnames 
-	WHEN NOT MATCHED BY TARGET THEN 
-		INSERT (tableschema, tablename, datetime_markercolumn, bigint_markercolumn, storageaccount, container, environment, datapath, selectcolumns, datatypes, columnnames)
-		VALUES (@tableschema, tablename, @datetime_markercolumn,@bigint_markercolumn, @storageaccount, @container, @container, '*\' + tablename + '\*.csv', selectcolumns, datatypes, columnnames);
-	
-
-select @controltable  = 
- (
-	select 
-		[tableschema], 
-		[tablename], 
-		[datetime_markercolumn],
-		[bigint_markercolumn],
-		case 
-			when @lastdatetimemarker  = '1900-01-01' Then isnull([lastdatetimemarker], '')  
-			else @lastdatetimemarker 
-		end as lastdatetimemarker,
-		lastbigintmarker,
-		lastcopystatus,
-		[active],
-		environment,  
-		datatypes, 
-		columnnames,
-		replace(selectcolumns, '''','''''') as selectcolumns
-	from [dvtosql].[_controltableforcopy]
-	where  [active] = 1
-	FOR JSON PATH
-	)
-
-GO
-
 CREATE or ALTER PROC dvtosql.source_GetNewDataToCopy
 (
 	@controltable nvarchar(max), 
@@ -492,14 +407,15 @@ CREATE TABLE #controltable
 		lastcopystatus int,
 		lastbigintmarker bigint,
 		[active] int,
+		[incremental] int,
 		[selectcolumns] nvarchar(max) null,
 		[datatypes] nvarchar(max) null,
 		[columnnames] nvarchar(max) null
 	);
 
-insert into #controltable (tableschema, tablename,datetime_markercolumn,bigint_markercolumn, environment, lastdatetimemarker, lastcopystatus, lastbigintmarker, active, selectcolumns, datatypes, columnnames)
-select tableschema, tablename, datetime_markercolumn,bigint_markercolumn, environment, lastdatetimemarker, lastcopystatus, lastbigintmarker, active, selectcolumns, datatypes, columnnames  from openjson(@controltable)
-	with (tableschema nvarchar(100), tablename nvarchar(200), datetime_markercolumn varchar(100),bigint_markercolumn varchar(100), lastdatetimemarker nvarchar(100), active int, environment nvarchar(100) ,lastcopystatus int,lastbigintmarker bigint, 
+insert into #controltable (tableschema, tablename,datetime_markercolumn,bigint_markercolumn, environment, lastdatetimemarker, lastcopystatus, lastbigintmarker, active, incremental, selectcolumns, datatypes, columnnames)
+select tableschema, tablename, datetime_markercolumn,bigint_markercolumn, environment, lastdatetimemarker, lastcopystatus, lastbigintmarker, active, incremental, selectcolumns, datatypes, columnnames  from openjson(@controltable)
+	with (tableschema nvarchar(100), tablename nvarchar(200), datetime_markercolumn varchar(100),bigint_markercolumn varchar(100), lastdatetimemarker nvarchar(100), active int, incremental int, environment nvarchar(100) ,lastcopystatus int,lastbigintmarker bigint, 
 	columnnames nvarchar(max), selectcolumns nvarchar(max), datatypes nvarchar(max) )
 
 select 
@@ -510,14 +426,17 @@ where
 	lastcopystatus != 1	and 
 	lastdatetimemarker != '1900-01-01T00:00:00';
 
+set  @lastdatetimemarker = isnull(@lastdatetimemarker, '1900-01-01T00:00:00')
+
 
 declare @tablelist_inNewFolders nvarchar(max);
 declare @minfoldername nvarchar(100) = '';
 declare @maxfoldername nvarchar(100) = '';
 declare @SelectTableData nvarchar(max);
 declare @newdatetimemarker datetime2 = getdate();
+declare @whereClause nvarchar(200) = ' where {datetime_markercolumn} between ''{lastdatetimemarker}'' and ''{newdatetimemarker}'' and {bigint_markercolumn} > {lastbigintmarker}';
 
-set @SelectTableData  = 'SELECT * from {tableschema}.{tablename} where {datetime_markercolumn} between ''{lastdatetimemarker}'' and ''{newdatetimemarker}'' and {bigint_markercolumn} > {lastbigintmarker}';
+set @SelectTableData  = 'SELECT * from {tableschema}.{tablename}';
 
 IF (@incrementalCSV = 1)
 	BEGIN;
@@ -577,7 +496,7 @@ IF (@incrementalCSV = 1)
 		tablename,
 		lastdatetimemarker,
 		@newdatetimemarker as newdatetimemarker ,
-		replace(replace(replace(replace(replace(replace(replace(@SelectTableData, 
+		replace(replace(replace(replace(replace(replace(replace(convert(nvarchar(max),@SelectTableData  + (case when incremental =1 then @whereClause else '' end)), 
 		'{tableschema}', @sourcetableschema),
 		'{tablename}', tablename),
 		'{lastdatetimemarker}', lastdatetimemarker),
@@ -585,7 +504,8 @@ IF (@incrementalCSV = 1)
 		'{lastbigintmarker}', lastbigintmarker),
 		'{datetime_markercolumn}', datetime_markercolumn),
 		'{bigint_markercolumn}', bigint_markercolumn)
-		 as selectquery
+		 as selectquery,
+		 datatypes
 	from #controltable
 	where 
 		(@incrementalCSV = 0 OR tablename in (select value from string_split(@tablelist_inNewFolders, ','))) and 
@@ -594,6 +514,156 @@ IF (@incrementalCSV = 1)
 
 
 GO
+
+
+CREATE or ALTER PROC dvtosql.target_GetSetSQLMetadata
+(
+	@tableschema nvarchar(10), 
+	@StorageDS nvarchar(2000) = '', 
+	@sqlMetadata nvarchar(max) = '{}', 
+	@datetime_markercolumn nvarchar(100)= 'SinkModifiedOn',
+	@bigint_markercolumn nvarchar(100) = 'versionnumber',
+	@lastdatetimemarker nvarchar(max) = '1900-01-01',
+	@controltable nvarchar(max) OUTPUT
+)
+AS
+
+declare  @storageaccount nvarchar(1000);
+declare  @container nvarchar(1000);
+declare  @externalds_name nvarchar(1000);
+declare  @fullexportList nvarchar(max)= 'GlobalOptionsetMetadata,OptionsetMetadata,StateMetadata,StatusMetadata,TargetMetadata';
+
+if @StorageDS != ''
+begin
+	set @storageaccount = (select value from string_split(@StorageDS, '/', 1) where ordinal = 3)
+	set @container = (select value from string_split(@StorageDS, '/', 1) where ordinal = 4)
+end
+
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dvtosql].[_controltableforcopy]') AND type in (N'U'))
+	CREATE TABLE [dvtosql].[_controltableforcopy]
+	(
+		[tableschema] [varchar](20) null,
+		[tablename] [varchar](255) null,
+		[datetime_markercolumn] varchar(100),
+		[bigint_markercolumn] varchar(100),
+		[storageaccount] varchar(1000) null,
+		[container] varchar(1000) null,
+		[environment] varchar(1000) null,
+		[datapath] varchar(1000) null,
+		[lastcopystartdatetime] [datetime2](7) null,
+		[lastcopyenddatetime] [datetime2](7) null,
+		[lastdatetimemarker] [datetime2](7) default '1/1/1900',
+		[lastbigintmarker] bigint default -1,
+		[lastcopystatus] [int] default 0,
+		[refreshinterval] [int] default 60,
+		[active] [int] default 1,
+		[incremental] [int] default 1,
+		[selectcolumns] nvarchar(max) null,
+		[datatypes] nvarchar(max) null,
+		[columnnames] nvarchar(max) null
+	);
+
+	IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dvtosql].[_datalaketosqlcopy_log]') AND type in (N'U'))
+		CREATE TABLE [dvtosql].[_datalaketosqlcopy_log]
+		(
+			[pipelinerunid] [varchar](200) NOT NULL,
+			[tablename] [varchar](200) NOT NULL,
+			[minfolder] [varchar](100) NULL,
+			[maxfolder] [varchar](100) NULL,
+			[copystatus] [int] NULL default(0),
+			[rowsinserted] [bigint] NULL default(0),
+			[rowsupdated] [bigint] NULL default(0),
+			[rowsdeleted] [bigint] NULL default(0),
+			[startdatetime] [datetime2](7),
+			[enddatetime] [datetime2](7) NULL
+		);
+
+With sqlmetadata as 
+(
+	select * 
+	from openjson(@sqlmetadata) with([tablename] NVARCHAR(200), [selectcolumns] NVARCHAR(MAX), datatypes NVARCHAR(MAX), columnnames NVARCHAR(MAX)) t
+)
+
+MERGE INTO [dvtosql].[_controltableforcopy] AS target
+	USING sqlmetadata AS source
+	ON target.tableschema = @tableschema and  target.tablename = source.tablename
+	WHEN MATCHED AND (target.datatypes != source.datatypes) THEN 
+		UPDATE SET  target.datatypes = source.datatypes, target.selectcolumns = source.selectcolumns, target.columnnames = source.columnnames 
+	WHEN NOT MATCHED BY TARGET THEN 
+		INSERT (tableschema, tablename, datetime_markercolumn, bigint_markercolumn, storageaccount, container, environment, datapath, selectcolumns, datatypes, columnnames)
+		VALUES (@tableschema, tablename, @datetime_markercolumn,@bigint_markercolumn, @storageaccount, @container, @container, '*' + tablename + '*.csv', selectcolumns, datatypes, columnnames);
+
+	-- update full export tables
+	update [dvtosql].[_controltableforcopy] 
+		set incremental = 0
+	where tablename in (select value from string_split(@fullexportList, ','));
+
+
+	select 
+		[tableschema], 
+		[tablename], 
+		[datetime_markercolumn],
+		[bigint_markercolumn],
+		case 
+			when @lastdatetimemarker  = '1900-01-01' Then isnull([lastdatetimemarker], '')  
+			else @lastdatetimemarker 
+		end as lastdatetimemarker,
+		lastbigintmarker,
+		lastcopystatus,
+		[active],
+		environment,  
+		incremental,
+		datatypes, 
+		columnnames,
+		replace(selectcolumns, '''','''''') as selectcolumns
+	from [dvtosql].[_controltableforcopy]
+	where  [active] = 1
+
+
+GO
+
+CREATE OR ALTER PROC dvtosql.target_preDataCopy
+	(
+		@pipelinerunId nvarchar(100), 
+		@tableschema nvarchar(10), 
+		@tablename nvarchar(200),
+		@columnnames nvarchar(max),
+		@lastdatetimemarker nvarchar(100),
+		@newdatetimemarker nvarchar(100),
+		@debug_mode int = 0
+	)
+	AS
+	declare @precopydata nvarchar(max) = replace(replace(replace(replace(replace(replace(convert(nvarchar(max),'print(''--creating table {schema}._new_{tablename}--'');
+	IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N''[{schema}].[_new_{tablename}]'') AND type in (N''U'')) 
+	BEGIN
+		DROP TABLE [{schema}].[_new_{tablename}] 
+	END
+
+	CREATE TABLE [{schema}].[_new_{tablename}] ({columnnames})
+
+	INSERT INTO  [dvtosql].[_datalaketosqlcopy_log](pipelinerunid, tablename, minfolder,maxfolder) 
+	values(''{pipelinerunId}'', ''{tablename}'', ''{lastdatetimemarker}'',''{newdatetimemarker}'' )
+
+	update [dvtosql].[_controltableforcopy]
+	set lastcopystatus = 1, [lastcopystartdatetime] = getutcdate()
+	where tablename = ''{tablename}'' AND  tableschema = ''{schema}''
+	')
+	,'{columnnames}', @columnnames)
+	,'{schema}', @tableschema)
+	,'{tablename}', @tablename)
+
+	,'{pipelinerunId}', @pipelinerunId)
+	,'{lastdatetimemarker}', @lastdatetimemarker)
+	,'{newdatetimemarker}', @newdatetimemarker)
+	;
+
+	IF  @debug_mode = 0 
+		Execute sp_executesql @precopydata;
+	ELSE 
+		print (@precopydata);
+
+GO
+
 
 CREATE OR ALTER PROC [dvtosql].target_dedupAndMerge
 (
@@ -609,6 +679,15 @@ declare @insertCount bigint,
         @deleteCount bigint,
         @versionnumber bigint;
 
+declare @incremental int;
+
+select top 1
+	@incremental = incremental 
+from [dvtosql].[_controltableforcopy]
+where 
+	tableschema = @schema AND
+	tablename = @tablename;  
+
 update [dvtosql].[_controltableforcopy]
 set 
 	lastcopystatus = 1, 
@@ -618,123 +697,146 @@ where
 	tablename = @tablename;  
 
 
---IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[@{pipeline().parameters.TargetSchema}].[_new_@{item().tablename}]') AND type in (N'U'))
---    DROP TABLE [@{pipeline().parameters.TargetSchema}].[_new_@{item().tablename}]
-
--- dedup and merge
-
-declare @dedupData nvarchar(max) = replace(replace('print(''--De-duplicate the data in {schema}._new_{tablename}--'');
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N''[{schema}].[_new_{tablename}]'') AND type in (N''U'')) 
+if (@incremental = 0)
 BEGIN
-WITH CTE AS
-( SELECT ROW_NUMBER() OVER (PARTITION BY Id ORDER BY versionnumber DESC) AS rn FROM {schema}._new_{tablename}
-)
-DELETE FROM CTE WHERE rn > 1;
-END'
-,'{schema}', @schema)
-,'{tablename}', @tablename);
+	declare @fullcopy nvarchar(max) = replace(replace('IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N''[{schema}].[_new_{tablename}]'') AND type in (N''U'')) 
+		BEGIN
+			print(''--full export - swap table --'')
+		
+			IF OBJECT_ID(''{schema}.{tablename}'', ''U'') IS NOT NULL 
+			exec sp_rename ''{schema}.{tablename}'', ''_old_{tablename}'';
 
-IF  @debug_mode = 0 
-	Execute sp_executesql @dedupData;
-ELSE 
-	print (@dedupData);
-
-DECLARE @ParmDefinition NVARCHAR(500);
-SET @ParmDefinition = N'@insertCount bigint OUTPUT, @updateCount bigint  OUTPUT, @deleteCount bigint  OUTPUT, @versionnumber bigint  OUTPUT';
-
-
-declare @renameTableAndCreateIndex nvarchar(max) = replace(replace('IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N''[{schema}].[_new_{tablename}]'') AND type in (N''U'')) 
-AND NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N''[{schema}].[{tablename}]'') AND type in (N''U'')) 
-BEGIN
-
-print(''--_new_{tablename} exists and {tablename} does not exists ...rename the table --'')
-exec sp_rename ''{schema}._new_{tablename}'', ''{tablename}''
- 
-print(''-- -- create index on table----'')
-IF NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_id_idx'' AND object_id = OBJECT_ID(''{tablename}''))
-CREATE UNIQUE INDEX {tablename}_id_idx ON {tablename}(Id) with (ONLINE = ON);
-
-IF NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_recid_idx'' AND object_id = OBJECT_ID(''{tablename}''))
-CREATE UNIQUE INDEX {tablename}_RecId_Idx ON {tablename}(recid) with (ONLINE = ON);
-
-IF NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_versionnumber_idx'' AND object_id = OBJECT_ID(''{tablename}''))
-CREATE  INDEX {tablename}_versionnumber_Idx ON {tablename}(versionnumber) with (ONLINE = ON);
-
-select @versionnumber = max(versionnumber), @insertCount = count(1) from  {schema}.{tablename};
-
-
-END'
-,'{schema}', @schema)
-,'{tablename}', @tablename);
-
-IF  @debug_mode = 0 
-	Execute sp_executesql @renameTableAndCreateIndex,@ParmDefinition, @insertCount=@insertCount OUTPUT, @updateCount=@updateCount OUTPUT,@deleteCount=@deleteCount OUTPUT, @versionnumber = @versionnumber OUTPUT;
-ELSE
-	print (@renameTableAndCreateIndex)
-
-DECLARE @updatestatements NVARCHAR(MAX);
-DECLARE @insertcolumns NVARCHAR(MAX);
-DECLARE @valuescolumns NVARCHAR(MAX);
-
--- Generate update statements
-SELECT @updateStatements = STRING_AGG(convert(nvarchar(max),'target.[' + column_name + '] = source.[' + column_name + ']'), ', ') 
-FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME =@tablename and TABLE_SCHEMA = @schema AND column_name <> 'Id' AND column_name <> '$FileName'; 
-
--- For the insert columns and values
-SELECT @insertColumns = STRING_AGG(convert(nvarchar(max), '[' + column_name) +']', ', ') FROM INFORMATION_SCHEMA.COLUMNS 
-	WHERE TABLE_NAME =@tablename and TABLE_SCHEMA = @schema  AND column_name <> '$FileName';
-
-SELECT @valuesColumns = STRING_AGG(convert(nvarchar(max),'source.[' + column_name + ']'), ', ') FROM INFORMATION_SCHEMA.COLUMNS 
-	WHERE TABLE_NAME =@tablename and TABLE_SCHEMA = @schema AND column_name <> '$FileName';
-
-
-DECLARE @mergedata nvarchar(max) = replace(replace(replace(replace(replace(
-convert(nvarchar(max),'IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N''[{schema}].[_new_{tablename}]'') AND type in (N''U'')) 
-BEGIN;
-print(''-- Merge data from _new_{tablename} to {tablename}----'')
-
-DECLARE @MergeOutput TABLE (
-    MergeAction NVARCHAR(10)
-);
-
-MERGE INTO {schema}.{tablename} AS target
-USING {schema}._new_{tablename} AS source
-ON target.Id = source.Id
-WHEN MATCHED AND (target.versionnumber < source.versionnumber) THEN 
-    UPDATE SET {updatestatements}
-WHEN NOT MATCHED BY TARGET THEN 
-    INSERT ({insertcolumns}) 
-    VALUES ({valuescolumns})
-OUTPUT $action INTO @MergeOutput(MergeAction );
-
- select @insertCount = [INSERT],
-           @updateCount = [UPDATE],
-           @deleteCount = [DELETE]
-      from (select MergeAction from @MergeOutput) mergeResultsPlusEmptyRow     
-     pivot (count(MergeAction) 
-       for MergeAction in ([INSERT],[UPDATE],[DELETE])) 
-        as mergeResultsPivot;
-
-select @versionnumber = max(versionnumber) from  {schema}.{tablename};
+			exec sp_rename ''{schema}._new_{tablename}'', ''{tablename}'';
 	
-drop table {schema}._new_{tablename};
+			IF OBJECT_ID(''{schema}._old_{tablename}'', ''U'') IS NOT NULL 
+				DROP TABLE {schema}._old_{tablename};
+		END'
+	,'{schema}', @schema)
+	,'{tablename}', @tablename);
+
+	IF  @debug_mode = 0 
+		Execute sp_executesql @fullcopy;
+	ELSE 
+		print (@fullcopy);
+END
+ELSE
+BEGIN;
+	-- dedup and merge
+	declare @dedupData nvarchar(max) = replace(replace('print(''--De-duplicate the data in {schema}._new_{tablename}--'');
+	IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N''[{schema}].[_new_{tablename}]'') AND type in (N''U'')) 
+	BEGIN
+		WITH CTE AS
+		( SELECT ROW_NUMBER() OVER (PARTITION BY Id ORDER BY versionnumber DESC) AS rn FROM {schema}._new_{tablename}
+		)
+		DELETE FROM CTE WHERE rn > 1;
+
+		DELETE FROM {schema}._new_{tablename} Where IsDelete = 1;
+	END'
+	,'{schema}', @schema)
+	,'{tablename}', @tablename);
+
+	IF  @debug_mode = 0 
+		Execute sp_executesql @dedupData;
+	ELSE 
+		print (@dedupData);
+
+	DECLARE @ParmDefinition NVARCHAR(500);
+	SET @ParmDefinition = N'@insertCount bigint OUTPUT, @updateCount bigint  OUTPUT, @deleteCount bigint  OUTPUT, @versionnumber bigint  OUTPUT';
 
 
-END;')
-,'{schema}', @schema),
-'{tablename}', @tablename),
-'{updatestatements}', @updatestatements),
-'{insertcolumns}', @insertcolumns),
-'{valuescolumns}', @valuescolumns)
+	declare @renameTableAndCreateIndex nvarchar(max) = replace(replace('IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N''[{schema}].[_new_{tablename}]'') AND type in (N''U'')) 
+	AND NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N''[{schema}].[{tablename}]'') AND type in (N''U'')) 
+	BEGIN
 
-IF  @debug_mode = 0 
-	Execute sp_executesql @mergedata, @ParmDefinition, @insertCount=@insertCount OUTPUT, @updateCount=@updateCount OUTPUT,@deleteCount=@deleteCount OUTPUT, @versionnumber = @versionnumber OUTPUT;
-ELSE 
-	print(@mergedata);
+	print(''--_new_{tablename} exists and {tablename} does not exists ...rename the table --'')
+	exec sp_rename ''{schema}._new_{tablename}'', ''{tablename}''
+ 
+	print(''-- -- create index on table----'')
+	IF NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_id_idx'' AND object_id = OBJECT_ID(''{tablename}''))
+	CREATE UNIQUE INDEX {tablename}_id_idx ON {tablename}(Id) with (ONLINE = ON);
 
-update [dvtosql].[_controltableforcopy]
-set lastcopystatus = 0, lastdatetimemarker = @newdatetimemarker,  [lastcopyenddatetime] = getutcdate(), lastbigintmarker = @versionnumber
-where tablename = @tablename AND  tableschema = @schema
+	IF NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_recid_idx'' AND object_id = OBJECT_ID(''{tablename}''))
+	CREATE UNIQUE INDEX {tablename}_RecId_Idx ON {tablename}(recid) with (ONLINE = ON);
+
+	IF NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_versionnumber_idx'' AND object_id = OBJECT_ID(''{tablename}''))
+	CREATE  INDEX {tablename}_versionnumber_Idx ON {tablename}(versionnumber) with (ONLINE = ON);
+
+	select @versionnumber = max(versionnumber), @insertCount = count(1) from  {schema}.{tablename};
+
+
+	END'
+	,'{schema}', @schema)
+	,'{tablename}', @tablename);
+
+	IF  @debug_mode = 0 
+		Execute sp_executesql @renameTableAndCreateIndex,@ParmDefinition, @insertCount=@insertCount OUTPUT, @updateCount=@updateCount OUTPUT,@deleteCount=@deleteCount OUTPUT, @versionnumber = @versionnumber OUTPUT;
+	ELSE
+		print (@renameTableAndCreateIndex)
+
+	DECLARE @updatestatements NVARCHAR(MAX);
+	DECLARE @insertcolumns NVARCHAR(MAX);
+	DECLARE @valuescolumns NVARCHAR(MAX);
+
+	-- Generate update statements
+	SELECT @updateStatements = STRING_AGG(convert(nvarchar(max),'target.[' + column_name + '] = source.[' + column_name + ']'), ', ') 
+	FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME =@tablename and TABLE_SCHEMA = @schema AND column_name <> 'Id' AND column_name <> '$FileName'; 
+
+	-- For the insert columns and values
+	SELECT @insertColumns = STRING_AGG(convert(nvarchar(max), '[' + column_name) +']', ', ') FROM INFORMATION_SCHEMA.COLUMNS 
+		WHERE TABLE_NAME =@tablename and TABLE_SCHEMA = @schema  AND column_name <> '$FileName';
+
+	SELECT @valuesColumns = STRING_AGG(convert(nvarchar(max),'source.[' + column_name + ']'), ', ') FROM INFORMATION_SCHEMA.COLUMNS 
+		WHERE TABLE_NAME =@tablename and TABLE_SCHEMA = @schema AND column_name <> '$FileName';
+
+
+	DECLARE @mergedata nvarchar(max) = replace(replace(replace(replace(replace(
+	convert(nvarchar(max),'IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N''[{schema}].[_new_{tablename}]'') AND type in (N''U'')) 
+	BEGIN;
+	print(''-- Merge data from _new_{tablename} to {tablename}----'')
+
+	DECLARE @MergeOutput TABLE (
+		MergeAction NVARCHAR(10)
+	);
+
+	MERGE INTO {schema}.{tablename} AS target
+	USING {schema}._new_{tablename} AS source
+	ON target.Id = source.Id
+	WHEN MATCHED AND (target.versionnumber < source.versionnumber) THEN 
+		UPDATE SET {updatestatements}
+	WHEN NOT MATCHED BY TARGET THEN 
+		INSERT ({insertcolumns}) 
+		VALUES ({valuescolumns})
+	OUTPUT $action INTO @MergeOutput(MergeAction );
+
+	 select @insertCount = [INSERT],
+			   @updateCount = [UPDATE],
+			   @deleteCount = [DELETE]
+		  from (select MergeAction from @MergeOutput) mergeResultsPlusEmptyRow     
+		 pivot (count(MergeAction) 
+		   for MergeAction in ([INSERT],[UPDATE],[DELETE])) 
+			as mergeResultsPivot;
+
+	select @versionnumber = max(versionnumber) from  {schema}.{tablename};
+	
+	drop table {schema}._new_{tablename};
+
+
+	END;')
+	,'{schema}', @schema),
+	'{tablename}', @tablename),
+	'{updatestatements}', @updatestatements),
+	'{insertcolumns}', @insertcolumns),
+	'{valuescolumns}', @valuescolumns)
+
+	IF  @debug_mode = 0 
+		Execute sp_executesql @mergedata, @ParmDefinition, @insertCount=@insertCount OUTPUT, @updateCount=@updateCount OUTPUT,@deleteCount=@deleteCount OUTPUT, @versionnumber = @versionnumber OUTPUT;
+	ELSE 
+		print(@mergedata);
+
+	update [dvtosql].[_controltableforcopy]
+	set lastcopystatus = 0, lastdatetimemarker = @newdatetimemarker,  [lastcopyenddatetime] = getutcdate(), lastbigintmarker = @versionnumber
+	where tablename = @tablename AND  tableschema = @schema
+END 
 
 GO
 
