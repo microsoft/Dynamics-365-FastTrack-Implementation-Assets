@@ -3,6 +3,8 @@
 IF NOT EXISTS (SELECT 1 FROM sys.databases WHERE name = 'YourNewDataBaseName')
 	create database [YourNewDataBaseName]
 
+GO
+
 -- STEP 2: Switch to new database created
 use [YourNewDataBaseName]
 
