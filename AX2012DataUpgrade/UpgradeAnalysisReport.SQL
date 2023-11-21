@@ -13,7 +13,7 @@
 
 -- Revision History
 -- 1.0 Initial release of report
--- 1.1 Additional rules added for: Partitoin Validation, Application Version, Document Attchement Checks, Use of an ISV model, Database Collation
+-- 1.1 Additional rules added for: Partition Validation, Application Version, Document Attachments Checks, Use of an ISV model, Database Collation
 -- 1.2 New rule sections - SCM Enhancements, Finance Enhancements
 -- 1.3 Modified all rules so variables are declared per rule. Allows for rules to be moved \ added\ deleted without impact to others. 
 -- 1.4 Additional parameter added to allow for comments if rule condition isn't met. Set parameter @ShowWhenUnobserved to enable output. 
