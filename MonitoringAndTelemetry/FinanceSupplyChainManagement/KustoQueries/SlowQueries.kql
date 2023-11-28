@@ -1,0 +1,119 @@
+// SLow queries over time (bucketsize = 1 hour)
+let _city = dynamic(null);
+let _startTime = ago(7d);
+let _endTime = now();
+let _queryType = dynamic(null);
+customEvents
+| where timestamp  between (_startTime .. _endTime)
+| where name == "LongRunningQuery"
+| where isempty(['_city']) or client_City in (['_city'])
+| extend LegalEntity            = customDimensions.LegalEntity
+    ,   ExecutionMode           = customDimensions.ExecutionMode
+    ,   ExecutionTimeSeconds    = customDimensions.ExecutionTimeSeconds
+    ,   CallStack               = customDimensions.CallStack
+    ,   QueryType               = customDimensions.QueryType
+    ,   Success                 = customDimensions.Success
+    ,   JoinCount               = customDimensions.JoinCount
+    ,   ReturnedRowCount        = customDimensions.ReturnedRowCount
+| where isempty(['_queryType']) or QueryType  in (['_queryType'])
+| project ["Timestamp"]             = timestamp
+        , ["Name"]                  = name
+        , ["Session ID"]            = session_Id
+        , ["User ID"]               = user_Id
+        , ["Legal Entity"]          = LegalEntity
+        , ["Execution Mode"]        = ExecutionMode
+        , ["Query Type"]            = QueryType
+        , ["Execution Time (s)"]    = ExecutionTimeSeconds
+        , ["Join Count"]            = JoinCount
+        , ["Returned Row Count"]    = ReturnedRowCount
+        , Success, CallStack 
+        , ["Client City"]           = client_City
+        , ["Client Country"]        = client_CountryOrRegion
+| summarize ["Slow Queries"] = count() by bin(Timestamp, 1h)
+
+// Slow queries by query type
+let _startTime = ago(7d);
+let _endTime = now();
+customEvents
+| where timestamp  between (_startTime .. _endTime)
+| where name == "LongRunningQuery"
+| extend LegalEntity            = customDimensions.LegalEntity
+    ,   ExecutionMode           = customDimensions.ExecutionMode
+    ,   ExecutionTimeSeconds    = customDimensions.ExecutionTimeSeconds
+    ,   CallStack               = customDimensions.CallStack
+    ,   QueryType               = customDimensions.QueryType
+    ,   Success                 = customDimensions.Success
+    ,   JoinCount               = customDimensions.JoinCount
+    ,   ReturnedRowCount        = customDimensions.ReturnedRowCount
+| project ["Timestamp"]             = timestamp
+        , ["Name"]                  = name
+        , ["Session ID"]            = session_Id
+        , ["User ID"]               = user_Id
+        , ["Legal Entity"]          = LegalEntity
+        , ["Execution Mode"]        = ExecutionMode
+        , ["Query Type"]            = tostring(QueryType)
+        , ["Execution Time (s)"]    = ExecutionTimeSeconds
+        , ["Join Count"]            = JoinCount
+        , ["Returned Row Count"]    = ReturnedRowCount
+        , Success, CallStack 
+        , ["Client City"]           = client_City
+        , ["Client Country"]        = client_CountryOrRegion
+| summarize ["Slow Queries"] = count() by ['Query Type']
+
+// Slow queries by client country and city
+let _startTime = ago(7d);
+let _endTime = now();
+customEvents
+| where timestamp  between (_startTime .. _endTime)
+| where name == "LongRunningQuery"
+| extend LegalEntity            = customDimensions.LegalEntity
+    ,   ExecutionMode           = customDimensions.ExecutionMode
+    ,   ExecutionTimeSeconds    = customDimensions.ExecutionTimeSeconds
+    ,   CallStack               = customDimensions.CallStack
+    ,   QueryType               = customDimensions.QueryType
+    ,   Success                 = customDimensions.Success
+    ,   JoinCount               = customDimensions.JoinCount
+    ,   ReturnedRowCount        = customDimensions.ReturnedRowCount
+| project ["Timestamp"]             = timestamp
+        , ["Name"]                  = name
+        , ["Session ID"]            = session_Id
+        , ["User ID"]               = user_Id
+        , ["Legal Entity"]          = LegalEntity
+        , ["Execution Mode"]        = ExecutionMode
+        , ["Query Type"]            = tostring(QueryType)
+        , ["Execution Time (s)"]    = ExecutionTimeSeconds
+        , ["Join Count"]            = JoinCount
+        , ["Returned Row Count"]    = ReturnedRowCount
+        , Success, CallStack 
+        , ["Client City"]           = client_City
+        , ["Client Country"]        = client_CountryOrRegion
+| summarize ["Slow Queries"] = count() by ['Client Country'], ['Client City']
+
+// Top 50 slow queries by duration
+let _startTime = ago(7d);
+let _endTime = now();
+customEvents
+| where timestamp  between (_startTime .. _endTime)
+| where name == "LongRunningQuery"
+| extend LegalEntity            = tostring(customDimensions.LegalEntity)
+    ,   ExecutionMode           = tostring(customDimensions.ExecutionMode)
+    ,   ExecutionTimeSeconds    = tostring(customDimensions.ExecutionTimeSeconds)
+    ,   CallStack               = tostring(customDimensions.CallStack)
+    ,   QueryType               = tostring(customDimensions.QueryType)
+    ,   Success                 = tostring(customDimensions.Success)
+    ,   JoinCount               = tostring(customDimensions.JoinCount)
+    ,   ReturnedRowCount        = tostring(customDimensions.ReturnedRowCount)
+| order by ExecutionTimeSeconds desc
+| limit 50
+| project ["Timestamp"]             = timestamp
+        , ["Session ID"]            = session_Id
+        , ["User ID"]               = user_Id
+        , ["Legal Entity"]          = LegalEntity
+        , ["Execution Mode"]        = ExecutionMode
+        , ["Query Type"]            = QueryType
+        , ["Execution Time (s)"]    = ExecutionTimeSeconds
+        , ["Join Count"]            = JoinCount
+        , ["Returned Row Count"]    = ReturnedRowCount
+        , Success, CallStack 
+        , ["Client City"]           = client_City
+        , ["Client Country"]        = client_CountryOrRegion
