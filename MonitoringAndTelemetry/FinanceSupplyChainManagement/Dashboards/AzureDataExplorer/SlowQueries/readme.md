@@ -5,7 +5,7 @@ This dashboard shows information about slow queries that are reported by the AOS
 - Investigate slow queries based on location.
 
 ## Dashboard overview
-![Dashboard](SlowQueriesDashboard1.png)
+
 <div align=center><img src="./img/SlowQueriesDashboard1.png"></div>
 
 ## Steps to import the sample dashboard:
