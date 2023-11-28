@@ -1,3 +1,4 @@
+--Last updated - Nov 28, 2023 - Fixed bug syntax error while creating/updating derived base tables views with joins of child table  
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'dvtosql')
 BEGIN
     EXEC('CREATE SCHEMA dvtosql')
@@ -367,12 +368,13 @@ select
 	FROM (
 			select 
 			'begin try  execute sp_executesql N''' +
-			replace(replace(replace(replace(replace(replace(@CreateViewDDL + ' ' + h.joins, 			
+			replace(replace(replace(replace(replace(replace(replace(@CreateViewDDL + ' ' + h.joins, 			
 			'{tableschema}',@tableschema),
 			'{selectcolumns}', @addcolumns + selectcolumns + ',' + h.columnnamelists), 
 			'{tablename}', tablename), 
 			'{externaldsname}', @externalds_name), 
 			'{datatypes}', datatypes),
+			'{options}', @rowsetoptions),
 			'''','''''')  
 			+ '''' + ' End Try Begin catch print ERROR_PROCEDURE() + '':'' print ERROR_MESSAGE() end catch' as viewDDL
 			from #cdmmetadata c
