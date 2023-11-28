@@ -16,8 +16,8 @@ The telemetry is sent to the customer owned Application Insights instance.
 
 | Area  | Description  | Take me there (use CTRL+click to open in a new tab) |
 | ------ | ------ | ------ |
-| Kusto queries | A repository of queries to consult Application Insights telemetry | [Kusto queries](/Monitoring%20and%20Telemetry/Finance%20and%20Supply%20Chain%20Management/Kusto%20queries/") |
-| Dashboards\Azure Data Explorer | Making interactive dashboards in Azure Data Explorer with data from Azure Application Insights | [Azure Data Explorer dashboards](dashboards/Azure%20Data%20Explorer/) |
+| Kusto queries | A repository of queries to consult Application Insights telemetry | [Kusto queries](/Monitoring and Telemetry/Finance%20and%20Supply Chain Management/Kusto queries/") |
+| Dashboards\Azure Data Explorer | Making interactive dashboards in Azure Data Explorer with data from Azure Application Insights | [Azure Data Explorer dashboards](dashboards/Azure Data Explorer/) |
 
 ## Contributing
 
