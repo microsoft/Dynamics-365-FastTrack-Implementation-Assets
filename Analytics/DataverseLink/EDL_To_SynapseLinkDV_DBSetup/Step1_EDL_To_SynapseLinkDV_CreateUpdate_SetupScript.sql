@@ -757,8 +757,11 @@ BEGIN;
 	IF NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_id_idx'' AND object_id = OBJECT_ID(''{tablename}''))
 	CREATE UNIQUE INDEX {tablename}_id_idx ON {tablename}(Id) with (ONLINE = ON);
 
-	IF NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_recid_idx'' AND object_id = OBJECT_ID(''{tablename}''))
-	CREATE UNIQUE INDEX {tablename}_RecId_Idx ON {tablename}(recid) with (ONLINE = ON);
+	IF EXISTS ( SELECT 1 FROM information_schema.columns WHERE table_name = ''{tablename}'' AND column_name = ''recid'') 
+		AND NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_recid_idx'' AND object_id = OBJECT_ID(''{tablename}''))
+	BEGIN
+		CREATE UNIQUE INDEX {tablename}_RecId_Idx ON {tablename}(recid) with (ONLINE = ON);
+	END;
 
 	IF NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_versionnumber_idx'' AND object_id = OBJECT_ID(''{tablename}''))
 	CREATE  INDEX {tablename}_versionnumber_Idx ON {tablename}(versionnumber) with (ONLINE = ON);
