@@ -1,3 +1,6 @@
+--Dec 9 - Added support for enum translation from globaloptionset 
+-- added support for data entity removing mserp_ prefix from column name
+-- fixed bug in derived table view creation - when there not all child tables are present
 --Last updated - Nov 28, 2023 - Fixed bug syntax error while creating/updating derived base tables views with joins of child table  
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'dvtosql')
 BEGIN
@@ -188,7 +191,7 @@ with table_field_enum_map as
 			when datatype = 'string'   then IsNull(replace('(' + em.enumtranslation + ')','~',''''),  + 'isNull(['+  t.tablename + '].['+  name + '], '''')') + ' AS [' + name  + ']' 
 			when datatype = 'datetime' then 'isNull(['+  t.tablename + '].['  + name + '], ''1900-01-01'') AS [' + name  + ']' 
 			when datatype = 'datetimeoffset' then 'isNull(['+  t.tablename + '].['  + name + '], ''1900-01-01'') AS [' + name  + ']' 
-			else '['+  t.tablename + '].[' + name + ']' 
+			else '['+  t.tablename + '].[' + name + ']' + ' AS [' + name  + ']' 
 		end as selectcolumn,
 		datatype as datatype,
 		case      
@@ -213,6 +216,45 @@ with table_field_enum_map as
 )
 GO
 
+	
+CREATE OR ALTER     FUNCTION [dvtosql].[source_GetEnumTranslation]
+(
+)
+RETURNS TABLE 
+AS
+
+Return
+select  string_agg(convert(nvarchar(max),'{"tablename":"'+ tablename + '","enumtranslation":",' + enumstringcolumns + '"}'), ';' ) as enumtranslation
+from 
+
+(
+	select 
+		tablename,
+		string_agg(convert(nvarchar(max),enumtranslation), ',') as enumstringcolumns
+		from (
+		select 
+		tablename,
+		columnname ,
+		'CASE [' + tablename + '].[' + columnname + ']' +  string_agg( convert(nvarchar(max),  ' WHEN '+convert(nvarchar(10),enumid)) + ' THEN ''' + enumvalue , ''' ' ) + ''' END AS ' + columnname + '_$label'  
+		as enumtranslation
+		FROM (SELECT 
+			EntityName as tablename,
+			OptionSetName as columnname,
+			GlobalOptionSetName as enum,
+			[Option] as enumid ,
+			ExternalValue as enumvalue
+			from GlobalOptionsetMetadata
+			where LocalizedLabelLanguageCode = 1033 -- this is english
+			and OptionSetName not in ('sysdatastatecode') 
+			) x
+		group by tablename,columnname, enum
+		)y
+		group by tablename
+	) optionsetmetadata
+
+GO
+
+
 
 CREATE or ALTER PROC dvtosql.source_createOrAlterViews
 (
@@ -222,27 +264,16 @@ CREATE or ALTER PROC dvtosql.source_createOrAlterViews
 	@incrementalCSV int,  
 	@add_EDL_AuditColumns int, 
 	@tableschema nvarchar(10)='dbo', 
-	@rowsetoptions nvarchar(2000) =''
+	@rowsetoptions nvarchar(2000) ='',
+	@translate_enums bit =0,
+	@remove_mserp_from_columnname  bit = 0
 )
 AS
 
-	
-drop table if exists #cdmmetadata;
-	create table #cdmmetadata
-	(
-		tablename nvarchar(200) COLLATE Database_Default,	
-		selectcolumns nvarchar(max) COLLATE Database_Default,
-		datatypes nvarchar(max) COLLATE Database_Default,	
-		columnnames nvarchar(max) COLLATE Database_Default
-	);
-
-	insert into #cdmmetadata
-	select * from dvtosql.source_GetSQLMetadataFromCDM(@modeljson, @enumtranslation)
-
-	select * from #cdmmetadata
 	-- set createviewddl template and columns variables 
 	declare @CreateViewDDL nvarchar(max); 
 	declare @addcolumns nvarchar(max) = '';
+	declare @GlobalOptionSetMetadataTemplate nvarchar(max)='' 
 
 	-- setup the ddl template 
 	if @incrementalCSV  = 0
@@ -267,6 +298,16 @@ drop table if exists #cdmmetadata;
 		 (
 			{datatypes}, [PartitionId] int
 		 ) as {tablename}';
+
+		set @GlobalOptionSetMetadataTemplate = 'create or alter view GlobalOptionsetMetadata 
+		AS
+		SELECT *
+		FROM  OPENROWSET
+				( BULK ''deltalake/GlobalOptionsetMetadata_partitioned/'',  
+					FORMAT = ''delta'', 
+					DATA_SOURCE = ''{externaldsname}''
+				) as GlobalOptionsetMetadata'
+	
 	end
 	else 
 	begin
@@ -295,8 +336,78 @@ drop table if exists #cdmmetadata;
 		(
 			{datatypes}
 		) as {tablename} ';
+
+set @GlobalOptionSetMetadataTemplate = 'create or alter view GlobalOptionsetMetadata 
+AS
+SELECT *
+FROM  OPENROWSET
+		( BULK ''*/OptionsetMetadata/GlobalOptionsetMetadata.csv'',  
+		  FORMAT = ''CSV'', 
+		  DATA_SOURCE = ''{externaldsname}''
+		) 
+		WITH
+		(
+			[OptionSetName] [varchar](max),
+			[Option] [bigint],
+			[IsUserLocalizedLabel] [bit],
+			[LocalizedLabelLanguageCode] [bigint],
+			[LocalizedLabel] [varchar](max),
+			[GlobalOptionSetName] [varchar](max),
+			[EntityName] [varchar](max),
+			[ExternalValue] [varchar](max)
+
+		) as GlobalOptionsetMetadata
+		where GlobalOptionsetMetadata.filepath(1) = 
+		(select top 1 lastfolder
+		 FROM  OPENROWSET
+		( BULK ''Changelog/changelog.info'',  
+		  FORMAT = ''CSV'', 
+		  DATA_SOURCE = ''{externaldsname}''
+		) 
+		WITH
+		(
+			lastfolder nvarchar(100)
+		) as changelog
+		)' 
 	end;
 
+-- Generate globaloptionset view 
+set @GlobalOptionSetMetadataTemplate = replace(@GlobalOptionSetMetadataTemplate,'{externaldsname}', @externalds_name)
+execute sp_executesql @GlobalOptionSetMetadataTemplate;
+
+drop table if exists #cdmmetadata;
+	create table #cdmmetadata
+	(
+		tablename nvarchar(200) COLLATE Database_Default,	
+		selectcolumns nvarchar(max) COLLATE Database_Default,
+		datatypes nvarchar(max) COLLATE Database_Default,	
+		columnnames nvarchar(max) COLLATE Database_Default
+	);
+
+	insert into #cdmmetadata (tablename, selectcolumns, datatypes, columnnames)
+	select tablename, selectcolumns, datatypes, columnnames from dvtosql.source_GetSQLMetadataFromCDM(@modeljson, @enumtranslation) as cdm
+
+drop table if exists #enumtranslation;
+	create table #enumtranslation
+	(
+		tablename nvarchar(200) COLLATE Database_Default,	
+		enumtranslation nvarchar(max) default('')
+	);
+
+	IF (@translate_enums = 1)
+	BEGIN
+		declare @enumtranslation_optionset nvarchar(max);
+		select @enumtranslation_optionset = enumtranslation  from [dvtosql].[source_GetEnumTranslation]()
+
+		insert into #enumtranslation
+		select 
+			tablename, 
+			enumtranslation 
+		from string_split(@enumtranslation_optionset, ';')
+		cross apply openjson(value) 
+		with (tablename nvarchar(100), enumtranslation nvarchar(max))
+	END
+	--select * from #cdmmetadata
 
 -- generate ddl for view definitions for each tables in cdmmetadata table in the bellow format. 
 -- Begin try  
@@ -306,7 +417,6 @@ drop table if exists #cdmmetadata;
 	-- print ERROR_PROCEDURE() + ':' print ERROR_MESSAGE() 
 --end catch
 declare @ddl_tables nvarchar(max);
-declare @ddl_fno_derived_tables nvarchar(max);
 
 select 
 	@ddl_tables = string_agg(convert(nvarchar(max), viewDDL ), ';')
@@ -315,24 +425,37 @@ select
 			'begin try  execute sp_executesql N''' +
 			replace(replace(replace(replace(replace(replace(replace(@CreateViewDDL, 			
 			'{tableschema}',@tableschema),
-			'{selectcolumns}', @addcolumns + selectcolumns), 
-			'{tablename}', tablename), 
+			'{selectcolumns}', 
+				case when c.tablename like 'mserp_%' then '' else  @addcolumns end + 
+				c.selectcolumns +  
+				isnull(enumtranslation, '')), 
+			'{tablename}', c.tablename), 
 			'{externaldsname}', @externalds_name), 
-			'{datatypes}', datatypes),
+			'{datatypes}', c.datatypes),
 			'{options}', @rowsetoptions),
 			'''','''''')  
 			+ '''' + ' End Try Begin catch print ERROR_PROCEDURE() + '':'' print ERROR_MESSAGE() end catch' as viewDDL
-			from #cdmmetadata
+			from #cdmmetadata as c
+			left outer join #enumtranslation as e on c.tablename = e.tablename
 		)x		
 
 -- execute @ddl_tables 
-print(@ddl_tables)
+
+If @remove_mserp_from_columnname = 1
+BEGIN
+	declare @mserp_prefix nvarchar(100) = '';
+	set @mserp_prefix = 'AS [mserp_';
+	set @ddl_tables = replace(@ddl_tables, @mserp_prefix, '[')
+	print @mserp_prefix;
+END 
+--select @ddl_tables
 execute sp_executesql @ddl_tables;
 
 -- There is  difference in Synapse link and Export to data lake when exporting derived base tables like dirpartytable
 -- For base table (Dirpartytable), Export to data lake includes all columns from the derived tables. However Synapse link only exports columns that in the AOT. 
 -- This step overide the Dirpartytable view and columns from other derived tables , making table dirpartytable backward compatible
 -- Table Inheritance data is available in AXBD
+declare @ddl_fno_derived_tables nvarchar(max);
 declare @tableinheritance nvarchar(max) = '[{"parenttable":"AgreementHeader","childtables":[{"childtable":"PurchAgreementHeader"},{"childtable":"SalesAgreementHeader"}]},{"parenttable":"AgreementHeaderExt_RU","childtables":[{"childtable":"PurchAgreementHeaderExt_RU"},{"childtable":"SalesAgreementHeaderExt_RU"}]},{"parenttable":"AgreementHeaderHistoryExt_RU","childtables":[{"childtable":"PurchAgreementHeaderHistoryExt_RU"},{"childtable":"SalesAgreementHeaderHistoryExt_RU"}]},{"parenttable":"AifEndpointActionValueMap","childtables":[{"childtable":"AifPortValueMap"},{"childtable":"InterCompanyTradingValueMap"}]},{"parenttable":"BankLCLine","childtables":[{"childtable":"BankLCExportLine"},{"childtable":"BankLCImportLine"}]},{"parenttable":"CAMDataAllocationBase","childtables":[{"childtable":"CAMDataFormulaAllocationBase"},{"childtable":"CAMDataHierarchyAllocationBase"},{"childtable":"CAMDataPredefinedDimensionMemberAllocationBase"}]},{"parenttable":"CAMDataCostAccountingLedgerSourceEntryProvider","childtables":[{"childtable":"CAMDataCostAccountingLedgerCostElementEntryProvider"},{"childtable":"CAMDataCostAccountingLedgerStatisticalMeasureProvider"}]},{"parenttable":"CAMDataDataConnectorDimension","childtables":[{"childtable":"CAMDataDataConnectorChartOfAccounts"},{"childtable":"CAMDataDataConnectorCostObjectDimension"}]},{"parenttable":"CAMDataDataConnectorSystemInstance","childtables":[{"childtable":"CAMDataDataConnectorSystemInstanceAX"}]},{"parenttable":"CAMDataDataOrigin","childtables":[{"childtable":"CAMDataDataOriginDocument"}]},{"parenttable":"CAMDataDimension","childtables":[{"childtable":"CAMDataCostElementDimension"},{"childtable":"CAMDataCostObjectDimension"},{"childtable":"CAMDataStatisticalDimension"}]},{"parenttable":"CAMDataDimensionHierarchy","childtables":[{"childtable":"CAMDataDimensionCategorizationHierarchy"},{"childtable":"CAMDataDimensionClassificationHierarchy"}]},{"parenttable":"CAMDataDimensionHierarchyNode","childtables":[{"childtable":"CAMDataDimensionHierarchyNodeComposite"},{"childtable":"CAMDataDimensionHierarchyNodeLeaf"}]},{"parenttable":"CAMDataImportedDimensionMember","childtables":[{"childtable":"CAMDataImportedCostElementDimensionMember"},{"childtable":"CAMDataImportedCostObjectDimensionMember"},{"childtable":"CAMDataImportedStatisticalDimensionMember"}]},{"parenttable":"CAMDataImportedTransactionEntry","childtables":[{"childtable":"CAMDataImportedBudgetEntry"},{"childtable":"CAMDataImportedGeneralLedgerEntry"}]},{"parenttable":"CAMDataJournalCostControlUnitBase","childtables":[{"childtable":"CAMDataJournalCostControlUnit"}]},{"parenttable":"CAMDataSourceDocumentLine","childtables":[{"childtable":"CAMDataSourceDocumentLineDetail"}]},{"parenttable":"CAMDataTransactionVersion","childtables":[{"childtable":"CAMDataActualVersion"},{"childtable":"CAMDataBudgetVersion"},{"childtable":"CAMDataCalculation"},{"childtable":"CAMDataOverheadCalculation"},{"childtable":"CAMDataSourceTransactionVersion"}]},{"parenttable":"CaseDetailBase","childtables":[{"childtable":"CaseDetail"},{"childtable":"CustCollectionsCaseDetail"},{"childtable":"HcmFMLACaseDetail"}]},{"parenttable":"CatProductReference","childtables":[{"childtable":"CatCategoryProductReference"},{"childtable":"CatClassifiedProductReference"},{"childtable":"CatDistinctProductReference"},{"childtable":"CatExternalQuoteProductReference"}]},{"parenttable":"CustCollectionsLinkTable","childtables":[{"childtable":"CustCollectionsLinkActivitiesCustTrans"},{"childtable":"CustCollectionsLinkCasesActivities"}]},{"parenttable":"CustInterestTransLineIdRef","childtables":[{"childtable":"CustInterestTransLineIdRef_MarkupTrans"},{"childtable":"CustnterestTransLineIdRef_Invoice"}]},{"parenttable":"CustInvoiceLineTemplate","childtables":[{"childtable":"CustInvoiceMarkupTransTemplate"},{"childtable":"CustInvoiceStandardLineTemplate"}]},{"parenttable":"CustVendDirective_PSN","childtables":[{"childtable":"CustDirective_PSN"},{"childtable":"VendDirective_PSN"}]},{"parenttable":"CustVendRoutingSlip_PSN","childtables":[{"childtable":"CustRoutingSlip_PSN"},{"childtable":"VendRoutingSlip_PSN"}]},{"parenttable":"DMFRules","childtables":[{"childtable":"DMFRulesNumberSequence"}]},{"parenttable":"EcoResApplicationControl","childtables":[{"childtable":"EcoResCatalogControl"},{"childtable":"EcoResComponentControl"}]},{"parenttable":"EcoResNomenclature","childtables":[{"childtable":"EcoResDimBasedConfigurationNomenclature"},{"childtable":"EcoResProductVariantNomenclature"},{"childtable":"EngChgProductCategoryNomenclature"},{"childtable":"PCConfigurationNomenclature"}]},{"parenttable":"EcoResNomenclatureSegment","childtables":[{"childtable":"EcoResNomenclatureSegmentAttributeValue"},{"childtable":"EcoResNomenclatureSegmentColorDimensionValue"},{"childtable":"EcoResNomenclatureSegmentColorDimensionValueName"},{"childtable":"EcoResNomenclatureSegmentConfigDimensionValue"},{"childtable":"EcoResNomenclatureSegmentConfigDimensionValueName"},{"childtable":"EcoResNomenclatureSegmentConfigGroupItemId"},{"childtable":"EcoResNomenclatureSegmentConfigGroupItemName"},{"childtable":"EcoResNomenclatureSegmentNumberSequence"},{"childtable":"EcoResNomenclatureSegmentProductMasterName"},{"childtable":"EcoResNomenclatureSegmentProductMasterNumber"},{"childtable":"EcoResNomenclatureSegmentSizeDimensionValue"},{"childtable":"EcoResNomenclatureSegmentSizeDimensionValueName"},{"childtable":"EcoResNomenclatureSegmentStyleDimensionValue"},{"childtable":"EcoResNomenclatureSegmentStyleDimensionValueName"},{"childtable":"EcoResNomenclatureSegmentTextConstant"},{"childtable":"EcoResNomenclatureSegmentVersionDimensionValue"},{"childtable":"EcoResNomenclatureSegmentVersionDimensionValueName"}]},{"parenttable":"EcoResProduct","childtables":[{"childtable":"EcoResDistinctProduct"},{"childtable":"EcoResDistinctProductVariant"},{"childtable":"EcoResProductMaster"}]},{"parenttable":"EcoResProductMasterDimensionValue","childtables":[{"childtable":"EcoResProductMasterColor"},{"childtable":"EcoResProductMasterConfiguration"},{"childtable":"EcoResProductMasterSize"},{"childtable":"EcoResProductMasterStyle"},{"childtable":"EcoResProductMasterVersion"}]},{"parenttable":"EcoResProductWorkspaceConfiguration","childtables":[{"childtable":"EcoResProductDiscreteManufacturingWorkspaceConfiguration"},{"childtable":"EcoResProductMaintainWorkspaceConfiguration"},{"childtable":"EcoResProductProcessManufacturingWorkspaceConfiguration"},{"childtable":"EcoResProductVariantMaintainWorkspaceConfiguration"}]},{"parenttable":"EngChgEcmOriginals","childtables":[{"childtable":"EngChgEcmOriginalEcmAttribute"},{"childtable":"EngChgEcmOriginalEcmBom"},{"childtable":"EngChgEcmOriginalEcmBomTable"},{"childtable":"EngChgEcmOriginalEcmFormulaCoBy"},{"childtable":"EngChgEcmOriginalEcmFormulaStep"},{"childtable":"EngChgEcmOriginalEcmProduct"},{"childtable":"EngChgEcmOriginalEcmRoute"},{"childtable":"EngChgEcmOriginalEcmRouteOpr"},{"childtable":"EngChgEcmOriginalEcmRouteTable"}]},{"parenttable":"FBGeneralAdjustmentCode_BR","childtables":[{"childtable":"FBGeneralAdjustmentCodeICMS_BR"},{"childtable":"FBGeneralAdjustmentCodeINSSCPRB_BR"},{"childtable":"FBGeneralAdjustmentCodeIPI_BR"},{"childtable":"FBGeneralAdjustmentCodePISCOFINS_BR"}]},{"parenttable":"HRPLimitAgreementException","childtables":[{"childtable":"HRPLimitAgreementCompException"},{"childtable":"HRPLimitAgreementJobException"}]},{"parenttable":"IntercompanyActionPolicy","childtables":[{"childtable":"IntercompanyAgreementActionPolicy"}]},{"parenttable":"PaymCalendarRule","childtables":[{"childtable":"PaymCalendarCriteriaRule"},{"childtable":"PaymCalendarLocationRule"}]},{"parenttable":"PCConstraint","childtables":[{"childtable":"PCExpressionConstraint"},{"childtable":"PCTableConstraint"}]},{"parenttable":"PCProductConfiguration","childtables":[{"childtable":"PCTemplateConfiguration"},{"childtable":"PCVariantConfiguration"}]},{"parenttable":"PCTableConstraintColumnDefinition","childtables":[{"childtable":"PCTableConstraintDatabaseColumnDef"},{"childtable":"PCTableConstraintGlobalColumnDef"}]},{"parenttable":"PCTableConstraintDefinition","childtables":[{"childtable":"PCDatabaseRelationConstraintDefinition"},{"childtable":"PCGlobalTableConstraintDefinition"}]},{"parenttable":"RetailMediaResource","childtables":[{"childtable":"RetailImageResource"}]},{"parenttable":"RetailPeriodicDiscount","childtables":[{"childtable":"GUPFreeItemDiscount"},{"childtable":"RetailDiscountMixAndMatch"},{"childtable":"RetailDiscountMultibuy"},{"childtable":"RetailDiscountOffer"},{"childtable":"RetailDiscountThreshold"},{"childtable":"RetailShippingThresholdDiscounts"}]},{"parenttable":"RetailProductAttributesLookup","childtables":[{"childtable":"RetailAttributesGlobalLookup"},{"childtable":"RetailAttributesLegalEntityLookup"}]},{"parenttable":"RetailPubRetailChannelTable","childtables":[{"childtable":"RetailPubRetailMCRChannelTable"},{"childtable":"RetailPubRetailOnlineChannelTable"},{"childtable":"RetailPubRetailStoreTable"}]},{"parenttable":"RetailTillLayoutZoneReferenceLegacy","childtables":[{"childtable":"RetailTillLayoutButtonGridZoneLegacy"},{"childtable":"RetailTillLayoutImageZoneLegacy"},{"childtable":"RetailTillLayoutReportZoneLegacy"}]},{"parenttable":"SCTTracingActivity","childtables":[{"childtable":"SCTTracingActivity_Purch"}]},{"parenttable":"SysMessageTarget","childtables":[{"childtable":"SysMessageCompanyTarget"},{"childtable":"SysWorkloadMessageCompanyTarget"},{"childtable":"SysWorkloadMessageHubCompanyTarget"}]},{"parenttable":"SysPolicyRuleType","childtables":[{"childtable":"SysPolicySourceDocumentRuleType"}]},{"parenttable":"TradeNonStockedConversionLog","childtables":[{"childtable":"TradeNonStockedConversionChangeLog"},{"childtable":"TradeNonStockedConversionCheckLog"}]},{"parenttable":"UserRequest","childtables":[{"childtable":"VendRequestUserRequest"},{"childtable":"VendUserRequest"}]},{"parenttable":"VendRequest","childtables":[{"childtable":"VendRequestCategoryExtension"},{"childtable":"VendRequestCompany"},{"childtable":"VendRequestStatusChange"}]},{"parenttable":"VendVendorRequest","childtables":[{"childtable":"VendVendorRequestNewCategory"},{"childtable":"VendVendorRequestNewVendor"}]},{"parenttable":"WarrantyGroupConfigurationItem","childtables":[{"childtable":"RetailWarrantyApplicableChannel"},{"childtable":"WarrantyApplicableProduct"},{"childtable":"WarrantyGroupData"}]},{"parenttable":"AgreementHeaderHistory","childtables":[{"childtable":"PurchAgreementHeaderHistory"},{"childtable":"SalesAgreementHeaderHistory"}]},{"parenttable":"AgreementLine","childtables":[{"childtable":"AgreementLineQuantityCommitment"},{"childtable":"AgreementLineVolumeCommitment"}]},{"parenttable":"AgreementLineHistory","childtables":[{"childtable":"AgreementLineQuantityCommitmentHistory"},{"childtable":"AgreementLineVolumeCommitmentHistory"}]},{"parenttable":"BankLC","childtables":[{"childtable":"BankLCExport"},{"childtable":"BankLCImport"}]},{"parenttable":"BenefitESSTileSetupBase","childtables":[{"childtable":"BenefitESSTileSetupBenefit"},{"childtable":"BenefitESSTileSetupBenefitCredit"}]},{"parenttable":"BudgetPlanElementDefinition","childtables":[{"childtable":"BudgetPlanColumn"},{"childtable":"BudgetPlanRow"}]},{"parenttable":"BusinessEventsEndpoint","childtables":[{"childtable":"BusinessEventsAzureBlobStorageEndpoint"},{"childtable":"BusinessEventsAzureEndpoint"},{"childtable":"BusinessEventsEventGridEndpoint"},{"childtable":"BusinessEventsEventHubEndpoint"},{"childtable":"BusinessEventsFlowEndpoint"},{"childtable":"BusinessEventsServiceBusQueueEndpoint"},{"childtable":"BusinessEventsServiceBusTopicEndpoint"}]},{"parenttable":"CAMDataCostAccountingPolicy","childtables":[{"childtable":"CAMDataAccountingUnitOfMeasurePolicy"},{"childtable":"CAMDataCostAccountingAccountPolicy"},{"childtable":"CAMDataCostAccountingLedgerPolicy"},{"childtable":"CAMDataCostAllocationPolicy"},{"childtable":"CAMDataCostBehaviorPolicy"},{"childtable":"CAMDataCostControlUnitPolicy"},{"childtable":"CAMDataCostDistributionPolicy"},{"childtable":"CAMDataCostFlowAssumptionPolicy"},{"childtable":"CAMDataCostRollupPolicy"},{"childtable":"CAMDataInputMeasurementBasisPolicy"},{"childtable":"CAMDataInventoryValuationMethodPolicy"},{"childtable":"CAMDataLedgerDocumentAccountingPolicy"},{"childtable":"CAMDataOverheadRatePolicy"},{"childtable":"CAMDataRecordingIntervalPolicy"}]},{"parenttable":"CAMDataJournal","childtables":[{"childtable":"CAMDataBudgetEntryTransferJournal"},{"childtable":"CAMDataCalculationJournal"},{"childtable":"CAMDataCostAllocationJournal"},{"childtable":"CAMDataCostBehaviorCalculationJournal"},{"childtable":"CAMDataCostDistributionJournal"},{"childtable":"CAMDataGeneralLedgerEntryTransferJournal"},{"childtable":"CAMDataOverheadRateCalculationJournal"},{"childtable":"CAMDataSourceEntryTransferJournal"},{"childtable":"CAMDataStatisticalEntryTransferJournal"}]},{"parenttable":"CAMDataSourceDocumentAttributeValue","childtables":[{"childtable":"CAMDataSourceDocumentAttributeValueAmount"},{"childtable":"CAMDataSourceDocumentAttributeValueDate"},{"childtable":"CAMDataSourceDocumentAttributeValueQuantity"},{"childtable":"CAMDataSourceDocumentAttributeValueString"}]},{"parenttable":"CatPunchoutRequest","childtables":[{"childtable":"CatCXMLPunchoutRequest"}]},{"parenttable":"CatUserReview","childtables":[{"childtable":"CatUserReviewProduct"},{"childtable":"CatUserReviewVendor"}]},{"parenttable":"CatVendProdCandidateAttributeValue","childtables":[{"childtable":"CatVendorBooleanValue"},{"childtable":"CatVendorCurrencyValue"},{"childtable":"CatVendorDateTimeValue"},{"childtable":"CatVendorFloatValue"},{"childtable":"CatVendorIntValue"},{"childtable":"CatVendorTextValue"}]},{"parenttable":"CustInvLineBillCodeCustomFieldBase","childtables":[{"childtable":"CustInvLineBillCodeCustomFieldBool"},{"childtable":"CustInvLineBillCodeCustomFieldDateTime"},{"childtable":"CustInvLineBillCodeCustomFieldInt"},{"childtable":"CustInvLineBillCodeCustomFieldReal"},{"childtable":"CustInvLineBillCodeCustomFieldText"}]},{"parenttable":"DIOTAdditionalInfoForNoVendor_MX","childtables":[{"childtable":"DIOTAddlInfoForNoVendorLedger_MX"},{"childtable":"DIOTAddlInfoForNoVendorProj_MX"}]},{"parenttable":"DirPartyTable","childtables":[{"childtable":"CompanyInfo"},{"childtable":"DirOrganization"},{"childtable":"DirOrganizationBase"},{"childtable":"DirPerson"},{"childtable":"OMInternalOrganization"},{"childtable":"OMOperatingUnit"},{"childtable":"OMTeam"}]},{"parenttable":"DOMRules","childtables":[{"childtable":"DOMCatalogAmountFulfillmentTypeRules"},{"childtable":"DOMCatalogMinimumInventoryRules"},{"childtable":"DOMCatalogRules"},{"childtable":"DOMCatalogShipPriorityRules"},{"childtable":"DOMOrgFulfillmentTypeRules"},{"childtable":"DOMOrgLocationOfflineRules"},{"childtable":"DOMOrgMaximumDistanceRules"},{"childtable":"DOMOrgMaximumOrdersRules"},{"childtable":"DOMOrgMaximumRejectsRules"}]},{"parenttable":"DOMRulesLine","childtables":[{"childtable":"DOMRulesLineCatalogAmountFulfillmentTypeRules"},{"childtable":"DOMRulesLineCatalogMinimumInventoryRules"},{"childtable":"DOMRulesLineCatalogRules"},{"childtable":"DOMRulesLineCatalogShipPriorityRules"},{"childtable":"DOMRulesLineOrgFulfillmentTypeRules"},{"childtable":"DOMRulesLineOrgLocationOfflineRules"},{"childtable":"DOMRulesLineOrgMaximumDistanceRules"},{"childtable":"DOMRulesLineOrgMaximumOrdersRules"},{"childtable":"DOMRulesLineOrgMaximumRejectsRules"}]},{"parenttable":"EcoResCategory","childtables":[{"childtable":"PCClass"}]},{"parenttable":"EcoResInstanceValue","childtables":[{"childtable":"CatalogProductInstanceValue"},{"childtable":"CustomerInstanceValue"},{"childtable":"EcoResCategoryInstanceValue"},{"childtable":"EcoResEngineeringProductCategoryAttributeInstanceValue"},{"childtable":"EcoResProductInstanceValue"},{"childtable":"EcoResReleasedEngineeringProductVersionAttributeInstanceValue"},{"childtable":"GUPPriceTreeInstanceValue"},{"childtable":"GUPRebateDateInstanceValue"},{"childtable":"GUPRetailChannelInstanceValue"},{"childtable":"GUPSalesQuotationInstanceValue"},{"childtable":"GUPSalesTableInstanceValue"},{"childtable":"PCComponentInstanceValue"},{"childtable":"RetailCatalogProdInternalOrgInstanceVal"},{"childtable":"RetailChannelInstanceValue"},{"childtable":"RetailInternalOrgProductInstanceValue"},{"childtable":"RetailSalesTableInstanceValue"},{"childtable":"TMSLoadBuildStrategyAttribValueSet"}]},{"parenttable":"EcoResProductVariantDimensionValue","childtables":[{"childtable":"EcoResProductVariantColor"},{"childtable":"EcoResProductVariantConfiguration"},{"childtable":"EcoResProductVariantSize"},{"childtable":"EcoResProductVariantStyle"},{"childtable":"EcoResProductVariantVersion"}]},{"parenttable":"EcoResValue","childtables":[{"childtable":"EcoResBooleanValue"},{"childtable":"EcoResCurrencyValue"},{"childtable":"EcoResDateTimeValue"},{"childtable":"EcoResFloatValue"},{"childtable":"EcoResIntValue"},{"childtable":"EcoResReferenceValue"},{"childtable":"EcoResTextValue"}]},{"parenttable":"EntAssetMaintenancePlanLine","childtables":[{"childtable":"EntAssetMaintenancePlanLineCounter"},{"childtable":"EntAssetMaintenancePlanLineTime"}]},{"parenttable":"HRPDefaultLimit","childtables":[{"childtable":"HRPDefaultLimitCompensationRule"},{"childtable":"HRPDefaultLimitJobRule"}]},{"parenttable":"KanbanQuantityPolicyDemandPeriod","childtables":[{"childtable":"KanbanQuantityDemandPeriodFence"},{"childtable":"KanbanQuantityDemandPeriodSeason"}]},{"parenttable":"MarkupMatchingTrans","childtables":[{"childtable":"VendInvoiceInfoLineMarkupMatchingTrans"},{"childtable":"VendInvoiceInfoSubMarkupMatchingTrans"}]},{"parenttable":"MarkupPeriodChargeInvoiceLineBase","childtables":[{"childtable":"MarkupPeriodChargeInvoiceLineBaseMonetary"},{"childtable":"MarkupPeriodChargeInvoiceLineBaseQuantity"},{"childtable":"MarkupPeriodChargeInvoiceLineBaseQuantityMinAmount"}]},{"parenttable":"PayrollPayStatementLine","childtables":[{"childtable":"PayrollPayStatementBenefitLine"},{"childtable":"PayrollPayStatementEarningLine"},{"childtable":"PayrollPayStatementTaxLine"}]},{"parenttable":"PayrollProviderTaxRegion","childtables":[{"childtable":"PayrollTaxRegionForSymmetry"}]},{"parenttable":"PayrollTaxEngineTaxCode","childtables":[{"childtable":"PayrollTaxEngineTaxCodeForSymmetry"}]},{"parenttable":"PayrollTaxEngineWorkerTaxRegion","childtables":[{"childtable":"PayrollWorkerTaxRegionForSymmetry"}]},{"parenttable":"PCPriceElement","childtables":[{"childtable":"PCPriceBasePrice"},{"childtable":"PCPriceExpressionRule"}]},{"parenttable":"PCRuntimeCache","childtables":[{"childtable":"PCRuntimeCacheXml"}]},{"parenttable":"PCTemplateAttributeBinding","childtables":[{"childtable":"PCTemplateCategoryAttribute"},{"childtable":"PCTemplateConstant"}]},{"parenttable":"RetailChannelTable","childtables":[{"childtable":"RetailDirectSalesChannel"},{"childtable":"RetailMCRChannelTable"},{"childtable":"RetailOnlineChannelTable"},{"childtable":"RetailStoreTable"}]},{"parenttable":"RetailPeriodicDiscountLine","childtables":[{"childtable":"GUPFreeItemDiscountLine"},{"childtable":"RetailDiscountLineMixAndMatch"},{"childtable":"RetailDiscountLineMultibuy"},{"childtable":"RetailDiscountLineOffer"},{"childtable":"RetailDiscountLineThresholdApplying"}]},{"parenttable":"RetailReturnPolicyLine","childtables":[{"childtable":"RetailReturnInfocodePolicyLine"},{"childtable":"RetailReturnReasonCodePolicyLine"}]},{"parenttable":"RetailTillLayoutZoneReference","childtables":[{"childtable":"RetailTillLayoutButtonGridZone"},{"childtable":"RetailTillLayoutImageZone"},{"childtable":"RetailTillLayoutReportZone"}]},{"parenttable":"ServicesParty","childtables":[{"childtable":"ServicesCustomer"},{"childtable":"ServicesEmployee"}]},{"parenttable":"SysPolicyRule","childtables":[{"childtable":"CatCatalogPolicyRule"},{"childtable":"HcmBenefitEligibilityRule"},{"childtable":"HRPDefaultLimitRule"},{"childtable":"HRPLimitAgreementRule"},{"childtable":"HRPLimitRequestCurrencyRule"},{"childtable":"PayrollPremiumEarningGenerationRule"},{"childtable":"PurchReApprovalPolicyRuleTable"},{"childtable":"PurchReqControlRFQRule"},{"childtable":"PurchReqControlRule"},{"childtable":"PurchReqSourcingPolicyRule"},{"childtable":"RequisitionPurposeRule"},{"childtable":"RequisitionReplenishCatAccessPolicyRule"},{"childtable":"RequisitionReplenishControlRule"},{"childtable":"SysPolicySourceDocumentRule"},{"childtable":"TrvPolicyRule"},{"childtable":"TSPolicyRule"}]},{"parenttable":"SysTaskRecorderNode","childtables":[{"childtable":"SysTaskRecorderNodeAnnotationUserAction"},{"childtable":"SysTaskRecorderNodeCommandUserAction"},{"childtable":"SysTaskRecorderNodeFormUserAction"},{"childtable":"SysTaskRecorderNodeFormUserActionInputOutput"},{"childtable":"SysTaskRecorderNodeInfoUserAction"},{"childtable":"SysTaskRecorderNodeMenuItemUserAction"},{"childtable":"SysTaskRecorderNodePropertyUserAction"},{"childtable":"SysTaskRecorderNodeScope"},{"childtable":"SysTaskRecorderNodeTaskUserAction"},{"childtable":"SysTaskRecorderNodeUserAction"},{"childtable":"SysTaskRecorderNodeValidationUserAction"}]},{"parenttable":"SysUserRequest","childtables":[{"childtable":"HcmWorkerUserRequest"},{"childtable":"VendVendorPortalUserRequest"}]},{"parenttable":"TrvEnhancedData","childtables":[{"childtable":"TrvEnhancedCarRentalData"},{"childtable":"TrvEnhancedHotelData"},{"childtable":"TrvEnhancedItineraryData"}]}]'
 declare @backwardcompatiblecolumns nvarchar(max) = '_SysRowId,DataLakeModified_DateTime,$FileName,LSN,LastProcessedChange_DateTime';
 declare @exlcudecolumns nvarchar(max) = 'Id,SinkCreatedOn,SinkModifiedOn,modifieddatetime,modifiedby,modifiedtransactionid,dataareaid,recversion,partition,sysrowversion,recid,tableid,versionnumber,createdon,modifiedon,isDelete,PartitionId,createddatetime,createdby,createdtransactionid,PartitionId,sysdatastatecode';
@@ -359,6 +482,7 @@ with table_hierarchy as
 		from openjson(@tableinheritance) 
 		with (parenttable nvarchar(200), childtables nvarchar(max) as JSON) 
 		cross apply openjson(childtables) with (childtable nvarchar(200))
+		where childtable in (select TABLE_NAME from INFORMATION_SCHEMA.COLUMNS C where TABLE_SCHEMA = @tableschema and C.TABLE_NAME  = childtable)
 		) x
 		group by parenttable
 )
@@ -368,16 +492,16 @@ select
 	FROM (
 			select 
 			'begin try  execute sp_executesql N''' +
-			replace(replace(replace(replace(replace(replace(replace(@CreateViewDDL + ' ' + h.joins, 			
+			replace(replace(replace(replace(replace(replace(@CreateViewDDL + ' ' + h.joins, 			
 			'{tableschema}',@tableschema),
-			'{selectcolumns}', @addcolumns + selectcolumns + ',' + h.columnnamelists), 
-			'{tablename}', tablename), 
+			'{selectcolumns}', @addcolumns + selectcolumns +  isnull(enumtranslation, '') + ',' + h.columnnamelists), 
+			'{tablename}', c.tablename), 
 			'{externaldsname}', @externalds_name), 
-			'{datatypes}', datatypes),
-			'{options}', @rowsetoptions),
+			'{datatypes}', c.datatypes),
 			'''','''''')  
 			+ '''' + ' End Try Begin catch print ERROR_PROCEDURE() + '':'' print ERROR_MESSAGE() end catch' as viewDDL
 			from #cdmmetadata c
+			left outer join #enumtranslation as e on c.tablename = e.tablename
 			inner join table_hierarchy h on c.tablename = h.parenttable
   	) X;
 
