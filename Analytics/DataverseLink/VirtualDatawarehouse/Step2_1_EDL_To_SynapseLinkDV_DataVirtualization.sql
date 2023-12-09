@@ -1,3 +1,5 @@
+--Dec 9 - Added support for enum translation from globaloptionset 
+-- added support for data entity removing mserp_ prefix from column name
 -- Prequisites: 
 -- 1. Setup synapse link for DV an add tables and have data synced to storage account 
 -- 2. To do Enum translation from value to Id, copy the -resolved-cdm.json files to root container  of storage account - you can copy this from existing 
@@ -15,6 +17,13 @@
 
 	--TODO:Rowset options is only supported on Synapse Serverless and does not work on SQL Server 2022
 	declare @rowsetoptions nvarchar(1000) = ''; -- ', ROWSET_OPTIONS =''{"READ_OPTIONS":["ALLOW_INCONSISTENT_READS"]}''';
+
+	--TODO: set value 1 or 0 to add enum translation - this will add new column for enumtranslation with columnname_$label  
+	declare @translate_enums bit = 1;
+
+	--TODO: set value 1 or 0 to remove mserp_ prefix from the entity column names
+	declare @remove_mserp_from_columnname bit = 1;
+	
 	
 	-- Create the external datasource and return external datasource name
 	-- External data sources are used to establish location and connectivity (via database scope credentials) 
@@ -39,7 +48,7 @@
 	
 	--select @modeljson, @enumtranslation
 	-- call sp source_createOrAlterViews to create openrowset views on SQL endpoint that supports Data virtualization 
-	exec dvtosql.source_createOrAlterViews @externalds_name, @modeljson, @enumtranslation, @incrementalCSV, @add_EDL_AuditColumns, @sourcechema, @rowsetoptions
+	exec dvtosql.source_createOrAlterViews @externalds_name, @modeljson, @enumtranslation, @incrementalCSV, @add_EDL_AuditColumns, @sourcechema, @rowsetoptions, @translate_enums, @remove_mserp_from_columnname
 
 
 	-- Script create external data source and credential with the name of container in the storage account url
