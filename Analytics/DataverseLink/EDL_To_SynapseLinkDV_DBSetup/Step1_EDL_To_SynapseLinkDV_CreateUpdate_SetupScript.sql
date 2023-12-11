@@ -216,6 +216,17 @@ with table_field_enum_map as
 )
 GO
 
+
+create or alter view GlobalOptionsetMetadata 
+	AS SELECT 
+			'' as EntityName,
+			'' as OptionSetName,
+			'' as GlobalOptionSetName,
+			0 as LocalizedLabelLanguageCode,
+			0 as [Option] ,
+			'' as ExternalValue
+
+GO
 	
 CREATE OR ALTER     FUNCTION [dvtosql].[source_GetEnumTranslation]
 (
