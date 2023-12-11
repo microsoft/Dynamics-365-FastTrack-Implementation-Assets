@@ -455,6 +455,7 @@ select
 If @remove_mserp_from_columnname = 1
 BEGIN
 	declare @mserp_prefix nvarchar(100) = '';
+	set @ddl_tables = replace(replace(@ddl_tables, 'mserp_createdon', 'fno_createdon'),'mserp_Id', 'fno_Id');
 	set @mserp_prefix = 'AS [mserp_';
 	set @ddl_tables = replace(@ddl_tables, @mserp_prefix, '[')
 	print @mserp_prefix;
