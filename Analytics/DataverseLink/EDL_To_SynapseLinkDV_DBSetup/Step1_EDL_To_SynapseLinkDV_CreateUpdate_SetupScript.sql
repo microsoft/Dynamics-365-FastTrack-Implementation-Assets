@@ -437,9 +437,9 @@ select
 			replace(replace(replace(replace(replace(replace(replace(@CreateViewDDL, 			
 			'{tableschema}',@tableschema),
 			'{selectcolumns}', 
-				case when c.tablename like 'mserp_%' then '' else  @addcolumns end + 
-				c.selectcolumns +  
-				isnull(enumtranslation, '')), 
+				case when c.tablename  COLLATE Database_Default like 'mserp_%' then '' else  @addcolumns end + 
+				c.selectcolumns  COLLATE Database_Default +  
+				isnull(enumtranslation COLLATE Database_Default, '')), 
 			'{tablename}', c.tablename), 
 			'{externaldsname}', @externalds_name), 
 			'{datatypes}', c.datatypes),
@@ -506,7 +506,7 @@ select
 			'begin try  execute sp_executesql N''' +
 			replace(replace(replace(replace(replace(replace(@CreateViewDDL + ' ' + h.joins, 			
 			'{tableschema}',@tableschema),
-			'{selectcolumns}', @addcolumns + selectcolumns +  isnull(enumtranslation, '') + ',' + h.columnnamelists), 
+			'{selectcolumns}', @addcolumns + selectcolumns  COLLATE Database_Default +  isnull(enumtranslation COLLATE Database_Default, '') + ',' + h.columnnamelists COLLATE Database_Default), 
 			'{tablename}', c.tablename), 
 			'{externaldsname}', @externalds_name), 
 			'{datatypes}', c.datatypes),
