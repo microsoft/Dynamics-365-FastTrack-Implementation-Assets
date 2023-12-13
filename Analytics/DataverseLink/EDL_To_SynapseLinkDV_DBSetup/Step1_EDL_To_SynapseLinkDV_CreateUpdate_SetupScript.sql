@@ -1,3 +1,4 @@
+--Dec 13 - Filter deleted rows from delta tables  
 --Dec 9 - Added support for enum translation from globaloptionset 
 -- added support for data entity removing mserp_ prefix from column name
 -- fixed bug in derived table view creation - when there not all child tables are present
@@ -285,6 +286,7 @@ AS
 	declare @CreateViewDDL nvarchar(max); 
 	declare @addcolumns nvarchar(max) = '';
 	declare @GlobalOptionSetMetadataTemplate nvarchar(max)='' 
+	declare @filter_deleted_rows nvarchar(200) =  ' '
 
 	-- setup the ddl template 
 	if @incrementalCSV  = 0
@@ -310,6 +312,8 @@ AS
 			{datatypes}, [PartitionId] int
 		 ) as {tablename}';
 
+		set @filter_deleted_rows =  ' where {tablename}.IsDelete is null '
+		
 		set @GlobalOptionSetMetadataTemplate = 'create or alter view GlobalOptionsetMetadata 
 		AS
 		SELECT *
@@ -434,7 +438,7 @@ select
 	FROM (
 			select 
 			'begin try  execute sp_executesql N''' +
-			replace(replace(replace(replace(replace(replace(replace(@CreateViewDDL, 			
+			replace(replace(replace(replace(replace(replace(replace(@CreateViewDDL + @filter_deleted_rows, 			
 			'{tableschema}',@tableschema),
 			'{selectcolumns}', 
 				case when c.tablename like 'mserp_%' then '' else  @addcolumns end + 
@@ -504,7 +508,7 @@ select
 	FROM (
 			select 
 			'begin try  execute sp_executesql N''' +
-			replace(replace(replace(replace(replace(replace(@CreateViewDDL + ' ' + h.joins, 			
+			replace(replace(replace(replace(replace(replace(@CreateViewDDL  + ' ' + h.joins + @filter_deleted_rows, 			
 			'{tableschema}',@tableschema),
 			'{selectcolumns}', @addcolumns + selectcolumns +  isnull(enumtranslation, '') + ',' + h.columnnamelists), 
 			'{tablename}', c.tablename), 
