@@ -14,7 +14,7 @@ function Get-BrowseLocation($FileType)
 }
 
 $form = New-Object System.Windows.Forms.Form
-$form.Text = 'Get Script Details'
+$form.Text = 'Correlation recorder script details v2'
 $form.Size = New-Object System.Drawing.Size(500,180)
 $form.StartPosition = 'CenterScreen'
 
@@ -58,7 +58,7 @@ $browseButton2.Size = New-Object System.Drawing.Size(75,20)
 $browseButton2.Text = 'Browse'
 $browseButton2_OnClick= 
 {
-    $textBox2.Text=Get-BrowseLocation -FileType 'XML (*.xml)|*.xml'
+    $textBox2.Text=Get-BrowseLocation -FileType 'XML (*.xml)|*.xml|jtl (*.jtl)|*.jtl'
 }
 $browseButton2.add_Click($browseButton2_OnClick)
 $form.AcceptButton = $browseButton2
