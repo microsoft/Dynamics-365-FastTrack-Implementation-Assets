@@ -1,0 +1,172 @@
+﻿[
+	{
+		"Key": "STUFF(\r\n                            (SELECT\r\n                                    -- Prepend with delimiter and escape internal delimiters\r\n                                    DIMENSIONSEGMENTDELIMITER + COALESCE(\r\n                                        REPLACE(REPLACE(DIMLIST.DISPLAYVALUE, '\\', '\\\\'),\r\n                                                DIMENSIONSEGMENTDELIMITER,\r\n                                                DIMENSIONSEGMENTDELIMITERESCAPED),\r\n                                        '')",
+		"Value": " (SELECT Replace(STRING_AGG (COALESCE(REPLACE(DIMLIST.DISPLAYVALUE, '\\', '\\\\'),''), '@#@#@!�$') within group (order by DHL.DIMENSIONHIERARCHY, DHL.LEVEL),'@#@#@!�$',DIMENSIONSEGMENTDELIMITER)",
+		"ViewName": "DIMENSIONSETENTITY"
+	},
+	{
+		"Key": "ORDER BY DHL.DIMENSIONHIERARCHY, DHL.LEVEL_\r\n                                FOR XML PATH(''), TYPE\r\n                            ).value('(./text())[1]', 'NVARCHAR(MAX)'),\r\n                            1, LEN(DIMENSIONSEGMENTDELIMITER), ''",
+		"Value": "",
+		"ViewName": "DIMENSIONSETENTITY"
+	},
+	{
+		"Key": "STUFF(\r\n                                            (SELECT\r\n                                                -- Prepend with delimiter and escape internal delimiters\r\n                                                DIMENSIONSEGMENTDELIMITER + COALESCE(\r\n                                                        REPLACE(REPLACE(DIMLIST.COLUMNVALUE, '\\', '\\\\'),\r\n                                                        DIMENSIONSEGMENTDELIMITER,\r\n                                                        DIMENSIONSEGMENTDELIMITERESCAPED),\r\n                                                    '')",
+		"Value": " (SELECT Replace(STRING_AGG (COALESCE(REPLACE(DIMLIST.COLUMNVALUE, '\\', '\\\\'),''), '@#@#@!�$') within group (order by DHL.DIMENSIONHIERARCHY, DHL.LEVEL),'@#@#@!�$',DIMENSIONSEGMENTDELIMITER)",
+		"ViewName": "DIMENSIONCOMBINATIONENTITY"
+	},
+	{
+		"Key": "ORDER BY DHL.DIMENSIONHIERARCHY, DHL.LEVEL_\r\n                                                FOR XML PATH('')\r\n                                            ),\r\n                                            1, LEN(DIMENSIONSEGMENTDELIMITER), ''",
+		"Value": "",
+		"ViewName": "DIMENSIONCOMBINATIONENTITY"
+	},
+	{
+		"Key": "T1.CREDMANNOTES AS",
+		"Value": "Null AS ",
+		"ViewName": "CUSTCUSTOMERV3ENTITY"
+	},
+	{
+		"Key": "T1.MEMO AS",
+		"Value": "Null AS",
+		"ViewName": "CUSTCUSTOMERV3ENTITY"
+	},
+	{
+		"Key": "T1.IDENTIFICATIONNUMBER AS",
+		"Value": "Null AS",
+		"ViewName": "CUSTCUSTOMERV3ENTITY"
+	},
+	{
+		"Key": "T1.IRS1099CINDICATOR AS",
+		"Value": "Null AS",
+		"ViewName": "CUSTCUSTOMERV3ENTITY"
+	},
+	{
+		"Key": "T1.TAXLICENSENUM AS",
+		"Value": "Null AS",
+		"ViewName": "CUSTCUSTOMERV3ENTITY"
+	},
+	{
+		"Key": "T1.BIRTHCOUNTYCODE_IT AS",
+		"Value": "Null AS",
+		"ViewName": "CUSTCUSTOMERV3ENTITY"
+	},
+	{
+		"Key": "T1.BIRTHPLACE_IT AS",
+		"Value": "Null AS",
+		"ViewName": "CUSTCUSTOMERV3ENTITY"
+	},
+	{
+		"Key": "T1.MEMO AS",
+		"Value": "Null AS",
+		"ViewName": "VENDVENDORV2ENTITY"
+	},
+	{
+		"Key": "T1.FEMALEOWNED AS",
+		"Value": "Null AS",
+		"ViewName": "VENDVENDORV2ENTITY"
+	},
+	{
+		"Key": "T1.ETHNICORIGINID AS",
+		"Value": "Null AS",
+		"ViewName": "VENDVENDORV2ENTITY"
+	},
+	{
+		"Key": "T1.LOCALLYOWNED AS",
+		"Value": "Null AS",
+		"ViewName": "VENDVENDORV2ENTITY"
+	},
+	{
+		"Key": "T1.MINORITYOWNED AS",
+		"Value": "Null AS",
+		"ViewName": "VENDVENDORV2ENTITY"
+	},
+	{
+		"Key": "T1.TAX1099REGNUM AS",
+		"Value": "Null AS",
+		"ViewName": "VENDVENDORV2ENTITY"
+	},
+	{
+		"Key": "T1.VETERANOWNED AS",
+		"Value": "Null AS",
+		"ViewName": "VENDVENDORV2ENTITY"
+	},
+	{
+		"Key": "T1.BIRTHPLACE AS",
+		"Value": "Null AS",
+		"ViewName": "VENDVENDORV2ENTITY"
+	},
+	{
+		"Key": "T1.DISABLEDOWNED AS",
+		"Value": "Null AS",
+		"ViewName": "VENDVENDORV2ENTITY"
+	},
+	{
+		"Key": "SELECT Name from OMTeamMembershipCriterion WHERE OMTeamMembershipCriterion.RecId = T1.TeamMembershipCriterion",
+		"Value": "Null",
+		"ViewName": "DIRPARTYBASEENTITY"
+	},
+	{
+		"Key": "SELECT TOP 1 LL.LOCATIONID FROM LOGISTICSELECTRONICADDRESS LEA JOIN LOGISTICSLOCATION LL ON LL.RECID = LEA.LOCATION WHERE LEA.RECID IN (T2.RECID, T3.RECID, T4.RECID, T5.RECID, T6.RECID, T7.RECID, T8.RECID, T9.RECID) AND LL.PARTITION = LEA.PARTITION AND LL.PARTITION = T1.PARTITION ORDER BY LL.LOCATIONID DESC",
+		"Value": "Null",
+		"ViewName": "DIRPARTYBASEENTITY"
+	},
+	{
+		"Key": "(CAST ((T1.FILTERCODE) AS NVARCHAR(10))) AS",
+		"Value": "Null AS",
+		"ViewName": "WHSCUSTOMERPRODUCTFILTERENTITY"
+	},
+	{
+		"Key": "(CAST ((T1.FILTERCODE2_) AS NVARCHAR(10))) AS",
+		"Value": "Null AS",
+		"ViewName": "WHSCUSTOMERPRODUCTFILTERENTITY"
+	},
+	{
+		"Key": "(CAST ((T1.FILTERCODE3_) AS NVARCHAR(10))) AS",
+		"Value": "Null AS",
+		"ViewName": "WHSCUSTOMERPRODUCTFILTERENTITY"
+	},
+	{
+		"Key": "(CAST ((T1.FILTERCODE4_) AS NVARCHAR(10))) AS",
+		"Value": "Null AS",
+		"ViewName": "WHSCUSTOMERPRODUCTFILTERENTITY"
+	},
+	{
+		"Key": "(CAST ((T1.FILTERCODE5_) AS NVARCHAR(10))) AS",
+		"Value": "Null AS",
+		"ViewName": "WHSCUSTOMERPRODUCTFILTERENTITY"
+	},
+	{
+		"Key": "(CAST ((T1.FILTERCODE6_) AS NVARCHAR(10))) AS",
+		"Value": "Null AS",
+		"ViewName": "WHSCUSTOMERPRODUCTFILTERENTITY"
+	},
+	{
+		"Key": "(CAST ((T1.FILTERCODE7_) AS NVARCHAR(10))) AS",
+		"Value": "Null AS",
+		"ViewName": "WHSCUSTOMERPRODUCTFILTERENTITY"
+	},
+	{
+		"Key": "(CAST ((T1.FILTERCODE8_) AS NVARCHAR(10))) AS",
+		"Value": "Null AS",
+		"ViewName": "WHSCUSTOMERPRODUCTFILTERENTITY"
+	},
+	{
+		"Key": "(CAST ((T1.FILTERCODE9_) AS NVARCHAR(10))) AS",
+		"Value": "Null AS",
+		"ViewName": "WHSCUSTOMERPRODUCTFILTERENTITY"
+	},
+	{
+		"Key": "(CAST ((T1.FILTERCODE10_) AS NVARCHAR(10))) AS",
+		"Value": "Null AS",
+		"ViewName": "WHSCUSTOMERPRODUCTFILTERENTITY"
+	},
+	{
+		"Key": "T1.SIZE_",
+		"Value": "T1.SIZE",
+		"ViewName": "REQDEMPLANHISTORICALEXTERNALDEMANDGROUPVIEW"
+	},
+	{
+		"Key": "T6.KEY_",
+		"Value": "T6.[KEY]",
+		"ViewName": "INVENTPRODUCTDEFAULTORDERSETTINGSENTITY"
+	}
+]
