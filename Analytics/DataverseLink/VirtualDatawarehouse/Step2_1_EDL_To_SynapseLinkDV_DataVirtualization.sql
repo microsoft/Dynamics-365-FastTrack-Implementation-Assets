@@ -1,3 +1,4 @@
+-- Dec 21 - bug fix on data entity - filter deleted rows 
 --Dec 9 - Added support for enum translation from globaloptionset 
 -- added support for data entity removing mserp_ prefix from column name
 -- Prequisites: 
@@ -19,10 +20,10 @@
 	declare @rowsetoptions nvarchar(1000) = ''; -- ', ROWSET_OPTIONS =''{"READ_OPTIONS":["ALLOW_INCONSISTENT_READS"]}''';
 
 	--TODO: set value 1 or 0 to add enum translation - this will add new column for enumtranslation with columnname_$label  
-	declare @translate_enums bit = 1;
+	declare @translate_enums int = 1;
 
-	--TODO: set value 1 or 0 to remove mserp_ prefix from the entity column names
-	declare @remove_mserp_from_columnname bit = 1;
+	--TODO: set value 1 or 0 to remove mserp_ prefix from the entity name and column names
+	declare @remove_mserp_prefix int = 1;
 	
 	
 	-- Create the external datasource and return external datasource name
@@ -48,7 +49,7 @@
 	
 	--select @modeljson, @enumtranslation
 	-- call sp source_createOrAlterViews to create openrowset views on SQL endpoint that supports Data virtualization 
-	exec dvtosql.source_createOrAlterViews @externalds_name, @modeljson, @enumtranslation, @incrementalCSV, @add_EDL_AuditColumns, @sourcechema, @rowsetoptions, @translate_enums, @remove_mserp_from_columnname
+	exec dvtosql.source_createOrAlterViews @externalds_name, @modeljson, @enumtranslation, @incrementalCSV, @add_EDL_AuditColumns, @sourcechema, @rowsetoptions, @translate_enums, @remove_mserp_prefix
 
 
 	-- Script create external data source and credential with the name of container in the storage account url
