@@ -277,8 +277,8 @@ CREATE or ALTER PROC dvtosql.source_createOrAlterViews
 	@add_EDL_AuditColumns int, 
 	@tableschema nvarchar(10)='dbo', 
 	@rowsetoptions nvarchar(2000) ='',
-	@translate_enums bit =0,
-	@remove_mserp_from_columnname  bit = 0
+	@translate_enums int = 0,
+	@remove_mserp_from_columnname  int = 0
 )
 AS
 
