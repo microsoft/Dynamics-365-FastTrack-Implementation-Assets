@@ -1,0 +1,14 @@
+{
+  "createMissingTables": true,
+  "sourceDatabaseName": "<serverless database name>",
+  "sourceServerName": "<Azure synapse server name>",
+  "targetServerName": "<target database server name>",
+  "targetDatabaseName": "<target database name>",
+  "dbSchema": "dbo",
+  "dbSchemaForControlTable": "dvtosql",
+  "entityList": "CustCustomerV3Entity,VendVendorV2Entity,GeneralJournalAccountEntryEntity",
+  "sandboxServerName": "<sandbox server name>",
+  "sandboxDatabaseName": "<sandbox database name>",
+  "sandboxuid": "<sandbox JIT access name>",
+  "sandboxPwd": "<sandbox JIT access password>"
+}

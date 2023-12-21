@@ -15,7 +15,9 @@ The intent of this article is to provide a sample code of the custom skill that 
 In the following link you can find the [Bot Framework Skill](./sampleartifacts/aggregateDTMFSkill.zip) the zip file contains the  a sample Bot Framework Skill project.  
 
 In the following link you can find the [PVA bot solution](./sampleartifacts/AggregateDTMF_1_0_0_0.zip) the zip flle is the PowerApps solution that contains the Power Virtual Agents bot.  
-
+> [!IMPORTANT]
+> Sample codes, components (solutions), and documents created by the community are not supported by Microsoft.  
+> If you have questions or issues with community tools, contact the publisher of them.  
 ## Setting up the environment
 To work on the bot framework skill sample code, you'll need a set of things to be successful:
 
