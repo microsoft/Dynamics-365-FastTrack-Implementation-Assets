@@ -278,7 +278,7 @@ CREATE or ALTER PROC dvtosql.source_createOrAlterViews
 	@add_EDL_AuditColumns int, 
 	@tableschema nvarchar(10)='dbo', 
 	@rowsetoptions nvarchar(2000) ='',
-	@translate_enums int =0,
+	@translate_enums int = 0,
 	@remove_mserp_prefix  int = 0
 )
 AS
@@ -442,9 +442,9 @@ select
 			replace(replace(replace(replace(replace(replace(replace(@CreateViewDDL + @filter_deleted_rows, 			
 			'{tableschema}',@tableschema),
 			'{selectcolumns}', 
-				case when c.tablename like 'mserp_%' then '' else  @addcolumns end + 
-				c.selectcolumns +  
-				isnull(enumtranslation, '')), 
+				case when c.tablename  COLLATE Database_Default like 'mserp_%' then '' else  @addcolumns end + 
+				c.selectcolumns  COLLATE Database_Default +  
+				isnull(enumtranslation COLLATE Database_Default, '')), 
 			'{tablename}', c.tablename), 
 			'{externaldsname}', @externalds_name), 
 			'{datatypes}', c.datatypes),
@@ -510,7 +510,7 @@ select
 			'begin try  execute sp_executesql N''' +
 			replace(replace(replace(replace(replace(replace(@CreateViewDDL  + ' ' + h.joins + @filter_deleted_rows, 			
 			'{tableschema}',@tableschema),
-			'{selectcolumns}', @addcolumns + selectcolumns +  isnull(enumtranslation, '') + ',' + h.columnnamelists), 
+			'{selectcolumns}', @addcolumns + selectcolumns  COLLATE Database_Default +  isnull(enumtranslation COLLATE Database_Default, '') + ',' + h.columnnamelists COLLATE Database_Default), 
 			'{tablename}', c.tablename), 
 			'{externaldsname}', @externalds_name), 
 			'{datatypes}', c.datatypes),
@@ -894,14 +894,23 @@ BEGIN;
 	exec sp_rename ''{schema}._new_{tablename}'', ''{tablename}''
  
 	print(''-- -- create index on table----'')
-	IF NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_id_idx'' AND object_id = OBJECT_ID(''{tablename}''))
-	CREATE UNIQUE INDEX {tablename}_id_idx ON {tablename}(Id) with (ONLINE = ON);
+	IF EXISTS ( SELECT 1 FROM information_schema.columns WHERE table_name = ''{tablename}'' AND column_name = ''Id'') 
+		AND NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_id_idx'' AND object_id = OBJECT_ID(''{tablename}''))
+	BEGIN
+		CREATE UNIQUE INDEX {tablename}_id_idx ON {tablename}(Id) with (ONLINE = ON);
+	END;
 
-	IF NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_recid_idx'' AND object_id = OBJECT_ID(''{tablename}''))
-	CREATE UNIQUE INDEX {tablename}_RecId_Idx ON {tablename}(recid) with (ONLINE = ON);
+	IF EXISTS ( SELECT 1 FROM information_schema.columns WHERE table_name = ''{tablename}'' AND column_name = ''recid'') 
+		AND NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_recid_idx'' AND object_id = OBJECT_ID(''{tablename}''))
+	BEGIN
+		CREATE UNIQUE INDEX {tablename}_RecId_Idx ON {tablename}(recid) with (ONLINE = ON);
+	END;
 
-	IF NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_versionnumber_idx'' AND object_id = OBJECT_ID(''{tablename}''))
-	CREATE  INDEX {tablename}_versionnumber_Idx ON {tablename}(versionnumber) with (ONLINE = ON);
+	IF EXISTS ( SELECT 1 FROM information_schema.columns WHERE table_name = ''{tablename}'' AND column_name = ''versionnumber'') 
+		AND NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_versionnumber_idx'' AND object_id = OBJECT_ID(''{tablename}''))
+	BEGIN
+		CREATE  INDEX {tablename}_versionnumber_Idx ON {tablename}(versionnumber) with (ONLINE = ON);
+	END;
 
 	select @versionnumber = max(versionnumber), @insertCount = count(1) from  {schema}.{tablename};
 

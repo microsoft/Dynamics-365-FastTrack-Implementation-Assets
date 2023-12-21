@@ -36,5 +36,9 @@ alt="Synapse Link for Dataverse" width="2000" height="500" border="10" />
 alt="Synapse Link for Dataverse" width="300" height="100" border="300" />
 
 
+### Lakehouse
+
+You can find the notebook used in TechTalk#4 here [Lakehouse using Synapse link](SynapseLink_Lakehouse_Template.ipynb)
+
 
  
