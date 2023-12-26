@@ -7,11 +7,16 @@ Note: Caution should be taken if data is being used for integration as near-real
 1.	Copy files to a location where they will be run.
 2.	Edit the config.json file with the necessary values.
 3.	Execute "RunEntityUtil.ps1".
-o	Select 1 to generate the dependencies.json file
-o	Select 2 to generate the entities.
-o	Select 3 to delete all the tables and views in target db.
-o	Select 4 to delete all the tables and views in source db.
-o	Select Q to quit.
+
+  	Select 1 to generate the dependencies.json file
+
+  	Select 2 to generate the entities.
+
+  	Select 3 to delete all the tables and views in target db.
+
+  	Select 4 to delete all the tables and views in source db.
+
+  	Select Q to quit.
 
 ## Config.json parameters explained
 
@@ -25,7 +30,7 @@ When using the incremental CSV configured Synapse Link, if there are missing tab
 |targetServerName	| This is the name of the Azure Synapse server or the database server where the where the new views will be created.|	"exampleSynapse-ondemand.sql.azuresynapse.net" OR "exampledb.database.windows.net" |
 |targetDatabaseName	| This is the name of the database where the views (entities) will be created.|	"d365_entities_database"|
 |dbSchema	| This is the name of the database schema that will be used.|	"dbo"|
-|dbSchemaForControlTable| During the setup of the pipeline, some control tables are created, this is the schema where the control tables are created.	|ìdvtosqlî|
+|dbSchemaForControlTable| During the setup of the pipeline, some control tables are created, this is the schema where the control tables are created.	|‚Äúdvtosql‚Äù|
 |entityList	| A comma separate list of entities that need to be created in the target database.	|"CustCustomerV3Entity,VendVendorV2Entity,GeneralJournalAccountEntryEntity"|
 |sandboxServerName	| Used by GenerateEntityDependency.ps1, this is the server name that will be used to identify all of the tables and entities that are required to generate the listed entities, and create the dependencies.json file. 	Currently tested against a tier 2+ environment, this value can be retrieved from LCS. | "spa-srv-n-d365zzz-a.database.windows.net"|
 |sandboxDatabaseName	| Used by GenerateEntityDependency.ps1, this is the database name that will be used to identify all of the tables and entities that are required to generate the listed entities, and create the dependencies.json file. 	Currently test against a tier 2+ environment, this value can be retrieved from LCS.| "db_d3_ans_ax_20239_0104_da6"|
