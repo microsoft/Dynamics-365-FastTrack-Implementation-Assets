@@ -1,3 +1,4 @@
+# 29 Dec, 2023 - Added clause to avoid deleting GlobalOptionsetMetadata, if deleted the SQL script needs to be rerun.
 param (
     [string]$param1
 )
@@ -70,30 +71,33 @@ function Delete-Views(){
             $objectType = $reader["table_type"] 
             $objectschema =$reader["table_schema"]
              
-
-            # Close the DataReader before executing any other command
-            $reader.Close()
+            # deleting GlobalOptionsetMetadata can add additional steps when rerunning, so skipping deleting it
+            if ($objectName -ne "GlobalOptionsetMetadata") 
+            {
+                # Close the DataReader before executing any other command
+                $reader.Close()
         
-            # Delete the object
-            if ($objectType -eq "VIEW")
-            {
-                $deleteQuery = "DROP VIEW [$objectschema].[$objectName]"
-            }
-            else
-            {
-                $deleteQuery = "DROP TABLE [$objectschema].[$objectName]"
-            }
+                # Delete the object
+                if ($objectType -eq "VIEW")
+                {
+                    $deleteQuery = "DROP VIEW [$objectschema].[$objectName]"
+                }
+                else
+                {
+                    $deleteQuery = "DROP TABLE [$objectschema].[$objectName]"
+                }
 
-           # Write-Host $deleteQuery
+               # Write-Host $deleteQuery
 
-            $deleteCommand = $connection.CreateCommand()
-            $deleteCommand.CommandText = $deleteQuery
-            $deleteCommand.ExecuteNonQuery()
+                $deleteCommand = $connection.CreateCommand()
+                $deleteCommand.CommandText = $deleteQuery
+                $deleteCommand.ExecuteNonQuery()
 
-           # Write-Host "Deleted $objectType : $objectName"
+               # Write-Host "Deleted $objectType : $objectName"
          
-            # Re-open the DataReader for the next query
-            $reader = $command.ExecuteReader()
+                # Re-open the DataReader for the next query
+                $reader = $command.ExecuteReader()
+            }
         }
     } catch {
         Write-Host "Error: $($_.Exception.Message)"
