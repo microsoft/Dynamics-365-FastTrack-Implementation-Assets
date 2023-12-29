@@ -1,3 +1,4 @@
+-- Dec 29, 2023 - Added options to derived tables SQL to fix for incremental CSV version
 --Dec 13 - Filter deleted rows from delta tables  
 --Dec 9 - Added support for enum translation from globaloptionset 
 -- added support for data entity removing mserp_ prefix from column name
@@ -508,12 +509,13 @@ select
 	FROM (
 			select 
 			'begin try  execute sp_executesql N''' +
-			replace(replace(replace(replace(replace(replace(@CreateViewDDL  + ' ' + h.joins + @filter_deleted_rows, 			
+			replace(replace(replace(replace(replace(replace(replace(@CreateViewDDL  + ' ' + h.joins + @filter_deleted_rows, 			
 			'{tableschema}',@tableschema),
 			'{selectcolumns}', @addcolumns + selectcolumns  COLLATE Database_Default +  isnull(enumtranslation COLLATE Database_Default, '') + ',' + h.columnnamelists COLLATE Database_Default), 
 			'{tablename}', c.tablename), 
 			'{externaldsname}', @externalds_name), 
 			'{datatypes}', c.datatypes),
+			'{options}', @rowsetoptions),
 			'''','''''')  
 			+ '''' + ' End Try Begin catch print ERROR_PROCEDURE() + '':'' print ERROR_MESSAGE() end catch' as viewDDL
 			from #cdmmetadata c
