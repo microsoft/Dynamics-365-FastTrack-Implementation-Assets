@@ -7,29 +7,33 @@ Note: Caution should be taken if data is being used for integration as near-real
 1.	Copy files to a location where they will be run.
 2.	Edit the config.json file with the necessary values.
 3.	Execute "RunEntityUtil.ps1".
-o	Select 1 to generate the dependencies.json file
-o	Select 2 to generate the entities.
-o	Select 3 to delete all the tables and views in target db.
-o	Select 4 to delete all the tables and views in source db.
-o	Select Q to quit.
+
+  	Select 1 to generate the dependencies.json file
+
+  	Select 2 to generate the entities.
+
+  	Select 3 to delete all the tables and views in target db.
+
+  	Select 4 to delete all the tables and views in source db.
+
+  	Select Q to quit.
 
 ## Config.json parameters explained
 
 |Parameter	| Description	| Example and/or notes|
 |-----------|---------------|---------------------|
-|createMissingTables	| Used to determine if the script will create any tables that are missing from the target database.|	true or false
-When using the incremental CSV configured Synapse Link, if there are missing tables this can be used to stop the execution, until the tables have been exported via Synapse Link and the pipeline run again.|
+|createMissingTables	| Used to determine if the script will create any tables that are missing from the target database.|	true or false When using the incremental CSV configured Synapse Link, if there are missing tables this can be used to stop the execution, until the tables have been exported via Synapse Link and the pipeline run again.|
 |tenantId	| This is the GUID for the Azure tenant where the data lake is stored.|	guid|
 |sourceDatabaseName	| The name of the serverless database that was create during the implementation of the pipeline.	| Required if using the Incremental CSV export option and there are tables without data. Also required if you want to delete all the tables and views from the source database.|
 |sourceServerName	| The name of the serverless server that hosts the serverless database.	| Required if using the Incremental CSV export option and there are tables without data. Also required if you want to delete all the tables and views from the source database.|
 |targetServerName	| This is the name of the Azure Synapse server or the database server where the where the new views will be created.|	"exampleSynapse-ondemand.sql.azuresynapse.net" OR "exampledb.database.windows.net" |
-|targetDatabaseName	| This is the name of the database where the views (entities) will be created.|	"d365_entities_database"|
-|dbSchema	| This is the name of the database schema that will be used.|	"dbo"|
-|dbSchemaForControlTable| During the setup of the pipeline, some control tables are created, this is the schema where the control tables are created.	|ìdvtosqlî|
-|entityList	| A comma separate list of entities that need to be created in the target database.	|"CustCustomerV3Entity,VendVendorV2Entity,GeneralJournalAccountEntryEntity"|
-|sandboxServerName	| Used by GenerateEntityDependency.ps1, this is the server name that will be used to identify all of the tables and entities that are required to generate the listed entities, and create the dependencies.json file. 	Currently tested against a tier 2+ environment, this value can be retrieved from LCS. | "spa-srv-n-d365zzz-a.database.windows.net"|
-|sandboxDatabaseName	| Used by GenerateEntityDependency.ps1, this is the database name that will be used to identify all of the tables and entities that are required to generate the listed entities, and create the dependencies.json file. 	Currently test against a tier 2+ environment, this value can be retrieved from LCS.| "db_d3_ans_ax_20239_0104_da6"|
-|Sandboxuid	| In order to get access to the sandbox a user will need to get JIT write access to the sandbox database, after requesting JIT access this is the user name that is created by the system.	Currently tested against a tier 2+ environment, this value can be retrieved from LCS.| "JIT-user-85q1h"|
+|targetDatabaseName	| This is the name of the database where the views (entities) will be created.|	e.g., "d365_entities_database"|
+|dbSchema	| This is the name of the database schema that will be used.|	e.g., "dbo"|
+|dbSchemaForControlTable| During the setup of the pipeline, some control tables are created, this is the schema where the control tables are created.	| e.g., ‚Äúdvtosql‚Äù|
+|entityList	| A comma separate list of entities that need to be created in the target database.	|e.g., "CustCustomerV3Entity,VendVendorV2Entity,GeneralJournalAccountEntryEntity"|
+|sandboxServerName	| Used by GenerateEntityDependency.ps1, this is the server name that will be used to identify all of the tables and entities that are required to generate the listed entities, and create the dependencies.json file. 	Currently tested against a tier 2+ environment, this value can be retrieved from LCS. | e.g., "spa-srv-n-d365zzz-a.database.windows.net"|
+|sandboxDatabaseName	| Used by GenerateEntityDependency.ps1, this is the database name that will be used to identify all of the tables and entities that are required to generate the listed entities, and create the dependencies.json file. 	Currently test against a tier 2+ environment, this value can be retrieved from LCS.| e.g., "db_d3_ans_ax_20239_0104_da6"|
+|Sandboxuid	| In order to get access to the sandbox a user will need to get JIT write access to the sandbox database, after requesting JIT access this is the user name that is created by the system.	Currently tested against a tier 2+ environment, this value can be retrieved from LCS.| e.g., "JIT-user-85q1h"|
 |sandboxPwd	| In order to get access to the sandbox a user will need to get JIT write access to the sandbox database, after requesting JIT access this is the password that is created by the system.	Currently test against a tier 2+ environment, this value can be retrieved from LCS.|
 
 

@@ -1,4 +1,5 @@
 -- Dec 29, 2023 - Added options to derived tables SQL to fix for incremental CSV version
+-- Dec 21 - bug fix on data entity - filter deleted rows 
 --Dec 13 - Filter deleted rows from delta tables  
 --Dec 9 - Added support for enum translation from globaloptionset 
 -- added support for data entity removing mserp_ prefix from column name
@@ -279,7 +280,7 @@ CREATE or ALTER PROC dvtosql.source_createOrAlterViews
 	@tableschema nvarchar(10)='dbo', 
 	@rowsetoptions nvarchar(2000) ='',
 	@translate_enums int = 0,
-	@remove_mserp_from_columnname  int = 0
+	@remove_mserp_prefix  int = 0
 )
 AS
 
@@ -313,7 +314,7 @@ AS
 			{datatypes}, [PartitionId] int
 		 ) as {tablename}';
 
-		set @filter_deleted_rows =  ' where {tablename}.IsDelete is null '
+		set @filter_deleted_rows =  ' where isnull({tablename}.IsDelete,0) = 0 '
 		
 		set @GlobalOptionSetMetadataTemplate = 'create or alter view GlobalOptionsetMetadata 
 		AS
@@ -457,13 +458,12 @@ select
 
 -- execute @ddl_tables 
 
-If @remove_mserp_from_columnname = 1
+If @remove_mserp_prefix = 1
 BEGIN
-	declare @mserp_prefix nvarchar(100) = '';
+	declare @mserp_columnname_prefix nvarchar(100) = 'AS [mserp_', @mserp_entityname_prefix nvarchar(100) = replace('VIEW  {tableschema}.mserp_', '{tableschema}',@tableschema) ;
 	set @ddl_tables = replace(replace(@ddl_tables, 'mserp_createdon', 'fno_createdon'),'mserp_Id', 'fno_Id');
-	set @mserp_prefix = 'AS [mserp_';
-	set @ddl_tables = replace(@ddl_tables, @mserp_prefix, '[')
-	print @mserp_prefix;
+	set @ddl_tables = replace(replace(@ddl_tables, @mserp_columnname_prefix, 'AS ['),@mserp_entityname_prefix, replace('VIEW  {tableschema}.', '{tableschema}',@tableschema)) 
+	--print @mserp_prefix;
 END 
 --select @ddl_tables
 execute sp_executesql @ddl_tables;
@@ -523,7 +523,7 @@ select
 			inner join table_hierarchy h on c.tablename = h.parenttable
   	) X;
 
-print(@ddl_fno_derived_tables)
+--print(@ddl_fno_derived_tables)
 execute sp_executesql @ddl_fno_derived_tables;
 
 GO
