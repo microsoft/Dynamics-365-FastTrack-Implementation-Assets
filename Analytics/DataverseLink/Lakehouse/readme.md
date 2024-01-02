@@ -12,7 +12,8 @@ alt="Spark ecosystem" width="500" border="10" />
 
 You can find notebook that demonstrates incremental data loading with checkpoints here [Incremental using checkpoints](Lakehouse_Incremental_Checkpoints_Template.ipynb).
 
-Another example of a notebook that shows how you can enrich data with joins. This was demoed in our TechTalk series on Synapse link migration [Lakehouse using Synapse link](SynapseLink_Lakehouse_Template.ipynb)
+Another example of a notebook that shows how you can enrich data with joins. This was demoed in our TechTalk series on Synapse link migration [Lakehouse using Synapse link](Lakehouse_Synapselink_FactsDims_Template.ipynb)
 
-All the TechTalks are here - https://aka.ms/TransitiontoSynapseLinkVideos 
+All the TechTalks are here - https://aka.ms/TransitiontoSynapseLinkVideos
+
 
