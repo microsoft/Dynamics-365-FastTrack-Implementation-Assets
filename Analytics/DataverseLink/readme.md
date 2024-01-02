@@ -38,7 +38,8 @@ alt="Synapse Link for Dataverse" width="300" height="100" border="300" />
 
 ### Lakehouse
 
-You can find the notebook used in TechTalk#4 here [Lakehouse using Synapse link](SynapseLink_Lakehouse_Template.ipynb)
+For lakehouse notebooks, please visit page [Lakehouse](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Analytics/DataverseLink/Lakehouse)
+
 
 
  
