@@ -166,6 +166,7 @@ declare @insertCount bigint,
         @versionnumber bigint;
 
 declare @incremental int;
+declare @dedupData nvarchar(max);
 
 select top 1
 	@incremental = incremental 
@@ -189,9 +190,9 @@ BEGIN
 			print(''''--full export - swap table --'''')
 		
 			IF OBJECT_ID(''''{schema}.{tablename}'''', ''''U'''') IS NOT NULL 
-			exec sp_rename ''''{schema}.{tablename}'''', ''''_old_{tablename}'''';
+				RENAME OBJECT::{schema}.{tablename} TO _old_{tablename};
 
-			exec sp_rename ''''{schema}._new_{tablename}'''', ''''{tablename}'''';
+			RENAME OBJECT::{schema}._new_{tablename} TO {tablename};
 	
 			IF OBJECT_ID(''''{schema}._old_{tablename}'''', ''''U'''') IS NOT NULL 
 				DROP TABLE {schema}._old_{tablename};
@@ -208,7 +209,7 @@ ELSE
 
 -- dedup and merge
 
-declare @dedupData nvarchar(max) = replace(replace(''print(''''--De-duplicate the data in {schema}._new_{tablename}--'''');
+@dedupData = replace(replace(''print(''''--De-duplicate the data in {schema}._new_{tablename}--'''');
 IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N''''[{schema}].[_new_{tablename}]'''') AND type in (N''''U'''')) 
 BEGIN
 WITH CTE AS
@@ -283,6 +284,8 @@ FROM {schema}._new_{tablename} AS source
 WHERE source.versionnumber > (select max(versionnumber) from {schema}.{tablename});
 
 select @versionnumber = max(versionnumber) from  {schema}.{tablename};
+
+set @versionnumber = isNull(@versionnumber, 0)
 	 
 drop table {schema}._new_{tablename};
 
