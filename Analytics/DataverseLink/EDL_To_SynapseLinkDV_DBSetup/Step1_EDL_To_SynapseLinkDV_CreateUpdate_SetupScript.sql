@@ -561,7 +561,7 @@ select tableschema, tablename, datetime_markercolumn,bigint_markercolumn, enviro
 	columnnames nvarchar(max), selectcolumns nvarchar(max), datatypes nvarchar(max) )
 
 select 
-	@lastdatetimemarker= min(lastdatetimemarker) 
+	@lastdatetimemarker= max(lastdatetimemarker) 
 from #controltable 
 where 
 	[active] = 1 and
@@ -569,7 +569,16 @@ where
 	lastdatetimemarker != '1900-01-01T00:00:00';
 
 set  @lastdatetimemarker = isnull(@lastdatetimemarker, '1900-01-01T00:00:00')
+print(@lastdatetimemarker);
 
+declare @newtables nvarchar(max);
+select 
+	@newtables= string_agg(convert(nvarchar(max), tablename), ',')
+from #controltable 
+where 
+	[active] = 1 and
+	lastcopystatus != 1
+	and (lastdatetimemarker = '1900-01-01T00:00:00' or incremental =0);
 
 declare @tablelist_inNewFolders nvarchar(max);
 declare @minfoldername nvarchar(100) = '';
@@ -592,9 +601,9 @@ IF (@incrementalCSV = 1)
 
 		declare @getNewFolders nvarchar(max) = 
 		'SELECT     
-		@minfoldername = min(minfolder),
-		@maxfoldername = max(maxfolderPath),  
-		@tablelist_inNewFolders = string_agg(convert(nvarchar(max), x.tablename),'','')
+		@minfoldername = isNull(min(minfolder),format(GETUTCDATE(),''yyyy-MM-ddThh.mm.ssZ'')),
+		@maxfoldername = isNull(max(maxfolderPath),format(GETUTCDATE(),''yyyy-MM-ddThh.mm.ssZ'')),  
+		isnull(string_agg(convert(nvarchar(max), x.tablename),'',''),'''')
 		from 
 		(
 			select 
@@ -626,6 +635,8 @@ IF (@incrementalCSV = 1)
 
 		execute sp_executesql @getNewFolders, @ParmDefinition, @tablelist_inNewFolders=@tablelist_inNewFolders OUTPUT, @maxfoldername=@maxfoldername OUTPUT, @minfoldername=@minfoldername OUTPUT;
 
+		set @tablelist_inNewFolders = @tablelist_inNewFolders + ',' +  @newtables
+		
 		print ('Folder to process:' + @minfoldername + '...' + @maxfoldername)
 		print('Tables in new folders:' + @tablelist_inNewFolders)
 		print ('New marker value:' + @maxfoldername);
