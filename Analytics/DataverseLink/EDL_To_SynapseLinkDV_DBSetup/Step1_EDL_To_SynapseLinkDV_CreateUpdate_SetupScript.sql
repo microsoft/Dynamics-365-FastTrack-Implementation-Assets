@@ -603,7 +603,7 @@ IF (@incrementalCSV = 1)
 		'SELECT     
 		@minfoldername = isNull(min(minfolder),format(GETUTCDATE(),''yyyy-MM-ddThh.mm.ssZ'')),
 		@maxfoldername = isNull(max(maxfolderPath),format(GETUTCDATE(),''yyyy-MM-ddThh.mm.ssZ'')),  
-		isnull(string_agg(convert(nvarchar(max), x.tablename),'',''),'''')
+		@tablelist_inNewFolders = isnull(string_agg(convert(nvarchar(max), x.tablename),'',''),'''')
 		from 
 		(
 			select 
