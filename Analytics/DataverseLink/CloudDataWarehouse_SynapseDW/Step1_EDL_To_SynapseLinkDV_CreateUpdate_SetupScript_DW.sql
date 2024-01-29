@@ -209,7 +209,7 @@ ELSE
 
 -- dedup and merge
 
-@dedupData = replace(replace(''print(''''--De-duplicate the data in {schema}._new_{tablename}--'''');
+set @dedupData = replace(replace(''print(''''--De-duplicate the data in {schema}._new_{tablename}--'''');
 IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N''''[{schema}].[_new_{tablename}]'''') AND type in (N''''U'''')) 
 BEGIN
 WITH CTE AS
