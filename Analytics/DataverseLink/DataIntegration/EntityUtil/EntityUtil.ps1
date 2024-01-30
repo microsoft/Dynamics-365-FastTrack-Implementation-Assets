@@ -4,11 +4,13 @@ $config = Get-Content -Path ".\config.json" | ConvertFrom-Json
 # Define the path to be used to create the dependencies.json file
 $AXDBDependenciesJson = '.\dependencies.json'
 
-# Define the path to be used to find the ReplaceViewSyntax.json file
+# Define the path to be used to find the Replace Syntax json files
 $ReplaceViewSyntaxFile = '.\ReplaceViewSyntax.json'
+$ReplaceFabricViewSyntaxFile = '.\ReplaceFabricViewSyntax.json'
 
-# Get the content of ReplaceViewSyntax file
+# Get the content of syntaxt files file
 $replaceSyntaxtArray = Get-Content -Raw -Path $ReplaceViewSyntaxFile | ConvertFrom-Json
+$replaceFabricSyntaxtArray = Get-Content -Raw -Path $ReplaceFabricViewSyntaxFile | ConvertFrom-Json
 
 # Read the metadata from the the dependencies.json file
 $dependencyContent = Get-Content -Raw -Path $AXDBDependenciesJson | ConvertFrom-Json
@@ -20,10 +22,6 @@ $createMissingTables = $config.createMissingTables
 $sourceDatabaseName = $config.sourceDatabaseName
 # Target database name (the database where the views will be created)
 $targetDatabaseName = $config.targetDatabaseName
-
-# Create the connection sting for a Fabric lakehouse (WIP)
-# $targetConnectionString = "Server=dbServer.datawarehouse.pbidedicated.windows.net;Database=stkop_lakehouse
-
 
 # Create the connection sting for a target database 
 # Tested against Azure SQL database and Azure Synapse Serverless
@@ -84,7 +82,11 @@ else
    
 # Open the SQL connection
 $targetConnection.Open()
-$serverlessReferenceConnection.Open(); # Being used for incremental CSV
+
+if ($serverlessReferenceDatabaseName -ne "")
+{
+    $serverlessReferenceConnection.Open(); # Being used for incremental CSV
+}
 
 # Show connection state
 Write-Host "Connection state:" + $targetConnection.State
@@ -186,17 +188,52 @@ foreach ($dependency in $dependencyArray)
         $ddl = $ddl.Replace("SELECT ValidFromInContextInfo FROM GetValidFromDateInContextInfoAsTable()", "GETUTCDATE()");
         $ddl = $ddl.Replace("SELECT ValidToInContextInfo FROM GetValidToDateInContextInfoAsTable()", "GETUTCDATE()");
         
+        
         # Filter the JSON array 
         $replaceSyntaxArray = $replaceSyntaxtArray | Where-Object { $_.ViewName -eq $entityName }
         
         foreach ($replaceSyntax in $replaceSyntaxArray) 
         {
           #  Write-host "$entityName Replacing the syntax";
-            $ddl = $ddl.Replace($replaceSyntax.Key,$replaceSyntax.Value)
+           $ddl = $ddl.Replace($replaceSyntax.Key,$replaceSyntax.Value)
+           
         }
 
-       Write-Host "Generated SQL statement for the VIEW $entityName :"
-     #  Write-host "$ddl";
+
+        if ($TargetEndpointType -eq "MS_Fabric")
+        {
+            
+            # if this is being run on Fabric, it is assumed that you are creating inherited tables,
+            # thus including the replace statement to ensure views are created correctly
+            # Read the list of inherited tables to be created Split the comma-separated values
+            $tableList = $config.inheritedTablesToBeCreated -split ','
+            $ddl = $ddl.ToLower();
+            # Loop through the values
+            foreach ($table in $tableList) 
+            {
+                if ($ddl -like "* $table *")
+                {
+                    $ddl = $ddl -replace $table, ("$table" + "_view")
+                }
+            }
+
+            # There are some case sensitive statements that need to be updated for Fabric
+            # Filter the JSON array 
+            $replaceFabricSyntaxArray = $replaceFabricSyntaxtArray | Where-Object { $_.ViewName -eq $entityName }
+        
+            foreach ($replaceFabricSyntax in $replaceFabricSyntaxArray) 
+            {
+              #  Write-host "$entityName Replacing the syntax";
+               $ddl = $ddl.Replace($replaceFabricSyntax.Key,$replaceFabricSyntax.Value)
+           
+            }
+            
+        }
+
+        
+
+        Write-Host "Generated SQL statement for the VIEW $entityName :"
+        #  Write-host "$ddl";
             
     }
 
