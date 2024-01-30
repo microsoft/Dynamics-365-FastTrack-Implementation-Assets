@@ -1,0 +1,37 @@
+﻿[
+    {
+		"Key": " n''",
+		"Value": " N''",
+		"ViewName": "INVENTPRODUCTDEFAULTORDERSETTINGSENTITY"
+	},
+	{
+		"Key": " n'legalentity'",
+		"Value": " N'legalentity'",
+		"ViewName": "OMLEGALENTITY"
+	},
+	{
+		"Key": " t4.id",
+		"Value": " t4.Id",
+		"ViewName": "OMLEGALENTITY"
+	},
+	{
+		"Key": " n''",
+		"Value": " N''",
+		"ViewName": "SALESINVOICELINEV3ENTITY"
+	},
+	{
+		"Key": " n'reqdemplanstagingtablefillerhistoricalexternaldemand'",
+		"Value": " N'reqdemplanstagingtablefillerhistoricalexternaldemand'",
+		"ViewName": "REQDEMPLANHISTORICALEXTERNALDEMANDGROUPVIEW"
+	},
+	{
+		"Key": " n'0' ",
+		"Value": " N'0' ",
+		"ViewName": "GENERALJOURNALACCOUNTENTRYENTITY"
+	},
+	{
+		"Key": " (n'-1') ",
+		"Value": " (N'-1') ",
+		"ViewName": "GENERALJOURNALACCOUNTENTRYENTITY"
+	}
+]
