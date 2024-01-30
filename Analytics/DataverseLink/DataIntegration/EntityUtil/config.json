@@ -1,5 +1,5 @@
 {
-  "createMissingTables": true,
+  "createMissingTables": false,
   "sourceDatabaseName": "<serverless database name>",
   "sourceServerName": "<Azure synapse server name>",
   "targetServerName": "<target database server name>",
@@ -10,5 +10,8 @@
   "sandboxServerName": "<sandbox server name>",
   "sandboxDatabaseName": "<sandbox database name>",
   "sandboxuid": "<sandbox JIT access name>",
-  "sandboxPwd": "<sandbox JIT access password>"
+  "sandboxPwd": "<sandbox JIT access password>",
+  "backwardcompatiblecolumns": "_SysRowId,DataLakeModified_DateTime,$FileName,LSN,LastProcessedChange_DateTime",
+  "exlcudecolumns": "id,Id,SinkCreatedOn,SinkModifiedOn,modifieddatetime,modifiedby,modifiedtransactionid,dataareaid,recversion,partition,sysrowversion,recid,tableid,versionnumber,createdon,modifiedon,isDelete,IsDelete,PartitionId,createddatetime,createdby,createdtransactionid,PartitionId,sysdatastatecode",
+  "inheritedTablesToBeCreated": "dirpartytable"
 }
