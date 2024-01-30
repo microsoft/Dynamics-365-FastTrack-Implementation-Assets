@@ -23,6 +23,8 @@
 # By using this open-source code, you acknowledge that you have read and understood this disclaimer. 
 # If you do not agree with these terms, do not use the code.
 
+# January 2023 update - added support to create entities as views within Fabric
+
 function Get-Menu {
     Clear
     Write-Host ''
@@ -32,6 +34,7 @@ function Get-Menu {
     Write-Host '2. Create missing tables and views in an Azure Synapse or SQL database.'
     Write-Host '3. Delete all of the tables and views in the target database.'
     Write-Host '4. Delete all of the tables and views in the source serverless database.'
+    Write-Host '5. Create the inherited tables in Fabric. (ONLY required to support Fabric.)'
     Write-Host ''
     Write-Host 'Q - Quit'
     Write-Host ''
@@ -67,12 +70,18 @@ function Get-Menu {
             Write-Host ''		
              .\DeleteViewsFromSynapse.ps1 "source"
         }
+        5 {
+			Write-Host ''
+			Write-Host 'Creating inherited tables in Fabric.'	
+            Write-Host ''		
+             .\GenerateInheritedTables.ps1
+        }
         Q {
             Clear-Host
             Exit
         }
         Default {
-            if($Prompt -notlike "[1234Q]") {
+            if($Prompt -notlike "[12345Q]") {
                 $WarningMsg = 'Invalid Option. Retry.'
                 Get-Menu
             }
