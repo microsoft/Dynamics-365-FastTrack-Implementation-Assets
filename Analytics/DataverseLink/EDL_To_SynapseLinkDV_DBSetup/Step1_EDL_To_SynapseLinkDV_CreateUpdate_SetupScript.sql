@@ -575,7 +575,7 @@ print(@lastdatetimemarker);
 
 declare @newtables nvarchar(max);
 select 
-	@newtables= string_agg(convert(nvarchar(max), tablename), ',')
+	@newtables= isnull(string_agg(convert(nvarchar(max), tablename), ','),'')
 from #controltable 
 where 
 	[active] = 1 and
