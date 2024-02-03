@@ -1,49 +1,55 @@
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dvtosql].[target_preDataCopy]') AND type in (N'P'))
-	EXEC ('CREATE PROC dvtosql.target_preDataCopy
-	(
-		@pipelinerunId nvarchar(100), 
-		@tableschema nvarchar(10), 
-		@tablename nvarchar(200),
-		@columnnames nvarchar(max),
-		@lastdatetimemarker nvarchar(100),
-		@newdatetimemarker nvarchar(100)
-	)
-	AS
+-- Changes Feb 3 2024 - updated de-duplication to include SinkCreatedOn to address same rows appearing in the CSV files multiple time , ignoring the version number during incremental merge
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dvtosql].[target_preDataCopy]') AND type in (N'P'))
+    DROP PROC [dvtosql].target_preDataCopy
+GO
+CREATE PROC dvtosql.target_preDataCopy
+(
+	@pipelinerunId nvarchar(100), 
+	@tableschema nvarchar(10), 
+	@tablename nvarchar(200),
+	@columnnames nvarchar(max),
+	@lastdatetimemarker nvarchar(100),
+	@newdatetimemarker nvarchar(100)
+)
+AS
 
-	declare @debug_mode int = 0
-	declare @precopydata nvarchar(max) = replace(replace(replace(replace(replace(replace(convert(nvarchar(max),''print(''''--creating table {schema}._new_{tablename}--'''');
-	IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N''''[{schema}].[_new_{tablename}]'''') AND type in (N''''U'''')) 
-	BEGIN
-		DROP TABLE [{schema}].[_new_{tablename}] 
-	END
+declare @debug_mode int = 0
+declare @precopydata nvarchar(max) = replace(replace(replace(replace(replace(replace(convert(nvarchar(max),'print(''--creating table {schema}._new_{tablename}--'');
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N''[{schema}].[_new_{tablename}]'') AND type in (N''U'')) 
+BEGIN
+	DROP TABLE [{schema}].[_new_{tablename}] 
+END
 
-	CREATE TABLE [{schema}].[_new_{tablename}] ({columnnames}) WITH(HEAP)
+CREATE TABLE [{schema}].[_new_{tablename}] ({columnnames}) WITH(HEAP)
 
-	INSERT INTO  [dvtosql].[_datalaketosqlcopy_log](pipelinerunid, tablename, minfolder,maxfolder) 
-	values(''''{pipelinerunId}'''', ''''{tablename}'''', ''''{lastdatetimemarker}'''',''''{newdatetimemarker}'''' )
+INSERT INTO  [dvtosql].[_datalaketosqlcopy_log](pipelinerunid, tablename, minfolder,maxfolder) 
+values(''{pipelinerunId}'', ''{tablename}'', ''{lastdatetimemarker}'',''{newdatetimemarker}'' )
 
-	update [dvtosql].[_controltableforcopy]
-	set lastcopystatus = 1, [lastcopystartdatetime] = getutcdate()
-	where tablename = ''''{tablename}'''' AND  tableschema = ''''{schema}''''
-	'')
-	,''{columnnames}'', @columnnames)
-	,''{schema}'', @tableschema)
-	,''{tablename}'', @tablename)
+update [dvtosql].[_controltableforcopy]
+set lastcopystatus = 1, [lastcopystartdatetime] = getutcdate()
+where tablename = ''{tablename}'' AND  tableschema = ''{schema}''
+')
+,'{columnnames}', @columnnames)
+,'{schema}', @tableschema)
+,'{tablename}', @tablename)
 
-	,''{pipelinerunId}'', @pipelinerunId)
-	,''{lastdatetimemarker}'', @lastdatetimemarker)
-	,''{newdatetimemarker}'', @newdatetimemarker)
-	;
+,'{pipelinerunId}', @pipelinerunId)
+,'{lastdatetimemarker}', @lastdatetimemarker)
+,'{newdatetimemarker}', @newdatetimemarker)
+;
 
-	IF  @debug_mode = 0 
-		Execute sp_executesql @precopydata;
-	ELSE 
-		print (@precopydata);')
+IF  @debug_mode = 0 
+	Execute sp_executesql @precopydata;
+ELSE 
+	print (@precopydata);
 
 GO
 
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dvtosql].[target_GetSetSQLMetadata]') AND type in (N'P'))
-EXEC ('CREATE Procedure dvtosql.target_GetSetSQLMetadata
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dvtosql].[target_GetSetSQLMetadata]') AND type in (N'P'))
+    DROP PROC [dvtosql].target_GetSetSQLMetadata
+GO
+
+CREATE Procedure dvtosql.target_GetSetSQLMetadata
 (
 	@tableschema nvarchar(10), 
 	@StorageDS nvarchar(2000), 
@@ -57,18 +63,18 @@ AS
 	declare  @container nvarchar(1000);
 	declare  @externalds_name nvarchar(1000);
 
-	--declare	@datetime_markercolumn nvarchar(100)= ''SinkModifiedOn'';
-	declare	@bigint_markercolumn nvarchar(100) = ''versionnumber'';
-	declare	@lastdatetimemarker nvarchar(max) = ''1900-01-01'';
-	declare  @fullexportList nvarchar(max)= ''GlobalOptionsetMetadata,OptionsetMetadata,StateMetadata,StatusMetadata,TargetMetadata'';
+	--declare	@datetime_markercolumn nvarchar(100)= 'SinkModifiedOn';
+	declare	@bigint_markercolumn nvarchar(100) = 'versionnumber';
+	declare	@lastdatetimemarker nvarchar(max) = '1900-01-01';
+	declare  @fullexportList nvarchar(max)= 'GlobalOptionsetMetadata,OptionsetMetadata,StateMetadata,StatusMetadata,TargetMetadata';
 
-	if @StorageDS != ''''
+	if @StorageDS != ''
 	begin
-		set @storageaccount = (select value from string_split(@StorageDS, ''/'', 1) where ordinal = 3)
-		set @container = (select value from string_split(@StorageDS, ''/'', 1) where ordinal = 4)
+		set @storageaccount = (select value from string_split(@StorageDS, '/', 1) where ordinal = 3)
+		set @container = (select value from string_split(@StorageDS, '/', 1) where ordinal = 4)
 	end
 
-	IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N''[dvtosql].[_controltableforcopy]'') AND type in (N''U''))
+	IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dvtosql].[_controltableforcopy]') AND type in (N'U'))
 		CREATE TABLE [dvtosql].[_controltableforcopy]
 		(
 			[tableschema] [varchar](20) null,
@@ -81,7 +87,7 @@ AS
 			[datapath] varchar(1000) null,
 			[lastcopystartdatetime] [datetime2](7) null,
 			[lastcopyenddatetime] [datetime2](7) null,
-			[lastdatetimemarker] [datetime2](7) default ''1/1/1900'',
+			[lastdatetimemarker] [datetime2](7) default '1/1/1900',
 			[lastbigintmarker] bigint default -1,
 			[lastcopystatus] [int] default 0,
 			[refreshinterval] [int] default 60,
@@ -92,7 +98,7 @@ AS
 			[columnnames] nvarchar(max) null
 		)	WITH(HEAP);
 
-	IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N''[dvtosql].[_datalaketosqlcopy_log]'') AND type in (N''U''))
+	IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dvtosql].[_datalaketosqlcopy_log]') AND type in (N'U'))
 		CREATE TABLE [dvtosql].[_datalaketosqlcopy_log]
 		(
 			[pipelinerunid] [varchar](200) NOT NULL,
@@ -109,14 +115,14 @@ AS
 
 	Insert into [dvtosql].[_controltableforcopy] (tableschema, tablename, datetime_markercolumn, bigint_markercolumn, storageaccount, container, environment, datapath, selectcolumns, datatypes, columnnames)
 	select 
-		@tableschema, tablename, @datetime_markercolumn,@bigint_markercolumn, @storageaccount, @container, @container, ''*'' + tablename + ''*.csv'', selectcolumns, datatypes, columnnames
+		@tableschema, tablename, @datetime_markercolumn,@bigint_markercolumn, @storageaccount, @container, @container, '*' + tablename + '*.csv', selectcolumns, datatypes, columnnames
 	from  openjson(@sqlmetadata) with([tablename] NVARCHAR(200), [selectcolumns] NVARCHAR(MAX), datatypes NVARCHAR(MAX), columnnames NVARCHAR(MAX)) t 
 	where tablename not in  (select tablename COLLATE Latin1_General_BIN2 from [dvtosql].[_controltableforcopy]  where tableschema COLLATE Latin1_General_BIN2  = @tableschema COLLATE Latin1_General_BIN2)
 
 	-- update full export tables
 	update [dvtosql].[_controltableforcopy] 
 		set incremental = 0
-	where tablename in (select value from string_split(@fullexportList, '',''));
+	where tablename in (select value from string_split(@fullexportList, ','));
 
 	update target 
 		SET  target.datatypes = source.datatypes, target.selectcolumns = source.selectcolumns, target.columnnames = source.columnnames 
@@ -135,7 +141,7 @@ AS
 		[datetime_markercolumn],
 		[bigint_markercolumn],
 		case 
-			when @lastdatetimemarker  = ''1900-01-01'' Then isnull([lastdatetimemarker], '''')  
+			when @lastdatetimemarker  = '1900-01-01' Then isnull([lastdatetimemarker], '')  
 			else @lastdatetimemarker 
 		end as lastdatetimemarker,
 		lastbigintmarker,
@@ -145,9 +151,9 @@ AS
 		environment,  
 		datatypes, 
 		columnnames,
-		replace(selectcolumns, '''''''','''''''''''') as selectcolumns
+		replace(selectcolumns, '''','''''') as selectcolumns
 	from [dvtosql].[_controltableforcopy]
-	where  [active] = 1')
+	where  [active] = 1
 
 GO
 
@@ -216,7 +222,7 @@ AS
         IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N''[{schema}].[_new_{tablename}]'') AND type in (N''U'')) 
         BEGIN
         WITH CTE AS
-        ( SELECT ROW_NUMBER() OVER (PARTITION BY Id ORDER BY versionnumber DESC) AS rn, Id, versionnumber FROM {schema}._new_{tablename}
+        ( SELECT ROW_NUMBER() OVER (PARTITION BY Id ORDER BY versionnumber DESC) AS rn, Id, versionnumber,SinkCreatedOn FROM {schema}._new_{tablename}
         )
 
         SELECT *
@@ -226,7 +232,7 @@ AS
 
         DELETE t
         FROM {schema}._new_{tablename} t
-        INNER JOIN #TempDuplicates{tablename} tmp ON t.Id = tmp.Id and t.versionnumber = tmp.versionnumber;
+        INNER JOIN #TempDuplicates{tablename} tmp ON t.Id = tmp.Id and t.versionnumber = tmp.versionnumber and t.SinkCreatedOn = tmp.SinkCreatedOn;
 
         drop table  #TempDuplicates{tablename};
 
@@ -279,12 +285,11 @@ AS
         DELETE target
         FROM {schema}.{tablename} AS target
         INNER JOIN {schema}._new_{tablename} AS source
-        ON target.Id = source.Id and target.versionnumber > source.versionnumber;
+        ON target.Id = source.Id;
 
         INSERT INTO {schema}.{tablename} ({insertcolumns})
         SELECT {valuescolumns} 
-        FROM {schema}._new_{tablename} AS source
-        WHERE source.versionnumber > (select max(versionnumber) from {schema}.{tablename});
+        FROM {schema}._new_{tablename} AS source;
 
         select @versionnumber = max(versionnumber) from  {schema}.{tablename};
 
