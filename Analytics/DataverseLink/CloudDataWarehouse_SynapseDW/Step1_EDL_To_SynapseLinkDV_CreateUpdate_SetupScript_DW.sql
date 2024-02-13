@@ -234,6 +234,10 @@ AS
         FROM {schema}._new_{tablename} t
         INNER JOIN #TempDuplicates{tablename} tmp ON t.Id = tmp.Id and t.versionnumber = tmp.versionnumber and t.SinkCreatedOn = tmp.SinkCreatedOn;
 
+        DELETE t
+        FROM {schema}._new_{tablename} t
+		where source.IsDelete = 1;
+
         drop table  #TempDuplicates{tablename};
 
         END'
@@ -289,7 +293,8 @@ AS
 
         INSERT INTO {schema}.{tablename} ({insertcolumns})
         SELECT {valuescolumns} 
-        FROM {schema}._new_{tablename} AS source;
+        FROM {schema}._new_{tablename} AS source
+        where source.IsDelete is Null;
 
         select @versionnumber = max(versionnumber) from  {schema}.{tablename};
 
