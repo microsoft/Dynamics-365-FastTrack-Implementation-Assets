@@ -1,3 +1,4 @@
+-- Feb 12, 2024 - updated logic to getNewTables to copy from delta table using max(SinkModifiedOn)
 -- Dec 29, 2023 - Added options to derived tables SQL to fix for incremental CSV version
 -- Dec 21 - bug fix on data entity - filter deleted rows 
 --Dec 13 - Filter deleted rows from delta tables  
@@ -220,14 +221,15 @@ with table_field_enum_map as
 GO
 
 
-create or alter view GlobalOptionsetMetadata 
-	AS SELECT 
-			'' as EntityName,
-			'' as OptionSetName,
-			'' as GlobalOptionSetName,
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GlobalOptionsetMetadata]') AND type in (N'U'))
+	exec('create or alter view GlobalOptionsetMetadata 
+		AS SELECT 
+			'''' as EntityName,
+			'''' as OptionSetName,
+			'''' as GlobalOptionSetName,
 			0 as LocalizedLabelLanguageCode,
 			0 as [Option] ,
-			'' as ExternalValue
+			'''' as ExternalValue')
 
 GO
 	
@@ -644,9 +646,8 @@ IF (@incrementalCSV = 1)
 		print ('New marker value:' + @maxfoldername);
 
 		set @newdatetimemarker =  convert(datetime2, replace(@maxfoldername, '.', ':'));
-	END;
-
-	select 
+		
+		select 
 		tableschema,
 		tablename,
 		lastdatetimemarker,
@@ -663,9 +664,57 @@ IF (@incrementalCSV = 1)
 		 datatypes
 	from #controltable
 	where 
-		(@incrementalCSV = 0 OR tablename in (select value from string_split(@tablelist_inNewFolders, ','))) and 
+		tablename in (select value from string_split(@tablelist_inNewFolders, ',')) and 
 		[active] = 1 and 
 		lastcopystatus != 1
+	END;
+	ELSE
+	BEGIN;
+		print('--delta tables - get newdatetimemarker---')
+		declare @tablenewdatetimemarker nvarchar(max);
+		select @tablenewdatetimemarker= string_agg(convert(nvarchar(max),tablenewdatetimemarker), ' union ')
+		from (
+		select 
+			'select ''' + tableschema +  ''' as tableschema, ''' + tablename +  ''' as tablename, max(' + datetime_markercolumn + ') as newdatetimemarker from ' + tableschema + '.' + tablename as tablenewdatetimemarker
+		from #controltable
+		where incremental = 1 and
+		[active] = 1 and 
+		lastcopystatus != 1
+		)x
+
+		drop table if exists #newcontroltable;
+		CREATE TABLE #newcontroltable
+			(
+				[tableschema] [varchar](20) null,
+				[tablename] [varchar](255) null,
+				[newdatetimemarker] datetime2
+			)
+		insert into #newcontroltable
+		execute sp_executesql @tablenewdatetimemarker 
+
+		select 
+		c.tableschema,
+		c.tablename,
+		lastdatetimemarker,
+		n.newdatetimemarker as newdatetimemarker ,
+		replace(replace(replace(replace(replace(replace(replace(convert(nvarchar(max),@SelectTableData  + (case when incremental =1 then @whereClause else '' end)), 
+		'{tableschema}', @sourcetableschema),
+		'{tablename}', c.tablename),
+		'{lastdatetimemarker}', lastdatetimemarker),
+		'{newdatetimemarker}', newdatetimemarker),
+		'{lastbigintmarker}', lastbigintmarker),
+		'{datetime_markercolumn}', datetime_markercolumn),
+		'{bigint_markercolumn}', bigint_markercolumn)
+		 as selectquery,
+		 datatypes
+	from #controltable c
+	join #newcontroltable n on c.tableschema = n.tableschema and c.tablename = n.tablename 
+	where 
+		c.lastdatetimemarker < newdatetimemarker and
+		[active] = 1 and 
+		lastcopystatus != 1
+
+	END 
 
 
 GO
