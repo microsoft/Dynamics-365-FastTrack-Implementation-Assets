@@ -236,7 +236,7 @@ AS
 
         DELETE t
         FROM {schema}._new_{tablename} t
-		where source.IsDelete = 1;
+		where t.IsDelete = 1;
 
         drop table  #TempDuplicates{tablename};
 
