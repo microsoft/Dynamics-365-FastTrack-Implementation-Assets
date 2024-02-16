@@ -168,5 +168,45 @@
 		"Key": "T6.KEY_",
 		"Value": "T6.[KEY]",
 		"ViewName": "INVENTPRODUCTDEFAULTORDERSETTINGSENTITY"
+	},
+	{
+		"Key": "T1.FEMALEOWNED AS",
+		"Value": "Null AS",
+		"ViewName": "RETAILVENDVENDORV3ENTITY"
+	},
+	{
+		"Key": "T1.ETHNICORIGINID AS",
+		"Value": "Null AS",
+		"ViewName": "RETAILVENDVENDORV3ENTITY"
+	},
+	{
+		"Key": "T1.LOCALLYOWNED AS",
+		"Value": "Null AS",
+		"ViewName": "RETAILVENDVENDORV3ENTITY"
+	},
+	{
+		"Key": "T1.MINORITYOWNED AS",
+		"Value": "Null AS",
+		"ViewName": "RETAILVENDVENDORV3ENTITY"
+	},
+	{
+		"Key": "T1.TAX1099REGNUM AS",
+		"Value": "Null AS",
+		"ViewName": "RETAILVENDVENDORV3ENTITY"
+	},
+	{
+		"Key": "T1.VETERANOWNED AS",
+		"Value": "Null AS",
+		"ViewName": "RETAILVENDVENDORV3ENTITY"
+	},
+	{
+		"Key": "T1.BIRTHPLACE AS",
+		"Value": "Null AS",
+		"ViewName": "RETAILVENDVENDORV3ENTITY"
+	},
+	{
+		"Key": "T1.DISABLEDOWNED AS",
+		"Value": "Null AS",
+		"ViewName": "RETAILVENDVENDORV3ENTITY"
 	}
 ]
