@@ -56,7 +56,8 @@
         $createAlterViewConnection.AccessToken = $accessToken
     }
  
-    if ($targetConnectionString -like "*.pbidedicated.windows.net*")
+    if (($targetConnectionString -like "*.pbidedicated.windows.net*") -or
+        ($targetConnectionString -like "*.datawarehouse.fabric.microsoft.com*"))
     {
         $TargetEndpointType = "MS_Fabric"
     }

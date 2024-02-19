@@ -168,5 +168,10 @@
 		"Key": "T6.KEY_",
 		"Value": "T6.[KEY]",
 		"ViewName": "INVENTPRODUCTDEFAULTORDERSETTINGSENTITY"
+	},
+	{
+		"Key": "T1.COMMENT_ AS COMMENT_",
+		"Value": "T1.COMMENT AS COMMENT_",
+		"ViewName": "RETAILTRANSACTIONENTITY"
 	}
 ]

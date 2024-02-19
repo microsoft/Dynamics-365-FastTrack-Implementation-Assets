@@ -68,7 +68,8 @@ elseif ($targetConnectionString -like "*.sql.azuresynapse.net*")
 {
      $TargetEndpointType = "Synapse_Dedicated"
 }
-elseif ($targetConnectionString -like "*.pbidedicated.windows.net*")
+elseif (($targetConnectionString -like "*.pbidedicated.windows.net*") -or
+        ($targetConnectionString -like "*.datawarehouse.fabric.microsoft.com*"))
 {
     $TargetEndpointType = "MS_Fabric"
     $createMissingTables = $false
