@@ -208,5 +208,10 @@
 		"Key": "T1.DISABLEDOWNED AS",
 		"Value": "Null AS",
 		"ViewName": "RETAILVENDVENDORV3ENTITY"
+	},
+	{
+		"Key": "T1.COMMENT_ AS COMMENT_",
+		"Value": "T1.COMMENT AS COMMENT_",
+		"ViewName": "RETAILTRANSACTIONENTITY"
 	}
 ]
