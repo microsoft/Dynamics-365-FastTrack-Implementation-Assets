@@ -1,8 +1,11 @@
 {
+  "type" : "correlation",
   "id" : "D365Login_correlation_template",
-  "description" : "",
-  "version" : "1.0",
-  "components" : "com.blazemeter.jmeter.correlation.siebel.SiebelCounterCorrelationReplacement,com.blazemeter.jmeter.correlation.siebel.SiebelRowParamsCorrelationReplacement,com.blazemeter.jmeter.correlation.siebel.SiebelRowCorrelationExtractor,com.blazemeter.jmeter.correlation.siebel.SiebelRowIdCorrelationReplacement",
+  "description" : "Correlation for Auth",
+  "version" : "1.0.1",
+  "author" : "Edison Lai",
+  "url" : "Edison.Lai@Microsoft.com",
+  "components" : "com.blazemeter.jmeter.correlation.siebel.SiebelRowIdCorrelationReplacement,com.blazemeter.jmeter.correlation.siebel.SiebelRowParamsCorrelationReplacement,com.blazemeter.jmeter.correlation.siebel.SiebelCounterCorrelationReplacement,com.blazemeter.jmeter.correlation.siebel.SiebelRowCorrelationExtractor",
   "responseFilters" : "",
   "groups" : [ {
     "id" : "Group-1",
@@ -124,7 +127,7 @@
       "referenceName" : "Canary",
       "correlationExtractor" : {
         "type" : "com.blazemeter.jmeter.correlation.core.extractors.RegexCorrelationExtractor",
-        "regex" : "\"canary\":\"(.+?)\","
+        "regex" : "\"canary\":\"(.+?)\"},"
       },
       "correlationReplacement" : {
         "type" : "com.blazemeter.jmeter.correlation.core.replacements.RegexCorrelationReplacement",
@@ -413,6 +416,6 @@
   } ],
   "dependencies" : [ ],
   "repositoryId" : "local",
-  "changes" : "",
+  "changes" : "Update correlation rule",
   "installed" : false
 }
