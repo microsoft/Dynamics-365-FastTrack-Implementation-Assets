@@ -2,10 +2,10 @@
   "type" : "correlation",
   "id" : "D365Login_correlation_template",
   "description" : "Correlation for Auth",
-  "version" : "1.0.1",
+  "version" : "1.0.2",
   "author" : "Edison Lai",
   "url" : "Edison.Lai@Microsoft.com",
-  "components" : "com.blazemeter.jmeter.correlation.siebel.SiebelRowIdCorrelationReplacement,com.blazemeter.jmeter.correlation.siebel.SiebelRowParamsCorrelationReplacement,com.blazemeter.jmeter.correlation.siebel.SiebelCounterCorrelationReplacement,com.blazemeter.jmeter.correlation.siebel.SiebelRowCorrelationExtractor",
+  "components" : "com.blazemeter.jmeter.correlation.siebel.SiebelRowParamsCorrelationReplacement,com.blazemeter.jmeter.correlation.siebel.SiebelRowCorrelationExtractor,com.blazemeter.jmeter.correlation.siebel.SiebelCounterCorrelationReplacement,com.blazemeter.jmeter.correlation.siebel.SiebelRowIdCorrelationReplacement",
   "responseFilters" : "",
   "groups" : [ {
     "id" : "Group-1",
@@ -311,7 +311,7 @@
         "type" : "com.blazemeter.jmeter.correlation.core.replacements.RegexCorrelationReplacement",
         "regex" : "hpgrequestid: (.{36})"
       },
-      "enabled" : false
+      "enabled" : true
     }, {
       "referenceName" : "Wa",
       "correlationExtractor" : {
