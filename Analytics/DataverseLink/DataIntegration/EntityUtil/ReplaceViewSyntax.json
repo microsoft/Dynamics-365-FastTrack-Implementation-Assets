@@ -218,5 +218,15 @@
 		"Key": "T1.LEVEL_ AS SHELFID",
 		"Value": "T1.LEVEL AS SHELFID",
 		"ViewName": "WMSWAREHOUSELOCATIONENTITY"
+	},
+	{
+		"Key": "LVL.LEVEL_",
+		"Value": "LVL.LEVEL",
+		"ViewName": "DIMENSIONHIERARCHYBASEENTITY"
+	},
+	{
+		"Key": "LVL.LEVEL_",
+		"Value": "LVL.LEVEL",
+		"ViewName": "FINANCIALDIMENSIONSETENTITY"
 	}
 ]
