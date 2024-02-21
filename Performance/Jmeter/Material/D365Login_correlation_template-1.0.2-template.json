@@ -5,7 +5,7 @@
   "version" : "1.0.2",
   "author" : "Edison Lai",
   "url" : "Edison.Lai@Microsoft.com",
-  "components" : "com.blazemeter.jmeter.correlation.siebel.SiebelRowParamsCorrelationReplacement,com.blazemeter.jmeter.correlation.siebel.SiebelRowCorrelationExtractor,com.blazemeter.jmeter.correlation.siebel.SiebelCounterCorrelationReplacement,com.blazemeter.jmeter.correlation.siebel.SiebelRowIdCorrelationReplacement",
+  "components" : "com.blazemeter.jmeter.correlation.siebel.SiebelRowCorrelationExtractor,com.blazemeter.jmeter.correlation.siebel.SiebelRowIdCorrelationReplacement,com.blazemeter.jmeter.correlation.siebel.SiebelRowParamsCorrelationReplacement,com.blazemeter.jmeter.correlation.siebel.SiebelCounterCorrelationReplacement",
   "responseFilters" : "",
   "groups" : [ {
     "id" : "Group-1",
@@ -416,6 +416,6 @@
   } ],
   "dependencies" : [ ],
   "repositoryId" : "local",
-  "changes" : "Update correlation rule",
+  "changes" : "Correlation rule updated.",
   "installed" : false
 }
