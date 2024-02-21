@@ -4,7 +4,7 @@
   "description" : "Correlation for Auth",
   "version" : "1.0.2",
   "author" : "Edison Lai",
-  "url" : "Edison.Lai@Microsoft.com",
+  "url" : "https://www.linkedin.com/in/edison-lai",
   "components" : "com.blazemeter.jmeter.correlation.siebel.SiebelRowCorrelationExtractor,com.blazemeter.jmeter.correlation.siebel.SiebelRowIdCorrelationReplacement,com.blazemeter.jmeter.correlation.siebel.SiebelRowParamsCorrelationReplacement,com.blazemeter.jmeter.correlation.siebel.SiebelCounterCorrelationReplacement",
   "responseFilters" : "",
   "groups" : [ {
