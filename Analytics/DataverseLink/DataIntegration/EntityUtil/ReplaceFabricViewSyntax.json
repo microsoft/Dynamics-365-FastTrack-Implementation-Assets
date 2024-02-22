@@ -33,5 +33,10 @@
 		"Key": " (n'-1') ",
 		"Value": " (N'-1') ",
 		"ViewName": "GENERALJOURNALACCOUNTENTRYENTITY"
+	},
+	{
+		"Key": " n'0' ",
+		"Value": " N'0' ",
+		"ViewName": "ASSETLEASEBOOKVERSIONENTITY"
 	}
 ]
