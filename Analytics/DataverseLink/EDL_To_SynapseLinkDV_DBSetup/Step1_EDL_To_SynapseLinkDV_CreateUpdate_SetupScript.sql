@@ -1,3 +1,4 @@
+-- Feb 22 - removing version number filter from the incremental query as during the inital sync - the data can be out of order of version number
 -- Feb 12, 2024 - updated logic to getNewTables to copy from delta table using max(SinkModifiedOn)
 -- Dec 29, 2023 - Added options to derived tables SQL to fix for incremental CSV version
 -- Dec 21 - bug fix on data entity - filter deleted rows 
@@ -589,7 +590,7 @@ declare @minfoldername nvarchar(100) = '';
 declare @maxfoldername nvarchar(100) = '';
 declare @SelectTableData nvarchar(max);
 declare @newdatetimemarker datetime2 = getdate();
-declare @whereClause nvarchar(200) = ' where {datetime_markercolumn} between ''{lastdatetimemarker}'' and ''{newdatetimemarker}'' and {bigint_markercolumn} > {lastbigintmarker}';
+declare @whereClause nvarchar(200) = ' where {datetime_markercolumn} between ''{lastdatetimemarker}'' and ''{newdatetimemarker}''';
 
 set @SelectTableData  = 'SELECT * from {tableschema}.{tablename}';
 
@@ -605,8 +606,8 @@ IF (@incrementalCSV = 1)
 
 		declare @getNewFolders nvarchar(max) = 
 		'SELECT     
-		@minfoldername = isNull(min(minfolder),format(GETUTCDATE(),''yyyy-MM-ddThh.mm.ssZ'')),
-		@maxfoldername = isNull(max(maxfolderPath),format(GETUTCDATE(),''yyyy-MM-ddThh.mm.ssZ'')),  
+		@minfoldername = isNull(min(minfolder),format(GETUTCDATE(),''yyyy-MM-ddTHH.mm.ssZ'')),
+		@maxfoldername = isNull(max(maxfolderPath),format(GETUTCDATE(),''yyyy-MM-ddTHH.mm.ssZ'')),  
 		@tablelist_inNewFolders = isnull(string_agg(convert(nvarchar(max), x.tablename),'',''),'''')
 		from 
 		(
