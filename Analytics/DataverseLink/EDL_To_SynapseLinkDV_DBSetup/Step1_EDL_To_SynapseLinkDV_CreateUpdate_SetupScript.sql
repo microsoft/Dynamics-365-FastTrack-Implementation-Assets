@@ -676,7 +676,7 @@ IF (@incrementalCSV = 1)
 		select @tablenewdatetimemarker= string_agg(convert(nvarchar(max),tablenewdatetimemarker), ' union ')
 		from (
 		select 
-			'select ''' + tableschema +  ''' as tableschema, ''' + tablename +  ''' as tablename, max(' + datetime_markercolumn + ') as newdatetimemarker from ' + tableschema + '.' + tablename as tablenewdatetimemarker
+			'select ''' + @sourcetableschema +  ''' as tableschema, ''' + tablename +  ''' as tablename, max(' + datetime_markercolumn + ') as newdatetimemarker from ' + @sourcetableschema + '.' + tablename as tablenewdatetimemarker
 		from #controltable
 		where incremental = 1 and
 		[active] = 1 and 
