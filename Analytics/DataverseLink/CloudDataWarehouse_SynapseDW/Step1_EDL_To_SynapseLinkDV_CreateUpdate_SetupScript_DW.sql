@@ -166,8 +166,8 @@ CREATE PROC [dvtosql].target_dedupAndMerge
 @tablename nvarchar(100),
 @schema nvarchar(10),
 @newdatetimemarker datetime2,
-@debug_mode bit = 0,
-@pipelinerunId nvarchar(100) = ''
+@debug_mode bit,
+@pipelinerunId nvarchar(100)
 )
 AS 
         declare @insertCount bigint,
