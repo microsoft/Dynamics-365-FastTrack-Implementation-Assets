@@ -875,7 +875,8 @@ CREATE OR ALTER PROC [dvtosql].target_dedupAndMerge
 @tablename nvarchar(100),
 @schema nvarchar(10),
 @newdatetimemarker datetime2,
-@debug_mode bit = 0
+@debug_mode bit = 0,
+@pipelinerunId nvarchar(100) = ''
 )
 AS 
 
@@ -1063,6 +1064,13 @@ BEGIN;
 	update [dvtosql].[_controltableforcopy]
 	set lastcopystatus = 0, lastdatetimemarker = @newdatetimemarker,  [lastcopyenddatetime] = getutcdate(), lastbigintmarker = @versionnumber
 	where tablename = @tablename AND  tableschema = @schema
+
+	IF @pipelinerunId <> ''
+	BEGIN
+		update [dvtosql].[_datalaketosqlcopy_log]
+		set rowsinserted = isnull(@insertCount, 0), rowsupdated = isnull(@updateCount, 0), rowsdeleted = isnull(@deleteCount, 0)
+		where pipelinerunid = @pipelinerunId and tablename = @tablename
+	END
 END 
 
 GO
