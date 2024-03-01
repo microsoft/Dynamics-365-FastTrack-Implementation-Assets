@@ -166,7 +166,8 @@ CREATE PROC [dvtosql].target_dedupAndMerge
 @tablename nvarchar(100),
 @schema nvarchar(10),
 @newdatetimemarker datetime2,
-@debug_mode bit 
+@debug_mode bit = 0,
+@pipelinerunId nvarchar(100) = ''
 )
 AS 
         declare @insertCount bigint,
@@ -234,9 +235,10 @@ AS
         FROM {schema}._new_{tablename} t
         INNER JOIN #TempDuplicates{tablename} tmp ON t.Id = tmp.Id and t.versionnumber = tmp.versionnumber and t.SinkCreatedOn = tmp.SinkCreatedOn;
 
-        DELETE t
+	--We need to keep deleted rows in the source schema to allow the merge function to delete target records 
+        /*DELETE t
         FROM {schema}._new_{tablename} t
-		where t.IsDelete = 1;
+		where t.IsDelete = 1;*/
 
         drop table  #TempDuplicates{tablename};
 
@@ -286,20 +288,36 @@ AS
         BEGIN;
         print(''-- Merge data from _new_{tablename} to {tablename}----'')
 
+	DECLARE @totaldeletedtargetrows AS bigint;
+
+	select @updateCount = count(*) FROM {schema}.{tablename} AS target
+        INNER JOIN {schema}._new_{tablename} AS source
+        ON target.Id = source.Id AND source.isdelete is Null;
+		
         DELETE target
         FROM {schema}.{tablename} AS target
         INNER JOIN {schema}._new_{tablename} AS source
         ON target.Id = source.Id;
 
+	SET NOCOUNT OFF	
+		
         INSERT INTO {schema}.{tablename} ({insertcolumns})
         SELECT {valuescolumns} 
         FROM {schema}._new_{tablename} AS source
         where source.IsDelete is Null;
-
+	
+	SELECT @totalUpsertTargetRows = @@ROWCOUNT;
+	
+	SET NOCOUNT ON
+	
+	SELECT @insertCount = @totalUpsertTargetRows - @updateCount;
+		
         select @versionnumber = max(versionnumber) from  {schema}.{tablename};
 
         set @versionnumber = isNull(@versionnumber, 0)
-            
+
+	select @deleteCount = count(*) from {schema}._new_{tablename} AS source where source.isdelete = 1;
+		
         drop table {schema}._new_{tablename};
 
         END;')
@@ -316,5 +334,12 @@ AS
         update [dvtosql].[_controltableforcopy]
         set lastcopystatus = 0, lastdatetimemarker = @newdatetimemarker,  [lastcopyenddatetime] = getutcdate(), lastbigintmarker = @versionnumber
         where tablename = @tablename AND  tableschema = @schema
+
+	IF @pipelinerunId <> ''
+	BEGIN
+		update [dvtosql].[_datalaketosqlcopy_log]
+		set rowsinserted = isnull(@insertCount, 0), rowsupdated = isnull(@updateCount, 0), rowsdeleted = isnull(@deleteCount, 0)
+		where pipelinerunid = @pipelinerunId and tablename = @tablename
+	END
 
 
