@@ -935,7 +935,8 @@ BEGIN;
 		)
 		DELETE FROM CTE WHERE rn > 1;
 
-		DELETE FROM {schema}._new_{tablename} Where IsDelete = 1;
+		--Moved from Dedup to Merge task  
+		--DELETE FROM {schema}._new_{tablename} Where IsDelete = 1;
 	END'
 	,'{schema}', @schema)
 	,'{tablename}', @tablename);
@@ -1012,6 +1013,19 @@ BEGIN;
 		MergeAction NVARCHAR(10)
 	);
 
+	SET NOCOUNT OFF;
+
+	-- Delete data in the target table based on source.
+	DELETE target FROM {schema}.{tablename} AS target
+	INNER JOIN {schema}._new_{tablename} AS source ON target.id = source.id and source.isdelete = 1;
+	
+	SELECT @deleteCount = @@ROWCOUNT;
+
+	SET NOCOUNT ON;
+
+	--Now remove data from the source to avoid update during the merge function
+	DELETE FROM {schema}._new_{tablename} Where IsDelete = 1;
+
 	MERGE INTO {schema}.{tablename} AS target
 	USING {schema}._new_{tablename} AS source
 	ON target.Id = source.Id
@@ -1023,11 +1037,10 @@ BEGIN;
 	OUTPUT $action INTO @MergeOutput(MergeAction );
 
 	 select @insertCount = [INSERT],
-			   @updateCount = [UPDATE],
-			   @deleteCount = [DELETE]
+			   @updateCount = [UPDATE]
 		  from (select MergeAction from @MergeOutput) mergeResultsPlusEmptyRow     
 		 pivot (count(MergeAction) 
-		   for MergeAction in ([INSERT],[UPDATE],[DELETE])) 
+		   for MergeAction in ([INSERT],[UPDATE])) 
 			as mergeResultsPivot;
 
 	select @versionnumber = max(versionnumber) from  {schema}.{tablename};
