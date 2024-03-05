@@ -10,7 +10,7 @@ Following are the two common architecture choices to achieve the objective
 Specially for data integration scenarios following are the key options and considerations 
 
 
-|Options 							|Description	| Use case   											| Cost factors			  | |  
+|Options 							|Description	| Use case   											| Cost factors			  | 
 |-------------------------------	|	|---------------										|---------------------|
 |Synapse link with delta lake		|Final data in Deltalake format, Lake database on Synapse workspace, ready to query via Synapse serverless or Spark notebook| Incremental data integration + consuming the data directly by variety of tools.. synapse serverless, spark notebook, Microsoft Fabric, Power BI, Databricks etc. | Azure storage account, Synapse spark pool for delta conversion + data pipeline to copy the data |										
 |Synapse link with incremental update|Initial and incremental data in timestamp based folder in CSV with metadata in CDM | Incremental data integration | Azure storage account + data pipleine to copy the data    
