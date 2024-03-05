@@ -37,6 +37,17 @@ class HttpRequest
       $this.AADLogin()
 
    }
+ 
+   [void] Login ()
+   {
+      $DefaultProfile = Connect-AzAccount -Tenant $this.Tenant
+      $bearer = (Get-AzAccessToken -ResourceUrl $this.Resource -DefaultProfile $DefaultProfile)
+      $this.Header = @{ Authorization = "Bearer " + $bearer.token }
+      if ($this.Debug)
+      {
+          Write-Host "AAD interactive login :" $bearer.UserId
+      }
+   }
 
    [object] WebCall ()
    {
