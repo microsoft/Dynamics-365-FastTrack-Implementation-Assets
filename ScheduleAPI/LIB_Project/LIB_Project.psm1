@@ -15,7 +15,9 @@ class Project
    {
       $this.request = [HttpRequest]::new($tenant,$environment)
       $this.request.Native = $true
+      # for user with MFA enabled, change the Authenticate method by the Login method
       $this.request.Authenticate()
+      # $this.request.Login() 
       $this.projectName = $projectName
       $this.GetProjectId()
       $this.customerName = ""
