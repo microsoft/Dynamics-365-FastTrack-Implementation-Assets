@@ -16,3 +16,5 @@ The library has a PowerShell script (EncryptCredentials.ps1) to create the file 
 Open this file in ISE, replace the values between <> with your values and run the script to create the secure file. 
 
  After the encrypted file has been created, make sure to remove the unencrypted fields from the PowerShell file.
+
+ Class Credentials is for internal use.
