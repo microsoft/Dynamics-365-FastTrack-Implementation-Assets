@@ -1,5 +1,5 @@
 # Overview
-There are scenarios where you may need to ingest Dynamics 365 data available in the data lake to relational databases or your existing data warehouse – it can be Azure sql database, synapse dedicated pool or even on-premised sql database. 
+There are scenarios where you may need to ingest Dynamics 365 data available in the data lake to relational databases or your existing data warehouse â€“ it can be Azure sql database, synapse dedicated pool or even on-premised sql database. 
 This can be integration to existing data warehouse solution or data integration or API scenarios where you expect millisecond response time response from sql server with targeted read.
 
 Following are the two common architecture choices to achieve the objective  
@@ -10,10 +10,11 @@ Following are the two common architecture choices to achieve the objective
 Specially for data integration scenarios following are the key options and considerations 
 
 
-|Options 							|Description	| Use case   											| Cost factors			  | 
-|-------------------------------	|	|---------------										|---------------------|
+|Options 				|Description	| Use case   											| Cost factors			 
+|-------------------------------	|-----------	|---------------										|---------------------
 |Synapse link with delta lake		|Final data in Deltalake format, Lake database on Synapse workspace, ready to query via Synapse serverless or Spark notebook| Incremental data integration + consuming the data directly by variety of tools.. synapse serverless, spark notebook, Microsoft Fabric, Power BI, Databricks etc. | Azure storage account, Synapse spark pool for delta conversion + data pipeline to copy the data |										
-|Synapse link with incremental update|Initial and incremental data in timestamp based folder in CSV with metadata in CDM | Incremental data integration | Azure storage account + data pipleine to copy the data    
+|Synapse link with incremental update|Initial and incremental data in timestamp based folder in CSV with metadata in CDM | Incremental data integration | Azure storage account + data pipleine to copy the data |
+
 
 
 
