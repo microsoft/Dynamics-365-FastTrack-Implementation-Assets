@@ -153,7 +153,7 @@ AS
 		columnnames,
 		replace(selectcolumns, '''','''''') as selectcolumns
 	from [dvtosql].[_controltableforcopy]
-	where  [active] = 1
+	where  [active] = 1 AND  tableschema = @tableschema
 
 GO
 

@@ -133,6 +133,38 @@ set @modeljson = isnull(@modeljson, '{}') ;
 set @enumtranslation = isnull(@enumtranslation, '{}') ;
 
 GO
+CREATE or ALTER FUNCTION dvtosql.source_GetSQLMetadataFromSQLV2
+(
+	@SourceSchema nvarchar(100),
+	@TablesToIncluce nvarchar(max) = '*',
+	@TablesToExcluce nvarchar(max) = ''
+)
+RETURNS TABLE 
+AS
+RETURN 
+select
+	(select 
+		TABLE_NAME as tablename,
+		string_agg(convert(varchar(max), QUOTENAME(COLUMN_NAME)), ',') as selectcolumns,
+		string_agg(convert(varchar(max), QUOTENAME(COLUMN_NAME) + SPACE(1) +  
+		DATA_TYPE +
+		CASE 
+			WHEN DATA_TYPE LIKE '%char%' AND CHARACTER_MAXIMUM_LENGTH = -1 THEN '(max)'
+			WHEN CHARACTER_MAXIMUM_LENGTH IS NOT NULL THEN '(' + CAST(CHARACTER_MAXIMUM_LENGTH AS VARCHAR) + ')'
+			WHEN DATA_TYPE IN ('decimal', 'numeric') THEN '(' + CAST(NUMERIC_PRECISION AS VARCHAR) + ', ' + CAST(NUMERIC_SCALE AS VARCHAR) + ')'
+		ELSE '' END), ',') as datatypes,
+		string_agg(convert(varchar(max), QUOTENAME(COLUMN_NAME)), ',') as columnnames
+	from INFORMATION_SCHEMA.COLUMNS
+	WHERE TABLE_SCHEMA = @SourceSchema
+	and TABLE_NAME not in ('_controltableforcopy,TargetMetadata,OptionsetMetadata,StateMetadata,StatusMetadata,GlobalOptionsetMetadata')
+	and TABLE_NAME not like '%_partitioned'
+	and (@TablesToIncluce = '*' OR TABLE_NAME in (select value from string_split(@TablesToIncluce, ',')))
+	and TABLE_NAME not in (select value from string_split(@TablesToExcluce, ','))
+	group by TABLE_NAME
+	FOR JSON PATH
+	) sqlmetadata
+
+GO
 
 
 CREATE or ALTER FUNCTION dvtosql.source_GetSQLMetadataFromSQL
@@ -222,8 +254,8 @@ with table_field_enum_map as
 GO
 
 
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GlobalOptionsetMetadata]') AND type in (N'U'))
-	exec('create or alter view GlobalOptionsetMetadata 
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dvtosql].[GlobalOptionsetMetadata]') AND type in (N'U'))
+	exec('create or alter view dvtosql.GlobalOptionsetMetadata 
 		AS SELECT 
 			'''' as EntityName,
 			'''' as OptionSetName,
@@ -260,7 +292,7 @@ from
 			GlobalOptionSetName as enum,
 			[Option] as enumid ,
 			ExternalValue as enumvalue
-			from GlobalOptionsetMetadata
+			from dvtosql.GlobalOptionsetMetadata
 			where LocalizedLabelLanguageCode = 1033 -- this is english
 			and OptionSetName not in ('sysdatastatecode') 
 			) x
@@ -319,7 +351,7 @@ AS
 
 		set @filter_deleted_rows =  ' where isnull({tablename}.IsDelete,0) = 0 '
 		
-		set @GlobalOptionSetMetadataTemplate = 'create or alter view GlobalOptionsetMetadata 
+		set @GlobalOptionSetMetadataTemplate = 'create or alter view dvtosql.GlobalOptionsetMetadata 
 		AS
 		SELECT *
 		FROM  OPENROWSET
@@ -357,7 +389,7 @@ AS
 			{datatypes}
 		) as {tablename} ';
 
-set @GlobalOptionSetMetadataTemplate = 'create or alter view GlobalOptionsetMetadata 
+set @GlobalOptionSetMetadataTemplate = 'create or alter view dvtosql.GlobalOptionsetMetadata 
 AS
 SELECT *
 FROM  OPENROWSET
@@ -431,7 +463,7 @@ drop table if exists #enumtranslation;
 
 -- generate ddl for view definitions for each tables in cdmmetadata table in the bellow format. 
 -- Begin try  
-	-- execute sp_executesql N'create or alter view schema.tablename as selectcolumns from openrowset(...) tablename '  
+	-- execute sp_executesql N'create or alter view schema.tablename as select columns from openrowset(...) tablename '  
 -- End Try 
 --Begin catch 
 	-- print ERROR_PROCEDURE() + ':' print ERROR_MESSAGE() 
@@ -783,6 +815,7 @@ IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dvtosql]
 			[enddatetime] [datetime2](7) NULL
 		);
 
+
 With sqlmetadata as 
 (
 	select * 
@@ -822,7 +855,7 @@ MERGE INTO [dvtosql].[_controltableforcopy] AS target
 		columnnames,
 		replace(selectcolumns, '''','''''') as selectcolumns
 	from [dvtosql].[_controltableforcopy]
-	where  [active] = 1
+	where  [active] = 1 and tableschema = @tableschema
 
 
 GO
@@ -846,12 +879,14 @@ CREATE OR ALTER PROC dvtosql.target_preDataCopy
 
 	CREATE TABLE [{schema}].[_new_{tablename}] ({columnnames})
 
-	INSERT INTO  [dvtosql].[_datalaketosqlcopy_log](pipelinerunid, tablename, minfolder,maxfolder) 
-	values(''{pipelinerunId}'', ''{tablename}'', ''{lastdatetimemarker}'',''{newdatetimemarker}'' )
+	INSERT INTO  [dvtosql].[_datalaketosqlcopy_log](pipelinerunid, tablename, minfolder,maxfolder, copystatus, startdatetime) 
+	values(''{pipelinerunId}'', ''{schema}.{tablename}'', ''{lastdatetimemarker}'',''{newdatetimemarker}'', 1, GETUTCDATE())
 
 	update [dvtosql].[_controltableforcopy]
 	set lastcopystatus = 1, [lastcopystartdatetime] = getutcdate()
 	where tablename = ''{tablename}'' AND  tableschema = ''{schema}''
+
+
 	')
 	,'{columnnames}', @columnnames)
 	,'{schema}', @tableschema)
@@ -876,7 +911,7 @@ CREATE OR ALTER PROC [dvtosql].target_dedupAndMerge
 @schema nvarchar(10),
 @newdatetimemarker datetime2,
 @debug_mode bit = 0,
-@pipelinerunId nvarchar(100) = ''
+@pipelinerunid nvarchar(100) = ''
 )
 AS 
 
@@ -935,9 +970,6 @@ BEGIN;
 		( SELECT ROW_NUMBER() OVER (PARTITION BY Id ORDER BY versionnumber DESC) AS rn FROM {schema}._new_{tablename}
 		)
 		DELETE FROM CTE WHERE rn > 1;
-
-		--Moved from Dedup to Merge task  
-		--DELETE FROM {schema}._new_{tablename} Where IsDelete = 1;
 	END'
 	,'{schema}', @schema)
 	,'{tablename}', @tablename);
@@ -959,22 +991,22 @@ BEGIN;
 	exec sp_rename ''{schema}._new_{tablename}'', ''{tablename}''
  
 	print(''-- -- create index on table----'')
-	IF EXISTS ( SELECT 1 FROM information_schema.columns WHERE table_name = ''{tablename}'' AND column_name = ''Id'') 
-		AND NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_id_idx'' AND object_id = OBJECT_ID(''{tablename}''))
+	IF EXISTS ( SELECT 1 FROM information_schema.columns WHERE table_schema = ''{schema}'' and table_name = ''{tablename}'' AND column_name = ''Id'') 
+		AND NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{schema}_{tablename}_id_idx'' AND object_id = OBJECT_ID(''[{schema}].[{tablename}]''))
 	BEGIN
-		CREATE UNIQUE INDEX {tablename}_id_idx ON {tablename}(Id) with (ONLINE = ON);
+		CREATE UNIQUE INDEX {schema}_{tablename}_id_idx ON [{schema}].[{tablename}](Id) with (ONLINE = ON);
 	END;
 
-	IF EXISTS ( SELECT 1 FROM information_schema.columns WHERE table_name = ''{tablename}'' AND column_name = ''recid'') 
-		AND NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_recid_idx'' AND object_id = OBJECT_ID(''{tablename}''))
+	IF EXISTS ( SELECT 1 FROM information_schema.columns WHERE  table_schema = ''{schema}'' and  table_name = ''{tablename}'' AND column_name = ''recid'') 
+		AND NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{schema}_{tablename}_recid_idx'' AND object_id = OBJECT_ID(''[{schema}].[{tablename}]''))
 	BEGIN
-		CREATE UNIQUE INDEX {tablename}_RecId_Idx ON {tablename}(recid) with (ONLINE = ON);
+		CREATE UNIQUE INDEX {schema}_{tablename}_RecId_Idx ON [{schema}].[{tablename}](recid) with (ONLINE = ON);
 	END;
 
-	IF EXISTS ( SELECT 1 FROM information_schema.columns WHERE table_name = ''{tablename}'' AND column_name = ''versionnumber'') 
-		AND NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_versionnumber_idx'' AND object_id = OBJECT_ID(''{tablename}''))
+	IF EXISTS ( SELECT 1 FROM information_schema.columns WHERE  table_schema = ''{schema}'' and  table_name = ''{tablename}'' AND column_name = ''versionnumber'') 
+		AND NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{schema}_{tablename}_versionnumber_idx'' AND object_id = OBJECT_ID(''[{schema}].[{tablename}]''))
 	BEGIN
-		CREATE  INDEX {tablename}_versionnumber_Idx ON {tablename}(versionnumber) with (ONLINE = ON);
+		CREATE  INDEX {schema}_{tablename}_versionnumber_Idx ON [{schema}].[{tablename}](versionnumber) with (ONLINE = ON);
 	END;
 
 	select @versionnumber = max(versionnumber), @insertCount = count(1) from  {schema}.{tablename};
@@ -1022,7 +1054,6 @@ BEGIN;
 	
 	SELECT @deleteCount = @@ROWCOUNT;
 
-	SET NOCOUNT ON;
 
 	--Now remove data from the source to avoid update during the merge function
 	DELETE FROM {schema}._new_{tablename} Where IsDelete = 1;
@@ -1038,10 +1069,10 @@ BEGIN;
 	OUTPUT $action INTO @MergeOutput(MergeAction );
 
 	 select @insertCount = [INSERT],
-			   @updateCount = [UPDATE]
-		  from (select MergeAction from @MergeOutput) mergeResultsPlusEmptyRow     
+			@updateCount = [UPDATE]
+		 from (select MergeAction from @MergeOutput) mergeResultsPlusEmptyRow     
 		 pivot (count(MergeAction) 
-		   for MergeAction in ([INSERT],[UPDATE])) 
+			for MergeAction in ([INSERT],[UPDATE])) 
 			as mergeResultsPivot;
 
 	select @versionnumber = max(versionnumber) from  {schema}.{tablename};
@@ -1065,6 +1096,7 @@ BEGIN;
 	set lastcopystatus = 0, lastdatetimemarker = @newdatetimemarker,  [lastcopyenddatetime] = getutcdate(), lastbigintmarker = @versionnumber
 	where tablename = @tablename AND  tableschema = @schema
 
+
 	IF @pipelinerunId <> ''
 	BEGIN
 		update [dvtosql].[_datalaketosqlcopy_log]
@@ -1074,8 +1106,3 @@ BEGIN;
 END 
 
 GO
-
-
-
-
-
