@@ -1,4 +1,4 @@
-# Forms Interactions Telemetry dasboard
+# Forms Interactions Telemetry dashboard
 This dashboard shows information about fomr interactions in Dynacmis 365 Finance and SCM applicaitons. Using this dashboard, it is possible to:
 - Investigate the most used form in the environment.
 - Review the opening time of the forms.
