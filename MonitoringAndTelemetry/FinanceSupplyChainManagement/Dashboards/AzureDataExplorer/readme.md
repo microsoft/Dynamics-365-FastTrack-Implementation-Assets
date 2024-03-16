@@ -3,7 +3,8 @@
 
 | Dashboard  | Description  | Take me there (use CTRL+click to open in a new tab) |
 | ------ | ------ | ------ |
-| Slow queries | Slow queries reported by the AOS. | [Slow Queries](SlowQueries) |
+| Slow queries | Slow queries reported by the AOS.     | [Slow Queries](SlowQueries) |
+| Errors       | Errors reported by the envioronments. |  [Errors](Errors) |
 | Order 2 Cash | Order to cash process telemetry. | |
 
 ## Steps to import the sample dashboard:
