@@ -15,7 +15,7 @@ This dashboard shows information about errors that are reported by the environme
 
   2. Name the dashboard appropriately.
   
-   <div align=center><img src="./img/2EditName.png" width="300" height="200"></div>
+   <div align=center><img src="./img/2EditName.png" width="338" height="98"></div>
   
   3. Click to select datasources. 
   
