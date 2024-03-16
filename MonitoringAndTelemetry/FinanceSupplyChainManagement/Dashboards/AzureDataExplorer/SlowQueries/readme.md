@@ -1,4 +1,4 @@
-# AOS Slow Query Telemetry dasboard
+# AOS Slow Query Telemetry dashboard
 This dashboard shows information about slow queries that are reported by the AOS. Using this dashboard, it is possible to:
 - Measure the number of slow queries over time.
 - List slow by their duration.
