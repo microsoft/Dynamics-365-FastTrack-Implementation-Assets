@@ -34,7 +34,9 @@ class OperationSet
    {
       if ($this.id -eq $null)
       {
+         #change Authenticate by Login method for user with MFA
          $this.request.Authenticate()
+         #$this.request.Login()
          $this.NewSet()
       }
       elseif ($this.nrRequest -eq $this.maxRequest)

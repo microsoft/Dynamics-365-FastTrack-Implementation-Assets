@@ -17,7 +17,7 @@
 -- 1.2 New rule sections - SCM Enhancements, Finance Enhancements
 -- 1.3 Modified all rules so variables are declared per rule. Allows for rules to be moved \ added\ deleted without impact to others. 
 -- 1.4 Additional parameter added to allow for comments if rule condition isn't met. Set parameter @ShowWhenUnobserved to enable output. 
-
+-- 1.5 Additional rule added for custom dimension attribute views
 
 
 --
@@ -920,6 +920,59 @@
 	GO
 
 
+	--
+	-- Rule: Custom Dimension Attribute Views
+	--
+	DECLARE @RuleID INT = 5080;
+	DECLARE @RuleSection NVARCHAR(100) = 'Finance Enhancements';
+	DECLARE @RuleName NVARCHAR(500) = 'Custom Dimension Attribute Views';
+	DECLARE @Observation NVARCHAR(MAX) = '';  
+	DECLARE @Recommendation NVARCHAR(MAX) = 'Ensure that your target D365 environment has these custom views added through customization';
+	DECLARE @AdditionalComments NVARCHAR(MAX) = '';
+	DECLARE @viewname NVARCHAR(256);
+	DECLARE @SQL NVARCHAR(MAX);
+
+	IF(OBJECT_ID('tempdb..#tempCustomDimViews') IS NOT NULL)
+	BEGIN 
+		DROP TABLE #tempCustomDimViews
+	END
+
+	CREATE TABLE #tempCustomDimViews
+	(
+		ViewName VARCHAR(50)
+	)
+
+	DECLARE tableCursor CURSOR FOR 
+		SELECT DISTINCT  VIEWNAME FROM DIMENSIONATTRIBUTE
+		WHERE VIEWNAME NOT IN ('DimAttributeAgreementHeaderExt_RU','DimAttributeAssetTable','DimAttributeBankAccountTable','DimAttributeCompanyInfo',
+		'DimAttributeCustTable','DimAttributeEmployeeTable_RU','DimAttributeFiscalEstablishment_BR','DimAttributeHcmJob','DimAttributeHcmWorker',
+		'DimAttributeInventItemGroup','DimAttributeInventTable','DimAttributeLedgerFund_PSN','DimAttributeMainAccount','DimAttributeOMBusinessUnit',
+		'DimAttributeOMCostCenter','DimAttributeOMDepartment','DimAttributeOMRegion','DimAttributeProjTable','DimAttributeRAssetTable_RU',
+		'DimAttributeRCashTable_RU','DimAttributeRDeferralsTable_RU','DimAttributeRetailChannel','DimAttributeRetailStore','DimAttributeRetailTerminal',
+		'DimAttributeRTax25ProfitTable_RU','DimAttributeSmmCampaignTable','DimAttributeTaxBranch','DimAttributeVendTable','DimensionFinancialTag')
+
+	OPEN tableCursor;
+	FETCH NEXT FROM tableCursor INTO @viewName;
+	WHILE @@FETCH_STATUS = 0
+		BEGIN
+			SET @SQL = 'insert into #tempCustomDimViews values(''' + @viewName + ''')'
+			EXEC (@SQL)
+			FETCH NEXT FROM tableCursor INTO @viewName;
+		END
+	CLOSE tableCursor;
+	DEALLOCATE tableCursor;
+
+	IF((SELECT COUNT(*) AS TotalCustomViews FROM #tempCustomDimViews) > 0)
+	BEGIN
+		SET @Observation = 'The following custom views have been found in table DimensionAttribute: '
+		SET @Observation = @Observation +  (SELECT TOP 1 STUFF((SELECT ', ' + ViewName FROM #tempCustomDimViews FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS ConcatenatedString FROM #tempCustomDimViews)
+		INSERT INTO #D365UpgradeAnalysisReport (RuleID, RuleSection, RuleName, Observation, Recommendation, AdditionalComments)
+			VALUES (@RuleId, @RuleSection, @RuleName, @Observation, @Recommendation, @AdditionalComments);
+	END 
+	GO
+
+
+
 --
 -- Rule Section: Technical Overview
 --
@@ -1605,7 +1658,7 @@
 		DECLARE @Recommendation NVARCHAR(MAX) = '1.Click Project management and accounting > Periodic > Journals > Delete project journals. 2. In the Delete project journals form, click Select. 3. In the ProjJournalCleanUp form, in the Criteria field, select the journal(s) that you want to delete. 4. Click OK.';
 		IF(OBJECT_ID('tempdb..#tempProjJournalsSizes') IS NOT NULL)
 		BEGIN 
-			DROP TABLE #tempBOMTablesSizes
+			DROP TABLE #tempProjJournalsSizes
 		END
 
 		CREATE TABLE #tempProjJournalsSizes
@@ -1721,9 +1774,9 @@
 		DECLARE @RuleName NVARCHAR(500) = 'Upgrade Delete unsent project quotations';
 		DECLARE @Observation NVARCHAR(MAX) = 'Deleting unsent project quotations to recover database space. It is possible to create a filter to delete only selected quotations. note that it is not possible to delete "Sent" quotations, to delete a "Sent" quotation first update it to Lost or Cancelled.';
 		DECLARE @Recommendation NVARCHAR(MAX) = '1.Click Project management and accounting > Periodic > Quotations > Delete quotations. 2. In the Delete quotations form, click the Select button. if necessary, customize the query to match your needs. 3. Click OK to transfer the quotations to the Delete quotations form. if the query transfers quotations that you do not want to delete, select them in the Delete quotations form and press ALT+F9. This removes the quotations from the list of quotations to be deleted. 4. Click OK to delete the quotations that are listed in the Delete quotations form.';
-		IF(OBJECT_ID('tempdb..#tempProjJournalsSizes') IS NOT NULL)
+		IF(OBJECT_ID('tempdb..#tempProjQuotationSizes') IS NOT NULL)
 		BEGIN 
-			DROP TABLE #tempBOMTablesSizes
+			DROP TABLE #tempProjQuotationSizes
 		END
 
 		CREATE TABLE #tempProjQuotationSizes
@@ -1850,9 +1903,9 @@
 		DECLARE @RuleName NVARCHAR(500) = 'Upgrade Production journal clean up';
 		DECLARE @Observation NVARCHAR(MAX) = 'Clean up production journals for "Ended" production orders. it is useful to delete old or unused journals to reduce demand on system resources. This process is related to the "Production orders clean up" process. Executing the "production orders clean up" will also delete the related production journals - then this process is not required. However if it is not possible for you to delete production orders, then you may wish you use this option to delete just production journals instead.';
 		DECLARE @Recommendation NVARCHAR(MAX) = '1. Click Production control > Periodic > Clean up > Production journals cleanup. 2. Click the Clean up list. 3. Select whether you want to delete all posted journals or only journals that are posted on finished production orders. 4. Click OK to delete the journals, or click the Batch tab, and then define parameters to schedule old journals to be deleted regularly.';
-		IF(OBJECT_ID('tempdb..#tempProjJournalsSizes') IS NOT NULL)
+		IF(OBJECT_ID('tempdb..#tempProdJournalSizes') IS NOT NULL)
 		BEGIN 
-			DROP TABLE #tempBOMTablesSizes
+			DROP TABLE #tempProdJournalSizes
 		END
 
 		CREATE TABLE #tempProdJournalSizes
@@ -2946,50 +2999,6 @@
 		DEALLOCATE ISVModelCursor;
 		GO
 	
-
-	/*-- TODO  - Where should these ones go??
-	--
-	-- Rule: DAXEAM layer
-	--
-		DECLARE @RuleID INT = 4000;
-		DECLARE @RuleSection NVARCHAR(100) = 'SCM Enhancements';
-		DECLARE @RuleName NVARCHAR(500) = 'Is DAXEAM being used in AX2012?';
-		DECLARE @Observation NVARCHAR(MAX) = 'No';
-		DECLARE @Recommendation NVARCHAR(MAX) = '';
-		DECLARE @AdditionalComments NVARCHAR(MAX) = '';
-
-		IF (@IsDaxEamPresent = 1)
-		BEGIN
-			SET @Observation = 'Yes';
-		END
-
-
-
-		INSERT INTO #D365UpgradeAnalysisReport (RuleID, RuleSection, RuleName, Observation, Recommendation, AdditionalComments)
-			VALUES (@RuleId, @RuleSection, @RuleName, @Observation, @Recommendation, @AdditionalComments);
-		GO
-	
-	
-	--
-	-- Rule: FlintFox layer
-	--
-		DECLARE @RuleID INT = 4010;
-		DECLARE @RuleSection NVARCHAR(100) = 'SCM Enhancements';
-		DECLARE @RuleName NVARCHAR(500) = 'FlintFox ISV for pricing?';
-		DECLARE @Observation NVARCHAR(MAX) = 'No';
-		DECLARE @Recommendation NVARCHAR(MAX) = '';
-		DECLARE @AdditionalComments NVARCHAR(MAX) = '';
-
-		IF (@IsFlintFoxPresent = 1)
-		BEGIN
-			SET @Observation = 'Yes';
-		END
-
-		INSERT INTO #D365UpgradeAnalysisReport (RuleID, RuleSection, RuleName, Observation, Recommendation, AdditionalComments)
-			VALUES (@RuleId, @RuleSection, @RuleName, @Observation, @Recommendation, @AdditionalComments);
-		GO
-
-		*/
 
 --
 -- Additional Rule Code Template Section
