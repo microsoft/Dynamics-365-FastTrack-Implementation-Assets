@@ -3,7 +3,7 @@
 
 Hands on Lab
 
-Link to Fabric from Dynamics finance and operations apps
+Link to Fabric from Dynamics 365 finance and operations apps
 
 # Contents {#contents .TOC-Heading}
 
