@@ -230,65 +230,28 @@ c.  Click on the gear icon and copy the SQL connection string to connect to SQL 
 
     b.  Using Power BI Desktop, you can do the same thing via New \> Get Data \> Power BI semantic models
 
-# Module 4: Creating self-service report using Dynamics 365 data.
+# Module 4: Creating self-service report using Dynamics 365 data
 
 This module will teach us how to create self-service reports with Dynamics 365 data. ERP and CRM data models are complicated and can have hundreds of tables and lots of columns in each table. This complexity makes it difficult for non-technical business users or analysts to analyze data and create reports. In these steps we will learn how to make simplified data models for business users and build self-service reports using the data model.
 
 1.  Add the following Finance and Operations tables to Fabric link and refresh Fabric tables.
 
-  ----------------------------------------------------------------------------
-  Table name                       Description           Use case
-  -------------------------------- --------------------- ---------------------
-  Companyinfo                      Table that holds      
-                                   legal entity list and 
-                                   party link            
+| **Table name**                   | **Description**           | **Use case**           |
+|----------------------------------|---------------------------|------------------------|
+| Companyinfo                      | Table that holds legal entity list and party link | |
+| Dirpartytable                    | Holds customer, vendor, employee name and other information | |
+| logisticspostaladdress           | Postal address information for party and transactions | |
+| logisticselectronicaddress       | Electronic address such as phone, email address for party and transactions | |
+| Custtable                        | Customer table | |
+| Custgroup                        | Customer group/segmentation | |
+| Hcmworker                        | Employee master record | |
+| Vendtable                        | Supplier master table | |
+| inventtable                      | Released product master table | |
+| ecoresproduct                    | Product master table | |
+| ecoresproducttranslation         | Product name and translation | |
+| Salesline                        | Sales order line details | |
+| dimensionattributevaluesetitem <br /> Dimensionattributevalue <br /> Dimensionattribute| Financial dimension attribute information | Utilized to define additional segments for customer, supplier, product, and other dimensions for financial reporting |
 
-  Dirpartytable                    Holds customer,       
-                                   vendor, employee name 
-                                   and other information 
-
-  logisticspostaladdress           Postal address        
-                                   information for party 
-                                   and transactions.     
-
-  logisticselectronicaddress       Electronic address    
-                                   such as phone, email  
-                                   address for party and 
-                                   transactions          
-
-  Custtable                        Customer table        
-
-  Custgroup                        Customer group/       
-                                   segmentation          
-
-  Hcmworker                        Employee master       
-                                   record                
-
-  Vendtable                        Supplier master table 
-
-  inventtable                      Released product      
-                                   master table          
-
-  ecoresproduct                    Product master table  
-
-  ecoresproducttranslation         Product name and      
-                                   translation           
-
-  Salesline                        Sales order line      
-                                   details               
-
-  dimensionattributevaluesetitem   Financial dimension   Utilized to define
-                                   attribute information additional segments
-                                   such as business      for customer,
-                                   unit, cost center,    supplier, product,
-                                   department            and other dimensions
-                                                         for financial
-                                                         reporting
-
-  Dimensionattributevalue                                
-
-  Dimensionattribute                                     
-  ----------------------------------------------------------------------------
 
 2.  Create a Data flow gen 2 to load date dimension to Lakehouse.
 
@@ -331,7 +294,7 @@ Script creates following views that are intended to be used in the final Semanti
 
 6.\[dbo\].\[salesorderdetails\]
 
-Two additional views and function are created by script as generic template and used in the views above
+Two additional views and function are created by script as generic templates and used in the views above
 
 \[dbo\].\[defaultfinancialdimension_view\]
 
@@ -353,54 +316,33 @@ a)  Open Power BI desktop and connect to OneLake data hub, select the Lakehouse 
 
 b)  Select the following views.
 
-  -----------------------------------------------------------------------
-  Name                      Type                  Description
-  ------------------------- --------------------- -----------------------
-  customers                 Dimension             Customer dimension with
-                                                  customer id, name and
-                                                  address and business
-                                                  segmentation
-
-  Legalentity               Dimension             Legal entities
-                                                  dimension
-
-  Products                  Dimension             Product dimension with
-                                                  product id, name
-
-  Datedim                   Dimension             Date dimension
-
-  Salesorderdetails         Fact                  Sales order details
-                                                  fact
-  -----------------------------------------------------------------------
+  |Name|Type|Description|
+  |----|----|-----------|
+  |customers|Dimension|Customer dimension with customer id, name and address and business segmentation|
+  |Legalentity|Dimension|Legal entities dimension|
+  |Products|Dimension|Product dimension with product id, name|
+  |Datedim|Dimension|Date dimension|
+  |Salesorderdetails|Fact|Sales order details fact|
+   
 
 c)  Build relationship between tables using the following details.
 
-  -------------------------------------------------------------------------------
-  **Name**                    **Type**                          **Description**
-  --------------------------- --------------------------------- -----------------
-  customers.customerid        Salesorderdetails.customerid      1 to many
+  
+  |Name|Type|Description|
+  |----|----|-----------|
+  |customers.customerid|Salesorderdetails.customerid|1 to many|
+  |legalentity.legalentityid|Salesorderdetails.legalentityid|1 to many|
+  |products.productid|Salesorderdetails.productid|1 to many|
+  |datedim.date|Salesorderdetails.Order date|1 to many|
 
-  legalentity.legalentityid   Salesorderdetails.legalentityid   1 to many
-
-  products.productid          Salesorderdetails.productid       1 to many
-
-  datedim.date                Salesorderdetails.Order date      1 to many
-  -------------------------------------------------------------------------------
 
 d)  Create a few basic measures on the salesorderdetails table as outlined in this table
-
-  -----------------------------------------------------------------------
-  **Name**      **DAX code**
-  ------------- ---------------------------------------------------------
-  Sales order   Sales order count =
-  count         DISTINCTCOUNT(salesorderdetails\[Order Id\])
-
-  Sales amount  Sales amount = Sum(salesorderdetails\[Line Amount\])
-
-  Back-order    Back order days =
-  days          DATEDIFF(TODAY(),FIRSTDATE(salesorderdetails\[Order
-                Date\]),DAY)
-  -----------------------------------------------------------------------
+ 
+  |Name|DAX code|
+  |----|---------|
+  |Sales order count|Sales order count = DISTINCTCOUNT(salesorderdetails\[Order Id\])|
+  |Sales amount|Sales amount = Sum(salesorderdetails\[Line Amount\])|
+  |Back order days|Back order days = DATEDIFF(TODAY(),FIRSTDATE(salesorderdetails\[Order Date\]),DAY)|
 
 ![](./media/image20.gif)
 <!-- {width="5.90625in" height="3.0297331583552056in"} -->
