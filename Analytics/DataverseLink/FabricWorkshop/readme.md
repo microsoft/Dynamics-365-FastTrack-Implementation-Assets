@@ -15,10 +15,9 @@ Link to Fabric from Dynamics 365 finance and operations apps
 
 # Objective 
 
-To learn how to set up Dataverse Link to Fabric with Dynamics 365 finance and operations apps data and unlock insights using Microsoft Fabric. 
+Learn how to set up Dataverse Link to Fabric with Dynamics 365 finance and operations apps data and unlock insights using Microsoft Fabric. 
 
-By completing all the modules in this document, you will be able
-to:
+By completing all the modules in this document, you will be able to:
 
 \- Configure Fabric link to enable data integration between Dynamics 365 finance and operations apps and other Microsoft services and applications.
 
@@ -46,13 +45,12 @@ In this module, you will learn how to set up Fabric link with Dynamics 365 finan
 
 3.  Login to Power Platform Admin center (<https://admin.powerplatform.microsoft.com/environments>) and select the environment connected to the Dynamics 365 finance and operations apps environment.
 
-*Tip: The name of the Power platform environment usually matches the name of the Dynamics 365 finance and operations apps environment. To learn more about how to use Dynamics 365 finance and operations apps with Power platform, follow this link: [Enable Power Platform Integration - Finance & Operations \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/power-platform/enable-power-platform-integration)*
+>*Tip: The name of the Power platform environment usually matches the name of the Dynamics 365 finance and operations apps environment. To learn more about how to use Dynamics 365 finance and operations apps with Power platform, follow this link: [Enable Power Platform Integration - Finance & Operations \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/power-platform/enable-power-platform-integration)*
 
-If you can\'t view the power platform environment, you might not have System Administrator access to the environment. You can contact the system administrator and ask them to give you the system administrator role as a user in the power platform environment. [Add users to an environment
-automatically or manually - Power Platform \| Microsoft Learn](https://learn.microsoft.com/en-us/power-platform/admin/add-users-to-environment#add-users-to-an-environment-that-has-a-dataverse-database)
+If you can\'t view the power platform environment, you might not have System Administrator access to the environment. You can contact the system administrator and ask them to give you the system administrator role as a user in the power platform environment. [Add users to an environment automatically or manually - Power Platform \| Microsoft Learn](https://learn.microsoft.com/en-us/power-platform/admin/add-users-to-environment#add-users-to-an-environment-that-has-a-dataverse-database)
 
 ![](./media/image1.png)
-{width="6.561986001749781in" height="1.6367541557305336in"}
+<!-- {width="6.561986001749781in" height="1.6367541557305336in"} -->
 
 To check if a Power Platform Environment has a connection to a Dynamics 365 finance and operations app:
 
@@ -61,27 +59,26 @@ To check if a Power Platform Environment has a connection to a Dynamics 365 fina
 -   Under Details tab, validate the **Finance and Operations URL** is populated.
 
 ![](./media/image2.png)
-{width="6.057292213473316in" height="2.661357174103237in"}
+<!-- {width="6.057292213473316in" height="2.661357174103237in"} -->
 
 4.  Click on the **Finance and Operations URL** to login and validate the application and platform versions meet the minimum version requirements. **Help & Support** \> **About**
 
 ![](./media/image3.png)
-{width="6.336000656167979in" height="1.4349300087489063in"}
+<!-- {width="6.336000656167979in" height="1.4349300087489063in"} -->
 
 ![](./media/image4.png)
-{width="6.135461504811898in"height="1.1250087489063867in"}
+<!-- {width="6.135461504811898in"height="1.1250087489063867in"} -->
 
 5.  Ensure the Dynamics 365 finance and operations app environment has the **License configuration** key **Sql row version change tracking** enabled.
 
     a.  Navigate to **System administration** \> **Setup** \> **License configuration**.
 
     b.  Validate that **Sql row version change tracking** is enabled as shown in the image below.
-
 ![](./media/image5.png) 
  <!-- width="3.3655457130358704in" height="2.9848851706036745in" -->
+ >*From platform update 63 / application update 10.0.39, sql row version change tracking is on by default.*
 
-*From platform update 63 / application update 10.0.39, sql row version change tracking is on by default.*
-
+```{=html}
 If the configuration key is turned off, take the following steps to turn on the license configuration key.
 
 i.  Follow the documentation to turn on maintenance mode for the Dynamics 365 finance and operations app environment [Maintenance mode - Finance & Operations](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/sysadmin/maintenance-mode).
@@ -94,8 +91,6 @@ iv. Select the check box **Sql row version change tracking** and click save.
 
 v.  Exit maintenance mode following the above documentation in step 1.
 
-```{=html}
-<!-- -->
 ```
 6.  Setup Dataverse Link to Microsoft Fabric
 
@@ -120,63 +115,12 @@ Understanding Finance and Operations Tables and Data Entities and what to use
 
 The table below compares the relevant features of Dynamics 365 finance and operations apps tables and entities, which are both supported by Fabric link. Tables are database objects that store data in rows and columns, while entities are abstractions that combine data from multiple tables and provide a common interface for querying and manipulating data. The table lists the pros and cons of using each option with Fabric.
 
-+------+-----------+------------+-------------------+----------------+
-|      | **Desc    | **Pros**   | **Cons**          | **Re           |
-|      | ription** |            |                   | commendation** |
-+======+===========+============+===================+================+
-| Ta   | Tables    | **Easy     | To create         | Utilize        |
-| bles | are       | access to  | dimensional data  | entities where |
-|      | n         | data:**    | models, you need  | applicable.    |
-|      | ormalized | O          | to join tables in | Use tables to  |
-|      | ERP       | OB/Custom/ | Microsoft Fabric  | gain easy      |
-|      | tables    | ISV tables | and other tools.  | access to data |
-|      |           | with row   |                   | and create     |
-|      |           | version    |                   | your own data  |
-|      |           | change     |                   | model as       |
-|      |           | tracking   |                   | necessary by   |
-|      |           | on are     |                   | joining        |
-|      |           | available  |                   | relevant       |
-|      |           | to choose. |                   | tables.        |
-|      |           |            |                   |                |
-|      |           | New        |                   |                |
-|      |           | columns    |                   |                |
-|      |           | added to   |                   |                |
-|      |           | table in   |                   |                |
-|      |           | the future |                   |                |
-|      |           | will be    |                   |                |
-|      |           | aut        |                   |                |
-|      |           | omatically |                   |                |
-|      |           | available  |                   |                |
-|      |           | in Link to |                   |                |
-|      |           | fabric and |                   |                |
-|      |           | Synapse    |                   |                |
-|      |           | analytics  |                   |                |
-|      |           | .          |                   |                |
-+------+-----------+------------+-------------------+----------------+
-| Data | Data      | Entities   | Many of the OOB   |                |
-| Enti | entities  | can be     | entities e.g.,    |                |
-| ties | are       | simpler as | Cust              |                |
-|      | den       | they join  | CustomerV3Entity, |                |
-|      | ormalized | multiple   | are complex and   |                |
-|      | data      | relevant   | don't support row |                |
-|      | models    | tables and | version change    |                |
-|      | c         | present a  | tracking and      |                |
-|      | onsisting | simplified | hence are not     |                |
-|      | of one or | schema.    | available in      |                |
-|      | more      |            | synapse link.     |                |
-|      | tables    |            |                   |                |
-|      |           |            | Entities are      |                |
-|      |           |            | deve              |                |
-|      |           |            | lopment-dependent |                |
-|      |           |            | and design time   |                |
-|      |           |            | schemas, which    |                |
-|      |           |            | means adding new  |                |
-|      |           |            | columns requires  |                |
-|      |           |            | development and a |                |
-|      |           |            | code release.     |                |
-+------+-----------+------------+-------------------+----------------+
+|              | **Description**    | **Pros**   | **Cons**          | **Recommendation**  |
+|--------------|--------------------|------------|-------------------|---------------------|
+| Tables       | Tables are normalized ERP tables | Easy access to data | To create dimensional data models, you need to join tables in Microsoft Fabric and other tools. | Utilize entities where applicable. Use tables to gain easy access to data and create your own data model as necessary by joining relevant tables. |
+| Data Entities | Data entities are denormalized data models consisting of one or more tables | Many of the OOB entities e.g., CustCustomerV3Entity, are complex and don't support row version change tracking and hence are not available in synapse link. Entities are development-dependent and design time schemas, which means adding new columns requires development and a code release. | Entities are development-dependent and design time schemas, which means adding new columns requires development and a code release. ||
 
-1.  Now that you have setup Link to Microsoft Fabric, lets add your Dynamics 365 finance and operations apps data using [Manage link to Fabric.](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/azure-synapse-link-view-in-fabric#manage-link-to-fabric)
+ 1. Now that you have setup Link to Microsoft Fabric, lets add your Dynamics 365 finance and operations apps data using [Manage link to Fabric.](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/azure-synapse-link-view-in-fabric#manage-link-to-fabric)
 
     a.  In the power platform maker portal (<https://make.powerapps.com/>), select your environment, navigate to **Azure Synapse link**, select **Microsoft OneLake**, and then click **Manage tables.** 
     ![](./media/image7.png)
@@ -184,17 +128,14 @@ The table below compares the relevant features of Dynamics 365 finance and opera
     b.  To add a finance and operations **table**, click on the **D365 Finance and Operations** tab, then search by table name, for example "salesline", then select the table on the grid, and click **Save.**
     ![](./media/image8.png)
     <!-- {width="5.673479877515311in" height="1.5120002187226598in"} -->
-
-c.  To add a finance and operations **data entity**, click on the **Dataverse** tab and then search for "mserp\_", select the entity, and save.
-
-![](./media/image9.png)
-{width="5.733915135608049in" height="0.8673304899387576in"}
-
-> *Note: You can enable both finance and operations entities and tables in Azure Synapse Link for Dataverse. The process of enabling additional finance and operations entities is detailed at* [Choose finance and operations data in Azure Synapse Link for Dataverse - Power Apps \| Microsoft Learn](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/azure-synapse-link-select-fno-data#enable-finance-and-operations-data-entities-in-azure-synapse-link)
-
-d.  On the Synapse link profile page, you will be able to monitor the sync process. Click on **Refresh Fabric tables** to update the Fabric metadata for newly added tables.
+    c.  To add a finance and operations **data entity**, click on the **Dataverse** tab and then search for "mserp\_", select the entity, and save.
+    ![](./media/image9.png)
+    <!-- {width="5.733915135608049in" height="0.8673304899387576in"} -->
+    d.  On the Synapse link profile page, you will be able to monitor the sync process. Click on **Refresh Fabric tables** to update the Fabric metadata for newly added tables.
 ![](./media/image10.png)
 <!-- {width="5.274278215223097in" height="1.1180282152230971in"} -->
+> *Note: You can enable both finance and operations entities and tables in Azure Synapse Link for Dataverse. The process of enabling additional finance and operations entities is detailed at* [Choose finance and operations data in Azure Synapse Link for Dataverse - Power Apps \| Microsoft Learn](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/azure-synapse-link-select-fno-data#enable-finance-and-operations-data-entities-in-azure-synapse-link)
+
 > *Note: Initial sync may take some time.*
 
 Now that the table and entities are added to Microsoft Fabric, let us explore the data using Microsoft Fabric in the next section.
@@ -208,16 +149,12 @@ In this section, you will learn how to add tables and entities from Dataverse to
 1.  **Explore data using Microsoft Fabric Lakehouse:** After you connect Dataverse to Microsoft Fabric Link, you can go to Fabric workspace by following these steps.
 
     a.  Select **Tables** \> **Analyze** \> **Link to Microsoft Fabric**
-
-![A screenshot of a computer Description automatically generated]
-<!-- (./media/image11.png){width="5.529109798775153in"> height="1.664608486439195in"} -->
-
-2.  Another option is to click **Azure Synapse Link**, choose **Microsoft OneLake** and then click on the **View in Microsoft Fabric** button as shown below.
-
+      ![A screenshot of a computer Description automatically generated](./media/image11.png) <!-- {width="5.529109798775153in"> height="1.664608486439195in"} -->
+      a b.  Another option is to click **Azure Synapse Link**, choose **Microsoft OneLake** and then click on the **View in Microsoft Fabric** button as shown below.
 ![](./media/image12.png)
 <!-- {width="5.684324146981627in" height="0.5036745406824147in"} -->
 
-3.  Dataverse linked to Fabric Lakehouse will open in a new browser tab. To learn more, follow the Microsoft Fabric documentation on Lakehouse at [What is a lakehouse? - Microsoft Fabric](https://learn.microsoft.com/en-us/fabric/data-engineering/lakehouse-overview). The screenshot below highlights the following elements:
+2.  Dataverse linked to Fabric Lakehouse will open in a new browser tab. To learn more, follow the Microsoft Fabric documentation on Lakehouse at [What is a lakehouse? - Microsoft Fabric](https://learn.microsoft.com/en-us/fabric/data-engineering/lakehouse-overview). The screenshot below highlights the following elements:
 
     i.  Fabric Workspace: As selected during setup of Link to Microsoft         Fabric
 
@@ -232,7 +169,7 @@ In this section, you will learn how to add tables and entities from Dataverse to
 ![](./media/image13.png)
 <!-- {width="5.377918853893263in" height="2.9218755468066493in"} -->
 
-4.  Explore data using Spark notebooks.
+3.  Explore data using Spark notebooks.
 
     a.  In Lakehouse mode, click on the **Open notebook** and click on **New notebook**.
 
@@ -249,7 +186,7 @@ In this section, you will learn how to add tables and entities from Dataverse to
 ![](./media/image14.gif)
 <!-- {width="6.026759623797026in" height="3.0781255468066493in"} -->
 
-5.  Explore data using T-SQL
+4.  Explore data using T-SQL
 
     a.  From your lakehouse, click on the top right corner and switch from **Lakehouse** to **SQL analytics endpoint** to visualize data using T-SQL. To learn more, follow the documentation page [What is the SQL analytics endpoint for a lakehouse?](https://learn.microsoft.com/en-us/fabric/data-engineering/lakehouse-sql-analytics-endpoint)
     <!-- ![](./media/image15.png){width="5.75in" height="3.282292213473316in"} -->
@@ -264,7 +201,7 @@ c.  Click on the gear icon and copy the SQL connection string to connect to SQL 
   a ![](./media/image17.png)
   <!--{width="5.962753718285215in" height="5.682292213473316in"} -->
 
-6.  Explore data using visual query.
+5.  Explore data using visual query.
 
     a.  Click on New visual query
 
@@ -283,7 +220,7 @@ c.  Click on the gear icon and copy the SQL connection string to connect to SQL 
 ![A screenshot of a computer Description automatically generated](./media/image18.gif)
 <!-- {width="6.780302930883639in" height="2.8645833333333335in"} -->
 
-7.  To Do: Explore data using Power BI (using semantic models)
+6.  To Do: Explore data using Power BI (using semantic models)
 
     a.  Using Power BI service at <https://app.powerbi.com>, you can easily:
 
@@ -355,47 +292,32 @@ This module will teach us how to create self-service reports with Dynamics 365 d
 
 2.  Create a Data flow gen 2 to load date dimension to Lakehouse.
 
-    a.  Open the Lakehouse and click on Get Data \> Create New Dataflow
-        Gen 2
+    a.  Open the Lakehouse and click on Get Data \> Create New Dataflow Gen 2
 
     b.  Give a name to Dataflow.
 
-    c.  To make it easier, we can import a template that already has
-        steps to create our datedim and load to our lakehouse. Locate
-        the template and import by clicking Import from a Power Query
-        template.
+    c.  To make it easier, we can import a template that already has steps to create our datedim and load to our lakehouse. Locate the template and import by clicking Import from a Power Query template.
 
-    d.  Click on the advance editor and analyze the code. If you are not
-        familiar with Dataflows note that they use M query as the
-        language to define steps. Don't know M query? No worries, you
-        can design Dataflow steps visually or using natural language
-        with Copilot!
+    d.  Click on the advance editor and analyze the code. If you are not familiar with Dataflows note that they use M query as the language to define steps. Don't know M query? No worries, you can design Dataflow steps visually or using natural language with Copilot!
 
-    e.  Publish the data flow. It will start running and when completed,
-        you will get a notification on notifications icon.
+    e.  Publish the data flow. It will start running and when completed, you will get a notification on notifications icon.
 
-    f.  Open the Lakehouse and find the datedim table that was created
-        and loaded with the Dataflow.
+    f.  Open the Lakehouse and find the datedim table that was created and loaded with the Dataflow.
 
-![A screenshot of a computer Description automatically
-generated](./media/image19.gif){width="6.460416666666666in"
-height="3.6354166666666665in"}
+![A screenshot of a computer Description automatically generated](./media/image19.gif)
+<!-- {width="6.460416666666666in" height="3.6354166666666665in"} -->
 
 3.  Create self-service views using the SQL endpoint.
 
     a.  Connect to SQL endpoint.
 
-    b.  Download and open the dimandfacts.sql views in the SQL server
-        management studio or any other SQL editor
+    b.  Download and open the dimandfacts.sql views in the SQL server management studio or any other SQL editor
 
-    c.  Spend some time reading the script and comment section to
-        understand the scripts.
+    c.  Spend some time reading the script and comment section to understand the scripts.
 
-This script is to help create a simple dimensional data model on
-Dynamics 365 for Finance and Operations tables enabled via Fabric link
+This script is to help create a simple dimensional data model on Dynamics 365 for Finance and Operations tables enabled via Fabric link
 
-Script creates following views that are intended to be used in the final
-Semantic data model and Power BI report.
+Script creates following views that are intended to be used in the final Semantic data model and Power BI report.
 
 1.\[dbo\].\[customers\]
 
@@ -409,8 +331,7 @@ Semantic data model and Power BI report.
 
 6.\[dbo\].\[salesorderdetails\]
 
-Two additional views and function are created by script as generic
-template and used in the views above
+Two additional views and function are created by script as generic template and used in the views above
 
 \[dbo\].\[defaultfinancialdimension_view\]
 
@@ -428,8 +349,7 @@ d.  Execute the script and validate the views are created on the
 ```{=html}
 <!-- -->
 ```
-a)  Open Power BI desktop and connect to OneLake data hub, select the
-    Lakehouse and connect to SQL endpoint
+a)  Open Power BI desktop and connect to OneLake data hub, select the Lakehouse and connect to SQL endpoint
 
 b)  Select the following views.
 
@@ -467,8 +387,7 @@ c)  Build relationship between tables using the following details.
   datedim.date                Salesorderdetails.Order date      1 to many
   -------------------------------------------------------------------------------
 
-d)  Create a few basic measures on the salesorderdetails table as outlined
-    in this table
+d)  Create a few basic measures on the salesorderdetails table as outlined in this table
 
   -----------------------------------------------------------------------
   **Name**      **DAX code**
@@ -561,3 +480,5 @@ Now that we have loaded the Dynamics AX 2012 legacy data to Lakehouse, lets crea
 **Build Power BI Report using the direct lake**
 
 # Module 6: Build App using the Fabric Virtual Tables
+
+Coming soon!
