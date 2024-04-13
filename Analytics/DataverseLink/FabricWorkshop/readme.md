@@ -349,7 +349,7 @@ d)  Create a few basic measures on the salesorderdetails table as outlined in th
 
 e)  Build Power BI visuals
 
-9\. Publish to Power BI report to Microsoft Fabric workspace
+5. Publish to Power BI report to Microsoft Fabric workspace
 
 # Module 5: Combine Dynamics data with other sources and build Enterprise data warehouse, Lakehouse with Microsoft Fabric
 
