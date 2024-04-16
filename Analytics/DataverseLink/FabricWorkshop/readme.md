@@ -1,8 +1,4 @@
-# Dynamics 365 finance and operations apps
-
-## Hands on Lab
-
-Link to Fabric from Dynamics 365 finance and operations apps
+# Hands-on Lab: Link to Fabric from Dynamics 365 finance and operations apps
 
 # Table of Contents
 1. [Objective](#objective)
@@ -19,13 +15,13 @@ Learn how to set up Dataverse Link to Fabric with Dynamics 365 finance and opera
 
 By completing all the modules in this document, you will be able to:
 
-\- Configure Fabric link to enable data integration between Dynamics 365 finance and operations apps and other Microsoft services and applications.
+- Configure Fabric link to enable data integration between Dynamics 365 finance and operations apps and other Microsoft services and applications.
 
-\- Use Microsoft Fabric to access and analyze finance and operationsapps data.
+- Use Microsoft Fabric to access and analyze finance and operationsapps data.
 
-\- Use Lakehouse, SQL Endpoints and Power BI in Fabric to create self-service reports and dashboards based on the finance and operations apps data.
+- Use Lakehouse, SQL Endpoints and Power BI in Fabric to create self-service reports and dashboards based on the finance and operations apps data.
 
-\- Work with Data warehouse in Fabric and combine Dynamics 365 finance and operations apps data with data from other sources and build combined reports.
+- Work with Data warehouse in Fabric and combine Dynamics 365 finance and operations apps data with data from other sources and build combined reports.
 
 # Module 1: Setting up Fabric link with Dynamics 365 finance and operations data
 
@@ -41,15 +37,14 @@ In this module, you will learn how to set up Fabric link with Dynamics 365 finan
 || Sandbox (tier 2+) or Production Environments | Administrator access to Power platform environment | |
 
 
-2.  Create a new or use an existing Dynamics 365 finance and operations apps environment **Integrated with Power Platform** as one of the options described in the table above.
+2.  Create a new, or use an existing, Dynamics 365 finance and operations apps environment **Integrated with Power Platform** as one of the options described in the table above.
 
 3.  Login to Power Platform Admin center (<https://admin.powerplatform.microsoft.com/environments>) and select the environment connected to the Dynamics 365 finance and operations apps environment.
-
+ 
 >*Tip: The name of the Power platform environment usually matches the name of the Dynamics 365 finance and operations apps environment. To learn more about how to use Dynamics 365 finance and operations apps with Power platform, follow this link: [Enable Power Platform Integration - Finance & Operations \| Dynamics 365 \| Microsoft Learn](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/power-platform/enable-power-platform-integration)*
-
-If you can\'t view the power platform environment, you might not have System Administrator access to the environment. You can contact the system administrator and ask them to give you the system administrator role as a user in the power platform environment. [Add users to an environment automatically or manually - Power Platform \| Microsoft Learn](https://learn.microsoft.com/en-us/power-platform/admin/add-users-to-environment#add-users-to-an-environment-that-has-a-dataverse-database)
-
-![](./media/image1.png)
+ 
+ If you can\'t view the power platform environment, you might not have System Administrator access to the environment. You can contact the system administrator and ask them to give you the system administrator role as a user in the power platform environment. [Add users to an environment automatically or manually - Power Platform \| Microsoft Learn](https://learn.microsoft.com/en-us/power-platform/admin/add-users-to-environment#add-users-to-an-environment-that-has-a-dataverse-database)
+ ![](./media/image1.png)
 <!-- {width="6.561986001749781in" height="1.6367541557305336in"} -->
 
 To check if a Power Platform Environment has a connection to a Dynamics 365 finance and operations app:
@@ -59,15 +54,12 @@ To check if a Power Platform Environment has a connection to a Dynamics 365 fina
 -   Under Details tab, validate the **Finance and Operations URL** is populated.
 
 ![](./media/image2.png)
-<!-- {width="6.057292213473316in" height="2.661357174103237in"} -->
 
 4.  Click on the **Finance and Operations URL** to login and validate the application and platform versions meet the minimum version requirements. **Help & Support** \> **About**
 
 ![](./media/image3.png)
-<!-- {width="6.336000656167979in" height="1.4349300087489063in"} -->
 
 ![](./media/image4.png)
-<!-- {width="6.135461504811898in"height="1.1250087489063867in"} -->
 
 5.  Ensure the Dynamics 365 finance and operations app environment has the **License configuration** key **Sql row version change tracking** enabled.
 
@@ -75,7 +67,7 @@ To check if a Power Platform Environment has a connection to a Dynamics 365 fina
 
     b.  Validate that **Sql row version change tracking** is enabled as shown in the image below.
 ![](./media/image5.png) 
- <!-- width="3.3655457130358704in" height="2.9848851706036745in" -->
+
  >*From platform update 63 / application update 10.0.39, sql row version change tracking is on by default.*
 
 ```{=html}
@@ -105,8 +97,7 @@ v.  Exit maintenance mode following the above documentation in step 1.
     v.  Click **Create** to complete the shortcut creation and initial sync.
 
 ![](./media/image6.gif)
-<!-- width="5.576634951881015in" height="2.3802088801399823in" -->
->
+
 > To learn more, follow the documentation at [Link to Microsoft Fabric](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/azure-synapse-link-view-in-fabric#link-to-microsoft-fabric)
 
 # Module 2: Add tables and entities to Microsoft Fabric 
@@ -124,19 +115,14 @@ The table below compares the relevant features of Dynamics 365 finance and opera
 
     a.  In the power platform maker portal (<https://make.powerapps.com/>), select your environment, navigate to **Azure Synapse link**, select **Microsoft OneLake**, and then click **Manage tables.** 
     ![](./media/image7.png)
-    <!-- {width="5.52in" height="1.9075962379702538in"} -->
     b.  To add a finance and operations **table**, click on the **D365 Finance and Operations** tab, then search by table name, for example "salesline", then select the table on the grid, and click **Save.**
     ![](./media/image8.png)
-    <!-- {width="5.673479877515311in" height="1.5120002187226598in"} -->
     c.  To add a finance and operations **data entity**, click on the **Dataverse** tab and then search for "mserp\_", select the entity, and save.
     ![](./media/image9.png)
-    <!-- {width="5.733915135608049in" height="0.8673304899387576in"} -->
-    d.  On the Synapse link profile page, you will be able to monitor the sync process. Click on **Refresh Fabric tables** to update the Fabric metadata for newly added tables.
+    d.  On the Synapse link profile page, you will be able to monitor the sync process. Click on **Refresh Fabric tables** to update the Fabric metadata for newly added tables. Note that the initial sync may take some time.
 ![](./media/image10.png)
-<!-- {width="5.274278215223097in" height="1.1180282152230971in"} -->
-> *Note: You can enable both finance and operations entities and tables in Azure Synapse Link for Dataverse. The process of enabling additional finance and operations entities is detailed at* [Choose finance and operations data in Azure Synapse Link for Dataverse - Power Apps \| Microsoft Learn](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/azure-synapse-link-select-fno-data#enable-finance-and-operations-data-entities-in-azure-synapse-link)
 
-> *Note: Initial sync may take some time.*
+> *Note: You can enable both finance and operations entities and tables in Azure Synapse Link for Dataverse. The process of enabling additional finance and operations entities is detailed at* [Choose finance and operations data in Azure Synapse Link for Dataverse - Power Apps \| Microsoft Learn](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/azure-synapse-link-select-fno-data#enable-finance-and-operations-data-entities-in-azure-synapse-link)
 
 Now that the table and entities are added to Microsoft Fabric, let us explore the data using Microsoft Fabric in the next section.
 
@@ -149,12 +135,11 @@ In this section, you will learn how to add tables and entities from Dataverse to
 1.  **Explore data using Microsoft Fabric Lakehouse:** After you connect Dataverse to Microsoft Fabric Link, you can go to Fabric workspace by following these steps.
 
     a.  Select **Tables** \> **Analyze** \> **Link to Microsoft Fabric**
-      ![A screenshot of a computer Description automatically generated](./media/image11.png) <!-- {width="5.529109798775153in"> height="1.664608486439195in"} -->
-      a b.  Another option is to click **Azure Synapse Link**, choose **Microsoft OneLake** and then click on the **View in Microsoft Fabric** button as shown below.
-![](./media/image12.png)
-<!-- {width="5.684324146981627in" height="0.5036745406824147in"} -->
+      ![](./media/image11.png)
+    b.  Another option is to click **Azure Synapse Link**, choose **Microsoft OneLake** and then click on the **View in Microsoft Fabric** button as shown below.
+      ![](./media/image12.png)
 
-2.  Dataverse linked to Fabric Lakehouse will open in a new browser tab. To learn more, follow the Microsoft Fabric documentation on Lakehouse at [What is a lakehouse? - Microsoft Fabric](https://learn.microsoft.com/en-us/fabric/data-engineering/lakehouse-overview). The screenshot below highlights the following elements:
+2.  Dataverse linked to Fabric Lakehouse will open in a new browser tab. To learn more, follow the Microsoft Fabric documentation at [What is a lakehouse? - Microsoft Fabric](https://learn.microsoft.com/en-us/fabric/data-engineering/lakehouse-overview). The screenshot below highlights the following elements:
 
     i.  Fabric Workspace: As selected during setup of Link to Microsoft         Fabric
 
@@ -167,7 +152,6 @@ In this section, you will learn how to add tables and entities from Dataverse to
     v.  Expand the table to see the column's information for a table.
 
 ![](./media/image13.png)
-<!-- {width="5.377918853893263in" height="2.9218755468066493in"} -->
 
 3.  Explore data using Spark notebooks.
 
@@ -184,22 +168,17 @@ In this section, you will learn how to add tables and entities from Dataverse to
     f.  You can do a lot with this Spark notebook to explore the data. Notice other options on the notebook cell output grid such as **Chart** and **Inspect** button, try them out.
 
 ![](./media/image14.gif)
-<!-- {width="6.026759623797026in" height="3.0781255468066493in"} -->
 
 4.  Explore data using T-SQL
 
     a.  From your lakehouse, click on the top right corner and switch from **Lakehouse** to **SQL analytics endpoint** to visualize data using T-SQL. To learn more, follow the documentation page [What is the SQL analytics endpoint for a lakehouse?](https://learn.microsoft.com/en-us/fabric/data-engineering/lakehouse-sql-analytics-endpoint)
-    <!-- ![](./media/image15.png){width="5.75in" height="3.282292213473316in"} -->
 
     b.  SQL analytics endpoint view lets you visualize table metadata and write and execute T-SQL queries in the browser as shown below.
 
->![A screenshot of a computer Description automatically generated](./media/image16.png)
-<!--{width="6.168033683289589in" height="2.3786023622047243in"} -->
+![](./media/image16.png)
 
 c.  Click on the gear icon and copy the SQL connection string to connect to SQL endpoint with Microsoft Entra ID credentials using the SSMS or your favorite client to query the data using TSQL and create views, stored procedures, functions etc.
-
-  a ![](./media/image17.png)
-  <!--{width="5.962753718285215in" height="5.682292213473316in"} -->
+  ![](./media/image17.png)
 
 5.  Explore data using visual query.
 
@@ -217,16 +196,11 @@ c.  Click on the gear icon and copy the SQL connection string to connect to SQL 
 
     g.  Click on download Excel file to download summarized data
 
-![A screenshot of a computer Description automatically generated](./media/image18.gif)
-<!-- {width="6.780302930883639in" height="2.8645833333333335in"} -->
+![](./media/image18.gif)
 
-6.  To Do: Explore data using Power BI (using semantic models)
+6.  Explore data using Power BI (using semantic models)
 
-    a.  Using Power BI service at <https://app.powerbi.com>, you can easily:
-
-        i.  Open the report you saved in 4f above
-
-        ii. Create a new report using the semantic model from the report in 4f, or from your lakehouse (Create \> Pick a semantic model)
+    a.  Using Power BI service at <https://app.powerbi.com>, you can easily open the report you saved in 4f above, and create a new report using the semantic model from the report in 4f, or from your lakehouse (Create \> Pick a semantic model)
 
     b.  Using Power BI Desktop, you can do the same thing via New \> Get Data \> Power BI semantic models
 
@@ -267,8 +241,7 @@ This module will teach us how to create self-service reports with Dynamics 365 d
 
     f.  Open the Lakehouse and find the datedim table that was created and loaded with the Dataflow.
 
-![A screenshot of a computer Description automatically generated](./media/image19.gif)
-<!-- {width="6.460416666666666in" height="3.6354166666666665in"} -->
+![](./media/image19.gif)
 
 3.  Create self-service views using the SQL endpoint.
 
@@ -278,7 +251,7 @@ This module will teach us how to create self-service reports with Dynamics 365 d
 
     c.  Spend some time reading the script and comment section to understand the scripts.
 
-This script is to help create a simple dimensional data model on Dynamics 365 for Finance and Operations tables enabled via Fabric link
+[This script](./dimandfacts.sql) is to help create a simple dimensional data model on Dynamics 365 for Finance and Operations tables enabled via Fabric link
 
 Script creates following views that are intended to be used in the final Semantic data model and Power BI report.
 
@@ -302,7 +275,7 @@ Two additional views and function are created by script as generic templates and
 
 Table-Valued Functions: \[dbo\].\[GetEnumTranslations\]
 
-d.  Execute the script and validate the views are created on the
+d.  Execute the script and validate the views are created
 
 ```{=html}
 <!-- -->
