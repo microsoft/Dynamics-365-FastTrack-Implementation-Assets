@@ -86,15 +86,15 @@ v.  Exit maintenance mode following the above documentation in step 1.
 ```
 6.  Setup Dataverse Link to Microsoft Fabric
 
-    i.  Login to <https://make.powerapps.com/> and select the environment.
+    a.  Login to <https://make.powerapps.com/> and select the environment.
 
-    ii. Select **Tables** \> **Analyze** \> **Link to Microsoft Fabric.**
+    b. Select **Tables** \> **Analyze** \> **Link to Microsoft Fabric.**
 
-    iii. Login to **Create connection.**
+    c. Login to **Create connection.**
 
-    iv. Select **Fabric Workspace.**
+    d. Select **Fabric Workspace.**
 
-    v.  Click **Create** to complete the shortcut creation and initial sync.
+    e.  Click **Create** to complete the shortcut creation and initial sync.
 
 ![](./media/image6.gif)
 
@@ -336,7 +336,7 @@ In the following example, we are bringing Dynamics AX 2012 data that is on-premi
 
 4.  Rename Dataflow to Load_AX2012_Data_Lakehouse and click on **Import from Power query template**
 
-5.  Locate Load_AX2012_Data_Lakehouse.pqt and click **Open** on the file explorer to load the template. This template have predefined list of tables from Dynamics AX 2012 database.
+5.  Locate [Load_AX2012_Data_Lakehouse.pqt](./Load_AX2012_Data_Lakehouse.pqt) and click **Open** on the file explorer to load the template. This template have predefined list of tables from Dynamics AX 2012 database.
 
 6.  Select the parameters SourceDBServer and SourceDBName and change the value as per your environment Database server name and Database name.
 
@@ -368,7 +368,7 @@ Now that we have loaded the Dynamics AX 2012 legacy data to Lakehouse, lets crea
 
     a.  Connect to SQL endpoint.
 
-    b.  Download and open the **ax2012_dimandfacts.sql** views in the SQL server management studio or any other SQL editor
+    b.  Download and open the [ax2012_dimandfacts.sql](./ax2012_dimandfacts.sql) views in the SQL server management studio or any other SQL editor
 
     c.  Spend some time reading the scripts,
 
@@ -380,7 +380,7 @@ Now that we have loaded the Dynamics AX 2012 legacy data to Lakehouse, lets crea
 
 2.  Connect to SQL Endpoint
 
-3.  Run the gold_dimandfacts_materialize.sql
+3.  Run the [gold_dimandfacts_materialize.sql](./gold_dimandfacts_materialize.sql)
 
 4.  Spend some time reading the script
 
