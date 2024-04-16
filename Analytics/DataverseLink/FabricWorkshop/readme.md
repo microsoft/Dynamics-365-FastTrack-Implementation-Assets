@@ -247,13 +247,16 @@ This module will teach us how to create self-service reports with Dynamics 365 d
 
     a.  Connect to SQL endpoint.
 
-    b.  Download and open the dimandfacts.sql views in the SQL server management studio or any other SQL editor
+    b.  Download and open the [dimandfacts.sql](./dimandfacts.sql) script in the SQL server management studio or any other SQL editor
 
     c.  Spend some time reading the script and comment section to understand the scripts.
 
-[This script](./dimandfacts.sql) is to help create a simple dimensional data model on Dynamics 365 for Finance and Operations tables enabled via Fabric link
+    d.  Execute the script and validate the views are created
 
-Script creates following views that are intended to be used in the final Semantic data model and Power BI report.
+```{=html}
+The dimandfacts.sql script is to help create a simple dimensional data model on Dynamics 365 for Finance and Operations tables enabled via Fabric link
+
+The script creates following views that are intended to be used in the final Semantic data model and Power BI report.
 
 1.\[dbo\].\[customers\]
 
@@ -275,16 +278,10 @@ Two additional views and function are created by script as generic templates and
 
 Table-Valued Functions: \[dbo\].\[GetEnumTranslations\]
 
-d.  Execute the script and validate the views are created
-
-```{=html}
-<!-- -->
 ```
+
 4.  Use Power BI Desktop to connect to views and create Semantic model
 
-```{=html}
-<!-- -->
-```
 a)  Open Power BI desktop and connect to OneLake data hub, select the Lakehouse and connect to SQL endpoint
 
 b)  Select the following views.
@@ -318,7 +315,6 @@ d)  Create a few basic measures on the salesorderdetails table as outlined in th
   |Back order days|Back order days = DATEDIFF(TODAY(),FIRSTDATE(salesorderdetails\[Order Date\]),DAY)|
 
 ![](./media/image20.gif)
-<!-- {width="5.90625in" height="3.0297331583552056in"} -->
 
 e)  Build Power BI visuals
 
