@@ -5,7 +5,7 @@
 2. [Module 1: Setting up Fabric link with Dynamics 365 finance and operations data](#module-1-setting-up-fabric-link-with-dynamics-365-finance-and-operations-data)
 3. [Module 2: Add tables and entities to Microsoft Fabric](#module-2-add-tables-and-entities-to-microsoft-fabric)
 4. [Module 3: Explore Dynamics 365 apps data with Microsoft Fabric](#module-3-explore-dynamics-365-apps-data-with-microsoft-fabric.)
-5. [Module 4: Creating self-service report using Dynamics 365 data](##module-4-creating-self-service-report-using-dynamics-365-data)
+5. [Module 4: Creating self-service report using Dynamics 365 data](#module-4-creating-self-service-report-using-dynamics-365-data)
 6. [Module 5: Combine Dynamics data with other sources and build Enterprise](#module-5-combine-dynamics-data-with-other-sources-and-build-enterprise-data-warehouse-lakehouse-with-microsoft-fabric)
 7. [Module 6: Example using BPA](#module-6-build-app-using-the-fabric-virtual-tables)
 
@@ -17,7 +17,7 @@ By completing all the modules in this document, you will be able to:
 
 - Configure Fabric link to enable data integration between Dynamics 365 finance and operations apps and other Microsoft services and applications.
 
-- Use Microsoft Fabric to access and analyze finance and operationsapps data.
+- Use Microsoft Fabric to access and analyze finance and operations apps data.
 
 - Use Lakehouse, SQL Endpoints and Power BI in Fabric to create self-service reports and dashboards based on the finance and operations apps data.
 
@@ -45,7 +45,6 @@ In this module, you will learn how to set up Fabric link with Dynamics 365 finan
  
  If you can\'t view the power platform environment, you might not have System Administrator access to the environment. You can contact the system administrator and ask them to give you the system administrator role as a user in the power platform environment. [Add users to an environment automatically or manually - Power Platform \| Microsoft Learn](https://learn.microsoft.com/en-us/power-platform/admin/add-users-to-environment#add-users-to-an-environment-that-has-a-dataverse-database)
  ![](./media/image1.png)
-<!-- {width="6.561986001749781in" height="1.6367541557305336in"} -->
 
 To check if a Power Platform Environment has a connection to a Dynamics 365 finance and operations app:
 
@@ -65,25 +64,18 @@ To check if a Power Platform Environment has a connection to a Dynamics 365 fina
 
     a.  Navigate to **System administration** \> **Setup** \> **License configuration**.
 
-    b.  Validate that **Sql row version change tracking** is enabled as shown in the image below.
+    b.  Validate that **Sql row version change tracking** is enabled as shown in the image below. 
 ![](./media/image5.png) 
+    
+    c.  If the configuration key is turned off, take the following steps to turn on the license configuration key.
+      i. Follow the documentation to turn on maintenance mode for the Dynamics 365 finance and operations app environment [Maintenance mode - Finance & Operations](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/sysadmin/maintenance-mode).
+      ii. Login to the Dynamics 365 finance and operations app using the environment URL.
+      iii. Navigate to **System administration** \> **Setup** \> **License** **configuration**.
+      iv. Select the check box **Sql row version change tracking** and click save.
+      v. Exit maintenance mode following the above documentation in step 1.
 
  >*From platform update 63 / application update 10.0.39, sql row version change tracking is on by default.*
 
-```{=html}
-If the configuration key is turned off, take the following steps to turn on the license configuration key.
-
-i.  Follow the documentation to turn on maintenance mode for the Dynamics 365 finance and operations app environment [Maintenance mode - Finance & Operations](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/sysadmin/maintenance-mode).
-
-ii. Login to the Dynamics 365 finance and operations app using the environment URL.
-
-iii. Navigate to **System administration** \> **Setup** \> **License** **configuration**.
-
-iv. Select the check box **Sql row version change tracking** and click save.
-
-v.  Exit maintenance mode following the above documentation in step 1.
-
-```
 6.  Setup Dataverse Link to Microsoft Fabric
 
     a.  Login to <https://make.powerapps.com/> and select the environment.
@@ -138,6 +130,8 @@ In this section, you will learn how to add tables and entities from Dataverse to
       ![](./media/image11.png)
     b.  Another option is to click **Azure Synapse Link**, choose **Microsoft OneLake** and then click on the **View in Microsoft Fabric** button as shown below.
       ![](./media/image12.png)
+
+      Note that it may take some time for all the tables to be loaded and refelcted correctly.
 
 2.  Dataverse linked to Fabric Lakehouse will open in a new browser tab. To learn more, follow the Microsoft Fabric documentation at [What is a lakehouse? - Microsoft Fabric](https://learn.microsoft.com/en-us/fabric/data-engineering/lakehouse-overview). The screenshot below highlights the following elements:
 
@@ -200,9 +194,7 @@ c.  Click on the gear icon and copy the SQL connection string to connect to SQL 
 
 6.  Explore data using Power BI (using semantic models)
 
-    a.  Using Power BI service at <https://app.powerbi.com>, you can easily open the report you saved in 4f above, and create a new report using the semantic model from the report in 4f, or from your lakehouse (Create \> Pick a semantic model)
-
-    b.  Using Power BI Desktop, you can do the same thing via New \> Get Data \> Power BI semantic models
+    Coming soon!
 
 # Module 4: Creating self-service report using Dynamics 365 data
 
@@ -233,7 +225,7 @@ This module will teach us how to create self-service reports with Dynamics 365 d
 
     b.  Give a name to Dataflow.
 
-    c.  To make it easier, we can import a template that already has steps to create our datedim and load to our lakehouse. Locate the template and import by clicking Import from a Power Query template.
+    c.  To make it easier, we can import a template that already has steps to create our datedim and load to our lakehouse. [Download the template](./Dataflow_LoadDateDim.pqt) and import by clicking Import from a Power Query template.
 
     d.  Click on the advance editor and analyze the code. If you are not familiar with Dataflows note that they use M query as the language to define steps. Don't know M query? No worries, you can design Dataflow steps visually or using natural language with Copilot!
 
@@ -258,25 +250,25 @@ The dimandfacts.sql script is to help create a simple dimensional data model on 
 
 The script creates following views that are intended to be used in the final Semantic data model and Power BI report.
 
-1.\[dbo\].\[customers\]
+1.[dbo].[customers]
 
-2.\[dbo\].\[legalentity\]
+2.[dbo].[legalentity]
 
-3.\[dbo\].\[products\]
+3.[dbo].[products]
 
-4.\[dbo\].\[empoyees\]
+4.[dbo].[empoyees]
 
-5.\[dbo\].\[vendors\]
+5.[dbo].[vendors]
 
-6.\[dbo\].\[salesorderdetails\]
+6.[dbo].[salesorderdetails]
 
 Two additional views and function are created by script as generic templates and used in the views above
 
-\[dbo\].\[defaultfinancialdimension_view\]
+[dbo].[defaultfinancialdimension_view]
 
-\[dbo\].\[dirpartyprimary_view\]
+[dbo].[dirpartyprimary_view]
 
-Table-Valued Functions: \[dbo\].\[GetEnumTranslations\]
+Table-Valued Functions: [dbo].[GetEnumTranslations]
 
 ```
 
