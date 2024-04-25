@@ -3,22 +3,26 @@
 -- the workaround to solve missing columns is to add applicable child tables to synapse link and create view joining the derived tables on target system
 -- this script given the parent table name can identify all related child  table and also the join statement that can be used to represent the final data  
 -- add the parent table information
-with parenttable as 
+WITH parenttable AS 
 (
-select t.NAME as ParentTableName, string_agg(convert(nvarchar(max),'['+ T.Name + '].[' + s.Name + ']'), ',') as parenttablecolumns
-	from TABLEIDTABLE T
-	left outer join TABLEFIELDIDTABLE s on s.TableId = T.ID and s.NAME not like 'DEL_%'
+SELECT t.NAME AS ParentTableName, STRING_AGG(CONVERT(NVARCHAR(MAX),'['+ T.Name + '].[' + s.Name + ']'), ',') AS parenttablecolumns
+	FROM TABLEIDTABLE T
+	LEFT OUTER JOIN TABLEFIELDIDTABLE s ON s.TableId = T.ID AND s.NAME NOT LIKE 'DEL_%'
 	-- add addtional parent tables as applicable
-	where t.NAME in ('DIRPARTYTABLE', 'EcoResProduct')
-	group by T.NAME
+	WHERE t.NAME IN (
+		--'DirOrganizationBase', --supporting the duplicate example
+		'DirPartyTable',
+		'EcoResProduct'
+	)
+	GROUP BY T.NAME
 ),
 DerivedTables AS
 (
 SELECT
-      DerivedTable.Name as derivedTable,
-	  DerivedTable.ID as derivedTableId,
-      BaseTable.NAME as BaseTable,
-	  BaseTable.ID as BaseTableId
+      DerivedTable.Name AS derivedTable,
+	  DerivedTable.ID AS derivedTableId,
+      BaseTable.NAME AS BaseTable,
+	  BaseTable.ID AS BaseTableId
 FROM dbo.TableIdTable DerivedTable
  JOIN dbo.SYSANCESTORSTABLE TableInheritance on TableInheritance.TableId = DerivedTable.ID
 LEFT JOIN dbo.TableIdTable BaseTable on BaseTable.ID = TableInheritance.ParentId
@@ -27,7 +31,7 @@ and BaseTable.NAME in (select ParentTableName from  parenttable)
 ),
 RecursiveCTE AS (
     -- Base case: Get derived tables for the top base tables
-    SELECT 
+	SELECT 
         basetable AS TopBaseTable, 
 		basetableId AS TopBaseTableId, 
         derivedtable AS LeafTable,
@@ -50,9 +54,21 @@ RecursiveCTE AS (
     WHERE 
         t.derivedtable NOT IN (SELECT basetable FROM DerivedTables)
 )
+,DistrinctRecursiveCTE as ( 
+/*
+DistrinctRecursiveCTE Added to remove duplication from recursive cte resulting from leaf tables. 
+Ex: adding DirOrganizationBase in CTE parenttable duplicated CompanyInfo,DirOrganization,OMInternalOrganization,OMOperatingUnit,OMTeam resulting in duplicated column output in the view definition.
+Users may not know what tables are considered base vs derived and could add any table into the first CTE
+*/
+SELECT DISTINCT RecursiveCTE.TopBaseTable,
+                    RecursiveCTE.TopBaseTableId,
+                    RecursiveCTE.LeafTable,
+                    RecursiveCTE.LeafTableId
+	FROM RecursiveCTE
+)
 
 -- Select results from the CTE
-select 
+select
 parenttable,
 childtables,
 'select ' + parenttablecolumns + ',' + derivedTableColumns + ' FROM ' + parenttable +  ' AS ' +  
@@ -75,7 +91,7 @@ from
 	'LEFT OUTER JOIN ' + LeafTable + ' AS ' + LeafTable + ' ON ' + TopBaseTable +'.recid = ' + LeafTable + '.recid' AS joinclause,
 	p.parenttablecolumns
 FROM 
-    RecursiveCTE r1
+    DistrinctRecursiveCTE r1
 	join parenttable p on p.ParentTableName = r1.TopBaseTable 
 	left outer join TABLEFIELDIDTABLE s on s.TableId = LeafTableId
 	and s.NAME not like 'DEL_%'
@@ -85,5 +101,3 @@ GROUP BY
 ) x 
 group by  parentTable, parenttablecolumns
 ) y
-
-
