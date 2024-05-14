@@ -10,7 +10,7 @@ The app uses AI [function calling](https://learn.microsoft.com/en-us/azure/ai-se
 
 - Reads product data from CSU
 - Reads product data from Fabric SQL endpoint
-- Uses Open API chat completion
+- Uses Open AI chat completion
 - Responds in natural text
 
 ![App](./Data/image.png)
