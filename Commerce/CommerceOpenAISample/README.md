@@ -14,6 +14,7 @@ The app uses AI [function calling](https://learn.microsoft.com/en-us/azure/ai-se
 - Responds in natural text
 
 ![App](./Data/image.png)
+![App](./Data/image1.png)
 
 # Pre-requisites
 
