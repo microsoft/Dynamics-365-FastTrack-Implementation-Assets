@@ -24,7 +24,7 @@ The Sample Adaptor uses the SignalR Serverless Component with Azure Functions. W
 
 The SignalR Client manages user connection and disconnection events, keeping a list of active users for notifications. External applications like softphones or Telephony Servers can send messages to Azure Function, which uses the SignalR API to send messages based on SignalR connection IDs. Notifications received through SignalR are shown to agents for acceptance or rejection using CIF V2.0 API
 
-![High Level Architecture](images/1.png)
+![High Level Architecture](Images/1.png)
 
 Communication Flow Sequence
 
@@ -32,7 +32,7 @@ When the user signs in, CIF Simulator tells the Azure function to create a link 
 
 The user’s active connection is stored in Azure storage with the interface through Azure Function. The system will use the recorded connection information to send a message to the user who is connected when a call comes in on the Telephony system.
 
-![Communication FLow Sequence](images/2.png)
+![Communication FLow Sequence](Images/2.png)
 
 ## Deployment and Configuration Steps
 
@@ -42,29 +42,29 @@ Register a Client Application in Microsoft Entra[Quickstart: Register an app in 
 	
 Once Application registration is created, we need to update redirect url with Azure Function Url and Update other settings as below
 
-![Add Redirect Url and tokens](images/3.png)
+![Add Redirect Url and tokens](Images/3.png)
 
 Expose API Refer the document below [Quickstart: Register and expose a web API - Microsoft identity platform | Microsoft Learn](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-configure-app-expose-web-apis). Sample below 
 
-![Expose an API](images/4.png)
+![Expose an API](Images/4.png)
 
 Add API permission by searching for Above API scope
 
-![Request API permissions](images/5.png)
+![Request API permissions](Images/5.png)
 
 Create SignalR Resource in Azure
 	Refer document to create Signal R server [Quickstart to learn how to use Azure SignalR Service | Microsoft Learn](https://learn.microsoft.com/en-us/azure/azure-signalr/signalr-quickstart-dotnet-core#create-an-azure-signalr-resource).
 	Change the settings to Serverless   Click Signal R Service -> Settings
 
-![SignalR Settings](images/6.png)
+![SignalR Settings](Images/6.png)
 
 Add Cors within signal R Service. Click Signal R Service -> . For Sample we have allowed all orgins. we can confgiure the sepcific Urls
 
-![CORS Settings](images/7.png)
+![CORS Settings](Images/7.png)
 
 Enable SignalR service identity with system Managed. Click Signal R Service -> Identity.
 
-![Identity](images/8.png)
+![Identity](Images/8.png)
 
 Create a Azure Table Storage Container. [Create a table in the Azure portal - Azure Storage | Microsoft Learn](https://learn.microsoft.com/en-us/azure/storage/tables/table-storage-quickstart-portal). We need to update storage connection information and table name in azure function configuration.
 
@@ -72,7 +72,7 @@ Deploy Azure Function from Code\SignalRCIFAdaptor Folder in Github.
 
 Enable Authentication in Azure Function Add Identity Provider as App Registration at part of the earlier step.
 
-![Function App Authentication Settings](images/9.png)
+![Function App Authentication Settings](Images/9.png)
 
 Update the Configuration of Azure function in Azure portal
 
@@ -91,9 +91,9 @@ Update the Configuration of Azure function in Azure portal
 
 Update Upstream settings in SignalR .[Upstream endpoints in Azure SignalR Service | Microsoft Learn](https://learn.microsoft.com/en-us/azure/azure-signalr/concept-upstream) . sample screenshot below azure function url <<Azure function URl>>/runtime/webhooks/signalr?code=<<API KEY>> . API key can be found in azure function . Deployed  Azure Functions->App Keys sample screenshot below
 
-![Azure Function System Keys](images/10.png)
+![Azure Function System Keys](Images/10.png)
 
-![SignalR Upstream Settings](images/11.png)
+![SignalR Upstream Settings](Images/11.png)
 
 Download the package from Solution Folder.
 
