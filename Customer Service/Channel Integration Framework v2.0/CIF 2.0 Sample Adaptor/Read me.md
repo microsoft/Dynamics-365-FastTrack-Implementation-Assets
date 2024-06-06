@@ -14,10 +14,14 @@ Please refer the prerequisite and system requirements –
 The sample requires for [Dynamics 365 Channel Integration Framework | Microsoft Learn](https://learn.microsoft.com/en-us/dynamics365/channel-integration-framework/v2/administer/system-requirements-channel-integration-framework-v2)
 
 Microsoft Azure components – 
-	-Azure Active Directory App Registration [Quickstart: Register an app in the Microsoft identity platform - Microsoft identity platform | Microsoft Learn](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app)
-    -Azure Function [Azure Functions Overview | Microsoft Learn](https://learn.microsoft.com/en-us/azure/azure-functions/functions-overview?pivots=programming-language-csharp)
-    -Azure Storage Table [Introduction to Table storage - Object storage in Azure | Microsoft Learn](https://learn.microsoft.com/en-us/azure/storage/tables/table-storage-overview)
-    -Azure Singal R [Real-time apps with Azure SignalR Service and Azure Functions | Microsoft Learn](https://learn.microsoft.com/en-us/azure/azure-signalr/signalr-concept-azure-functions)
+
+Azure Active Directory App Registration [Quickstart: Register an app in the Microsoft identity platform - Microsoft identity platform | Microsoft Learn](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app)
+
+Azure Function [Azure Functions Overview | Microsoft Learn](https://learn.microsoft.com/en-us/azure/azure-functions/functions-overview?pivots=programming-language-csharp)
+
+Azure Storage Table [Introduction to Table storage - Object storage in Azure | Microsoft Learn](https://learn.microsoft.com/en-us/azure/storage/tables/table-storage-overview)
+
+Azure Singal R [Real-time apps with Azure SignalR Service and Azure Functions | Microsoft Learn](https://learn.microsoft.com/en-us/azure/azure-signalr/signalr-concept-azure-functions)
 
 ## Architecture
 The Sample Adaptor uses the SignalR Serverless Component with Azure Functions. When a client signs in to Dynamics, the Channel Integration Framework connects to SignalR. Users are authorized by Azure AD, and their connection details are stored in Azure Storage Table. 
