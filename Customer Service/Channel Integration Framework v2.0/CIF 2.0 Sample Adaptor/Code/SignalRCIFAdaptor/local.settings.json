@@ -1,0 +1,21 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true", /// Replace the Connection string of Azure Table Storage
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "AzureSignalRConnectionString": "<<SignalR Connection String>>",
+    "AzureAd:ClientId": "<<App Registration Client ID>>",
+    "AzureAd:ClientSecret": "",
+    "AzureAd:TenantId": "<<Azure Tenant ID>>",
+    "Authority": "https://login.microsoftonline.com/<<Azure tenantID>>",
+    "ApiScope": "<<API scope>>functionuser",
+    "HubName": "myhub",// Signal R Hubname, it can be anything. Once you change here , please hubname referred in method signature to work correctly
+    "StorageUserTable": "<<Azure Table Storage Name>>"
+  },
+  "Host": {
+    "LocalHttpPort": 17500,
+    "CORS": "http://127.0.0.1:7702/",
+    "CORSCredentials": false
+
+  }
+}

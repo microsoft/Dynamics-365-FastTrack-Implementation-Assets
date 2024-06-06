@@ -14,10 +14,10 @@ Please refer the prerequisite and system requirements –
 The sample requires for [Dynamics 365 Channel Integration Framework | Microsoft Learn](https://learn.microsoft.com/en-us/dynamics365/channel-integration-framework/v2/administer/system-requirements-channel-integration-framework-v2)
 
 Microsoft Azure components – 
-	Azure Active Directory App Registration [Quickstart: Register an app in the Microsoft identity platform - Microsoft identity platform | Microsoft Learn](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app)
-    Azure Function [Azure Functions Overview | Microsoft Learn](https://learn.microsoft.com/en-us/azure/azure-functions/functions-overview?pivots=programming-language-csharp)
-    Azure Storage Table [Introduction to Table storage - Object storage in Azure | Microsoft Learn](https://learn.microsoft.com/en-us/azure/storage/tables/table-storage-overview)
-    Azure Singal R [Real-time apps with Azure SignalR Service and Azure Functions | Microsoft Learn](https://learn.microsoft.com/en-us/azure/azure-signalr/signalr-concept-azure-functions)
+	-Azure Active Directory App Registration [Quickstart: Register an app in the Microsoft identity platform - Microsoft identity platform | Microsoft Learn](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app)
+    -Azure Function [Azure Functions Overview | Microsoft Learn](https://learn.microsoft.com/en-us/azure/azure-functions/functions-overview?pivots=programming-language-csharp)
+    -Azure Storage Table [Introduction to Table storage - Object storage in Azure | Microsoft Learn](https://learn.microsoft.com/en-us/azure/storage/tables/table-storage-overview)
+    -Azure Singal R [Real-time apps with Azure SignalR Service and Azure Functions | Microsoft Learn](https://learn.microsoft.com/en-us/azure/azure-signalr/signalr-concept-azure-functions)
 
 ## Architecture
 The Sample Adaptor uses the SignalR Serverless Component with Azure Functions. When a client signs in to Dynamics, the Channel Integration Framework connects to SignalR. Users are authorized by Azure AD, and their connection details are stored in Azure Storage Table. 
@@ -113,7 +113,7 @@ Enviroment Variables to be Updated dusring solution import
 List of Methods used in Azure Function
 
 | Function Name | Description | Trigger | Authorization | Parameters | Returns |
-|:-|:-|:-|:-|:-|:=|
+|:-|:-|:-|:-|:-|:-|
 | negotiate | Manages the negotiation of a SignalR connection | HTTP GET request | Requires authentication | req: HttpRequest object, connectionInfo: SignalRConnectionInfo object, log: ILogger object | SignalRConnectionInfo object |
 | userclient | Stores connection information for a user client | HTTP POST request | Requires authentication | req: HttpRequest object, log: ILogger object | IActionResult |
 | SendMessageToUser | Sends a message to a specific user | HTTP POST request | Requires authentication | req: HttpRequest object, signalRMessages: IAsyncCollector object, connectionInfo: SignalRConnectionInfo object, log: ILogger object | IActionResult |
