@@ -36,7 +36,7 @@ When the user signs in, CIF Simulator tells the Azure function to create a link 
 
 The user’s active connection is stored in Azure storage with the interface through Azure Function. The system will use the recorded connection information to send a message to the user who is connected when a call comes in on the Telephony system.
 
-![Communication FLow Sequence](Images/2.png)
+![Communication FLow Sequence](Images/12.png)
 
 ## Deployment and Configuration Steps
 
