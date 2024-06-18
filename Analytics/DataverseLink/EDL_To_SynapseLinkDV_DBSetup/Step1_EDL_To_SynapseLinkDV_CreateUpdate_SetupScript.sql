@@ -1,4 +1,4 @@
--- Feb 22 - removing version number filter from the incremental query as during the inital sync - the data can be out of order of version number
+﻿-- Feb 22 - removing version number filter from the incremental query as during the inital sync - the data can be out of order of version number
 -- Feb 12, 2024 - updated logic to getNewTables to copy from delta table using max(SinkModifiedOn)
 -- Dec 29, 2023 - Added options to derived tables SQL to fix for incremental CSV version
 -- Dec 21 - bug fix on data entity - filter deleted rows 
@@ -6,7 +6,8 @@
 --Dec 9 - Added support for enum translation from globaloptionset 
 -- added support for data entity removing mserp_ prefix from column name
 -- fixed bug in derived table view creation - when there not all child tables are present
---Last updated - Nov 28, 2023 - Fixed bug syntax error while creating/updating derived base tables views with joins of child table  
+--Last updated - Nov 28, 2023 - Fixed bug syntax error while creating/updating derived base tables views with joins of child table
+-- June 19, 2024 - Updated source_GetNewDataToCopy to support more tables
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'dvtosql')
 BEGIN
     EXEC('CREATE SCHEMA dvtosql')
@@ -705,49 +706,88 @@ IF (@incrementalCSV = 1)
 	BEGIN;
 		print('--delta tables - get newdatetimemarker---')
 		declare @tablenewdatetimemarker nvarchar(max);
-		select @tablenewdatetimemarker= string_agg(convert(nvarchar(max),tablenewdatetimemarker), ' union ')
-		from (
-		select 
-			'select ''' + tableschema +  ''' as tableschema, ''' + tablename +  ''' as tablename, max(' + datetime_markercolumn + ') as newdatetimemarker from ' + @sourcetableschema + '.' + tablename as tablenewdatetimemarker
-		from #controltable
-		where incremental = 1 and
-		[active] = 1 and 
-		lastcopystatus != 1
-		)x
 
-		drop table if exists #newcontroltable;
-		CREATE TABLE #newcontroltable
-			(
-				[tableschema] [varchar](20) null,
-				[tablename] [varchar](255) null,
-				[newdatetimemarker] datetime2
-			)
-		insert into #newcontroltable
-		execute sp_executesql @tablenewdatetimemarker 
+                  -- if the database is synapse link created lakehouse db - get the location from the first datasource
+                  declare @deltastoragelocation varchar(4000);
+                  select top 1 @deltastoragelocation = [location]  from sys.external_data_sources
+                        where name like 'datasource_%'
 
-		select 
-		c.tableschema,
-		c.tablename,
-		lastdatetimemarker,
-		n.newdatetimemarker as newdatetimemarker ,
-		replace(replace(replace(replace(replace(replace(replace(convert(nvarchar(max),@SelectTableData  + (case when incremental =1 then @whereClause else '' end)), 
-		'{tableschema}', @sourcetableschema),
-		'{tablename}', c.tablename),
-		'{lastdatetimemarker}', lastdatetimemarker),
-		'{newdatetimemarker}', newdatetimemarker),
-		'{lastbigintmarker}', lastbigintmarker),
-		'{datetime_markercolumn}', datetime_markercolumn),
-		'{bigint_markercolumn}', bigint_markercolumn)
-		 as selectquery,
-		 datatypes
-	from #controltable c
-	join #newcontroltable n on c.tableschema = n.tableschema and c.tablename = n.tablename 
-	where 
-		c.lastdatetimemarker < newdatetimemarker and
-		[active] = 1 and 
-		lastcopystatus != 1
+                  -- if the database is created by the pipeline then take the location from external ds created by script
+                  if (@deltastoragelocation is null)
+                        select top 1 @deltastoragelocation = [location] + '/deltalake/'  from sys.external_data_sources
+                        where name = @externaldatasource
 
-	END 
+
+                  declare @tableschema varchar(20)= (select top 1 tableschema from #controltable where incremental = 1 and [active] = 1);
+
+                  declare @newtableconversion nvarchar(max) = 'SELECT distinct ''{tableschema}'' as tableschema, replace(TableName, ''_partitioned'', '''') as TableName, ''{newdatetimemarker}'' as newdatetimemarker
+                  FROM  OPENROWSET
+                        ( BULK ''{deltastoragelocation}conversionresults/*.info'',
+                        FORMAT = ''CSV'',
+                        FIELDQUOTE = ''0x0b'',
+                        FIELDTERMINATOR =''0x0b'',
+                        ROWTERMINATOR = ''0x0b''
+                  )
+                  WITH
+                  (
+                        jsonContent varchar(MAX)
+                  ) AS r
+                  cross apply openjson (jsonContent) with (JobType int, QueueTime datetime2,  TableNames nvarchar(max) ''$.TableNames'' as json)
+                  cross apply openjson(TableNames) with (TableName nvarchar(200) ''$'' )
+                  where queuetime > ''{lastdatetimemarker}''';
+
+                  set @tablenewdatetimemarker = replace(replace(replace(REPLACE(@newtableconversion, '{tableschema}', @tableschema), '{newdatetimemarker}', @newdatetimemarker), '{lastdatetimemarker}', @lastdatetimemarker), '{deltastoragelocation}', @deltastoragelocation);
+
+                  print(@tablenewdatetimemarker)
+            
+            --          select @tablenewdatetimemarker= string_agg(convert(nvarchar(max),tablenewdatetimemarker), ' union ')
+            --          from (
+            --          select
+            --                'select ''' + tableschema +  ''' as tableschema, ''' + tablename +  ''' as tablename, max(' + datetime_markercolumn + ') as newdatetimemarker from ' + @sourcetableschema + '.' + tablename as tablenewdatetimemarker
+            --          from #controltable
+            --          where incremental = 1 and
+            --          [active] = 1 and
+            --          lastcopystatus != 1
+            --          )x
+            --    end
+
+            drop table if exists #newcontroltable;
+            CREATE TABLE #newcontroltable
+                  (
+                        [tableschema] [varchar](20) null,
+                        [tablename] [varchar](255) null,
+                        [newdatetimemarker] datetime2
+                  )
+            insert into #newcontroltable
+            execute sp_executesql @tablenewdatetimemarker
+
+            insert into #newcontroltable ([tableschema], [tablename], [newdatetimemarker] )
+            select @tableschema,   value, @newdatetimemarker  from string_split(@newtables, ',')  
+
+            select
+            distinct
+            c.tableschema,
+            c.tablename,
+            lastdatetimemarker,
+            n.newdatetimemarker as newdatetimemarker ,
+            replace(replace(replace(replace(replace(replace(replace(convert(nvarchar(max),@SelectTableData  + (case when incremental =1 then @whereClause else '' end)),
+            '{tableschema}', @sourcetableschema),
+            '{tablename}', c.tablename),
+            '{lastdatetimemarker}', lastdatetimemarker),
+            '{newdatetimemarker}', newdatetimemarker),
+            '{lastbigintmarker}', lastbigintmarker),
+            '{datetime_markercolumn}', datetime_markercolumn),
+            '{bigint_markercolumn}', bigint_markercolumn)
+             as selectquery,
+             datatypes
+      from #controltable c
+      join #newcontroltable n on c.tableschema = n.tableschema and c.tablename = n.tablename
+      where
+            c.lastdatetimemarker < newdatetimemarker and
+            [active] = 1 and
+            lastcopystatus != 1
+
+      END
 
 
 GO
