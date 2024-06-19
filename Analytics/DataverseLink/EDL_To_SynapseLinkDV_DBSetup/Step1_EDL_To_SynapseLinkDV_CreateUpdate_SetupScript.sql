@@ -9,6 +9,7 @@
 --Last updated - Nov 28, 2023 - Fixed bug syntax error while creating/updating derived base tables views with joins of child table
 -- June 19, 2024 - Updated source_GetNewDataToCopy to support more tables
 -- June 19, 2024 - 2nd update - support for enum translation including BYOD enums
+-- June 20, 2024 - Don't need to translate enums
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'dvtosql')
 BEGIN
     EXEC('CREATE SCHEMA dvtosql')
@@ -517,10 +518,9 @@ drop table if exists #enumtranslation;
 	);
 
 	-- Added to support BYOD (simple entities) label translation
-	IF (((@translate_enums = 0) and (@translateBYOD_enums = 0)) or
-		((@translate_enums = 1) and (@translateBYOD_enums = 1)))
+	IF ((@translate_enums = 1) and (@translateBYOD_enums = 1))
 	BEGIN
-		RAISERROR ('You must translate enither enums or BYOD enums, but not both.', 16, 1)
+		RAISERROR ('You must translate enither enums or BYOD enums, or neither, but not both.', 16, 1)
 	END
 
 	IF ((@translate_enums = 1) and (@translateBYOD_enums = 0))
