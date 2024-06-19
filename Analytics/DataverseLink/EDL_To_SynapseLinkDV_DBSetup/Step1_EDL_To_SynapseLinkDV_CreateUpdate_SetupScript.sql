@@ -8,6 +8,7 @@
 -- fixed bug in derived table view creation - when there not all child tables are present
 --Last updated - Nov 28, 2023 - Fixed bug syntax error while creating/updating derived base tables views with joins of child table
 -- June 19, 2024 - Updated source_GetNewDataToCopy to support more tables
+-- June 19, 2024 - 2nd update - support for enum translation including BYOD enums
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'dvtosql')
 BEGIN
     EXEC('CREATE SCHEMA dvtosql')
@@ -266,6 +267,17 @@ IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dvtosql]
 			'''' as ExternalValue')
 
 GO
+
+-- Added to support BYOD (simple entities) label translation
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dvtosql].[srsanalysisenums]') AND type in (N'U'))
+	exec('create or alter view dvtosql.srsanalysisenums 
+		AS SELECT 
+			'''' as enumname,
+			'''' as enumitemname,
+			'''' as enumitemvalue')
+
+GO
+
 	
 CREATE OR ALTER     FUNCTION [dvtosql].[source_GetEnumTranslation]
 (
@@ -304,6 +316,46 @@ from
 
 GO
 
+-- Added to support BYOD (simple entities) label translation
+CREATE OR ALTER     FUNCTION [dvtosql].[source_GetEnumTranslationBYOD]
+(
+)
+RETURNS TABLE 
+AS
+
+Return
+select  
+string_agg(convert(nvarchar(max),'{"tablename":"'+ tablename + '","columnname":"'+ columnname + '","enum":"' + enumstringcolumns + '"}'), ';' ) as enumtranslation
+from
+(
+	select 
+		tablename,
+		string_agg(convert(nvarchar(max),enumtranslation), ',') as enumstringcolumns,
+		columnname
+		from (
+		select 
+		tablename,
+		columnname ,
+		'CASE [' + tablename + '].[' + columnname + ']' +  string_agg( convert(nvarchar(max),  ' WHEN '+convert(nvarchar(10),enumid)) + ' THEN ' + convert(nvarchar(10),enumvalue) , ' ' ) + ' END'
+		as enumtranslation
+		FROM (SELECT 
+			EntityName as tablename,
+			OptionSetName as columnname,
+			GlobalOptionSetName as enum,
+			[Option] as enumid ,
+			b.enumitemvalue as enumvalue
+			from dbo.GlobalOptionsetMetadata as a
+			left outer join srsanalysisenums as b ON a.GlobalOptionSetName = 'mserp_' + lower(b.enumname)
+			and a.ExternalValue = b.enumitemname
+			where LocalizedLabelLanguageCode = 1033 -- this is english
+			and OptionSetName not in ('sysdatastatecode')
+			) x
+		group by tablename,columnname, enum
+		)y
+		group by tablename, columnname
+	) optionsetmetadata
+
+GO
 
 
 CREATE or ALTER PROC dvtosql.source_createOrAlterViews
@@ -316,7 +368,8 @@ CREATE or ALTER PROC dvtosql.source_createOrAlterViews
 	@tableschema nvarchar(10)='dbo', 
 	@rowsetoptions nvarchar(2000) ='',
 	@translate_enums int = 0,
-	@remove_mserp_prefix  int = 0
+	@remove_mserp_prefix  int = 0,
+	@translateBYOD_enums int = 1 -- Added to support BYOD (simple entities) label translation
 )
 AS
 
@@ -325,6 +378,7 @@ AS
 	declare @addcolumns nvarchar(max) = '';
 	declare @GlobalOptionSetMetadataTemplate nvarchar(max)='' 
 	declare @filter_deleted_rows nvarchar(200) =  ' '
+	declare @srsanalysisenumsTemplate nvarchar(max)='' -- Added to support BYOD (simple entities) label translation
 
 	-- setup the ddl template 
 	if @incrementalCSV  = 0
@@ -360,6 +414,16 @@ AS
 					FORMAT = ''delta'', 
 					DATA_SOURCE = ''{externaldsname}''
 				) as GlobalOptionsetMetadata'
+
+		-- Added to support BYOD (simple entities) label translation
+		set @srsanalysisenumsTemplate = 'create or alter view dvtosql.srsanalysisenums 
+		AS
+		SELECT *
+		FROM  OPENROWSET
+				( BULK ''deltalake/srsanalysisenums_partitioned/'',  
+					FORMAT = ''delta'', 
+					DATA_SOURCE = ''{externaldsname}''
+				) as srsanalysisenums'
 	
 	end
 	else 
@@ -428,6 +492,10 @@ FROM  OPENROWSET
 set @GlobalOptionSetMetadataTemplate = replace(@GlobalOptionSetMetadataTemplate,'{externaldsname}', @externalds_name)
 execute sp_executesql @GlobalOptionSetMetadataTemplate;
 
+-- Added to support BYOD (simple entities) label translation
+set @srsanalysisenumsTemplate = replace(@srsanalysisenumsTemplate,'{externaldsname}', @externalds_name)
+execute sp_executesql @srsanalysisenumsTemplate;
+
 drop table if exists #cdmmetadata;
 	create table #cdmmetadata
 	(
@@ -437,8 +505,9 @@ drop table if exists #cdmmetadata;
 		columnnames nvarchar(max) COLLATE Database_Default
 	);
 
-	insert into #cdmmetadata (tablename, selectcolumns, datatypes, columnnames)
-	select tablename, selectcolumns, datatypes, columnnames from dvtosql.source_GetSQLMetadataFromCDM(@modeljson, @enumtranslation) as cdm
+	-- Moved two lines to later to support BYOD (simple entities) label translation
+	-- insert into #cdmmetadata (tablename, selectcolumns, datatypes, columnnames)
+	-- select tablename, selectcolumns, datatypes, columnnames from dvtosql.source_GetSQLMetadataFromCDM(@modeljson, @enumtranslation) as cdm
 
 drop table if exists #enumtranslation;
 	create table #enumtranslation
@@ -447,7 +516,14 @@ drop table if exists #enumtranslation;
 		enumtranslation nvarchar(max) default('')
 	);
 
-	IF (@translate_enums = 1)
+	-- Added to support BYOD (simple entities) label translation
+	IF (((@translate_enums = 0) and (@translateBYOD_enums = 0)) or
+		((@translate_enums = 1) and (@translateBYOD_enums = 1)))
+	BEGIN
+		RAISERROR ('You must translate enither enums or BYOD enums, but not both.', 16, 1)
+	END
+
+	IF ((@translate_enums = 1) and (@translateBYOD_enums = 0))
 	BEGIN
 		declare @enumtranslation_optionset nvarchar(max);
 		select @enumtranslation_optionset = enumtranslation  from [dvtosql].[source_GetEnumTranslation]()
@@ -460,7 +536,30 @@ drop table if exists #enumtranslation;
 		cross apply openjson(value) 
 		with (tablename nvarchar(100), enumtranslation nvarchar(max))
 	END
+
+	-- Added to support BYOD (simple entities) label translation
+	IF ((@translate_enums = 0) and (@translateBYOD_enums = 1)) -- Added for BYOD to support simple entities
+	BEGIN
+		declare @enumtranslationBYOD_optionset nvarchar(max);
+		select @enumtranslationBYOD_optionset = enumtranslation  from [dvtosql].[source_GetEnumTranslationBYOD]()
+		
+		set @enumtranslation = @enumtranslationBYOD_optionset;
+		
+		insert into #enumtranslation
+		select 
+			tablename, 
+			enumtranslation 
+		from string_split(@enumtranslationBYOD_optionset, ';')
+		cross apply openjson(value) 
+		with (tablename nvarchar(100), enumtranslation nvarchar(max))
+	END
+
+
 	--select * from #cdmmetadata
+	
+	-- Moved two lines here to support BYOD (simple entities) label translation
+	insert into #cdmmetadata (tablename, selectcolumns, datatypes, columnnames)
+	select tablename, selectcolumns, datatypes, columnnames from dvtosql.source_GetSQLMetadataFromCDM(@modeljson, @enumtranslation) as cdm
 
 -- generate ddl for view definitions for each tables in cdmmetadata table in the bellow format. 
 -- Begin try  
