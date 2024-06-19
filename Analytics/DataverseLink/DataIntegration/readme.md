@@ -71,7 +71,9 @@ To copy Dynamics 365 data available in data lake from Synapse link, to relationa
 |StorageDataLocation|Data container location in storage account     |https://d365analyticsincremental.dfs.core.windows.net/dataverse-analytics-orgf89b314a/
 |IncrementalCSV     |Is Source synapse link is incremental CSV ? | Source synapse link with incremental update CSV then true; Source synapse link with delta then false
 |GenerateSourceMetadata|Want to generate metadata on the source database when pipeline runs ?|  Source synapse link with incremental update CSV then true; Source synapse link with delta then false (as metadta is already created by)
-
+|Remove_mserp__prefix|If true and virtual entities are being exported, this will remove the mserp_ prefix from the entity name and the fields.|true or false
+|translate_enums|If true and using tables, this will add a column for each enum in the table, the column will be suffixed with $label and will have the text value of the enum.| true or false  
+|translate_BYOD_enums|If using virtual entities to support BYOD migration this will change the enum value from the Dataverse generated enum value to the finance and operations enum value. You cannot have both translate_enums and translate_BYOD_enums as true.| true or false
 
 4. Run the pipeline as scheduled trigger 
 
