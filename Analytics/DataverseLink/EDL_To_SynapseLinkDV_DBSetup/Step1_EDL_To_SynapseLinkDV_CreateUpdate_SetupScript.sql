@@ -345,7 +345,7 @@ from
 			GlobalOptionSetName as enum,
 			[Option] as enumid ,
 			b.enumitemvalue as enumvalue
-			from dbo.GlobalOptionsetMetadata as a
+			from GlobalOptionsetMetadata as a
 			left outer join srsanalysisenums as b ON a.GlobalOptionSetName = 'mserp_' + lower(b.enumname)
 			and a.ExternalValue = b.enumitemname
 			where LocalizedLabelLanguageCode = 1033 -- this is english
