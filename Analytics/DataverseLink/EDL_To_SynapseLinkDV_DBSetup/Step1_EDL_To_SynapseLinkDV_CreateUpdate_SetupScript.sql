@@ -813,7 +813,7 @@ IF (@incrementalCSV = 1)
 
                   -- if the database is created by the pipeline then take the location from external ds created by script
                   if (@deltastoragelocation is null)
-                        select top 1 @deltastoragelocation = [location] + '/deltalake/'  from sys.external_data_sources
+                        select top 1 @deltastoragelocation = [location] + 'deltalake/'  from sys.external_data_sources
                         where name = @externaldatasource
 
 
