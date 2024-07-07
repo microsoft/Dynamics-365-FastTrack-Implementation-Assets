@@ -494,8 +494,11 @@ set @GlobalOptionSetMetadataTemplate = replace(@GlobalOptionSetMetadataTemplate,
 execute sp_executesql @GlobalOptionSetMetadataTemplate;
 
 -- Added to support BYOD (simple entities) label translation
-set @srsanalysisenumsTemplate = replace(@srsanalysisenumsTemplate,'{externaldsname}', @externalds_name)
-execute sp_executesql @srsanalysisenumsTemplate;
+if (@translateBYOD_enums = 1)
+begin
+	set @srsanalysisenumsTemplate = replace(@srsanalysisenumsTemplate,'{externaldsname}', @externalds_name)
+	execute sp_executesql @srsanalysisenumsTemplate;
+end
 
 drop table if exists #cdmmetadata;
 	create table #cdmmetadata
