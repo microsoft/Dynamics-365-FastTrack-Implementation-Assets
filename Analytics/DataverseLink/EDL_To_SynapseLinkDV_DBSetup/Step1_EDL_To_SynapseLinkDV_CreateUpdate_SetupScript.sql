@@ -10,6 +10,7 @@
 -- June 19, 2024 - Updated source_GetNewDataToCopy to support more tables
 -- June 19, 2024 - 2nd update - support for enum translation including BYOD enums
 -- June 20, 2024 - Don't need to translate enums
+-- July 08, 2024 - Fixes to support BYOD enums
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'dvtosql')
 BEGIN
     EXEC('CREATE SCHEMA dvtosql')
@@ -345,7 +346,7 @@ from
 			GlobalOptionSetName as enum,
 			[Option] as enumid ,
 			b.enumitemvalue as enumvalue
-			from dbo.GlobalOptionsetMetadata as a
+			from dvtosql.GlobalOptionsetMetadata as a
 			left outer join srsanalysisenums as b ON a.GlobalOptionSetName = 'mserp_' + lower(b.enumname)
 			and a.ExternalValue = b.enumitemname
 			where LocalizedLabelLanguageCode = 1033 -- this is english
