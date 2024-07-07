@@ -817,8 +817,17 @@ IF (@incrementalCSV = 1)
 
                   -- if the database is created by the pipeline then take the location from external ds created by script
                   if (@deltastoragelocation is null)
-                        select top 1 @deltastoragelocation = [location] + 'deltalake/'  from sys.external_data_sources
+                  begin
+					select top 1 @deltastoragelocation = [location] 
+					from sys.external_data_sources
                         where name = @externaldatasource
+					
+					-- added to support when the storage location does not end in '/'
+					if (RIGHT(@deltastoragelocation, 1) != '/')
+						set @deltastoragelocation = @deltastoragelocation + '/deltalake/'  
+					else
+					set @deltastoragelocation = @deltastoragelocation + 'deltalake/'
+			    end
 
 
                   declare @tableschema varchar(20)= (select top 1 tableschema from #controltable where incremental = 1 and [active] = 1);
