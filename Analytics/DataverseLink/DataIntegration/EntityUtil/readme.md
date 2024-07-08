@@ -5,6 +5,9 @@ If the customer would like to leverage Fabric, this tool can be used to create t
  
 Note: Caution should be taken if data is being used for integration as near-real-time data integrity is not guaranteed. 
 
+## Prerequisites
+If you are creating the VIEWS within the serverless database or an Azure SQL database, you can use the pipeline available [here](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Analytics/DataverseLink/DataIntegration) to generate the database metadata structure that will be used as the basis for the VIEWs.
+
 ## Steps to execute EntityUtil:
 1.	Copy files to a location where they will be run.
 2.	Edit the config.json file with the necessary values.
