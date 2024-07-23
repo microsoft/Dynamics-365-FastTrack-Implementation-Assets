@@ -47,11 +47,11 @@ Below is the standard code flow in FieldServiceProjectOperationReliableAsyncServ
 * Change the status to Processing	in FieldServiceProjectOperationReliableAsyncService > processOperation() [dataverseService.projectTransactionInProgress();]
 * Get the project data from work order [FieldServiceProjectDataModel projectDataModel = dataverseService.projectDataFromWorkOrder();]	
 * Create the project [projectOperation.createProject();]
-    * Extension - Once the project is created in F&O by standard integration code, retrieve extended fields from FS work order e.g.  “SA work order extension number” and update this in F&O project. _
+    * Extension - Once the project is created in F&O by standard integration code, retrieve extended fields from FS work order e.g.  “SA work order extension number” and update this in F&O project.
 * Change the status to complete in FieldServiceProjectOperationReliableAsyncService > processOperation() [dataverseService.projectTransactionCompleted(projectDataModel);]
 
 Class 1 – create extension of FieldServiceProjectDataModel data-contract to get/set extension field
-
+```
 //This is extension of FieldServiceProjectDataModel to get/set additional custom fields (extension) for Project
 [ExtensionOf(classStr(FieldServiceProjectDataModel))]
 final class FieldServiceProjectDataModel_SAFieldServiceInt_Extension
@@ -66,9 +66,9 @@ final class FieldServiceProjectDataModel_SAFieldServiceInt_Extension
     }
 
 }
-
+```
 Class 2 – This is extension (COC) of FieldServiceWorkOrderRepository class to retrieve extension field from Field Service workorder table, and set it in FieldServiceProjectDataModel data-contract.
-
+```
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using System.Linq;
@@ -122,5 +122,159 @@ final class FieldServiceWorkOrderRepository_SAFieldServiceInt_Extension
         }
     }
 }
+```
+Class 3 – This is extension class to update Project in F&O with extension field 
+```
+//This is extension   of FieldServiceProjectOperation to update the custom fields in ProjTable
+[ExtensionOf(classStr(FieldServiceProjectOperation))]
+final class FieldServiceProjectOperation_SAFieldServiceInt_Extension
+{
+    public void createProject()
+    {
+        next createProject();
+        changecompany(projectDataModel.parmDataAreaId())
+        {
+            ProjTable parentProjTable = ProjTable::find(projectDataModel.parmSubprojectId(),true);
+            if (parentProjTable)
+            {
+                ttsbegin;
+                parentProjTable.SAWorkOrderExtensionNumber = projectDataModel.parmSAWorkOrderExtensionNumber();
+                parentProjTable.doupdate();
+                ttscommit;
+            }
+        }
+    }
+}
+```
+# Extensibility Example 2:
+Consider scenario to add a new custom field in Dynamics 365 Field Service work order product table, move and store that custom field value to Dynamics 365 F&O through integration in project > item journal in F&O.
 
+## Extension in Field Service:
 
+Add a new custom field namely ‘SA tech comment for billing’ (String = 100) to the Dynamics 365 Field Service work order product table using an extension. You can create new custom solution in Dataverse and add field in Work order product table using maker portal and add the field in the Work order product from as shown below, save and publish the customizations.
+
+![Field Service add field](ExtensibilityExample2_Image1_PP.png)
+
+Consider to add this field in work order product form.
+![Field Service add field on form](ExtensibilityExample2_Image2_PP.png)
+
+## Extension in F&O:
+Add field in Dynamics 365 F&O in InventJournalTrans table (by following Dynamics 365 F&O dev best practices of creating EDT etc.:
+![FO add field on ProjTable](ExtensibilityExample2_Image3_F&O.png)
+
+Essentially, we’d like to hook to FieldServiceItemJournalOperation>createJournal() method, reason being to maintain the right status integrity in Dataverse as explained below:
+Below is the standard code flow in FieldServiceJournalOperationReliableAsyncService class
+* Change the status to Processing	in FieldServiceJournalOperationReliableAsyncService > processOperation() [dataverseService. journalTransactionInProgress ();]
+* Get the item journal data from work order product table [FieldServiceJournalLineDataModel journalLineDataModel = this.retrieveJournalDataFromDataverseEntity(transJournalType, dataverseService);]	
+* Create the project item journal [journalOperation.createJournal();]
+ * Extension - Once the item journal line is created in F&O by standard integration code, retrieve extended (custom) fields from FS work order product e.g.  “SA tech comment for billing” and update this in F&O project item journal. 
+* Change the status to complete in FieldServiceJournalOperationReliableAsyncService > processOperation() [dataverseService.journalTransactionCompleted (journalLineDataModel);]
+
+Class 1 – create extension of FieldServiceJournalLineDataModel data-contract to get/set extension field
+```
+//This is extension of FieldServiceJournalLineDataModel to get/set additional custom fields (extension) for Project item journal
+[ExtensionOf(classStr(FieldServiceJournalLineDataModel))]
+final class FieldServiceJournalLineDataModel_SAFieldServiceInt_Extension
+{
+    public SAWorkOrderProductComment wOProductComment;
+
+    [DataMember('SAWorkOrderProductComment')]
+    public SAWorkOrderProductComment parmSAWOProductComment(SAWorkOrderProductComment _wOProductComment = wOProductComment)
+    {
+        wOProductComment = _wOProductComment;
+        return wOProductComment;
+    }
+
+}
+```
+Class 2 – This is extension (COC) of FieldServiceWorkOrderProductRepository class to retrieve extension field from Field Service workorderproduct table, and set it in FieldServiceJournalLineDataModel data-contract.
+```
+using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
+using System.Linq;
+//This is extension of FieldServiceWorkOrderProductRepository class to retrieve any additional custom fields from work order product table
+//and set it to FieldServiceJournalLineDataModel
+[ExtensionOf(classStr(FieldServiceWorkOrderProductRepository))]
+final class FieldServiceWorkOrderProductRepository_SAFieldServiceInt_Extension
+{
+    public void retrieveJournalDataFromWorkOrderProduct(FieldServiceJournalLineDataModel _journalLineDataModel)
+    {
+        AttributeCollection attributeCollection;
+        System.Object getEntityValue(str attributeName)
+        {
+            System.Object entityValue = null;
+            if (attributeCollection)
+            {
+                attributeCollection.TryGetValue(attributeName, byref entityValue);
+            }
+
+            return entityValue;
+        }
+        ; // Required for local method
+
+        next retrieveJournalDataFromWorkOrderProduct(_journalLineDataModel);
+
+        QueryExpression query = new QueryExpression('msdyn_workorderproduct');
+        ColumnSet columnSet = new ColumnSet();
+        columnSet.AddColumn('cr875_saworkorderproductcomment');
+
+        query.ColumnSet = columnSet;
+        FilterExpression criteria = query.Criteria;
+
+        FilterExpression wopFilter = new FilterExpression();
+        wopFilter.FilterOperator = FieldServiceTransactionsConstants::OPERATOR_AND;
+        wopFilter.AddCondition(new ConditionExpression('msdyn_workorderproductid', FieldServiceTransactionsConstants::CONDITION_EQUAL, workOrderProductGuidId));
+        criteria.AddFilter(wopFilter);
+
+        EntityCollection entityCollection = organizationService.RetrieveMultiple(query);
+        if (entityCollection != null && entityCollection.Entities != null && entityCollection.Entities.Count > 0)
+        {
+            Microsoft.Xrm.Sdk.Entity[] entityArray = entityCollection.Entities.ToArray();
+            Microsoft.Xrm.Sdk.Entity entity = entityArray.GetValue(0);
+            attributeCollection = entity.Attributes;
+
+            str currFieldStrValue = FieldServiceUtility::getEntityStringValue(getEntityValue('cr875_saworkorderproductcomment'));
+            _journalLineDataModel.parmSAWOProductComment(currFieldStrValue);
+        }
+    }
+}
+```
+Class 3 – This is extension class to update item journal in F&O with extension field (this is not recommended to use if you have setup to create/post journal at the time of item is used). Instead of createJournal(), we should look at setJournalLineFields(), currently this method is private, therefore, can’t be extended.
+```
+//This is extension of FieldServiceItemJournalOperation to update the custom fields in InventJournalTrans
+[ExtensionOf(classStr(FieldServiceItemJournalOperation))]
+final class FieldServiceItemJournalOperation_SAFieldServiceInt_Extension
+{
+    public void createJournal() 
+    {
+        InventJournalTable    journalTable;
+        InventJournalTrans    journalTrans;
+        next createJournal();
+        changecompany(journalLineDataModel.parmDataAreaId())
+        {
+            ttsbegin;
+            if (this.SAjournalExists())
+            {
+                JournalId InventJournalId = journalLineDataModel.parmJournalId();
+                journalTable = InventJournalTable::find(InventJournalId);
+                select firstonly forupdate journalTrans where journalTrans.journalid == InventJournalId
+                                && journalTrans.Linenum == journalLineDataModel.parmLineNum();
+                journalTrans.SAWorkOrderProductComment = journalLineDataModel.parmSAWOProductComment();
+                journalTrans.doupdate();
+            }
+            ttscommit;
+        }
+    }
+
+    private boolean SAjournalExists()
+    {
+        ProjectItemJournalTableEntity projectItemJournalTableEntity;
+        select firstonly RecId from projectItemJournalTableEntity
+                    where projectItemJournalTableEntity.DataAreaId == journalLineDataModel.parmDataAreaId() &&
+                          projectItemJournalTableEntity.JournalId == journalLineDataModel.parmJournalId();
+
+        return projectItemJournalTableEntity.RecId != 0;
+    }
+
+}
+```
