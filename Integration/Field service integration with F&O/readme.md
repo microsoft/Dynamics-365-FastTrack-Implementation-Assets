@@ -1,0 +1,14 @@
+# Dynamics 365 Field Service Integration with Finance and Operations Technical Architecture and Extension
+
+# Architecture
+Microsoft recently released Field Service integration with Finance and Operations apps to bring both of these Dynamics 365 apps together [Field Service integration with finance and operations applications](https://learn.microsoft.com/en-us/dynamics365/field-service/finance-operations-integration)
+
+This integration is built on the existing capabilities of the Dynamics 365 platform. The Field Service F&O Integration Transaction table (msdyn_fnointegrationjournaltrans) in Dataverse stores transaction logs   that are synchronized based on events in the Field Service app. For instance, when a work order is created with an F&O project, such eligible transaction is stored in this table. An asynchronous job in Dataverse then picks up 'unsynced' transactions from this table and sends them to F&O using OData. In F&O, the new data entity FieldServiceTransactionEntity   is developed that uses SysODataAction to create projects and project journals (Hour/Expense/Item) based on the transaction type. A reliable asynchronous framework in F&O then processes the OData request to create either a Project or Project journals using F&O business logic. Since a finance and operations entity is directly invoked in all operations, any business logic on the entity or its backing tables is also invoked.
+
+# Extensibility
+Although we strive to provide the best possible out-of-the-box experience for our customers, we understand that each business is unique. As a result, you may need to extend Dynamics 365 to support the specific requirements of your business. This integration supports extensibility using existing extension patterns.
+Developers can leverage [Dynamics 365 F&O extension patterns](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/extensibility/extensibility-home-page) and [Power platform Dataverse extension](https://learn.microsoft.com/en-us/training/paths/extend-power-platform-dataverse) to support extension with this integration.
+
+To begin   with, developers can use [Unified development environment](https://learn.microsoft.com/en-us/power-platform/admin/unified-experience/tutorial-deploy-new-environment-with-erp-template?tabs=PPAC#step-by-step-provisioning-guide) for both Dynamics 365 F&O and FS apps, it provides ability for developers to install and configure development tools e.g. Visual Studio [dev tools](https://learn.microsoft.com/en-us/power-platform/developer/unified-experience/finance-operations-install-config-tools). Developers can use Power Platform [maker portal](https://make.powerapps.com/) to extend Dynamics 365 Field Service application.
+
+Microsoft ships Field Service Integration model in Dynamics 365 F&O standard product, developers have ability to view the code, debug and even extend it using existing Dynamics 365 F&O extension patterns.
