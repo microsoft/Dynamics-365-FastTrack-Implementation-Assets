@@ -24,6 +24,7 @@ The application lifecycle for an end-to-end solution may encompass both finance 
 For instance, if you have a need to add a field to the Dynamics 365 Field Service work order table using an extension and transfer that field value to Dynamics 365 F&O through integration, you will need to extend the ProjTable in Dynamics 365 F&O and extend the class(es) in Dynamics 365 F&O to transfer the new field value from FS to F&O. As a result, developers must extend both apps, manage the solution in Field Service and the model in F&O, and plan to deploy changes to both apps simultaneously using existing application lifecycle management processes.
 
 # Extensibility Example 1:
+Below examples are provided based on 10.0.40 of F&O application version and these should be used as an aspiration, developers must access the right extension pattern for their implementation and raise [extensibility request](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/extensibility/extensibility-requests) if right extension hook points are not available.
 
 Consider scenario to add a new custom field in Dynamics 365 Field Service work order table, move and store that custom field value to Dynamics 365 F&O through integration in sub-project in F&O.
 
