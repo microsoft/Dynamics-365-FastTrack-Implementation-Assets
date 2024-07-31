@@ -279,3 +279,101 @@ final class FieldServiceItemJournalOperation_SAFieldServiceInt_Extension
 
 }
 ```
+# Extensibility Example 3:
+Consider scenario to add a new custom field in Dynamics 365 Field Service work order product table, the value of this field needs to come from Dynamics 365 F&O after creating project item journal in F&O. For example, sales tax group is assigned in Dynamics 365 F&O based item setup etc. Once the journal line is created/(and posted), you need to view Sales tax group in Dynamics 365 Field Service work order product table.
+![FO Sales tax group](ExtensibilityExample3_Image1_PP.png)
+
+## Extension in Field Service:
+There is F&O virtual table available for TaxGroupEntity, enable this entity. 
+![FS Sales tax group VE](ExtensibilityExample3_Image2_PP.png)
+
+Since it’s virtual entity, it will be available as mserp_taxgroupentity
+![FS Sales tax group VE](ExtensibilityExample3_Image3_PP.png)
+
+Add new field as Lookup to mserp_taxgroupentity in work order product table (i.e. Sales tax groups (mserp)) as non-editable field.
+![FS Sales tax group VE](ExtensibilityExample3_Image4_PP.png)
+
+Consider to add this field in work order product form.
+![FS Sales tax group VE](ExtensibilityExample3_Image5_PP.png)
+
+## Extension in F&O:
+
+Class 1 – create extension of FieldServiceEntityAssociationRepository to generate GUID of sales tax group. 
+```
+[ExtensionOf(classStr(FieldServiceEntityAssociationRepository))]
+final class FieldServiceEntityAssociationRepository_SAFieldServiceInt_Extension
+{
+    public guid retrieveItemSalesTaxEntityId(str _projTaxgroupID)
+    {
+        guid projTaxGroupId = emptyGuid();
+        if (_projTaxgroupID)
+        {
+            projTaxGroupId = this.retrieveEntityGuidUsingFieldValueAndDataAreaId('mserp_taxgroupentity',
+                                                                          'mserp_taxgroupcode',
+                                                                           _projTaxgroupID,
+                                                                           'mserp_dataareaid',
+                                                                            dataAreaId);
+        }
+
+        return projTaxGroupId;
+    }
+
+}
+```
+Class 2 – This is extension (COC) of FieldServiceWorkOrderProductRepository class to update work order product table for sales tax group virtual entity GUID.
+```
+using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
+using System.Linq;
+//This is extension of FieldServiceWorkOrderProductRepository class to retrieve any additional custom fields from work order product table
+//and set it to FieldServiceJournalLineDataModel
+[ExtensionOf(classStr(FieldServiceWorkOrderProductRepository))]
+final class FieldServiceWorkOrderProductRepository_SAFieldServiceInt_Extension
+{
+    
+    public void updateWorkOrderProductRecordWithItemJournalLine(guid _itemJournalLineGuidId, JournalId _journalId, LineNum _journalLineNumber)
+    {
+        next updateWorkOrderProductRecordWithItemJournalLine(_itemJournalLineGuidId,_journalId,_journalLineNumber);
+        changecompany(dataAreaId)
+        {
+            ProjectItemJournalTransEntity itemJournaLineEntity;
+            select firstonly ProjectTaxGroupId  from itemJournaLineEntity
+                    where itemJournaLineEntity.DataAreaId == dataAreaId &&
+                          itemJournaLineEntity.JournalId == _journalId &&
+                          itemJournaLineEntity.LineNum == _journalLineNumber;
+
+
+            FieldServiceEntityAssociationRepository entityAssociationRepository = FieldServiceEntityAssociationRepository::newFromTransactionParameters(organizationService, entityActionRequest);
+
+            guid projtaxGrID = entityAssociationRepository.retrieveItemSalesTaxEntityId(itemJournaLineEntity.ProjectTaxGroupId);
+
+           // entityAssociationRepository.addMissingLookupAssociationEntry(FieldServiceDataverseLookupType::WorkOrderProductItemJournal, workOrderProductGuidId, projtaxGrID);
+            this.updateWorkOrderProductWithTaxGroupID(projtaxGrID);
+        }
+    }
+
+    public void updateWorkOrderProductWithTaxGroupID(guid projtaxGrID)
+    {
+        QueryExpression query = new QueryExpression('msdyn_workorderproduct');
+
+        FilterExpression criteria = query.Criteria;
+        criteria.AddCondition(new ConditionExpression('msdyn_workorderproductid', FieldServiceTransactionsConstants::CONDITION_EQUAL, workOrderProductGuidId));
+        criteria.AddCondition(new ConditionExpression('cr875_fosalestaxgroupsmserp', FieldServiceTransactionsConstants::CONDITION_EQUAL, projtaxGrID));
+        //
+        
+
+        EntityCollection entityCollection = organizationService.RetrieveMultiple(query);
+        boolean associationExists = (entityCollection != null && entityCollection.Entities != null && entityCollection.Entities.Count > 0);
+
+        // Update Work Order product record if Work Order Service has no association with FnO tax groupID.
+        if (!associationExists)
+        {
+            Entity woEntity = new Entity('msdyn_workorderproduct', workOrderProductGuidId);
+            AttributeCollection attributeCollection = woEntity.Attributes;
+            attributeCollection.Add('cr875_fosalestaxgroupsmserp', new EntityReference('mserp_taxgroupentity', projtaxGrID));
+            organizationService.Update(woEntity);
+        }
+    }
+
+}
+```
