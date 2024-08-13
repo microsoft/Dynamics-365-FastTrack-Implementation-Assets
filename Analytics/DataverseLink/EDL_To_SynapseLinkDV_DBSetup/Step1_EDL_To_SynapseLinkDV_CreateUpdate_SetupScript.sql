@@ -1,3 +1,4 @@
+﻿-- Feb 22 - removing version number filter from the incremental query as during the inital sync - the data can be out of order of version number
 -- Feb 12, 2024 - updated logic to getNewTables to copy from delta table using max(SinkModifiedOn)
 -- Dec 29, 2023 - Added options to derived tables SQL to fix for incremental CSV version
 -- Dec 21 - bug fix on data entity - filter deleted rows 
@@ -5,7 +6,11 @@
 --Dec 9 - Added support for enum translation from globaloptionset 
 -- added support for data entity removing mserp_ prefix from column name
 -- fixed bug in derived table view creation - when there not all child tables are present
---Last updated - Nov 28, 2023 - Fixed bug syntax error while creating/updating derived base tables views with joins of child table  
+--Last updated - Nov 28, 2023 - Fixed bug syntax error while creating/updating derived base tables views with joins of child table
+-- June 19, 2024 - Updated source_GetNewDataToCopy to support more tables
+-- June 19, 2024 - 2nd update - support for enum translation including BYOD enums
+-- June 20, 2024 - Don't need to translate enums
+-- July 08, 2024 - Fixes to support BYOD enums
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'dvtosql')
 BEGIN
     EXEC('CREATE SCHEMA dvtosql')
@@ -132,6 +137,38 @@ set @modeljson = isnull(@modeljson, '{}') ;
 set @enumtranslation = isnull(@enumtranslation, '{}') ;
 
 GO
+CREATE or ALTER FUNCTION dvtosql.source_GetSQLMetadataFromSQLV2
+(
+	@SourceSchema nvarchar(100),
+	@TablesToIncluce nvarchar(max) = '*',
+	@TablesToExcluce nvarchar(max) = ''
+)
+RETURNS TABLE 
+AS
+RETURN 
+select
+	(select 
+		TABLE_NAME as tablename,
+		string_agg(convert(varchar(max), QUOTENAME(COLUMN_NAME)), ',') as selectcolumns,
+		string_agg(convert(varchar(max), QUOTENAME(COLUMN_NAME) + SPACE(1) +  
+		DATA_TYPE +
+		CASE 
+			WHEN DATA_TYPE LIKE '%char%' AND CHARACTER_MAXIMUM_LENGTH = -1 THEN '(max)'
+			WHEN CHARACTER_MAXIMUM_LENGTH IS NOT NULL THEN '(' + CAST(CHARACTER_MAXIMUM_LENGTH AS VARCHAR) + ')'
+			WHEN DATA_TYPE IN ('decimal', 'numeric') THEN '(' + CAST(NUMERIC_PRECISION AS VARCHAR) + ', ' + CAST(NUMERIC_SCALE AS VARCHAR) + ')'
+		ELSE '' END), ',') as datatypes,
+		string_agg(convert(varchar(max), QUOTENAME(COLUMN_NAME)), ',') as columnnames
+	from INFORMATION_SCHEMA.COLUMNS
+	WHERE TABLE_SCHEMA = @SourceSchema
+	and TABLE_NAME not in ('_controltableforcopy,TargetMetadata,OptionsetMetadata,StateMetadata,StatusMetadata,GlobalOptionsetMetadata')
+	and TABLE_NAME not like '%_partitioned'
+	and (@TablesToIncluce = '*' OR TABLE_NAME in (select value from string_split(@TablesToIncluce, ',')))
+	and TABLE_NAME not in (select value from string_split(@TablesToExcluce, ','))
+	group by TABLE_NAME
+	FOR JSON PATH
+	) sqlmetadata
+
+GO
 
 
 CREATE or ALTER FUNCTION dvtosql.source_GetSQLMetadataFromSQL
@@ -221,8 +258,8 @@ with table_field_enum_map as
 GO
 
 
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GlobalOptionsetMetadata]') AND type in (N'U'))
-	exec('create or alter view GlobalOptionsetMetadata 
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dvtosql].[GlobalOptionsetMetadata]') AND type in (N'U'))
+	exec('create or alter view dvtosql.GlobalOptionsetMetadata 
 		AS SELECT 
 			'''' as EntityName,
 			'''' as OptionSetName,
@@ -232,6 +269,17 @@ IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Gl
 			'''' as ExternalValue')
 
 GO
+
+-- Added to support BYOD (simple entities) label translation
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dvtosql].[srsanalysisenums]') AND type in (N'U'))
+	exec('create or alter view dvtosql.srsanalysisenums 
+		AS SELECT 
+			'''' as enumname,
+			'''' as enumitemname,
+			'''' as enumitemvalue')
+
+GO
+
 	
 CREATE OR ALTER     FUNCTION [dvtosql].[source_GetEnumTranslation]
 (
@@ -259,7 +307,7 @@ from
 			GlobalOptionSetName as enum,
 			[Option] as enumid ,
 			ExternalValue as enumvalue
-			from GlobalOptionsetMetadata
+			from dvtosql.GlobalOptionsetMetadata
 			where LocalizedLabelLanguageCode = 1033 -- this is english
 			and OptionSetName not in ('sysdatastatecode') 
 			) x
@@ -270,6 +318,46 @@ from
 
 GO
 
+-- Added to support BYOD (simple entities) label translation
+CREATE OR ALTER     FUNCTION [dvtosql].[source_GetEnumTranslationBYOD]
+(
+)
+RETURNS TABLE 
+AS
+
+Return
+select  
+string_agg(convert(nvarchar(max),'{"tablename":"'+ tablename + '","columnname":"'+ columnname + '","enum":"' + enumstringcolumns + '"}'), ';' ) as enumtranslation
+from
+(
+	select 
+		tablename,
+		string_agg(convert(nvarchar(max),enumtranslation), ',') as enumstringcolumns,
+		columnname
+		from (
+		select 
+		tablename,
+		columnname ,
+		'CASE [' + tablename + '].[' + columnname + ']' +  string_agg( convert(nvarchar(max),  ' WHEN '+convert(nvarchar(10),enumid)) + ' THEN ' + convert(nvarchar(10),enumvalue) , ' ' ) + ' END'
+		as enumtranslation
+		FROM (SELECT 
+			EntityName as tablename,
+			OptionSetName as columnname,
+			GlobalOptionSetName as enum,
+			[Option] as enumid ,
+			b.enumitemvalue as enumvalue
+			from dvtosql.GlobalOptionsetMetadata as a
+			left outer join srsanalysisenums as b ON a.GlobalOptionSetName = 'mserp_' + lower(b.enumname)
+			and a.ExternalValue = b.enumitemname
+			where LocalizedLabelLanguageCode = 1033 -- this is english
+			and OptionSetName not in ('sysdatastatecode')
+			) x
+		group by tablename,columnname, enum
+		)y
+		group by tablename, columnname
+	) optionsetmetadata
+
+GO
 
 
 CREATE or ALTER PROC dvtosql.source_createOrAlterViews
@@ -282,7 +370,8 @@ CREATE or ALTER PROC dvtosql.source_createOrAlterViews
 	@tableschema nvarchar(10)='dbo', 
 	@rowsetoptions nvarchar(2000) ='',
 	@translate_enums int = 0,
-	@remove_mserp_prefix  int = 0
+	@remove_mserp_prefix  int = 0,
+	@translateBYOD_enums int = 1 -- Added to support BYOD (simple entities) label translation
 )
 AS
 
@@ -291,6 +380,7 @@ AS
 	declare @addcolumns nvarchar(max) = '';
 	declare @GlobalOptionSetMetadataTemplate nvarchar(max)='' 
 	declare @filter_deleted_rows nvarchar(200) =  ' '
+	declare @srsanalysisenumsTemplate nvarchar(max)='' -- Added to support BYOD (simple entities) label translation
 
 	-- setup the ddl template 
 	if @incrementalCSV  = 0
@@ -318,7 +408,7 @@ AS
 
 		set @filter_deleted_rows =  ' where isnull({tablename}.IsDelete,0) = 0 '
 		
-		set @GlobalOptionSetMetadataTemplate = 'create or alter view GlobalOptionsetMetadata 
+		set @GlobalOptionSetMetadataTemplate = 'create or alter view dvtosql.GlobalOptionsetMetadata 
 		AS
 		SELECT *
 		FROM  OPENROWSET
@@ -326,6 +416,16 @@ AS
 					FORMAT = ''delta'', 
 					DATA_SOURCE = ''{externaldsname}''
 				) as GlobalOptionsetMetadata'
+
+		-- Added to support BYOD (simple entities) label translation
+		set @srsanalysisenumsTemplate = 'create or alter view dvtosql.srsanalysisenums 
+		AS
+		SELECT *
+		FROM  OPENROWSET
+				( BULK ''deltalake/srsanalysisenums_partitioned/'',  
+					FORMAT = ''delta'', 
+					DATA_SOURCE = ''{externaldsname}''
+				) as srsanalysisenums'
 	
 	end
 	else 
@@ -356,7 +456,7 @@ AS
 			{datatypes}
 		) as {tablename} ';
 
-set @GlobalOptionSetMetadataTemplate = 'create or alter view GlobalOptionsetMetadata 
+set @GlobalOptionSetMetadataTemplate = 'create or alter view dvtosql.GlobalOptionsetMetadata 
 AS
 SELECT *
 FROM  OPENROWSET
@@ -394,6 +494,13 @@ FROM  OPENROWSET
 set @GlobalOptionSetMetadataTemplate = replace(@GlobalOptionSetMetadataTemplate,'{externaldsname}', @externalds_name)
 execute sp_executesql @GlobalOptionSetMetadataTemplate;
 
+-- Added to support BYOD (simple entities) label translation
+if (@translateBYOD_enums = 1)
+begin
+	set @srsanalysisenumsTemplate = replace(@srsanalysisenumsTemplate,'{externaldsname}', @externalds_name)
+	execute sp_executesql @srsanalysisenumsTemplate;
+end
+
 drop table if exists #cdmmetadata;
 	create table #cdmmetadata
 	(
@@ -403,8 +510,9 @@ drop table if exists #cdmmetadata;
 		columnnames nvarchar(max) COLLATE Database_Default
 	);
 
-	insert into #cdmmetadata (tablename, selectcolumns, datatypes, columnnames)
-	select tablename, selectcolumns, datatypes, columnnames from dvtosql.source_GetSQLMetadataFromCDM(@modeljson, @enumtranslation) as cdm
+	-- Moved two lines to later to support BYOD (simple entities) label translation
+	-- insert into #cdmmetadata (tablename, selectcolumns, datatypes, columnnames)
+	-- select tablename, selectcolumns, datatypes, columnnames from dvtosql.source_GetSQLMetadataFromCDM(@modeljson, @enumtranslation) as cdm
 
 drop table if exists #enumtranslation;
 	create table #enumtranslation
@@ -413,7 +521,13 @@ drop table if exists #enumtranslation;
 		enumtranslation nvarchar(max) default('')
 	);
 
-	IF (@translate_enums = 1)
+	-- Added to support BYOD (simple entities) label translation
+	IF ((@translate_enums = 1) and (@translateBYOD_enums = 1))
+	BEGIN
+		RAISERROR ('You must translate enither enums or BYOD enums, or neither, but not both.', 16, 1)
+	END
+
+	IF ((@translate_enums = 1) and (@translateBYOD_enums = 0))
 	BEGIN
 		declare @enumtranslation_optionset nvarchar(max);
 		select @enumtranslation_optionset = enumtranslation  from [dvtosql].[source_GetEnumTranslation]()
@@ -426,11 +540,34 @@ drop table if exists #enumtranslation;
 		cross apply openjson(value) 
 		with (tablename nvarchar(100), enumtranslation nvarchar(max))
 	END
+
+	-- Added to support BYOD (simple entities) label translation
+	IF ((@translate_enums = 0) and (@translateBYOD_enums = 1)) -- Added for BYOD to support simple entities
+	BEGIN
+		declare @enumtranslationBYOD_optionset nvarchar(max);
+		select @enumtranslationBYOD_optionset = enumtranslation  from [dvtosql].[source_GetEnumTranslationBYOD]()
+		
+		set @enumtranslation = @enumtranslationBYOD_optionset;
+		
+		insert into #enumtranslation
+		select 
+			tablename, 
+			enumtranslation 
+		from string_split(@enumtranslationBYOD_optionset, ';')
+		cross apply openjson(value) 
+		with (tablename nvarchar(100), enumtranslation nvarchar(max))
+	END
+
+
 	--select * from #cdmmetadata
+	
+	-- Moved two lines here to support BYOD (simple entities) label translation
+	insert into #cdmmetadata (tablename, selectcolumns, datatypes, columnnames)
+	select tablename, selectcolumns, datatypes, columnnames from dvtosql.source_GetSQLMetadataFromCDM(@modeljson, @enumtranslation) as cdm
 
 -- generate ddl for view definitions for each tables in cdmmetadata table in the bellow format. 
 -- Begin try  
-	-- execute sp_executesql N'create or alter view schema.tablename as selectcolumns from openrowset(...) tablename '  
+	-- execute sp_executesql N'create or alter view schema.tablename as select columns from openrowset(...) tablename '  
 -- End Try 
 --Begin catch 
 	-- print ERROR_PROCEDURE() + ':' print ERROR_MESSAGE() 
@@ -589,7 +726,7 @@ declare @minfoldername nvarchar(100) = '';
 declare @maxfoldername nvarchar(100) = '';
 declare @SelectTableData nvarchar(max);
 declare @newdatetimemarker datetime2 = getdate();
-declare @whereClause nvarchar(200) = ' where {datetime_markercolumn} between ''{lastdatetimemarker}'' and ''{newdatetimemarker}'' and {bigint_markercolumn} > {lastbigintmarker}';
+declare @whereClause nvarchar(200) = ' where {datetime_markercolumn} between ''{lastdatetimemarker}'' and ''{newdatetimemarker}''';
 
 set @SelectTableData  = 'SELECT * from {tableschema}.{tablename}';
 
@@ -605,8 +742,8 @@ IF (@incrementalCSV = 1)
 
 		declare @getNewFolders nvarchar(max) = 
 		'SELECT     
-		@minfoldername = isNull(min(minfolder),format(GETUTCDATE(),''yyyy-MM-ddThh.mm.ssZ'')),
-		@maxfoldername = isNull(max(maxfolderPath),format(GETUTCDATE(),''yyyy-MM-ddThh.mm.ssZ'')),  
+		@minfoldername = isNull(min(minfolder),format(GETUTCDATE(),''yyyy-MM-ddTHH.mm.ssZ'')),
+		@maxfoldername = isNull(max(maxfolderPath),format(GETUTCDATE(),''yyyy-MM-ddTHH.mm.ssZ'')),  
 		@tablelist_inNewFolders = isnull(string_agg(convert(nvarchar(max), x.tablename),'',''),'''')
 		from 
 		(
@@ -672,49 +809,97 @@ IF (@incrementalCSV = 1)
 	BEGIN;
 		print('--delta tables - get newdatetimemarker---')
 		declare @tablenewdatetimemarker nvarchar(max);
-		select @tablenewdatetimemarker= string_agg(convert(nvarchar(max),tablenewdatetimemarker), ' union ')
-		from (
-		select 
-			'select ''' + tableschema +  ''' as tableschema, ''' + tablename +  ''' as tablename, max(' + datetime_markercolumn + ') as newdatetimemarker from ' + tableschema + '.' + tablename as tablenewdatetimemarker
-		from #controltable
-		where incremental = 1 and
-		[active] = 1 and 
-		lastcopystatus != 1
-		)x
 
-		drop table if exists #newcontroltable;
-		CREATE TABLE #newcontroltable
-			(
-				[tableschema] [varchar](20) null,
-				[tablename] [varchar](255) null,
-				[newdatetimemarker] datetime2
-			)
-		insert into #newcontroltable
-		execute sp_executesql @tablenewdatetimemarker 
+                  -- if the database is synapse link created lakehouse db - get the location from the first datasource
+                  declare @deltastoragelocation varchar(4000);
+                  select top 1 @deltastoragelocation = [location]  from sys.external_data_sources
+                        where name like 'datasource_%'
 
-		select 
-		c.tableschema,
-		c.tablename,
-		lastdatetimemarker,
-		n.newdatetimemarker as newdatetimemarker ,
-		replace(replace(replace(replace(replace(replace(replace(convert(nvarchar(max),@SelectTableData  + (case when incremental =1 then @whereClause else '' end)), 
-		'{tableschema}', @sourcetableschema),
-		'{tablename}', c.tablename),
-		'{lastdatetimemarker}', lastdatetimemarker),
-		'{newdatetimemarker}', newdatetimemarker),
-		'{lastbigintmarker}', lastbigintmarker),
-		'{datetime_markercolumn}', datetime_markercolumn),
-		'{bigint_markercolumn}', bigint_markercolumn)
-		 as selectquery,
-		 datatypes
-	from #controltable c
-	join #newcontroltable n on c.tableschema = n.tableschema and c.tablename = n.tablename 
-	where 
-		c.lastdatetimemarker < newdatetimemarker and
-		[active] = 1 and 
-		lastcopystatus != 1
+                  -- if the database is created by the pipeline then take the location from external ds created by script
+                  if (@deltastoragelocation is null)
+                  begin
+					select top 1 @deltastoragelocation = [location] 
+					from sys.external_data_sources
+                        where name = @externaldatasource
+					
+					-- added to support when the storage location does not end in '/'
+					if (RIGHT(@deltastoragelocation, 1) != '/')
+						set @deltastoragelocation = @deltastoragelocation + '/deltalake/'  
+					else
+					set @deltastoragelocation = @deltastoragelocation + 'deltalake/'
+			    end
 
-	END 
+
+                  declare @tableschema varchar(20)= (select top 1 tableschema from #controltable where incremental = 1 and [active] = 1);
+
+                  declare @newtableconversion nvarchar(max) = 'SELECT distinct ''{tableschema}'' as tableschema, replace(TableName, ''_partitioned'', '''') as TableName, ''{newdatetimemarker}'' as newdatetimemarker
+                  FROM  OPENROWSET
+                        ( BULK ''{deltastoragelocation}conversionresults/*.info'',
+                        FORMAT = ''CSV'',
+                        FIELDQUOTE = ''0x0b'',
+                        FIELDTERMINATOR =''0x0b'',
+                        ROWTERMINATOR = ''0x0b''
+                  )
+                  WITH
+                  (
+                        jsonContent varchar(MAX)
+                  ) AS r
+                  cross apply openjson (jsonContent) with (JobType int, QueueTime datetime2,  TableNames nvarchar(max) ''$.TableNames'' as json)
+                  cross apply openjson(TableNames) with (TableName nvarchar(200) ''$'' )
+                  where queuetime > ''{lastdatetimemarker}''';
+
+                  set @tablenewdatetimemarker = replace(replace(replace(REPLACE(@newtableconversion, '{tableschema}', @tableschema), '{newdatetimemarker}', @newdatetimemarker), '{lastdatetimemarker}', @lastdatetimemarker), '{deltastoragelocation}', @deltastoragelocation);
+
+                  print(@tablenewdatetimemarker)
+            
+            --          select @tablenewdatetimemarker= string_agg(convert(nvarchar(max),tablenewdatetimemarker), ' union ')
+            --          from (
+            --          select
+            --                'select ''' + tableschema +  ''' as tableschema, ''' + tablename +  ''' as tablename, max(' + datetime_markercolumn + ') as newdatetimemarker from ' + @sourcetableschema + '.' + tablename as tablenewdatetimemarker
+            --          from #controltable
+            --          where incremental = 1 and
+            --          [active] = 1 and
+            --          lastcopystatus != 1
+            --          )x
+            --    end
+
+            drop table if exists #newcontroltable;
+            CREATE TABLE #newcontroltable
+                  (
+                        [tableschema] [varchar](20) null,
+                        [tablename] [varchar](255) null,
+                        [newdatetimemarker] datetime2
+                  )
+            insert into #newcontroltable
+            execute sp_executesql @tablenewdatetimemarker
+
+            insert into #newcontroltable ([tableschema], [tablename], [newdatetimemarker] )
+            select @tableschema,   value, @newdatetimemarker  from string_split(@newtables, ',')  
+
+            select
+            distinct
+            c.tableschema,
+            c.tablename,
+            lastdatetimemarker,
+            n.newdatetimemarker as newdatetimemarker ,
+            replace(replace(replace(replace(replace(replace(replace(convert(nvarchar(max),@SelectTableData  + (case when incremental =1 then @whereClause else '' end)),
+            '{tableschema}', @sourcetableschema),
+            '{tablename}', c.tablename),
+            '{lastdatetimemarker}', lastdatetimemarker),
+            '{newdatetimemarker}', newdatetimemarker),
+            '{lastbigintmarker}', lastbigintmarker),
+            '{datetime_markercolumn}', datetime_markercolumn),
+            '{bigint_markercolumn}', bigint_markercolumn)
+             as selectquery,
+             datatypes
+      from #controltable c
+      join #newcontroltable n on c.tableschema = n.tableschema and c.tablename = n.tablename
+      where
+            c.lastdatetimemarker < newdatetimemarker and
+            [active] = 1 and
+            lastcopystatus != 1
+
+      END
 
 
 GO
@@ -782,6 +967,7 @@ IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dvtosql]
 			[enddatetime] [datetime2](7) NULL
 		);
 
+
 With sqlmetadata as 
 (
 	select * 
@@ -821,7 +1007,7 @@ MERGE INTO [dvtosql].[_controltableforcopy] AS target
 		columnnames,
 		replace(selectcolumns, '''','''''') as selectcolumns
 	from [dvtosql].[_controltableforcopy]
-	where  [active] = 1
+	where  [active] = 1 and tableschema = @tableschema
 
 
 GO
@@ -845,12 +1031,14 @@ CREATE OR ALTER PROC dvtosql.target_preDataCopy
 
 	CREATE TABLE [{schema}].[_new_{tablename}] ({columnnames})
 
-	INSERT INTO  [dvtosql].[_datalaketosqlcopy_log](pipelinerunid, tablename, minfolder,maxfolder) 
-	values(''{pipelinerunId}'', ''{tablename}'', ''{lastdatetimemarker}'',''{newdatetimemarker}'' )
+	INSERT INTO  [dvtosql].[_datalaketosqlcopy_log](pipelinerunid, tablename, minfolder,maxfolder, copystatus, startdatetime) 
+	values(''{pipelinerunId}'', ''{schema}.{tablename}'', ''{lastdatetimemarker}'',''{newdatetimemarker}'', 1, GETUTCDATE())
 
 	update [dvtosql].[_controltableforcopy]
 	set lastcopystatus = 1, [lastcopystartdatetime] = getutcdate()
 	where tablename = ''{tablename}'' AND  tableschema = ''{schema}''
+
+
 	')
 	,'{columnnames}', @columnnames)
 	,'{schema}', @tableschema)
@@ -874,7 +1062,8 @@ CREATE OR ALTER PROC [dvtosql].target_dedupAndMerge
 @tablename nvarchar(100),
 @schema nvarchar(10),
 @newdatetimemarker datetime2,
-@debug_mode bit = 0
+@debug_mode bit = 0,
+@pipelinerunid nvarchar(100) = ''
 )
 AS 
 
@@ -933,8 +1122,6 @@ BEGIN;
 		( SELECT ROW_NUMBER() OVER (PARTITION BY Id ORDER BY versionnumber DESC) AS rn FROM {schema}._new_{tablename}
 		)
 		DELETE FROM CTE WHERE rn > 1;
-
-		DELETE FROM {schema}._new_{tablename} Where IsDelete = 1;
 	END'
 	,'{schema}', @schema)
 	,'{tablename}', @tablename);
@@ -956,22 +1143,22 @@ BEGIN;
 	exec sp_rename ''{schema}._new_{tablename}'', ''{tablename}''
  
 	print(''-- -- create index on table----'')
-	IF EXISTS ( SELECT 1 FROM information_schema.columns WHERE table_name = ''{tablename}'' AND column_name = ''Id'') 
-		AND NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_id_idx'' AND object_id = OBJECT_ID(''{tablename}''))
+	IF EXISTS ( SELECT 1 FROM information_schema.columns WHERE table_schema = ''{schema}'' and table_name = ''{tablename}'' AND column_name = ''Id'') 
+		AND NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{schema}_{tablename}_id_idx'' AND object_id = OBJECT_ID(''[{schema}].[{tablename}]''))
 	BEGIN
-		CREATE UNIQUE INDEX {tablename}_id_idx ON {tablename}(Id) with (ONLINE = ON);
+		CREATE UNIQUE INDEX {schema}_{tablename}_id_idx ON [{schema}].[{tablename}](Id) with (ONLINE = ON);
 	END;
 
-	IF EXISTS ( SELECT 1 FROM information_schema.columns WHERE table_name = ''{tablename}'' AND column_name = ''recid'') 
-		AND NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_recid_idx'' AND object_id = OBJECT_ID(''{tablename}''))
+	IF EXISTS ( SELECT 1 FROM information_schema.columns WHERE  table_schema = ''{schema}'' and  table_name = ''{tablename}'' AND column_name = ''recid'') 
+		AND NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{schema}_{tablename}_recid_idx'' AND object_id = OBJECT_ID(''[{schema}].[{tablename}]''))
 	BEGIN
-		CREATE UNIQUE INDEX {tablename}_RecId_Idx ON {tablename}(recid) with (ONLINE = ON);
+		CREATE UNIQUE INDEX {schema}_{tablename}_RecId_Idx ON [{schema}].[{tablename}](recid) with (ONLINE = ON);
 	END;
 
-	IF EXISTS ( SELECT 1 FROM information_schema.columns WHERE table_name = ''{tablename}'' AND column_name = ''versionnumber'') 
-		AND NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{tablename}_versionnumber_idx'' AND object_id = OBJECT_ID(''{tablename}''))
+	IF EXISTS ( SELECT 1 FROM information_schema.columns WHERE  table_schema = ''{schema}'' and  table_name = ''{tablename}'' AND column_name = ''versionnumber'') 
+		AND NOT EXISTS ( SELECT 1 FROM sys.indexes WHERE name = ''{schema}_{tablename}_versionnumber_idx'' AND object_id = OBJECT_ID(''[{schema}].[{tablename}]''))
 	BEGIN
-		CREATE  INDEX {tablename}_versionnumber_Idx ON {tablename}(versionnumber) with (ONLINE = ON);
+		CREATE  INDEX {schema}_{tablename}_versionnumber_Idx ON [{schema}].[{tablename}](versionnumber) with (ONLINE = ON);
 	END;
 
 	select @versionnumber = max(versionnumber), @insertCount = count(1) from  {schema}.{tablename};
@@ -1011,6 +1198,18 @@ BEGIN;
 		MergeAction NVARCHAR(10)
 	);
 
+	SET NOCOUNT OFF;
+
+	-- Delete data in the target table based on source.
+	DELETE target FROM {schema}.{tablename} AS target
+	INNER JOIN {schema}._new_{tablename} AS source ON target.id = source.id and source.isdelete = 1;
+	
+	SELECT @deleteCount = @@ROWCOUNT;
+
+
+	--Now remove data from the source to avoid update during the merge function
+	DELETE FROM {schema}._new_{tablename} Where IsDelete = 1;
+
 	MERGE INTO {schema}.{tablename} AS target
 	USING {schema}._new_{tablename} AS source
 	ON target.Id = source.Id
@@ -1022,11 +1221,10 @@ BEGIN;
 	OUTPUT $action INTO @MergeOutput(MergeAction );
 
 	 select @insertCount = [INSERT],
-			   @updateCount = [UPDATE],
-			   @deleteCount = [DELETE]
-		  from (select MergeAction from @MergeOutput) mergeResultsPlusEmptyRow     
+			@updateCount = [UPDATE]
+		 from (select MergeAction from @MergeOutput) mergeResultsPlusEmptyRow     
 		 pivot (count(MergeAction) 
-		   for MergeAction in ([INSERT],[UPDATE],[DELETE])) 
+			for MergeAction in ([INSERT],[UPDATE])) 
 			as mergeResultsPivot;
 
 	select @versionnumber = max(versionnumber) from  {schema}.{tablename};
@@ -1049,11 +1247,10 @@ BEGIN;
 	update [dvtosql].[_controltableforcopy]
 	set lastcopystatus = 0, lastdatetimemarker = @newdatetimemarker,  [lastcopyenddatetime] = getutcdate(), lastbigintmarker = @versionnumber
 	where tablename = @tablename AND  tableschema = @schema
+
+	update [dvtosql].[_datalaketosqlcopy_log]
+	set copystatus = 0, [rowsinserted] = @insertCount, [rowsupdated] = @updateCount, [rowsdeleted]=@deleteCount,  [enddatetime] = getutcdate()
+	where tablename =  concat(@schema, '.', @tablename)  and pipelinerunid= @pipelinerunid 
 END 
 
 GO
-
-
-
-
-

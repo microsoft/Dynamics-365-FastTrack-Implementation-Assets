@@ -1,0 +1,8 @@
+requests
+tenacity
+streamlit
+pyodbc
+openai==1.2.4
+python-dotenv
+pandas
+azure-identity

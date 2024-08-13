@@ -1,0 +1,8 @@
+{
+  "type": "signalR",
+  "name": "OnConnected",
+  "hubName": "myhub",
+  "eventPattern": "Connected",
+  "direction": "in",
+  "userId": "{headers.x-ms-client-principal-id}"
+}

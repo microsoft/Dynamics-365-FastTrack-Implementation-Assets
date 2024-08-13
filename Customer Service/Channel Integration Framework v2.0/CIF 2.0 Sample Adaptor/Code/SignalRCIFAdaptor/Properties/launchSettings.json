@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "SignalRCIFAdaptor": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7022",
+      "launchBrowser": false
+    }
+  }
+}
