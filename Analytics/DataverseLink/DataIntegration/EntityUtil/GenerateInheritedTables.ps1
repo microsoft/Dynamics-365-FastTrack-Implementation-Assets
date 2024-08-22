@@ -1,4 +1,6 @@
 ﻿function Generate-Inherited-Tables(){
+    # This fuction has been specifically written to create inherited as views in a non-dbo database schema i.e., $dbSchemaTarget
+    # This function has been written to work on the serverless lake replica database or Fabric Link  
 
     # Load the JSON configuration file
     $config = Get-Content -Path ".\config.json" | ConvertFrom-Json
@@ -23,12 +25,18 @@
     $targetServerName = $config.targetServerName
     $targetConnectionString = "Server=$($targetServerName);Database=$($targetDatabaseName)"
 
+    # Source database name (if serverless replica, then the source must be the same as target)
+    $sourceDatabaseName = $config.sourceDatabaseName
+    # Target database name (if serverless replica, then the source must be the same as target)
+    $targetDatabaseName = $config.targetDatabaseName
+
     # Create SQL connection
     $targetConnection = New-Object System.Data.SqlClient.SqlConnection($targetConnectionString)
     $createAlterViewConnection = New-Object System.Data.SqlClient.SqlConnection($targetConnectionString)
 
     # Database schema we are using
     $dbSchema = $config.dbSchema
+    $dbSchemaTarget = $config.dbSchemaTarget
 
     # Columns that are required for backward compatibility
     $backwardcompatiblecolumns = $config.backwardcompatiblecolumns
@@ -56,14 +64,24 @@
         $createAlterViewConnection.AccessToken = $accessToken
     }
  
-    if (($targetConnectionString -like "*.pbidedicated.windows.net*") -or
-        ($targetConnectionString -like "*.datawarehouse.fabric.microsoft.com*"))
+    if ((($targetConnectionString -like "*.pbidedicated.windows.net*") -or
+        ($targetConnectionString -like "*.datawarehouse.fabric.microsoft.com*")) -and
+        ($dbSchemaTarget -ne "") -and
+        ($dbSchemaTarget -ne "dbo"))
     {
         $TargetEndpointType = "MS_Fabric"
     }
+    elseif (($targetConnectionString -like "*-ondemand.sql.azuresynapse.net*") -and   
+            ($dbSchemaTarget -ne "") -and # want to ensure that inherited tables are being made in a target schema
+            ($dbSchemaTarget -ne "dbo"))
+    {
+        $TargetEndpointType = "Synapse_Serverless"
+    }
     else 
     {
-        Write-Host "Generating inherited tables via EntityUtil is only for Fabric, if you require this for Azure SQL or serverless please use the pipeline." -ForegroundColor Red
+        Write-Host "Generating inherited tables via EntityUtil is only for Fabric, or in the serverless replica database." -ForegroundColor Red
+        Write-Host "The target db schema cannot be dbo." -ForegroundColor Red
+        Write-Host "If run on the serverless lakehouse, the target and source database servers and name must be the same." -ForegroundColor Red
         return;
     }
 
@@ -209,25 +227,39 @@
             # Write-Host $parenttable + ', ' + $childtables + ', ' + $joins + ', ' + $columnnamelists
 
             # If using this approach the parent table fields are not added
-            $ddl = "
-            declare @parenttablecolumns nvarchar(max);
-            declare @createalterviewstmt nvarchar(max);
+            # 21 Aug 2024 Updating to review _view as they are being created in a different schema
 
-            SELECT @parenttablecolumns = STRING_AGG(convert(varchar(max),  '[' + TABLE_NAME + '].'+ '[' + COLUMN_NAME + ']'   + ' AS [' + COLUMN_NAME + ']'), ',') 
+            # $ddl = "
+            # declare @parenttablecolumns nvarchar(max);
+            # declare @createalterviewstmt nvarchar(max);
+
+            # SELECT @parenttablecolumns = STRING_AGG(convert(varchar(max),  '[' + TABLE_NAME + '].'+ '[' + COLUMN_NAME + ']'   + ' AS [' + COLUMN_NAME + ']'), ',') 
+			#    from INFORMATION_SCHEMA.COLUMNS C
+			#    where TABLE_SCHEMA = '$($dbSchema)'
+			#    and TABLE_NAME  = '$($parenttable)';
+        
+            # set @createalterviewstmt = 'create or alter view [$($dbSchemaTarget)].[$($parenttable)_view] as select ' + @parenttablecolumns + ', $($columnnamelists)
+            # FROM [$($dbSchema)].[$($parenttable)] AS [$($parenttable)]
+            # $($joins);'
+        
+             $ddl = "
+             declare @parenttablecolumns nvarchar(max);
+             declare @createalterviewstmt nvarchar(max);
+
+             SELECT @parenttablecolumns = cast(N'' AS nvarchar(MAX)) + STRING_AGG(convert(varchar(max),  '[' + TABLE_NAME + '].'+ '[' + COLUMN_NAME + ']'   + ' AS [' + COLUMN_NAME + ']'), ',') 
 			    from INFORMATION_SCHEMA.COLUMNS C
 			    where TABLE_SCHEMA = '$($dbSchema)'
 			    and TABLE_NAME  = '$($parenttable)';
         
-            set @createalterviewstmt = 'create or alter view [$($dbSchema)].[$($parenttable)_view] as select ' + @parenttablecolumns + ', $($columnnamelists)
-            FROM [$($dbSchema)].[$($parenttable)] AS [$($parenttable)]
-            $($joins);'
-        
+             set @createalterviewstmt = cast(N'' AS nvarchar(MAX)) + N'create or alter view [$($dbSchemaTarget)].[$($parenttable)] as select ' + @parenttablecolumns + N', $($columnnamelists)';
+             set @createalterviewstmt = @createalterviewstmt + cast(N'' AS nvarchar(MAX)) + N' FROM [$($dbSchema)].[$($parenttable)] AS [$($parenttable)]';
+             set @createalterviewstmt = @createalterviewstmt + cast(N'' AS nvarchar(MAX)) + N'$($joins);'
+
             EXEC sp_executesql @createalterviewstmt;
-            "
-        
+            "           
 
             # Save the query for debugging to a file
-            # $ddl | Out-File $debuggingQueryFile
+            $ddl | Out-File $debuggingQueryFile
 
             $createAlterViewCommand = $createAlterViewConnection.CreateCommand()
             $createAlterViewCommand.CommandText = $ddl
