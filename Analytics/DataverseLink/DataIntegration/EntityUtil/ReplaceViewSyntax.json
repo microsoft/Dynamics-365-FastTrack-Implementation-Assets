@@ -25,81 +25,6 @@
 		"ViewName": "CUSTCUSTOMERV3ENTITY"
 	},
 	{
-		"Key": "T1.MEMO AS",
-		"Value": "Null AS",
-		"ViewName": "CUSTCUSTOMERV3ENTITY"
-	},
-	{
-		"Key": "T1.IDENTIFICATIONNUMBER AS",
-		"Value": "Null AS",
-		"ViewName": "CUSTCUSTOMERV3ENTITY"
-	},
-	{
-		"Key": "T1.IRS1099CINDICATOR AS",
-		"Value": "Null AS",
-		"ViewName": "CUSTCUSTOMERV3ENTITY"
-	},
-	{
-		"Key": "T1.TAXLICENSENUM AS",
-		"Value": "Null AS",
-		"ViewName": "CUSTCUSTOMERV3ENTITY"
-	},
-	{
-		"Key": "T1.BIRTHCOUNTYCODE_IT AS",
-		"Value": "Null AS",
-		"ViewName": "CUSTCUSTOMERV3ENTITY"
-	},
-	{
-		"Key": "T1.BIRTHPLACE_IT AS",
-		"Value": "Null AS",
-		"ViewName": "CUSTCUSTOMERV3ENTITY"
-	},
-	{
-		"Key": "T1.MEMO AS",
-		"Value": "Null AS",
-		"ViewName": "VENDVENDORV2ENTITY"
-	},
-	{
-		"Key": "T1.FEMALEOWNED AS",
-		"Value": "Null AS",
-		"ViewName": "VENDVENDORV2ENTITY"
-	},
-	{
-		"Key": "T1.ETHNICORIGINID AS",
-		"Value": "Null AS",
-		"ViewName": "VENDVENDORV2ENTITY"
-	},
-	{
-		"Key": "T1.LOCALLYOWNED AS",
-		"Value": "Null AS",
-		"ViewName": "VENDVENDORV2ENTITY"
-	},
-	{
-		"Key": "T1.MINORITYOWNED AS",
-		"Value": "Null AS",
-		"ViewName": "VENDVENDORV2ENTITY"
-	},
-	{
-		"Key": "T1.TAX1099REGNUM AS",
-		"Value": "Null AS",
-		"ViewName": "VENDVENDORV2ENTITY"
-	},
-	{
-		"Key": "T1.VETERANOWNED AS",
-		"Value": "Null AS",
-		"ViewName": "VENDVENDORV2ENTITY"
-	},
-	{
-		"Key": "T1.BIRTHPLACE AS",
-		"Value": "Null AS",
-		"ViewName": "VENDVENDORV2ENTITY"
-	},
-	{
-		"Key": "T1.DISABLEDOWNED AS",
-		"Value": "Null AS",
-		"ViewName": "VENDVENDORV2ENTITY"
-	},
-	{
 		"Key": "SELECT Name from OMTeamMembershipCriterion WHERE OMTeamMembershipCriterion.RecId = T1.TeamMembershipCriterion",
 		"Value": "Null",
 		"ViewName": "DIRPARTYBASEENTITY"
@@ -168,46 +93,6 @@
 		"Key": "T6.KEY_",
 		"Value": "T6.[KEY]",
 		"ViewName": "INVENTPRODUCTDEFAULTORDERSETTINGSENTITY"
-	},
-	{
-		"Key": "T1.FEMALEOWNED AS",
-		"Value": "Null AS",
-		"ViewName": "RETAILVENDVENDORV3ENTITY"
-	},
-	{
-		"Key": "T1.ETHNICORIGINID AS",
-		"Value": "Null AS",
-		"ViewName": "RETAILVENDVENDORV3ENTITY"
-	},
-	{
-		"Key": "T1.LOCALLYOWNED AS",
-		"Value": "Null AS",
-		"ViewName": "RETAILVENDVENDORV3ENTITY"
-	},
-	{
-		"Key": "T1.MINORITYOWNED AS",
-		"Value": "Null AS",
-		"ViewName": "RETAILVENDVENDORV3ENTITY"
-	},
-	{
-		"Key": "T1.TAX1099REGNUM AS",
-		"Value": "Null AS",
-		"ViewName": "RETAILVENDVENDORV3ENTITY"
-	},
-	{
-		"Key": "T1.VETERANOWNED AS",
-		"Value": "Null AS",
-		"ViewName": "RETAILVENDVENDORV3ENTITY"
-	},
-	{
-		"Key": "T1.BIRTHPLACE AS",
-		"Value": "Null AS",
-		"ViewName": "RETAILVENDVENDORV3ENTITY"
-	},
-	{
-		"Key": "T1.DISABLEDOWNED AS",
-		"Value": "Null AS",
-		"ViewName": "RETAILVENDVENDORV3ENTITY"
 	},
 	{
 		"Key": "T1.COMMENT_ AS COMMENT_",
