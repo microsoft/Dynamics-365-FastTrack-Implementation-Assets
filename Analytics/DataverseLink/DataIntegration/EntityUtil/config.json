@@ -5,6 +5,7 @@
   "targetServerName": "<target database server name>",
   "targetDatabaseName": "<target database name>",
   "dbSchema": "dbo",
+  "dbSchemaTarget": "",
   "dbSchemaForControlTable": "dvtosql",
   "entityList": "CustCustomerV3Entity,VendVendorV2Entity,GeneralJournalAccountEntryEntity",
   "sandboxServerName": "<sandbox server name>",
