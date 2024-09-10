@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxDataEntityView xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>FEImportAdyenCC</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class FEImportAdyenCC extends common
+{
+}
+]]></Declaration>
+		<Methods />
+	</SourceCode>
+	<Label>Adyen CC Import</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<DataManagementEnabled>Yes</DataManagementEnabled>
+	<DataManagementStagingTable>FEImportAdyenCCStaging</DataManagementStagingTable>
+	<PrimaryCompanyContext>DataAreaId</PrimaryCompanyContext>
+	<PrimaryKey>EntityKey</PrimaryKey>
+	<SupportsSetBasedSqlOperations>Yes</SupportsSetBasedSqlOperations>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>Alias</Name>
+			<DataField>Alias</DataField>
+			<DataSource>FEImportAdyenCCProcessingTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>Bin</Name>
+			<DataField>Bin</DataField>
+			<DataSource>FEImportAdyenCCProcessingTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>CardSummary</Name>
+			<DataField>CardSummary</DataField>
+			<DataSource>FEImportAdyenCCProcessingTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>DataAreaId1</Name>
+			<DataField>DataAreaId</DataField>
+			<DataSource>FEImportAdyenCCProcessingTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>EchoData</Name>
+			<DataField>EchoData</DataField>
+			<DataSource>FEImportAdyenCCProcessingTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>ExpiryMonth</Name>
+			<DataField>ExpiryMonth</DataField>
+			<DataSource>FEImportAdyenCCProcessingTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>ExpiryYear</Name>
+			<DataField>ExpiryYear</DataField>
+			<DataSource>FEImportAdyenCCProcessingTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>FundingSource</Name>
+			<DataField>FundingSource</DataField>
+			<DataSource>FEImportAdyenCCProcessingTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>IssuerCountryCode</Name>
+			<DataField>IssuerCountryCode</DataField>
+			<DataSource>FEImportAdyenCCProcessingTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>Partition1</Name>
+			<DataField>Partition</DataField>
+			<DataSource>FEImportAdyenCCProcessingTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>PaymentMethodVariant</Name>
+			<DataField>PaymentMethodVariant</DataField>
+			<DataSource>FEImportAdyenCCProcessingTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>RecId1</Name>
+			<DataField>RecId</DataField>
+			<DataSource>FEImportAdyenCCProcessingTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>RecVersion1</Name>
+			<DataField>RecVersion</DataField>
+			<DataSource>FEImportAdyenCCProcessingTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>ShopperReference</Name>
+			<DataField>ShopperReference</DataField>
+			<DataSource>FEImportAdyenCCProcessingTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>StatusMessage</Name>
+			<DataField>StatusMessage</DataField>
+			<DataSource>FEImportAdyenCCProcessingTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>Status</Name>
+			<DataField>Status</DataField>
+			<DataSource>FEImportAdyenCCProcessingTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>RecurringDetailReference</Name>
+			<DataField>RecurringDetailReference</DataField>
+			<DataSource>FEImportAdyenCCProcessingTable</DataSource>
+		</AxDataEntityViewField>
+		<AxDataEntityViewField xmlns=""
+			i:type="AxDataEntityViewMappedField">
+			<Name>IsProcesssed</Name>
+			<DataField>IsProcesssed</DataField>
+			<DataSource>FEImportAdyenCCProcessingTable</DataSource>
+		</AxDataEntityViewField>
+	</Fields>
+	<Keys>
+		<AxDataEntityViewKey>
+			<Name>EntityKey</Name>
+			<Fields />
+		</AxDataEntityViewKey>
+	</Keys>
+	<Mappings />
+	<Ranges />
+	<Relations />
+	<StateMachines />
+	<ViewMetadata>
+		<Name>Metadata</Name>
+		<SourceCode>
+			<Methods>
+				<Method>
+					<Name>classDeclaration</Name>
+					<Source><![CDATA[
+[Query]
+public class Metadata extends QueryRun
+{
+}
+]]></Source>
+				</Method>
+			</Methods>
+		</SourceCode>
+		<DataSources>
+			<AxQuerySimpleRootDataSource>
+				<Name>FEImportAdyenCCProcessingTable</Name>
+				<DynamicFields>Yes</DynamicFields>
+				<Table>FEImportAdyenCCProcessingTable</Table>
+				<DataSources />
+				<DerivedDataSources />
+				<Fields />
+				<Ranges />
+				<GroupBy />
+				<Having />
+				<OrderBy />
+			</AxQuerySimpleRootDataSource>
+		</DataSources>
+	</ViewMetadata>
+</AxDataEntityView>
