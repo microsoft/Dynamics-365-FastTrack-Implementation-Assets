@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>FECreditCardPaymentCardTokenize_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Microsoft.Dynamics.Commerce.Headquarters.Instrumentation;
+using Retail=Microsoft.Dynamics.Retail;
+using PortableSDK = Microsoft.Dynamics.Retail.PaymentSDK.Portable;
+using RetailConst=Microsoft.Dynamics.Retail.PaymentSDK.Portable.Constants;
+using GenericConsts=Microsoft.Dynamics.Retail.PaymentSDK.Portable.Constants.GenericNamespace;
+using ConnectorConsts=Microsoft.Dynamics.Retail.PaymentSDK.Portable.Constants.ConnectorProperties;
+using MerchantAccountPropertiesConsts=Microsoft.Dynamics.Retail.PaymentSDK.Portable.Constants.MerchantAccountProperties;
+using PaymentCardPropertiesConsts=Microsoft.Dynamics.Retail.PaymentSDK.Portable.Constants.PaymentCardProperties;
+using CommercePropertiesConsts=Microsoft.Dynamics.Retail.PaymentSDK.Portable.Constants.CommerceIdentificationProperties;
+
+[ExtensionOf(classStr(CreditCardPaymentCardTokenize))]
+internal final class FECreditCardPaymentCardTokenize_Extension
+{
+    #CreditCard
+    public str friendlyProcessorName;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>importCardFromProcessingTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Class entry point. The system will call this method when a designated menu 
+    /// is selected or when execution starts and this class is set as the startup class.
+    /// </summary>
+    /// <param name = "_args">The specified arguments.</param>
+    public static void importCardFromProcessingTable(FEImportAdyenCCProcessingTable _recordToProcess)
+    {
+        CreditCardPaymentCardTokenize cc = CreditCardPaymentCardTokenize::construct();
+        CreditCardProcessors cp = CreditCardProcessors::findActiveProcessor();
+        cc.init(cp.Name);
+        cc.populateFriendlyProcessorNameFromDatabase(cp.Name);
+        str newToken = cc.createTokenForCustomer(_recordToProcess);
+        CreditCard::addCreditCard(newToken, '004021',  cp.RecId);// Chuck Anderson customer in contoso
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createTokenForCustomer</Name>
+				<Source><![CDATA[
+    public str createTokenForCustomer(FEImportAdyenCCProcessingTable _recordToProcess)
+    {
+        str currency;
+        CreditCardPaymentProperties ccPaymentPropertiesReq, finalProperties;
+        // Find customer information for later use
+        LogisticsPostalAddress logisticsPostalAddress;
+        Name personName;
+        if (_recordToProcess.EchoData)
+        {
+            CustTable custTable = custTable::find(_recordToProcess.EchoData);
+            personName = DirPartyTable::getName(custTable.Party); // Should we be getting the "Name on Card" from somewhere else?
+            logisticsPostalAddress = custTable.postalAddress();
+            currency = custTable.Currency;
+        }
+
+        // Be sure that if no address is selected that blank
+        //  values are passed to the addProp method
+        if (!logisticsPostalAddress)
+        {
+            logisticsPostalAddress.clear();
+        }
+
+        finalProperties = CreditCardPaymentProperties::construct();
+
+        ccPaymentPropertiesReq = CreditCardPaymentProperties::fromProperties(this.processorProperties);
+        // Add Service Account ID from request properties
+        finalProperties.add(ccPaymentPropertiesReq.find(GenericConsts::MerchantAccount, MerchantAccountPropertiesConsts::ServiceAccountId));
+        // Add connector name
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::Connector,  ConnectorConsts::ConnectorName, this.friendlyProcessorName));
+        // Add fraud result property, as it is not included in Adyen export
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::PaymentCard, 'FraudResult', 'GREEN'));
+        // Add Alias - File.alias field in export file from Adyen
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::PaymentCard, PaymentCardPropertiesConsts::Alias, _recordToProcess.Alias)); 
+        // Add PaymentMethodName - File.paymentMethodVariant https://docs.adyen.com/development-resources/paymentmethodvariant#page-introduction
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::PaymentCard, PaymentCardPropertiesConsts::PaymentMethodName, _recordToProcess.PaymentMethodVariant));
+        // Add CardType - Mapped to SDK Adyen paymentMethodVariant from File.paymentMethodVariant
+        finalProperties.add(CreditCardPaymentProperty::newValue(RetailConst.GenericNamespace::get_PaymentCard(), PaymentCardPropertiesConsts::CardType, this.mapPaymentMethodToCardType(_recordToProcess.PaymentMethodVariant)));
+        // Add AdyenPaymentMethod - File.paymentMethodVariant
+        finalProperties.add(CreditCardPaymentProperty::newValue(RetailConst.GenericNamespace::get_PaymentCard(), 'AdyenPaymentMethod', _recordToProcess.PaymentMethodVariant));
+        // Add CardToken - File.recurringDetailReference 
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::PaymentCard, PaymentCardPropertiesConsts::CardToken, _recordToProcess.RecurringDetailReference));
+        // Add Last4Digits - File.cardSummary
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::PaymentCard, PaymentCardPropertiesConsts::Last4Digits, _recordToProcess.CardSummary));
+        // Add UniqueCardId - This field is a guid, normally generated by commerce, stripped of non-alphanumeric chars
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::PaymentCard, PaymentCardPropertiesConsts::UniqueCardId, System.Guid::NewGuid().ToString("N")));
+        // Add ExpirationYear - File.expiryYear
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::PaymentCard, PaymentCardPropertiesConsts::ExpirationYear, str2Int(_recordToProcess.ExpiryYear)));
+        // Add ExpirationMonth - File.expiryMonth
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::PaymentCard, PaymentCardPropertiesConsts::ExpirationMonth, str2Int(_recordToProcess.ExpiryMonth)));
+        // Add Name (name on card) not in file 
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::PaymentCard, PaymentCardPropertiesConsts::Name, personName));
+        // Add BankIdentificationNumberStart File.bin 
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::PaymentCard, PaymentCardPropertiesConsts::BankIdentificationNumberStart, _recordToProcess.Bin));
+        // Add CardVerificationValue - hardcode "NotProcessed"
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::PaymentCard, PaymentCardPropertiesConsts::CardVerificationValue, 'NotProcessed'));
+        // Add ShowSameAsShippingAddress = false
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::PaymentCard, PaymentCardPropertiesConsts::ShowSameAsShippingAddress, 'False'));
+        // Add House - Default value is "N/A"
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::PaymentCard, RetailConst.PaymentCardProperties::House, 'N/A'));
+        // Add StreetAddress - Ex. 1234 Main St. NE
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::PaymentCard, RetailConst.PaymentCardProperties::StreetAddress, logisticsPostalAddress.Street));
+        // Add City
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::PaymentCard, RetailConst.PaymentCardProperties::City, logisticsPostalAddress.City));
+        // Add State
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::PaymentCard, RetailConst.PaymentCardProperties::State, logisticsPostalAddress.State));
+        // Add Postal Code
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::PaymentCard, RetailConst.PaymentCardProperties::PostalCode, logisticsPostalAddress.ZipCode));
+        // Add Country
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::PaymentCard, RetailConst.PaymentCardProperties::Country, LogisticsAddressCountryRegion::find(logisticsPostalAddress.CountryRegionId).ISOcode));
+        // Add CustomerId - File.shopperReference - This is the Adyen "Shopper Reference"
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::CommerceIdentification,CommercePropertiesConsts::CustomerId, _recordToProcess.ShopperReference));
+        // Add Note - Any generic note to help user recognize the card
+        finalProperties.add(CreditCardPaymentProperty::newValue(GenericConsts::PaymentCard, #CreditCardPaymentCardPropertyName_Note, 'Import from Adyen File'));
+                
+        info(finalProperties.toXmlString());
+
+        return finalProperties.toXmlString();
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>populateFriendlyProcessorNameFromDatabase</Name>
+				<Source><![CDATA[
+    public void populateFriendlyProcessorNameFromDatabase(str _axProcessorName)
+    {
+        CreditCardAccountSetup creditCardAccountSetup;
+        CreditCardProcessors creditCardProcessors;
+
+        select firstonly creditCardAccountSetup
+                    exists join creditCardProcessors
+                        where
+                            creditCardProcessors.Name ==  _axProcessorName &&
+                            creditCardProcessors.RecId == creditCardAccountSetup.CreditCardProcessors;
+
+        this.friendlyProcessorName = creditCardAccountSetup.ConnectorName;
+        return;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mapPaymentMethodToCardType</Name>
+				<Source><![CDATA[
+    private str mapPaymentMethodToCardType(str paymentMethod) // Borrowed from Commerce
+    {
+        str cardType;
+        switch (strLwr(paymentMethod))
+        {
+            case "mastercard":
+            case "mc":
+            case "mc_amazonpay":
+            case "mc_androidpay":
+            case "mc_applepay":
+            case "mc_samsungpay":
+            case "mcalphabankbonus":
+            case "mccommercialcredit":
+            case "mccorporatecredit":
+            case "mccredit":
+            case "mcfleetcredit":
+            case "mcpremiumcredit":
+            case "mcprepaidanonymous":
+            case "mcpurchasingcredit":
+            case "mcstandardcredit":
+            case "mcsuperpremiumcredit":
+                cardType = "MasterCard";
+                break;
+
+            case "electron":
+            case "electron_amazonpay":
+            case "electron_applepay":
+            case "electron_samsungpay":
+            case "visa":
+            case "visa_amazonpay":
+            case "visa_androidpay":
+            case "visa_applepay":
+            case "visa_samsungpay":
+            case "visaalphabankbonus":
+            case "visacheckout":
+            case "visacommercialcredit":
+            case "visacommercialsuperpremiumcredit":
+            case "visacorporatecredit":
+            case "visacredit":
+            case "visadankort":
+            case "visahipotecario":
+            case "visapremiumcredit":
+            case "visapurchasingcredit":
+            case "visasaraivacard":
+            case "visastandardcredit":
+            case "visasuperpremiumcredit":
+            case "vpay":
+                cardType = "Visa";
+                break;
+
+            case "amex":
+            case "amex_androidpay":
+            case "amex_applepay":
+            case "amex_samsungpay":
+            case "amexcommercial":
+            case "amexconsumer":
+            case "amexcorporate":
+            case "amexprepaid":
+            case "amexprepaidreloadable":
+            case "amexsmallbusiness":
+                cardType = "Amex";
+                break;
+
+            case "asiapay_unionpay":
+            case "cup":
+            case "cupcredit":
+            case "dineromail":
+            case "diners":
+            case "discover":
+            case "discover_amazonpay":
+            case "discover_androidpay":
+            case "discover_applepay":
+            case "discover_samsungpay":
+            case "jcb":
+            case "jcb_applepay":
+            case "unionpay":
+            case "unionpay_tokenized":
+                cardType = "Discover";
+                break;
+
+            case "affirm":
+            case "affirm_pos":
+            case "afterpaytouch_pos":
+            case "alipay":
+            case "alipay_connect":
+            case "alipay_hk":
+            case "alipay_sg_pos":
+            case "alipay_wap":
+            case "amexdebit":
+            case "bankaxept":
+            case "bcmc":
+            case "cartebancaire":
+            case "dankort":
+            case "debit":
+            case "eftpos_australia":
+            case "eftpos_australia_chq":
+            case "eftpos_australia_sav":
+            case "eftpos_newzealand":
+            case "girocard":
+            case "interac":
+            case "interac_card":
+            case "klarna_account":
+            case "maestro":
+            case "maestro_amazonpay":
+            case "maestro_applepay":
+            case "maestro_samsungpay":
+            case "maestrouk":
+            case "mccommercialdebit":
+            case "mccorporatedebit":
+            case "mcdebit":
+            case "mcpremiumdebit":
+            case "mcstandarddebit":
+            case "mcsuperpremiumdebit":
+            case "netscard":
+            case "paypal_pos":
+            case "swish":
+            case "visacommercialdebit":
+            case "visacommercialsuperpremiumdebit":
+            case "visacorporatedebit":
+            case "visapremiumdebit":
+            case "visastandarddebit":
+            case "visasuperpremiumdebit":
+            case "wechatpay_pos":
+            case "zip_pos":
+                cardType = "Debit";
+                break;
+
+            case "giftcard":
+            case "givex":
+            case "resursgiftcard":
+            case "svs":
+            case "universalgiftcard":
+            case "valuelinkgiftcard":
+                cardType = "GiftCard";
+                break;
+
+            default:
+                cardType = "Unknown";
+                break;
+        }
+
+        return cardType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mapPaymentMethodToAdyenCardType</Name>
+				<Source><![CDATA[
+   private str mapPaymentMethodToAdyenCardType(str paymentMethod)
+    {
+        str adyenCardType;
+        switch (strLwr(paymentMethod))
+        {
+            case "mastercard":
+            case "mc":
+            case "mc_amazonpay":
+            case "mc_androidpay":
+            case "mc_applepay":
+            case "mc_samsungpay":
+            case "mcalphabankbonus":
+            case "mccommercialcredit":
+            case "mccorporatecredit":
+            case "mccredit":
+            case "mcfleetcredit":
+            case "mcpremiumcredit":
+            case "mcprepaidanonymous":
+            case "mcpurchasingcredit":
+            case "mcstandardcredit":
+            case "mcsuperpremiumcredit":
+            case "mccommercialdebit": // Additional debits
+            case "mccorporatedebit":
+            case "mcdebit":
+            case "mcpremiumdebit":
+            case "mcstandarddebit":
+            case "mcsuperpremiumdebit":
+                adyenCardType = "mc";
+                break;
+            case "electron":
+            case "electron_amazonpay":
+            case "electron_applepay":
+            case "electron_samsungpay":
+            case "visa":
+            case "visa_amazonpay":
+            case "visa_androidpay":
+            case "visa_applepay":
+            case "visa_samsungpay":
+            case "visaalphabankbonus":
+            case "visacheckout":
+            case "visacommercialcredit":
+            case "visacommercialsuperpremiumcredit":
+            case "visacorporatecredit":
+            case "visacredit":
+            case "visadankort":
+            case "visahipotecario":
+            case "visapremiumcredit":
+            case "visapurchasingcredit":
+            case "visasaraivacard":
+            case "visastandardcredit":
+            case "visasuperpremiumcredit":
+            case "vpay":
+            case "visacommercialdebit": // Additional Debit types
+            case "visacommercialsuperpremiumdebit":
+            case "visacorporatedebit":
+            case "visapremiumdebit":
+            case "visastandarddebit":
+            case "visasuperpremiumdebit":
+                adyenCardType = "visa";
+                break;
+            case 'amex':
+            case 'amex_amazonpay':
+            case 'amex_googlepay':
+            case 'amex_applepay':
+            case 'amex_samsungpay':
+            case 'amex_vipps':
+            case 'amex_mobilepay':
+            case 'amexcommercial':
+            case 'amexconsumer':
+            case 'amexcorporate':
+            case 'amexdebit':
+            case 'amexprepaid':
+            case 'amexprepaidreloadable':
+            case 'amexsmallbusiness':
+                adyenCardType = "amex";
+                break;
+            case "asiapay_unionpay":
+            case "cup":
+            case "cupcredit":
+            case "dineromail":
+            case "diners":
+            case "discover":
+            case "discover_amazonpay":
+            case "discover_androidpay":
+            case "discover_applepay":
+            case "discover_samsungpay":
+            case "jcb":
+            case "jcb_applepay":
+            case "unionpay":
+            case "unionpay_tokenized":
+                adyenCardType = "discover";
+                break;
+            default:
+                adyenCardType = "unknown";
+                break;
+        }
+
+        return adyenCardType;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

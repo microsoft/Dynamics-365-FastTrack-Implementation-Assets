@@ -1,0 +1,43 @@
+<AxModelInfo xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<AppliedUpdates i:nil="true" xmlns:a="http://schemas.microsoft.com/2003/10/Serialization/Arrays"/>
+	<Customization>DoNotAllow</Customization>
+	<Description>
+  </Description>
+	<DisplayName>Fleet Management Extension</DisplayName>
+	<Id>79</Id>
+	<InternalsVisibleTo xmlns:a="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
+		<a:string>FleetManagementUnitTests</a:string>
+	</InternalsVisibleTo>
+	<Layer>8</Layer>
+	<Locked>false</Locked>
+	<ModelModule>FleetManagementExtension</ModelModule>
+	<ModelReferences i:nil="true" xmlns:a="http://schemas.microsoft.com/2003/10/Serialization/Arrays"/>
+	<ModuleReferences xmlns:a="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
+		<a:string>ApplicationFoundation</a:string>
+		<a:string>ApplicationPlatform</a:string>
+		<a:string>ApplicationSuite</a:string>
+		<a:string>ContactPerson</a:string>
+		<a:string>Currency</a:string>
+		<a:string>Dimensions</a:string>
+		<a:string>Directory</a:string>
+		<a:string>FiscalBooks</a:string>
+		<a:string>FiscalBooksFormAdaptor</a:string>
+		<a:string>FleetManagement</a:string>
+		<a:string>Ledger</a:string>
+		<a:string>Personnel</a:string>
+		<a:string>Project</a:string>
+		<a:string>Retail</a:string>
+		<a:string>SourceDocumentation</a:string>
+		<a:string>SourceDocumentationTypes</a:string>
+		<a:string>Subledger</a:string>
+		<a:string>Tax</a:string>
+		<a:string>UnitOfMeasure</a:string>
+	</ModuleReferences>
+	<Name>FleetManagementExtension</Name>
+	<Publisher>Microsoft Corporation</Publisher>
+	<SolutionId>00000000-0000-0000-0000-000000000000</SolutionId>
+	<VersionBuild>1316</VersionBuild>
+	<VersionMajor>10</VersionMajor>
+	<VersionMinor>18</VersionMinor>
+	<VersionRevision>25160</VersionRevision>
+</AxModelInfo>
