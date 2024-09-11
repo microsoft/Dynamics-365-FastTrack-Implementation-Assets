@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <BuildTasksDirectory Condition=" '$(BuildTasksDirectory)' == ''">$(MSBuildProgramFiles32)\MSBuild\Microsoft\Dynamics\AX</BuildTasksDirectory>
+    <Model>FleetManagementExtension</Model>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <OutputPath>bin</OutputPath>
+    <SchemaVersion>2.0</SchemaVersion>
+    <GenerateCrossReferences>True</GenerateCrossReferences>
+    <RunAppCheckerRules>False</RunAppCheckerRules>
+    <LogAppcheckerDiagsAsErrors>False</LogAppcheckerDiagsAsErrors>
+    <ProjectGuid>{c38ccc07-2296-4c89-9887-d8e868c2c8fa}</ProjectGuid>
+    <Name>ImportAdyenCCTokens</Name>
+    <RootNamespace>ImportAdyenCCTokens</RootNamespace>
+    <StartupType>Class</StartupType>
+    <StartupObject>FEImportAdyenCCBatchBaseController</StartupObject>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <Configuration>Debug</Configuration>
+    <DBSyncInBuild>False</DBSyncInBuild>
+    <GenerateFormAdaptors>False</GenerateFormAdaptors>
+    <Company>USRT</Company>
+    <Partition>initial</Partition>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DataEntityExpandParentChildRelations>False</DataEntityExpandParentChildRelations>
+    <DataEntityUseLabelTextAsFieldName>False</DataEntityUseLabelTextAsFieldName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="AxClass\FECreditCardPaymentCardTokenize_Extension">
+      <SubType>Content</SubType>
+      <Name>FECreditCardPaymentCardTokenize_Extension</Name>
+      <Link>FECreditCardPaymentCardTokenize_Extension</Link>
+    </Content>
+    <Content Include="AxClass\FEImportAdyenCCBatchBaseContract">
+      <SubType>Content</SubType>
+      <Name>FEImportAdyenCCBatchBaseContract</Name>
+      <Link>Batch Classes\FEImportAdyenCCBatchBaseContract</Link>
+    </Content>
+    <Content Include="AxClass\FEImportAdyenCCBatchBaseController">
+      <SubType>Content</SubType>
+      <Name>FEImportAdyenCCBatchBaseController</Name>
+      <Link>Batch Classes\FEImportAdyenCCBatchBaseController</Link>
+    </Content>
+    <Content Include="AxClass\FEImportAdyenCCBatchService">
+      <SubType>Content</SubType>
+      <Name>FEImportAdyenCCBatchService</Name>
+      <Link>FEImportAdyenCCBatchService</Link>
+    </Content>
+    <Content Include="AxClass\FEImportAdyenCCBatchTaskController">
+      <SubType>Content</SubType>
+      <Name>FEImportAdyenCCBatchTaskController</Name>
+      <Link>Batch Classes\FEImportAdyenCCBatchTaskController</Link>
+    </Content>
+    <Content Include="AxDataEntityView\FEImportAdyenCC">
+      <SubType>Content</SubType>
+      <Name>FEImportAdyenCC</Name>
+      <Link>Entity Assets\FEImportAdyenCC</Link>
+    </Content>
+    <Content Include="AxSecurityPrivilege\FEImportAdyenCCMaintain">
+      <SubType>Content</SubType>
+      <Name>FEImportAdyenCCMaintain</Name>
+      <Link>Entity Assets\FEImportAdyenCCMaintain</Link>
+    </Content>
+    <Content Include="AxSecurityPrivilege\FEImportAdyenCCView">
+      <SubType>Content</SubType>
+      <Name>FEImportAdyenCCView</Name>
+      <Link>Entity Assets\FEImportAdyenCCView</Link>
+    </Content>
+    <Content Include="AxTable\FEImportAdyenCCProcessingTable">
+      <SubType>Content</SubType>
+      <Name>FEImportAdyenCCProcessingTable</Name>
+      <Link>FEImportAdyenCCProcessingTable</Link>
+    </Content>
+    <Content Include="AxTable\FEImportAdyenCCStaging">
+      <SubType>Content</SubType>
+      <Name>FEImportAdyenCCStaging</Name>
+      <Link>Entity Assets\FEImportAdyenCCStaging</Link>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Entity Assets" />
+    <Folder Include="Batch Classes" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.Common.targets" />
+  <Import Project="$(BuildTasksDirectory)\Microsoft.Dynamics.Framework.Tools.BuildTasks.targets" />
+</Project>

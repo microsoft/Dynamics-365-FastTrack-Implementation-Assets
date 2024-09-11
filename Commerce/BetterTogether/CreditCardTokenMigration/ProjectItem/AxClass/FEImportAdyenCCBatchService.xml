@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>FEImportAdyenCCBatchService</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+internal final class FEImportAdyenCCBatchService extends SysOperationServiceBase
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>processBase</Name>
+				<Source><![CDATA[
+    public void processBase(FEImportAdyenCCBatchBaseContract _contract)
+    {
+        BatchHeader                         batchHeader;
+        SysOperationServiceController       controller;
+        Integer                             threadsToCreate = _contract.parmThreadsToUse() > 1 ? _contract.parmThreadsToUse() : 1;
+        
+        if(this.isExecutingInBatch())
+        {
+            ttsbegin;
+            batchHeader = this.getCurrentBatchHeader();
+            for (Integer i=1; i<=threadsToCreate; i++)
+            {
+                controller = FEImportAdyenCCBatchTaskController::construct();
+                batchHeader.addTask(controller);
+            }
+            batchHeader.save();
+            ttsCommit;
+        }
+        else 
+        {
+            this.processTask();
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processTask</Name>
+				<Source><![CDATA[
+    public void processTask()
+    {
+        FEImportAdyenCCProcessingTable      adyenProcessingTable;
+        RecId currentProcRec;
+        adyenProcessingTable.readPast(true); // skip locked records
+
+        CreditCardPaymentCardTokenize cc = CreditCardPaymentCardTokenize::construct();
+        CreditCardProcessors cp = CreditCardProcessors::findActiveProcessor();
+        cc.init(cp.Name);
+        cc.populateFriendlyProcessorNameFromDatabase(cp.Name);
+        do
+        {
+            try
+            {
+                ttsbegin;
+                select firstonly pessimisticlock * from adyenProcessingTable
+                    where adyenProcessingTable.IsProcesssed == NoYesError::No;
+                currentProcRec = adyenProcessingTable.RecId;
+                if (adyenProcessingTable)
+                {   
+                    str newToken = cc.createTokenForCustomer(adyenProcessingTable);
+                    CreditCard::addCreditCard(newToken, adyenProcessingTable.EchoData,  cp.RecId);// Chuck Anderson customer in contoso
+                    adyenProcessingTable.IsProcesssed = NoYesError::Yes;
+                    adyenProcessingTable.update();
+                }
+                ttscommit;
+            }
+            catch(Exception::Error)
+            {
+                ttsbegin;
+                select firstonly pessimisticlock * from adyenProcessingTable
+                    where adyenProcessingTable.RecId == currentProcRec;
+                adyenProcessingTable.IsProcesssed = NoYesError::Error;
+                adyenProcessingTable.update();
+                ttscommit;
+            }
+        }
+        while (adyenProcessingTable);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

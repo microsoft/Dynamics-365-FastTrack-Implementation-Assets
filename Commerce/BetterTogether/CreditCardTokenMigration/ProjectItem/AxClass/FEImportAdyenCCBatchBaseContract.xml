@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>FEImportAdyenCCBatchBaseContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute]
+internal final class FEImportAdyenCCBatchBaseContract
+{
+    private int threadsToUse;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmThreadsToUse</Name>
+				<Source><![CDATA[
+    [DataMember,SysOperationLabel(literalStr("Number of Threads")),SysOperationHelpText(literalStr("Number of batch tasks to create.")),SysOperationDisplayOrder('1')]
+    public int parmThreadsToUse(int _threadsToUse = threadsToUse)
+    {
+        threadsToUse = _threadsToUse;
+        return threadsToUse;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>FEImportAdyenCCBatchBaseController</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+internal final class FEImportAdyenCCBatchBaseController extends SysOperationServiceController
+{ 
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        FEImportAdyenCCBatchBaseController controller;
+        controller = FEImportAdyenCCBatchBaseController::construct();
+        controller.parmArgs(_args);
+        controller.startOperation();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new()
+    {
+        super();
+        this.parmClassName(classStr(FEImportAdyenCCBatchService));
+        this.parmMethodName(methodStr(FEImportAdyenCCBatchService, processBase));
+        this.parmDialogCaption('Import Adyen CC');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static FEImportAdyenCCBatchBaseController construct(SysOperationExecutionMode _executionMode = SysOperationExecutionMode::Synchronous)
+    {
+        FEImportAdyenCCBatchBaseController controller;
+        controller = new FEImportAdyenCCBatchBaseController();
+        controller.parmExecutionMode(_executionMode);
+        return controller;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

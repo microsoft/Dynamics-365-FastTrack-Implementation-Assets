@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>FEImportAdyenCCStaging</Name>
+	<SourceCode>
+		<Methods />
+	</SourceCode>
+	<DeveloperDocumentation>@DMF:StagingDeveloperDocumentation</DeveloperDocumentation>
+	<Label>@SYS14968</Label>
+	<TableGroup>Staging</TableGroup>
+	<PrimaryIndex>StagingIdx</PrimaryIndex>
+	<ReplacementKey>StagingIdx</ReplacementKey>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<IsManuallyUpdated>Yes</IsManuallyUpdated>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DefinitionGroup</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ExecutionId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Alias</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ShopperReference</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>ExtensionList</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@DMF:StagingExtensionGroup</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DefinitionGroup</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>IsSelected</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TransferStatus</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ExecutionId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DefinitionGroup</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DMFDefinitionGroupName</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+			<StringSize>60</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ExecutionId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DMFExecutionId</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+			<StringSize>90</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IsSelected</Name>
+			<ExtendedDataType>DMFIsSelected</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>TransferStatus</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<EnumType>DMFTransferStatus</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Alias</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<StringSize>20</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Bin</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<StringSize>6</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>CardSummary</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<StringSize>4</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DataAreaId1</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>DataAreaId</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<StringSize>4</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>EchoData</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<StringSize>200</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ExpiryMonth</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<StringSize>2</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ExpiryYear</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<StringSize>4</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FundingSource</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<StringSize>20</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>IssuerCountryCode</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<StringSize>3</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>Partition1</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>Partition</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>PaymentMethodVariant</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<StringSize>20</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>RecId1</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>RecId</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>RecVersion1</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>RecVersion</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ShopperReference</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<StringSize>100</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>StatusMessage</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<StringSize>20</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Status</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>RecurringDetailReference</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<StringSize>20</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IsProcesssed</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>StagingIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<IsManuallyUpdated>Yes</IsManuallyUpdated>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>DefinitionGroup</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>ExecutionId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>Alias</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>ShopperReference</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>
