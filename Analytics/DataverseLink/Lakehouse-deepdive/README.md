@@ -7,6 +7,8 @@
 4. [Post 3: Build your data warehouse as lakehouse on Dynamics 365 data in Microsoft Fabric](#post-3-build-your-data-warehouse-as-lakehouse-on-dynamics-365-data-in-microsoft-fabric)
 5. [Post 4: Update your Dynamics 365 lakehouse with incremental data updates using Change Data Feed](#post-4-update-your-dynamics-365-lakehouse-with-incremental-data-updates-using-change-data-feed)
 
+For questions and feedback, please reach out to Aman Nain, amnai@microsoft.com
+
 # Objective 
 In this series of four posts, I explore the analytical landscape of Microsoft for Dynamics 365, which includes Microsoft Fabric, Azure Synapse, Fabric link, Synapse link, Spark and Delta lake. My intent is to simplify these new technologies and explain their differences. With two sample notebooks, I explore the basics of exporting Dynamics data, setting up a sample lakehouse, and implementing incremental changes using a powerful capability of Delta lake called Change Data Feed (CDF).
  
