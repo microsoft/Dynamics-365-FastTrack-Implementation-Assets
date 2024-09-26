@@ -158,6 +158,113 @@ Similar to above example, this scenario will have a copilot topic that will call
 In the next scenario, lets see how we can call external APIs and use that information. We will get stock on hand for a product using the Inventory visibility service. This scenario requires the service to be already configured. Please see this page for more information on public APIs available [Inventory Visibility public APIs - Supply Chain Management | Dynamics 365 | Microsoft Learn](https://learn.microsoft.com/en-us/dynamics365/supply-chain/inventory/inventory-visibility-api). The page has sample code to call the API, get the AAD token and access token etc. We use the same guidance when calling HTTP actions in Power automate.
 In copilot studio, we will design the topic to use some information already available in the page context/user context and rest we will ask the user to provide. Trigger can be something like “check stock” or “check onhand”. 
 
+1.	Create a new topic and call it “CheckStockFromIVS” and add few trigger phrases like “check stock”, “check onhand”.
+
+![](./media/Picture32.png)
+
+2.	Next, add a node “Variable management > Set a variable value”  and call it “Set Product variable” and store the value from “Global.PA_Copilot_ServerForm_PageContext.titleField1Value” in a variable called “ProductNo”.
+
+![](./media/Picture33.png)
+
+![](./media/Picture34.png)
+
+3.	Likewise save legal entity value using variable “Global.PA_Copilot_ServerForm_UserContext.dataAreaId”
+
+![](./media/Picture35.png)
+
+4.	Next we need site id, so we add a question and save the response in variable “SiteId”.
+
+![](./media/Picture36.png)
+
+5.	And the location id and save the response in “LocationId”.
+
+![](./media/Picture37.png)
+
+6.	Next we create a flow called “GetIVSStockOnHandByProduct” and design it in Power Automate as below.
+
+![](./media/Picture38.png)
+
+6.1 Define the input variables as below.
+
+![](./media/Picture39.png)
+
+6.2 Add a HTTP action to get AAD token. URI has the tenant ID and Body needs IVS service client ID and client secret. Please see this on how to formulate these. [Inventory Visibility public APIs - Supply Chain Management | Dynamics 365 | Microsoft Learn](https://learn.microsoft.com/en-us/dynamics365/supply-chain/inventory/inventory-visibility-api)
+
+![](./media/Picture40.png)
+
+6.3 Add a Parse JSON to fetch the token. For schema, test the flow till previous step, retrieve the JSON output and paste in the sample payload to generate the schema as below.
+
+![](./media/Picture41.png)
+
+6.4 Another HTTP action to get the API service access token. We use AAD token value variable fetched using previous Parse JSON step as input in Body parameters. “Context” has the FO environment ID.
+
+![](./media/Picture42.png)
+
+6.5 A Parse JSON to fetch API service access token. For schema, test the flow till previous step, retrieve the JSON output and paste in the sample payload to generate the schema as below.
+
+![](./media/Picture43.png)
+
+
+6.6 Next call HTTP to call the onhand API. Headers has the access token variable and Body has the Dynamics inputs, Company, Product, siteId and locationId.
+
+![](./media/Picture44.png)
+
+6.7 Next Compose to save the body response.
+
+![](./media/Picture45.png)
+
+6.8 Final compose to retrieve the available physical qty. We need a function as we read a nested json and first element of array. Use - outputs('Compose')[0].quantities.fno.availphysical
+
+![](./media/Picture46.png)
+
+6.9 Return the output to copilot
+
+![](./media/Picture47.png)
+
+7.	Back in Copilot studio, call the same flow.
+
+![](./media/Picture48.png)
+
+8.	Output to user the available physical qty.
+
+![](./media/Picture49.png)
+
+9.	Save and Publish the copilot. And test the copilot in Dynamics 365 Finance. Since we use context of the record, we need to page on a particular product to make this work.
+
+![](./media/Picture50.png)
+
+# Conclusion
+We built three simple topics that extend the power of copilots in Dynamics 365 Finance using the low code experience of Copilot studio and Power automate.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
