@@ -10,6 +10,7 @@ Copilots have changed the landscape of business and productivity apps and made A
 
 
 This document will focus on low code plugins and create three fully functional samples step by step. 
+For questions and feedback, please reach out to Aman Nain, amnai@microsoft.com
 
 # Table of Contents
 1. [Post 1: Summarise sales order](#post-1-summarise-sales-order)
