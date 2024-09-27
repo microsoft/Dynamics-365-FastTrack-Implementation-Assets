@@ -1,5 +1,7 @@
 # Copilots extensibility in Dynamics 365 Finance - low code plugins
 
+For questions and feedback, please reach out to Aman Nain, amnai@microsoft.com
+
 Copilots have changed the landscape of business and productivity apps and made AI the new UX. Lets see how copilots work in Dynamics 365 Finance and how these can be extended. This article will explore few copilot samples. With Power automate, we will build some low code but very powerful capabilities. When it comes to extensibility, Dynamics 365 for Finance offers three type of plugins, that extend the capabilities of copilot. 
 
 1. **Low code plugins** –Microsoft Copilot Studio provides the orchestration of the AI capabilities for Copilot for finance and operations apps. Therefore, it enables a low-code maker experience for customizing the Copilot capabilities. You can utilize Power automate and its vast number of connectors to build some powerful capabilities.  
@@ -10,7 +12,6 @@ Copilots have changed the landscape of business and productivity apps and made A
 
 
 This document will focus on low code plugins and create three fully functional samples step by step. 
-For questions and feedback, please reach out to Aman Nain, amnai@microsoft.com
 
 # Table of Contents
 1. [Post 1: Summarise sales order](#post-1-summarise-sales-order)
