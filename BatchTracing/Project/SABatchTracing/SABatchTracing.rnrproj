@@ -1,1 +1,197 @@
-
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <BuildTasksDirectory Condition=" '$(BuildTasksDirectory)' == ''">$(MSBuildProgramFiles32)\MSBuild\Microsoft\Dynamics\AX</BuildTasksDirectory>
+    <Model>SABatchTracing</Model>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <OutputPath>bin</OutputPath>
+    <SchemaVersion>2.0</SchemaVersion>
+    <GenerateCrossReferences>True</GenerateCrossReferences>
+    <RunAppCheckerRules>False</RunAppCheckerRules>
+    <LogAppcheckerDiagsAsErrors>False</LogAppcheckerDiagsAsErrors>
+    <DeployOnline>False</DeployOnline>
+    <ProjectGuid>{9a0404e5-d714-445f-8577-8a3ffcd41a8e}</ProjectGuid>
+    <Name>SABatchTracing</Name>
+    <RootNamespace>SABatchTracing</RootNamespace>
+    <StartupType>Class</StartupType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <Configuration>Debug</Configuration>
+    <DBSyncInBuild>False</DBSyncInBuild>
+    <GenerateFormAdaptors>False</GenerateFormAdaptors>
+    <Company>
+    </Company>
+    <Partition>initial</Partition>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DataEntityExpandParentChildRelations>False</DataEntityExpandParentChildRelations>
+    <DataEntityUseLabelTextAsFieldName>False</DataEntityUseLabelTextAsFieldName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="AxClass\SABatchTracingAllServersStartStop">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingAllServersStartStop</Name>
+      <Link>Code\Classes\SABatchTracingAllServersStartStop</Link>
+    </Content>
+    <Content Include="AxClass\SABatchTracingBatchStart">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingBatchStart</Name>
+      <Link>Code\Classes\SABatchTracingBatchStart</Link>
+    </Content>
+    <Content Include="AxClass\SABatchTracingBatchStop">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingBatchStop</Name>
+      <Link>Code\Classes\SABatchTracingBatchStop</Link>
+    </Content>
+    <Content Include="AxClass\SABatchTracingController">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingController</Name>
+      <Link>Code\Classes\SABatchTracingController</Link>
+    </Content>
+    <Content Include="AxClass\SABatchTracingHelper">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingHelper</Name>
+      <Link>Code\Classes\SABatchTracingHelper</Link>
+    </Content>
+    <Content Include="AxClass\SABatchTracingService">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingService</Name>
+      <Link>Code\Classes\SABatchTracingService</Link>
+    </Content>
+    <Content Include="AxClass\SABatchTracingTaskController">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingTaskController</Name>
+      <Link>Code\Classes\SABatchTracingTaskController</Link>
+    </Content>
+    <Content Include="AxClass\SABatchTracingTaskService">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingTaskService</Name>
+      <Link>Code\Classes\SABatchTracingTaskService</Link>
+    </Content>
+    <Content Include="AxClass\SABatchTracing_SysFindTraceFormDataSource_SysTracingTable_Extension">
+      <SubType>Content</SubType>
+      <Name>SABatchTracing_SysFindTraceFormDataSource_SysTracingTable_Extension</Name>
+      <Link>Code\Classes\SABatchTracing_SysFindTraceFormDataSource_SysTracingTable_Extension</Link>
+    </Content>
+    <Content Include="AxEdt\SABatchTracingDateTime">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingDateTime</Name>
+      <Link>Data Types\Extended Data Types\SABatchTracingDateTime</Link>
+    </Content>
+    <Content Include="AxEdt\SABatchTracingName">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingName</Name>
+      <Link>Data Types\Extended Data Types\SABatchTracingName</Link>
+    </Content>
+    <Content Include="AxEdt\SABatchTracingParameter">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingParameter</Name>
+      <Link>Data Types\Extended Data Types\SABatchTracingParameter</Link>
+    </Content>
+    <Content Include="AxEnum\SABatchTracingStatus">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingStatus</Name>
+      <Link>Data Types\Base Enums\SABatchTracingStatus</Link>
+    </Content>
+    <Content Include="AxFormExtension\SysTracingPane.SABatchTracing">
+      <SubType>Content</SubType>
+      <Name>SysTracingPane.SABatchTracing</Name>
+      <Link>User Interface\SysTracingPane.SABatchTracing</Link>
+    </Content>
+    <Content Include="AxForm\SABatchTracing">
+      <SubType>Content</SubType>
+      <Name>SABatchTracing</Name>
+      <Link>User Interface\SABatchTracing</Link>
+    </Content>
+    <Content Include="AxForm\SABatchTracingParameters">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingParameters</Name>
+      <Link>User Interface\SABatchTracingParameters</Link>
+    </Content>
+    <Content Include="AxLabelFile\SABatchTracing_en-US">
+      <SubType>Content</SubType>
+      <Name>SABatchTracing_en-US</Name>
+      <Link>Label Files\SABatchTracing_en-US</Link>
+    </Content>
+    <Content Include="AxMacroDictionary\SABatchTracingParameters">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingParameters</Name>
+      <Link>Code\Macros\SABatchTracingParameters</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\SABatchTracingBatchStart">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingBatchStart</Name>
+      <Link>User Interface\SABatchTracingBatchStart</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\SABatchTracingBatchStop">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingBatchStop</Name>
+      <Link>User Interface\SABatchTracingBatchStop</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\SABatchTracingStartAll">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingStartAll</Name>
+      <Link>User Interface\SABatchTracingStartAll</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\SABatchTracingStopAll">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingStopAll</Name>
+      <Link>User Interface\SABatchTracingStopAll</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\SABatchTracing">
+      <SubType>Content</SubType>
+      <Name>SABatchTracing</Name>
+      <Link>User Interface\SABatchTracing</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\SABatchTracingParameters">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingParameters</Name>
+      <Link>User Interface\SABatchTracingParameters</Link>
+    </Content>
+    <Content Include="AxSecurityPrivilege\SABatchTracing">
+      <SubType>Content</SubType>
+      <Name>SABatchTracing</Name>
+      <Link>Security\SABatchTracing</Link>
+    </Content>
+    <Content Include="AxSecurityRoleExtension\SystemTracingUser.SABatchTracing">
+      <SubType>Content</SubType>
+      <Name>SystemTracingUser.SABatchTracing</Name>
+      <Link>Security\SystemTracingUser.SABatchTracing</Link>
+    </Content>
+    <Content Include="AxTable\SABatchTracingParameters">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingParameters</Name>
+      <Link>Data Model\Tables\SABatchTracingParameters</Link>
+    </Content>
+    <Content Include="AxTable\SABatchTracingTable">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingTable</Name>
+      <Link>Data Model\Tables\SABatchTracingTable</Link>
+    </Content>
+    <Content Include="SABatchTracing.en-US.label.txt">
+      <SubType>Content</SubType>
+      <Name>SABatchTracing.en-US.label.txt</Name>
+      <DependentUpon>AxLabelFile\SABatchTracing_en-US</DependentUpon>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Code\Classes" />
+    <Folder Include="Code\Macros" />
+    <Folder Include="Data Model\Tables" />
+    <Folder Include="Data Types" />
+    <Folder Include="Code" />
+    <Folder Include="Data Types\Base Enums" />
+    <Folder Include="Data Types\Extended Data Types" />
+    <Folder Include="Label Files" />
+    <Folder Include="Data Model" />
+    <Folder Include="Security" />
+    <Folder Include="User Interface" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.Common.targets" />
+  <Import Project="$(BuildTasksDirectory)\Microsoft.Dynamics.Framework.Tools.BuildTasks.17.0.targets" />
+</Project>
