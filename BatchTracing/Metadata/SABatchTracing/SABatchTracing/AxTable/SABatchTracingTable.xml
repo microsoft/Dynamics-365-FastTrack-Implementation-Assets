@@ -382,30 +382,34 @@ public class SABatchTracingTable extends common
                     // Some servers didn't start a batch task, so remain in status Not Ready, set AllServers status to Partially Started as tracing started
                     statusValue = SABatchTracingStatus::StartedPartially;
                 }
+                else
+                {
+                    statusValue = conPeek(serverStatusEnumerator.current(),1);
+                }
             }
         }
 
         batchTracingTable = SABatchTracingTable::findByServerId('AllServers');
 
         // Check if start requested was set. If server status' are all stopped, drop from refresh, do not need to update AllServers until start completed
-        if(batchTracingTable.Status == SABatchTracingStatus::StartRequested && statusValue == SABatchTracingStatus::Stopped)
+        if (batchTracingTable.Status == SABatchTracingStatus::StartRequested && statusValue == SABatchTracingStatus::Stopped)
         {
             return;
         }
 
         // Check if stop requested was set. If server status' are all started, drop from refresh, do not need to update AllServers until start completed
-        if(batchTracingTable.Status == SABatchTracingStatus::StopRequested && (statusValue == SABatchTracingStatus::Started || statusValue == SABatchTracingStatus::StartedPartially))
+        if (batchTracingTable.Status == SABatchTracingStatus::StopRequested && (statusValue == SABatchTracingStatus::Started || statusValue == SABatchTracingStatus::StartedPartially))
         {
             return;
         }
 
-        if ((serverStatusList.elements() == 1) || (serverStatusList.elements() >= 1 && (statusValue == SABatchTracingStatus::Started || statusValue == SABatchTracingStatus::StartedPartially || statusValue == SABatchTracingStatus::Stopped)))
+        if (serverStatusList.elements() == 1 || serverStatusList.elements() >= 1)
         {
             batchTracingTableUpdate.setConnection(dbConnection);
             dbConnection.ttsbegin();
             select firstonly forUpdate batchTracingTableUpdate
             where batchTracingTableUpdate.ServerId == 'AllServers';
-            
+
             if(batchTracingTable.Status != statusValue)
             {
                 //Status Changed update times, and file size
@@ -437,19 +441,18 @@ public class SABatchTracingTable extends common
                         break;
                 }
             }
-            
+
             if(statusValue == SABatchTracingStatus::Started || statusValue == SABatchTracingStatus::StartedPartially)
             {
-                // Update file size - Always want to do this when status is started.
                 select avg(TraceFileSizeMB) from batchTracingTable
                     where batchTracingTable.ServerId != 'AllServers'
                     && batchTracingTable.Status == SABatchTracingStatus::Started;
                 batchTracingTableUpdate.TraceFileSizeMB = any2Int(batchTracingTable.TraceFileSizeMB);
                 batchTracingTableUpdate.update();
             }
-            dbConnection.ttscommit();
 
         }
+
         dbConnection.finalize();
 
     }
