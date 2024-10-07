@@ -3,6 +3,12 @@
 	<Name>SABatchTracingTaskService</Name>
 	<SourceCode>
 		<Declaration><![CDATA[
+///
+///  This source code is freeware and is provided on an "as is" basis without warranties of any kind,
+///  whether express or implied, including without limitation warranties that the code is free of defect,
+///  fit for a particular purpose or non-infringing.  The entire risk as to the quality and performance of
+///  the code is with the end user.
+///
 /// <summary>
 ///     The <c>SABatchTracingTaskService</c> class is used to start and stop traces on the batch server it's running on. 
 /// </summary>
