@@ -1,0 +1,629 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SABatchTracingTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class SABatchTracingTable extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>initRecords</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Initialize the parameter record
+    /// </summary>
+    public static void initRecords()
+    {
+
+        SABatchTracingTable batchTracingTable, batchTracingTableNew;
+        SysServerConfig sysServerConfig;
+        Batch batch;
+
+        // Check if record exists for all batch servers
+        while select sysServerConfig
+            where sysServerConfig.EnableBatch == 1
+                outer join batchTracingTable
+                where batchTracingTable.ServerId == sysServerConfig.ServerId
+        {
+            if (!batchTracingTable)
+            {
+                ttsbegin;
+                batchTracingTableNew.ServerId = sysServerConfig.ServerId;
+                batchTracingTableNew.BatchRecId = 0;
+                batchTracingTableNew.Status = SABatchTracingStatus::NotReady;
+                batchTracingTableNew.SysTracingTableRefRecId = -1;
+                batchTracingTableNew.insert();
+                ttscommit;
+            }
+            else
+            {
+                // Check if task is still running, if not clean up record
+                select firstonly1 RecId, Status from batch
+                    where batch.RecId == batchTracingTable.BatchRecId;
+                if (batch.Status!=BatchStatus::Executing)
+                {
+                    batchTracingTableNew = SABatchTracingTable::findByServerId(sysServerConfig.ServerId, true);
+                    if(batchTracingTableNew)
+                    {
+                        ttsbegin;
+                        batchTracingTableNew.BatchRecId = 0;
+                        batchTracingTableNew.Status = SABatchTracingStatus::NotReady;
+                        batchTracingTableNew.SysTracingTableRefRecId = -1;
+                        batchTracingTableNew.update();
+                        ttscommit;
+                    }
+                }
+            }
+        }
+
+        // Sometimes servers are removed in SF envs, so remove server records if needed.
+        while select batchTracingTable
+            outer join sysServerConfig
+                where sysServerConfig.ServerId == batchTracingTable.ServerId
+                    && sysServerConfig.EnableBatch == 1
+        {
+            if (!sysServerConfig)
+            {
+                batchTracingTableNew = SABatchTracingTable::findByServerId(batchTracingTable.ServerId, true);
+                if(batchTracingTableNew)
+                {
+                    ttsbegin;
+                    batchTracingTableNew.delete();
+                    ttscommit;
+                }
+            }
+        }
+
+        // All Server Record
+        if(!SABatchTracingTable::findByServerId('AllServers'))
+        {
+            ttsbegin;
+            batchTracingTableNew.ServerId = 'AllServers';
+            batchTracingTableNew.BatchRecId = 0;
+            batchTracingTableNew.Status = SABatchTracingStatus::NotReady;
+            batchTracingTableNew.SysTracingTableRefRecId = -1;
+            batchTracingTableNew.insert();
+            ttscommit;
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>cleanupTraceRecords</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Cleans up records in the SABatchTracingTable during a reset.
+    /// </summary>
+    public static void cleanupTraceRecords()
+    {
+        
+        SABatchTracingTable batchTracingTable;
+
+        ttsbegin;
+        update_recordset batchTracingTable
+            setting BatchRecId = 0, Status = SABatchTracingStatus::NotReady,SysTracingTableRefRecId = -1;
+        ttscommit;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resetRecords</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Resets records in the SABatchTracingTable - typically after they were reset.
+    /// </summary>
+    public static void resetRecords()
+    {
+        
+        SABatchTracingTable batchTracingTable;
+
+        ttsbegin;
+        delete_from batchTracingTable;
+        SABatchTracingTable::initRecords();
+        ttscommit;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateBatchRecId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets the batch task RecId for when the tracing task is started.
+    /// </summary>
+    /// <param name="_currentTask">
+    ///    The current batch task.
+    /// </param>
+    /// <returns>Boolean is update was successful</returns>
+    public static boolean updateBatchRecId(Batch _currentTask)
+    {
+        SABatchTracingTable batchTracingTable;
+        boolean updateSuccessful = false;
+
+        try
+        {
+            ttsbegin;
+            batchTracingTable.readCommittedLock(true);
+            batchTracingTable.readPast(true);
+            select firstonly forUpdate batchTracingTable
+                where batchTracingTable.ServerId == _currentTask.ServerId;
+            if(batchTracingTable)
+            {
+                // Record for server exists, see if there is already another task running on this server ready for tracing
+                if(batchTracingTable.BatchRecId == 0)
+                {
+                    batchTracingTable.BatchRecId = _currentTask.RecId;
+                    batchTracingTable.Status = SABatchTracingStatus::Stopped;
+                    batchTracingTable.SysTracingTableRefRecId = -1;
+                    batchTracingTable.update();
+                    updateSuccessful = true;
+                }
+            }
+            else
+            {
+                batchTracingTable.ServerId = _currentTask.ServerId;
+                batchTracingTable.BatchRecId = _currentTask.RecId;
+                batchTracingTable.Status = SABatchTracingStatus::Stopped;
+                batchTracingTable.SysTracingTableRefRecId = -1;
+                batchTracingTable.insert();
+                updateSuccessful = true;
+            }
+            ttscommit;
+        }
+        catch (Exception::Error)
+        {
+            ttsabort;
+            exceptionTextFallThrough();
+        }
+        return updateSuccessful;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findByServerId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Finds a record in SABatchTracingTable based on server ID
+    /// </summary>
+    /// <param name="_serverId">
+    ///    The server id to match on.
+    /// </param>
+    /// <param name="_forupdate">
+    ///    A Boolean value that determines whether to read the record for update; optional.
+    /// </param>
+    /// <returns> The SABatchTracingTable record </returns>
+    public static SABatchTracingTable findByServerId(ServerId _serverId, boolean _forupdate = false)
+    {
+        SABatchTracingTable batchTracingTable = null;
+        
+        if (_serverId)
+        {
+            batchTracingTable.selectForUpdate(_forupdate);
+            
+            select batchTracingTable
+            where batchTracingTable.ServerId == _serverId;
+        }
+
+        return batchTracingTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateStatus</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Updates the tracing status in SABatchTracingTable based on server ID
+    /// </summary>
+    /// <param name="_serverId">
+    ///    The server id to match on.
+    /// </param>
+    /// <param name="_status">
+    ///    Enum SABatchTracingStatus for status.
+    /// </param>
+    public static void updateStatus(ServerId _serverId, SABatchTracingStatus _status)
+    {
+        SABatchTracingTable batchTracingTable;
+        UserConnection dbConnection;
+
+        dbConnection = new UserConnection();
+        batchTracingTable.setConnection(dbConnection);
+        dbConnection.ttsbegin();
+        select firstonly forUpdate batchTracingTable
+        where batchTracingTable.ServerId == _serverId;
+        if(batchTracingTable)
+        {
+            batchTracingTable.Status = _status;
+            batchTracingTable.update();
+        }
+        dbConnection.ttscommit();
+        dbConnection.finalize();
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateTraceFileSize</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Updates the TraceFileSizeMB in the table SABatchTracingTable
+    /// </summary>
+    /// <param name="_serverId">
+    ///  Server ID.
+    /// </param>
+    /// <param name="_traceFileSize">
+    ///  Integer for the trace file
+    /// </param>
+    public static void updateTraceFileSize(ServerId _serverId, int _traceFileSize)
+    {
+        SABatchTracingTable batchTracingTable;
+        
+        ttsbegin;
+        select firstonly forUpdate batchTracingTable
+            where batchTracingTable.ServerId == _serverId;
+        if(batchTracingTable)
+        {
+            batchTracingTable.TraceFileSizeMB = _traceFileSize;
+            batchTracingTable.update();
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>taskRunningOnAllServers</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Checks is the batch is running on all servers
+    /// </summary>
+    /// <returns>Boolean is the batch task for tracing is active on all servers</returns>
+    public static boolean taskRunningOnAllServers()
+    {
+
+        SysServerConfig sysServerConfig;
+        SABatchTracingTable batchTracingTable;
+
+        while select sysServerConfig
+            outer join batchTracingTable
+            where batchTracingTable.ServerId == sysServerConfig.ServerId
+        {
+            if (batchTracingTable.BatchRecId == 0 )
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateStatusAllServers</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Updates the status on the AllServers record
+    /// </summary>
+    public static void updateStatusAllServers()
+    {
+        SABatchTracingTable batchTracingTable, batchTracingTableUpdate;
+        SABatchTracingStatus statusValue;
+        container statusContainer;
+        List serverStatusList = new List(Types::Container);
+        ListEnumerator serverStatusEnumerator;
+        boolean startedStatusFound, stoppedStatusFound, notReadyStatusFound, otherStatusesFound;
+        UserConnection dbConnection;
+        dbConnection = new UserConnection();
+
+        while select count(RecId), Status
+            from batchTracingTable
+            group by batchTracingTable.Status
+            where batchTracingTable.ServerID != 'AllServers'
+        {
+            statusContainer = [batchTracingTable.Status, batchTracingTable.RecId];
+            serverStatusList.addEnd(statusContainer);
+        }
+
+        serverStatusEnumerator = serverStatusList.getEnumerator();
+
+        if (serverStatusList.elements() == 1)
+        {
+            if (serverStatusEnumerator.moveNext())
+            {
+                statusValue = conPeek(serverStatusEnumerator.current(),1);
+            }
+        }
+        else if (serverStatusList.elements() > 1)
+        {
+            // Check if max number of tasks has been exceeded, if so then Batch tracing task may not have started on some servers - status is then partial
+            if (SABatchTracingHelper::allTasksSubmitted())
+            {
+                while (serverStatusEnumerator.moveNext())
+                {
+                    switch(conPeek(serverStatusEnumerator.current(),1))
+                    {
+                        case SABatchTracingStatus::Started:
+                            startedStatusFound = true;
+                            break;
+                        case SABatchTracingStatus::Stopped:
+                            stoppedStatusFound = true;
+                            break;
+                        case SABatchTracingStatus::NotReady:
+                            notReadyStatusFound = true;
+                            break;
+                        default:
+                            otherStatusesFound = true;
+                            break;
+                    }
+                }
+                if (stoppedStatusFound && notReadyStatusFound && !otherStatusesFound)
+                {
+                    // Some servers didn't start a batch task, so remain in status Not Ready, set AllServers status to Stopped
+                    statusValue = SABatchTracingStatus::Stopped;
+                }
+                else if (startedStatusFound && notReadyStatusFound && !otherStatusesFound)
+                {
+                    // Some servers didn't start a batch task, so remain in status Not Ready, set AllServers status to Partially Started as tracing started
+                    statusValue = SABatchTracingStatus::StartedPartially;
+                }
+            }
+        }
+
+        batchTracingTable = SABatchTracingTable::findByServerId('AllServers');
+
+        // Check if start requested was set. If server status' are all stopped, drop from refresh, do not need to update AllServers until start completed
+        if(batchTracingTable.Status == SABatchTracingStatus::StartRequested && statusValue == SABatchTracingStatus::Stopped)
+        {
+            return;
+        }
+
+        // Check if stop requested was set. If server status' are all started, drop from refresh, do not need to update AllServers until start completed
+        if(batchTracingTable.Status == SABatchTracingStatus::StopRequested && (statusValue == SABatchTracingStatus::Started || statusValue == SABatchTracingStatus::StartedPartially))
+        {
+            return;
+        }
+
+        if ((serverStatusList.elements() == 1) || (serverStatusList.elements() >= 1 && (statusValue == SABatchTracingStatus::Started || statusValue == SABatchTracingStatus::StartedPartially || statusValue == SABatchTracingStatus::Stopped)))
+        {
+            batchTracingTableUpdate.setConnection(dbConnection);
+            dbConnection.ttsbegin();
+            select firstonly forUpdate batchTracingTableUpdate
+            where batchTracingTableUpdate.ServerId == 'AllServers';
+            
+            if(batchTracingTable.Status != statusValue)
+            {
+                //Status Changed update times, and file size
+                switch (statusValue)
+                {
+                    case SABatchTracingStatus::Started:
+                    case SABatchTracingStatus::StartedPartially:
+                        // Update started time
+                        select minOf(StartTime) from batchTracingTable
+                            where batchTracingTable.ServerId != 'AllServers'
+                            && batchTracingTable.Status == SABatchTracingStatus::Started;
+                        batchTracingTableUpdate.StartTime = batchTracingTable.StartTime;
+                        batchTracingTableUpdate.StopTime = utcDateTimeNull();
+                        batchTracingTableUpdate.Status = statusValue;
+                        batchTracingTableUpdate.update();
+                        break;
+                    case SABatchTracingStatus::Stopped:
+                        // Update stopped time
+                        select maxOf(StopTime) from batchTracingTable
+                            where batchTracingTable.ServerId != 'AllServers'
+                            && batchTracingTable.Status == SABatchTracingStatus::Stopped;
+                        batchTracingTableUpdate.StopTime = batchTracingTable.StopTime;
+                        batchTracingTableUpdate.Status = statusValue;
+                        batchTracingTableUpdate.update();
+                        break;
+                    default:
+                        // Update for other statuses
+                        SABatchTracingTable::updateStatus('AllServers', statusValue);
+                        break;
+                }
+            }
+            
+            if(statusValue == SABatchTracingStatus::Started || statusValue == SABatchTracingStatus::StartedPartially)
+            {
+                // Update file size - Always want to do this when status is started.
+                select avg(TraceFileSizeMB) from batchTracingTable
+                    where batchTracingTable.ServerId != 'AllServers'
+                    && batchTracingTable.Status == SABatchTracingStatus::Started;
+                batchTracingTableUpdate.TraceFileSizeMB = any2Int(batchTracingTable.TraceFileSizeMB);
+                batchTracingTableUpdate.update();
+            }
+            dbConnection.ttscommit();
+
+        }
+        dbConnection.finalize();
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>@SABatchTracing:BatchTracing</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>Status</TitleField1>
+	<TitleField2>TraceFileSizeMB</TitleField2>
+	<AllowRowVersionChangeTracking>Yes</AllowRowVersionChangeTracking>
+	<ClusteredIndex>ServerIdStatusIdx</ClusteredIndex>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ServerId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Status</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>StartTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>StopTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TraceFileSizeMB</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>BatchTracing</Name>
+			<Label>@SABatchTracing:BatchTracing</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ServerId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>BatchRecId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Status</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>StartTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>StopTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TraceFileSizeMB</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SysTracingTableRefRecId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ServerId</Name>
+			<AllowEdit>No</AllowEdit>
+			<AssetClassification>Customer Content</AssetClassification>
+			<ExtendedDataType>ServerId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SysTraceCockpit:ConfigForm_SQLServername</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>BatchRecId</Name>
+			<ExtendedDataType>RefRecId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Status</Name>
+			<EnumType>SABatchTracingStatus</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Name</Name>
+			<AssetClassification>Customer Content</AssetClassification>
+			<ExtendedDataType>SABatchTracingName</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SysTraceCockpit:SysTracingTable_NameFieldLabel</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldUtcDateTime">
+			<Name>StartTime</Name>
+			<AssetClassification>Customer Content</AssetClassification>
+			<ExtendedDataType>SABatchTracingDateTime</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SysTraceCockpit:SysTracingTable_StartTimeFieldLabel</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldUtcDateTime">
+			<Name>StopTime</Name>
+			<AssetClassification>Customer Content</AssetClassification>
+			<ExtendedDataType>SABatchTracingDateTime</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SysTraceCockpit:SysTracingTable_StopTimeFieldLabel</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>TraceFileSizeMB</Name>
+			<ExtendedDataType>FileSize</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SABatchTracing:TraceFileSize</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>SysTracingTableRefRecId</Name>
+			<ExtendedDataType>RefRecId</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>ServerIdStatusIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>ServerId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>Status</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>Batch</Name>
+			<Cardinality>ZeroOne</Cardinality>
+			<RelatedTable>Batch</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>BatchRecId</Name>
+					<Field>BatchRecId</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

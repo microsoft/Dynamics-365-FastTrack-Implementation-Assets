@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SABatchTracingTaskController</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+///     The <c>SABatchTracingTaskController</c> Controll class to start tasks for batch tracing
+/// </summary>
+public class SABatchTracingTaskController extends SysOperationServiceController
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();
+    
+        this.parmClassName(classStr(SABatchTracingTaskService));
+        this.parmMethodName(methodStr(SABatchTracingTaskService, processOperation));
+    
+        this.parmDialogCaption("@SABatchTracing:BatchTracingTask");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>defaultCaption</Name>
+				<Source><![CDATA[
+    public ClassDescription defaultCaption()
+    {
+        return "@SABatchTracing:BatchTracingTask";
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
