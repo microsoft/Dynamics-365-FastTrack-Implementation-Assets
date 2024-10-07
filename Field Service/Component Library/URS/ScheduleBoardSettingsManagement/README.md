@@ -2,6 +2,8 @@
 
 ## Overview
 
+The Schedule Board is a crucial tool for Field Service customers, and the configurations and settings for a given Schedule Board tab can be critical in painting the right picture for dispatchers and allowing them to schedule resources effectively and accurately. Often, dispatchers need multiple tabs to effectively schedule their resources, and those tabs may have slight variations in their settings. A commonly requested feature is the ability to perform a Save As/copy on a given board tab, so that small changes can be made to the new board tab and be used quickly.
+
 The Schedule Board Settings Management is a custom Power Apps component framework (PCF) control designed to enhance the management of Schedule Board settings in Dynamics 365 Field Service. This control provides a user-friendly interface for viewing, copying, deleting, and enabling/disabling Schedule Board settings.
 
 ## Features
@@ -34,18 +36,20 @@ The Schedule Board Settings Management is a custom Power Apps component framewor
 ## Installation
 
 ### Option 1
+The included unmanaged solution named FieldServiceExtensionsOptimize25_1_3_0_0 in the Solutions folder will install the control and a barebones model-driven app named Field Service Extentions, which has two pages. The Board Management page is a URL reference to the control and the Schedule Board page is a link to the Schedule Board in the same way the board is referenced in the OOB Field Service model-driven app. There are 4 components in this solution: the model-driven app, the model-driven app's sitemap, the control, and an image for the model-driven app for the app picker.
+
+Use this option for the fastest way to try this component out.
+
+#### Note: The Field Service Extensions model-driven app has security scoped to System Customizer and System Administrator security roles by default.
+
+### Option 2
+For more developer-oriented individuals, the source code in this repository can be cloned and built usind standard PCF control build processes, and the resultant control can be embedded into the model-drive app of your choice.
+
 1. Build the solution using the Power Apps CLI.
 2. Import the solution into your Dynamics 365 environment.
 3. Add the control to a model-driven app via the Navigation link page type, with a URL field reference like so: /main.aspx?pagetype=control&controlName=o25fs_MicrosoftOptimize25.ScheduleBoardManagement&forceUCI=1. 
 
 #### Note: This is a full-page control and is not intended to be embedded into a form.
-
-### Option 2
-Alternatively, the included unmanaged solution named FieldServiceExtensionsOptimize25_1_3_0_0 in the Solutions folder will install the control and a barebones model-driven app named Field Service Extentions, which has two pages. The Board Management page is a URL reference to the control and the Schedule Board page is a link to the Schedule Board in the same way the board is referenced in the OOB Field Service model-driven app. There are 4 components in this solution: the model-driven app, the model-driven app's sitemap, the control, and an image for the model-driven app for the app picker.
-
-Use this option for the fastest way to try this component out.
-
-#### Note: The Field Service Extensions model-driven app has security scoped to System Customizer and System Administrator security roles by default.
 
 ## Limitations
 
