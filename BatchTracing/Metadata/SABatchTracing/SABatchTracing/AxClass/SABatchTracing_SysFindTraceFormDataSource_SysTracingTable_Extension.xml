@@ -3,6 +3,12 @@
 	<Name>SABatchTracing_SysFindTraceFormDataSource_SysTracingTable_Extension</Name>
 	<SourceCode>
 		<Declaration><![CDATA[
+///
+///  This source code is freeware and is provided on an "as is" basis without warranties of any kind,
+///  whether express or implied, including without limitation warranties that the code is free of defect,
+///  fit for a particular purpose or non-infringing.  The entire risk as to the quality and performance of
+///  the code is with the end user.
+///
 /// <summary>
 ///     The <c>SABatchTracing_SysFindTraceFormDataSource_SysTracingTable_Extension</c> changed the sort order in SysFindTrace
 ///     By default the order of the records in not in data desc. Personalization view also do not seem to work in this form. 

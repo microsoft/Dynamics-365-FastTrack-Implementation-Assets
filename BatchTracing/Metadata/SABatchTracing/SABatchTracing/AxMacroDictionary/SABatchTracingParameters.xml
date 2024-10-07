@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AxMacroDictionary xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
 	<Name>SABatchTracingParameters</Name>
-	<Source>//&#xD;
-// These macros are used to specify defaults for batch tracing.&#xD;
-// Do not adjust these, as they could break the batch tracing.&#xD;
-//&#xD;
+	<Source>///&#xD;
+///  This source code is freeware and is provided on an "as is" basis without warranties of any kind, &#xD;
+///  whether express or implied, including without limitation warranties that the code is free of defect, &#xD;
+///  fit for a particular purpose or non-infringing.  The entire risk as to the quality and performance of &#xD;
+///  the code is with the end user.&#xD;
+///&#xD;
+///&#xD;
+/// These macros are used to specify defaults for batch tracing.&#xD;
+/// Do not adjust these, as they could break the batch tracing.&#xD;
+///&#xD;
 #define.IncludeSQLBindParmValues(NoYes::No)  &#xD;
 #define.MinFileSizeLimit(100)&#xD;
 #define.MaxFileSizeLimit(1000)&#xD;
