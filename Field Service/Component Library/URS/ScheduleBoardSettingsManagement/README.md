@@ -49,6 +49,10 @@ For more developer-oriented individuals, the source code in this repository can 
 2. Import the solution into your Dynamics 365 environment.
 3. Add the control to a model-driven app via the Navigation link page type, with a URL field reference like so: /main.aspx?pagetype=control&controlName=o25fs_MicrosoftOptimize25.ScheduleBoardManagement&forceUCI=1. 
 
+![](images/image2.png)
+
+![](images/image3.png)
+
 #### Note: This is a full-page control and is not intended to be embedded into a form.
 
 ## Limitations
