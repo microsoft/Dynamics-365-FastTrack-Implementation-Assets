@@ -27,7 +27,12 @@ Initially, a bundle of tasks is started. If any batch servers have not picked up
 ## Usage
 From the Microsoft D365 Finance and Operation click on; **Help and Support (?) > Trace > Batch Tracing**
 
-When you first open the Batch Tracing form, the status will be **Not Ready**
+![](./media/TracingForm.png)
+
+The **Batch Tracing** form will open. 
+
+![](./media/BatchTracingForm.png)
+
 ### Starting Tracing
 Before you can start a trace, you need to start the **Tracing Batch Job**. To do this select the **Batch Tracing  Menu > Start Batch Tracing Batch Job**.
 
@@ -56,8 +61,19 @@ You can refresh the form while the trace is running to see the status and file s
 > [!NOTE]  
 > If there is more than one batch server then the file size shown is the average of the traces over the servers.
 
+See example below, the trace is stopped and you can note the start and stop times and the average file size:
+![](./media/BatchTracingFormStopped.png)
+
 ### Downloading Traces
 Completed traces can be viewed and downloaded from: **Batch Tracing  Menu > Captured Traces**.
+
+> [!NOTE]  
+> A trace file will be created for every batch server that is running the tracking task. 
+
+In the example below, you can see for a capture run, 6 traces were created as the environment had 6 batch servers:
+
+![](./media/BatchTracingCapturedTraces.png)
+
 ### Starting and Stopping the Tracing Batch Job
 The batch tracing tool relies on a batch job to start and stop the traces, see notes in the **How it Works** section. This batch job must be running before you can start and stop traces. 
 
@@ -76,6 +92,8 @@ There are several parameters that can be set for the batch tracing. To open the 
 The parameters are outlined below:
  
 #### General Parameters for Batch Tracing
+![](./media/BatchTracingParametersGeneral.png)
+
  - Include SQL parameter values: As per the client tracing, will capture SQL parameter values in the trace.
  - Stop Tracing After (Mins): The trace will stop after the specified time set here.
  - Max Trace File Size (MB): The trace will stop once the specified file size is reached.
@@ -87,6 +105,8 @@ The parameters are outlined below:
  - Max Batch Tasks: To prevent the batch job from continuously generating batch tasks, it will stop once this maximum value is reached.
  - Sort Traces by Date Desc: The captured traces form does not automatically sort in descending date order. Even applying a personalization to the grid does not function as expected. Activating this switch will sort the captured traces by trace stop time in descending order.
 #### Advanced Parameters for Batch Tracing
+![](./media/BatchTracingParametersAdvanced.png)
+
  - Min Trace File Size Limit (MB): Information only, not adjustable. 
  - Max Trace File Size Limit (MB): Information only, not adjustable.
  - Default Trace File Size (MB): Information only, not adjustable.
@@ -114,6 +134,6 @@ Cause: There can be a couple of causes for this:
 Solutions:
  - Increase the maximum number of tasks, this can be set in the Batch Tracing Parameters in **Max Batch Tasks**
  - Change the priority scheduling. In the Batch Tracing Parameters, on the Advanced tab, turn on the ** Scheduling Priority is overridden** and set the priority in the dropdown to high, critical or reserved capacity. 
- - Check for redundant old servers in the Server Configuration form: Go to – System Administration > Setup > Server configuration. Remove old LBD, Development or AX2012 AOS servers referenced. 
+ - Check for redundant old servers in the Server Configuration form: Go to – System Administration > Setup > Server configuration. Remove old LBD, Development or AX2012 AOS servers referenced. After removing the servers, run the Reset All Settings in the batch tracing parameters. 
 
 
