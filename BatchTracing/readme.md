@@ -66,5 +66,34 @@ The parameters are outlined below:
  - Tasks per Bundle: Set the number of tasks be bundle that get created in the batch job. Once a tracing batch task is created on each batch server, then no further bundles will be needed.
  - Max Batch Tasks: To prevent the batch job from continually throwing out batch tasks, it will stop once this maximum value is set.
  - Sort Traces by Date Desc: The captured traces form does not automatically sort by date descending. Even adding in a personalization to save an order on the grid does not work. Turning this switch on means that the captured traces form is sorted by trace stop time descending.
+#### Advanced Parameters for Batch Tracing
+ - Min Trace File Size Limit (MB): Information only, not adjustable. 
+ - Max Trace File Size Limit (MB): Information only, not adjustable.
+ - Default Trace File Size (MB): Information only, not adjustable.
+ - Delay between bundles (Secs): This is the delay between bundles of tasks being created. 
+ - Polling for Start/Stop (Secs): The polling frequency for the batch tasks to check for when tracing is started or stopped. 
+ - Scheduling Priority is overridden: Set this on to override the default scheduling priority for the tracing batch job.
+ - Scheduling Priority: If the ** Scheduling Priority is overridden** is on, then you can adjust the priority to one of the following - Low, Normal, High, Critical, Reserved Capacity. This can be useful if you have other batch jobs running but need to force the batch tracing job to run. For reserved capacity see: [Priority-based batch scheduling - Set the batch reserved capacity level](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/sysadmin/priority-based-batch-scheduling#set-the-batch-reserved-capacity-level)
+ - Reset All Setting: If you are having issues with the statuses not updating for tracing, you can click this button to reset the tracing data and parameters. 
+> [!NOTE]  
+> A check is made to ensure the tracing batch job is stopped before the Reset All Settings can be run. 
+ 
+
+## Troubleshooting
+### Statuses not Updating
+Issue: You find that the statues are not updating as expected in the batch tracing form.
+
+Solution: Stop (is running) the batch tracing job. Go into Batch Tracing Parameters, and in the Advanced tab, click Reset All Settings
+### Partially Started Status
+Issue: After stating the trace, you find that the status in the batch tracing form only shows Partially Started.
+
+Cause: There can be a couple of causes for this: 
+ - A batch server couldn’t start a batch tracing task as it was busy with other tasks.
+ - There are old servers still referenced in the Server Configuration for. This issue only occurs if you’ve migrated from D365 On-Premises (LBD), imported data from a development environment or have upgraded from AX 2012.
+   
+Solutions:
+ - Increase the maximum number of tasks, this can be set in the Batch Tracing Parameters in **Max Batch Tasks**
+ - Change the priority scheduling. In the Batch Tracing Parameters, on the Advanced tab, turn on the ** Scheduling Priority is overridden** and set the priority in the dropdown to high, critical or reserved capacity. 
+ - Check for redundant old servers in the Server Configuration form: Go to – System Administration > Setup > Server configuration. Remove old LBD, Development or AX2012 AOS servers referenced. 
 
 
