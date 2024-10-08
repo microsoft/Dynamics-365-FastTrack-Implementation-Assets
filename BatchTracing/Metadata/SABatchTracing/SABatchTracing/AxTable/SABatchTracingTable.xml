@@ -323,7 +323,7 @@ public class SABatchTracingTable extends common
     public static void updateStatusAllServers()
     {
         SABatchTracingTable batchTracingTable, batchTracingTableUpdate;
-        SABatchTracingStatus statusValue;
+        SABatchTracingStatus statusValue, currentStatus;
         container statusContainer;
         List serverStatusList = new List(Types::Container);
         ListEnumerator serverStatusEnumerator;
@@ -356,7 +356,8 @@ public class SABatchTracingTable extends common
             {
                 while (serverStatusEnumerator.moveNext())
                 {
-                    switch(conPeek(serverStatusEnumerator.current(),1))
+                    currentStatus = conPeek(serverStatusEnumerator.current(),1);
+                    switch(currentStatus)
                     {
                         case SABatchTracingStatus::Started:
                             startedStatusFound = true;
@@ -384,7 +385,7 @@ public class SABatchTracingTable extends common
                 }
                 else
                 {
-                    statusValue = conPeek(serverStatusEnumerator.current(),1);
+                    statusValue = currentStatus;
                 }
             }
         }
@@ -437,7 +438,8 @@ public class SABatchTracingTable extends common
                         break;
                     default:
                         // Update for other statuses
-                        SABatchTracingTable::updateStatus('AllServers', statusValue);
+                        batchTracingTableUpdate.Status = statusValue;
+                        batchTracingTableUpdate.update();
                         break;
                 }
             }
@@ -450,6 +452,7 @@ public class SABatchTracingTable extends common
                 batchTracingTableUpdate.TraceFileSizeMB = any2Int(batchTracingTable.TraceFileSizeMB);
                 batchTracingTableUpdate.update();
             }
+            dbConnection.ttsCommit();
 
         }
 
