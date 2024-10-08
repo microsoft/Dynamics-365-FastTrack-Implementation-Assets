@@ -1,5 +1,5 @@
 # Batch Tracing Tool
-TThe batch tracing tool provides enhanced functionality for capturing traces during batch processing. 
+The batch tracing tool provides enhanced functionality for capturing traces during batch processing. 
 
 It supports single to multi-server batch setups. This document describes how to install and use the tool. 
 
