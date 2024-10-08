@@ -33,7 +33,7 @@ Before you can start a trace, you need to start the **Tracing Batch Job**. To do
 
 Once the batch job has started, the status will change from **Not Ready** to **Stopped**
 > [!NOTE]  
-> The status may take some time to change to **Stopped** after the batch job starts, depending on the number of batch servers involved..
+> The status may take some time to change to **Stopped** after the batch job starts, depending on the number of batch servers configured.
 
 With the status in a **Stopped** state, select the **Batch Tracing > Menu Start Tracing**.
 
