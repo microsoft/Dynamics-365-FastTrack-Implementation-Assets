@@ -608,13 +608,13 @@ public class SABatchTracingTable extends common
 	<Indexes>
 		<AxTableIndex>
 			<Name>ServerIdStatusIdx</Name>
-			<AllowDuplicates>Yes</AllowDuplicates>
 			<Fields>
 				<AxTableIndexField>
 					<DataField>ServerId</DataField>
 				</AxTableIndexField>
 				<AxTableIndexField>
 					<DataField>Status</DataField>
+					<IncludedColumn>Yes</IncludedColumn>
 				</AxTableIndexField>
 			</Fields>
 		</AxTableIndex>
