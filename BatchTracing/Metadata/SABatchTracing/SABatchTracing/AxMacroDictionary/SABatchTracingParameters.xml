@@ -28,10 +28,10 @@
 #define.TaskCreatePerBundle(100)&#xD;
 #define.TaskCreatePerBundleMin(10)&#xD;
 #define.TaskCreatePerBundleMax(200)&#xD;
-#define.MaxTaskToCreate(1000)&#xD;
+#define.MaxTaskToCreate(500)&#xD;
 #define.MaxTaskToCreateMin(50)&#xD;
 #define.MaxTaskToCreateMax(1000)&#xD;
-#define.PollingDelayTaskBundle(60)&#xD;
+#define.PollingDelayTaskBundle(30)&#xD;
 #define.PollingDelayTaskBundleMin(30)&#xD;
 #define.PollingDelayTaskBundleMax(120)&#xD;
 #define.PollingDelayStartStop(10)&#xD;
