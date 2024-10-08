@@ -325,6 +325,7 @@ public class SABatchTracingTable extends common
         SABatchTracingTable batchTracingTable, batchTracingTableUpdate;
         SABatchTracingStatus statusValue, currentStatus;
         container statusContainer;
+        boolean updateNeeded; 
         List serverStatusList = new List(Types::Container);
         ListEnumerator serverStatusEnumerator;
         boolean startedStatusFound, stoppedStatusFound, notReadyStatusFound, otherStatusesFound;
@@ -347,6 +348,7 @@ public class SABatchTracingTable extends common
             if (serverStatusEnumerator.moveNext())
             {
                 statusValue = conPeek(serverStatusEnumerator.current(),1);
+                updateNeeded = true;
             }
         }
         else if (serverStatusList.elements() > 1)
@@ -383,10 +385,16 @@ public class SABatchTracingTable extends common
                     // Some servers didn't start a batch task, so remain in status Not Ready, set AllServers status to Partially Started as tracing started
                     statusValue = SABatchTracingStatus::StartedPartially;
                 }
+                else if (notReadyStatusFound && otherStatusesFound && currentStatus != SABatchTracingStatus::NotReady)
+                {
+                    // It could be that some servers were not started, but some were, so need to make sure staus isn't set to NotReady by mistake
+                    statusValue = currentStatus;
+                }
                 else
                 {
                     statusValue = currentStatus;
                 }
+                updateNeeded = true;
             }
         }
 
@@ -404,7 +412,7 @@ public class SABatchTracingTable extends common
             return;
         }
 
-        if (serverStatusList.elements() == 1 || serverStatusList.elements() >= 1)
+        if (updateNeeded && (serverStatusList.elements() == 1 || serverStatusList.elements() >= 1))
         {
             batchTracingTableUpdate.setConnection(dbConnection);
             dbConnection.ttsbegin();
@@ -471,8 +479,10 @@ public class SABatchTracingTable extends common
 	<TitleField1>Status</TitleField1>
 	<TitleField2>TraceFileSizeMB</TitleField2>
 	<AllowRowVersionChangeTracking>Yes</AllowRowVersionChangeTracking>
-	<ClusteredIndex>ServerIdStatusIdx</ClusteredIndex>
+	<ClusteredIndex>ServerIdIdx</ClusteredIndex>
+	<CreateRecIdIndex>No</CreateRecIdIndex>
 	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<PrimaryIndex>ServerIdIdx</PrimaryIndex>
 	<SaveDataPerCompany>No</SaveDataPerCompany>
 	<DeleteActions />
 	<FieldGroups>
@@ -556,6 +566,7 @@ public class SABatchTracingTable extends common
 			<ExtendedDataType>ServerId</ExtendedDataType>
 			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
 			<Label>@SysTraceCockpit:ConfigForm_SQLServername</Label>
+			<Mandatory>Yes</Mandatory>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldInt64">
@@ -607,14 +618,11 @@ public class SABatchTracingTable extends common
 	<FullTextIndexes />
 	<Indexes>
 		<AxTableIndex>
-			<Name>ServerIdStatusIdx</Name>
+			<Name>ServerIdIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
 			<Fields>
 				<AxTableIndexField>
 					<DataField>ServerId</DataField>
-				</AxTableIndexField>
-				<AxTableIndexField>
-					<DataField>Status</DataField>
-					<IncludedColumn>Yes</IncludedColumn>
 				</AxTableIndexField>
 			</Fields>
 		</AxTableIndex>
