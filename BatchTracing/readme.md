@@ -67,14 +67,16 @@ See example below, the trace is stopped and you can note the start and stop time
 ![](./media/BatchTracingFormStopped.png)
 
 ### Downloading Traces
-Completed traces can be viewed and downloaded from: **Batch Tracing  Menu > Captured Traces**.
+Completed traces can be viewed and downloaded from: **Batch Tracing  Menu > Captured Traces** or **Help and Support (?) > Trace > Captured Traces**.
 
 > [!NOTE]  
 > A trace file will be created for every batch server that is running the tracking task. 
 
-In the example below, you can see for a capture run, 6 traces were created as the environment had 6 batch servers:
+The example below shows the **Advanced Captured Traces** form (see General Parameters for Batch Tracing on how to enable this form), you can see for a capture run, 6 traces were created as the environment had 6 batch servers:
 
-![](./media/BatchTracingCapturedTraces.png)
+![](./media/BatchTracingCapturedTracesAdvanced.png)
+
+You can select single or multiple traces to delete or download. If you select multiple traces, these will be compressed into a single Zip file for download. 
 
 ### Starting and Stopping the Tracing Batch Job
 The batch tracing tool relies on a batch job to start and stop the traces, see notes in the **How it Works** section. This batch job must be running before you can start and stop traces. 
