@@ -103,7 +103,7 @@ The parameters are outlined below:
  - Stop Batch Job After (Hours): This will automatically stop the batch tracing job after the specified number of hours, which can be helpful if you forget to stop the job manually.
  - Tasks per Bundle: Specify the number of tasks per bundle that will be created in the batch job. Once a tracing batch task is executing on each batch server, no additional bundles will be necessary.
  - Max Batch Tasks: To prevent the batch job from continuously generating batch tasks, it will stop once this maximum value is reached.
- - Sort Traces by Date Desc: The captured traces form does not automatically sort in descending date order. Even applying a personalization to the grid does not function as expected. Activating this switch will sort the captured traces by trace stop time in descending order.
+ - Advanced Captured Trace Form: Enables an enhanced version of the captured traces form to allow for multiple selection of traces to delete or download. 
 #### Advanced Parameters for Batch Tracing
 ![](./media/BatchTracingParametersAdvanced.png)
 
