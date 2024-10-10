@@ -332,11 +332,11 @@ public class SABatchTracingParameters extends FormRun
 													</AxFormControl>
 													<AxFormControl xmlns=""
 														i:type="AxFormCheckBoxControl">
-														<Name>SettingsGroup_SysFindTraceFormSortDesc</Name>
+														<Name>SettingsGroup_SysFindTraceAdvanced</Name>
 														<Type>CheckBox</Type>
 														<FormControlExtension
 															i:nil="true" />
-														<DataField>SysFindTraceFormSortDesc</DataField>
+														<DataField>SysFindTraceAdvanced</DataField>
 														<DataSource>SABatchTracingParameters</DataSource>
 													</AxFormControl>
 												</Controls>

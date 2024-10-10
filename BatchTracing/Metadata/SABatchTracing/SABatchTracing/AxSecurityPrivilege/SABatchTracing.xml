@@ -81,6 +81,38 @@
 			<ObjectType>MenuItemAction</ObjectType>
 			<Forms />
 		</AxSecurityEntryPointReference>
+		<AxSecurityEntryPointReference>
+			<Name>SABatchTracingFindTrace</Name>
+			<Grant>
+				<Correct>Allow</Correct>
+				<Create>Allow</Create>
+				<Delete>Allow</Delete>
+				<Read>Allow</Read>
+				<Update>Allow</Update>
+			</Grant>
+			<ObjectName>SABatchTracingFindTrace</ObjectName>
+			<ObjectType>MenuItemDisplay</ObjectType>
+			<Forms>
+				<AxSecurityEntryPointReferenceForm>
+					<Name>SABatchTracingFindTrace</Name>
+					<Controls />
+					<DataSources />
+				</AxSecurityEntryPointReferenceForm>
+			</Forms>
+		</AxSecurityEntryPointReference>
+		<AxSecurityEntryPointReference>
+			<Name>SABatchTracingDownload</Name>
+			<Grant>
+				<Correct>Allow</Correct>
+				<Create>Allow</Create>
+				<Delete>Allow</Delete>
+				<Read>Allow</Read>
+				<Update>Allow</Update>
+			</Grant>
+			<ObjectName>SABatchTracingDownload</ObjectName>
+			<ObjectType>MenuItemAction</ObjectType>
+			<Forms />
+		</AxSecurityEntryPointReference>
 	</EntryPoints>
 	<FormControlOverrides />
 </AxSecurityPrivilege>

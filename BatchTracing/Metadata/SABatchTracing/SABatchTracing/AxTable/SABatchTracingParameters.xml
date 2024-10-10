@@ -142,7 +142,7 @@ public class SABatchTracingParameters extends common
         this.PollingDelayStartStop = #PollingDelayStartStop;
         this.SchedulingPriorityIsOverridden = #SchedulingPriorityIsOverridden;
         this.SchedulingPriority = #SchedulingPriority;
-        this.SysFindTraceFormSortDesc = #SysFindTraceFormSortDesc;
+        this.SysFindTraceAdvanced = #SysFindTraceAdvanced;
     }
 
 ]]></Source>
@@ -302,7 +302,7 @@ public class SABatchTracingParameters extends common
 					<DataField>MaxTaskToCreate</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>SysFindTraceFormSortDesc</DataField>
+					<DataField>SysFindTraceAdvanced</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -424,8 +424,8 @@ public class SABatchTracingParameters extends common
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldEnum">
-			<Name>SysFindTraceFormSortDesc</Name>
-			<Label>@SABatchTracing:SysFindTraceFormSortDesc</Label>
+			<Name>SysFindTraceAdvanced</Name>
+			<Label>@SABatchTracing:SysFindTraceAdvanced</Label>
 			<EnumType>NoYes</EnumType>
 		</AxTableField>
 	</Fields>
