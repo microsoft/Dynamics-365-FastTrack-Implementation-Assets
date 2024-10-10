@@ -5,7 +5,8 @@ It supports single to multi-server batch setups. This document describes how to 
 
 ## Revision History
 v1.0 - Initial Release
-v1.2 - Added enhanced captured traces form
+
+v1.1 - Added enhanced captured traces form
 
 ## Disclaimer
 This application is freeware and is provided on an "as is" basis without warranties of any kind, whether express or implied, including without limitation warranties that the code is free of defect, fit for a particular purpose or non-infringing.  The entire risk as to the quality and performance of the code is with the end use.
