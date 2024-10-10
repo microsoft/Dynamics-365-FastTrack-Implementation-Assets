@@ -53,10 +53,20 @@
       <Name>SABatchTracingController</Name>
       <Link>Code\Classes\SABatchTracingController</Link>
     </Content>
+    <Content Include="AxClass\SABatchTracingDownload">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingDownload</Name>
+      <Link>Code\Classes\SABatchTracingDownload</Link>
+    </Content>
     <Content Include="AxClass\SABatchTracingHelper">
       <SubType>Content</SubType>
       <Name>SABatchTracingHelper</Name>
       <Link>Code\Classes\SABatchTracingHelper</Link>
+    </Content>
+    <Content Include="AxClass\SABatchTracingMenuItemManager">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingMenuItemManager</Name>
+      <Link>Code\Classes\SABatchTracingMenuItemManager</Link>
     </Content>
     <Content Include="AxClass\SABatchTracingService">
       <SubType>Content</SubType>
@@ -73,10 +83,10 @@
       <Name>SABatchTracingTaskService</Name>
       <Link>Code\Classes\SABatchTracingTaskService</Link>
     </Content>
-    <Content Include="AxClass\SABatchTracing_SysFindTraceFormDataSource_SysTracingTable_Extension">
+    <Content Include="AxClass\SysFindTrace_SABatchTracing_Extension">
       <SubType>Content</SubType>
-      <Name>SABatchTracing_SysFindTraceFormDataSource_SysTracingTable_Extension</Name>
-      <Link>Code\Classes\SABatchTracing_SysFindTraceFormDataSource_SysTracingTable_Extension</Link>
+      <Name>SysFindTrace_SABatchTracing_Extension</Name>
+      <Link>Code\Classes\SysFindTrace_SABatchTracing_Extension</Link>
     </Content>
     <Content Include="AxEdt\SABatchTracingDateTime">
       <SubType>Content</SubType>
@@ -108,6 +118,11 @@
       <Name>SABatchTracing</Name>
       <Link>User Interface\SABatchTracing</Link>
     </Content>
+    <Content Include="AxForm\SABatchTracingFindTrace">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingFindTrace</Name>
+      <Link>User Interface\SABatchTracingFindTrace</Link>
+    </Content>
     <Content Include="AxForm\SABatchTracingParameters">
       <SubType>Content</SubType>
       <Name>SABatchTracingParameters</Name>
@@ -133,6 +148,11 @@
       <Name>SABatchTracingBatchStop</Name>
       <Link>User Interface\SABatchTracingBatchStop</Link>
     </Content>
+    <Content Include="AxMenuItemAction\SABatchTracingDownload">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingDownload</Name>
+      <Link>User Interface\SABatchTracingDownload</Link>
+    </Content>
     <Content Include="AxMenuItemAction\SABatchTracingStartAll">
       <SubType>Content</SubType>
       <Name>SABatchTracingStartAll</Name>
@@ -147,6 +167,11 @@
       <SubType>Content</SubType>
       <Name>SABatchTracing</Name>
       <Link>User Interface\SABatchTracing</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\SABatchTracingFindTrace">
+      <SubType>Content</SubType>
+      <Name>SABatchTracingFindTrace</Name>
+      <Link>User Interface\SABatchTracingFindTrace</Link>
     </Content>
     <Content Include="AxMenuItemDisplay\SABatchTracingParameters">
       <SubType>Content</SubType>
