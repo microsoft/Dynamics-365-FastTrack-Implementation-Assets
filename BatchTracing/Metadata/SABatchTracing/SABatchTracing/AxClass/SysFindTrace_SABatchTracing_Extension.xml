@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SysFindTrace_SABatchTracing_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Used to redirect <c>SysFindTrace</c> form, to the <c>SABatchTracingFindTrace</c> form is the SABatchTracing advanced form option is on..
+/// </summary>
+[ExtensionOf(formStr(SysFindTrace))]
+final class SysFindTrace_SABatchTracing_Extension
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// CoC extension for SysFindTrace::init
+    /// </summary>
+    public void init()
+    {
+        
+        if (SABatchTracingParameters::findOrCreate().SysFindTraceAdvanced)
+        {
+            SABatchTracingMenuItemManager::newFormRun(this).run();
+        }
+
+        next init();
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

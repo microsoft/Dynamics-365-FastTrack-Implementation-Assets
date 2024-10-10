@@ -19,7 +19,7 @@
 #define.MinTraceMinsLimit(1)&#xD;
 #define.MaxTraceMinsLimit(60)&#xD;
 #define.MaxTraceMins(60)&#xD;
-#define.SysFindTraceFormSortDesc(NoYes::No)&#xD;
+#define.SysFindTraceAdvanced(NoYes::No)&#xD;
 &#xD;
 #define.MinBatchHoursLimit(0)&#xD;
 #define.MaxBatchHoursLimit(168)&#xD;
