@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <control namespace="MicrosoftOptimize25" constructor="ScheduleBoardManagement" version="2.3.0" display-name-key="ScheduleBoardManagement" description-key="This control aims to make managing aspects of Schedule Board Settings easier." control-type="standard" >
+
+    <external-service-usage enabled="false">
+    </external-service-usage>
+
+    <property name="ScheduleBoardSetting" display-name-key="ScheduleBoardSetting" description-key="Selected schedule board setting" of-type="SingleLine.Text" usage="output" required="false" />
+
+    <resources>
+      <code path="index.ts" order="1"/>
+    </resources>
+    <feature-usage>      
+      <uses-feature name="WebAPI" required="true" />
+    </feature-usage>
+  </control>
+</manifest>
