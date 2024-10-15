@@ -101,5 +101,5 @@ Select RecId, Id, ISNULL(
 
 For example:
 
-![IdToRecIdpicture.png](IdToRecIdpicture.png)
+![IdtoRecIdpicture.png](IdtoRecIdpicture.png)
 
