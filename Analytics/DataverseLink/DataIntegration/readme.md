@@ -83,9 +83,9 @@ In order to assist in identifying the tables that are required to be exported so
 [Get derived tables](/Analytics/DataverseLink/DataIntegration/AdditionalScripts/get_derivetables.sql)
 
 ## Convert Id to RecId
-In some situations customers want to be able to convert from the unique <b>Id</b> field value used by Synapse Link to identify a record to the unique <b>RecId</b> field value used by Dynamics 365 finance and operations apps to identify a record. One possible scenario is when a customer is using incremental CSV and a delete occurs. In this case the CSV file contains only three fields, the first being the unique Id value.
+In some situations customers want to be able to convert from the unique <b>Id</b> field value used by Synapse Link to identify a record to the unique <b>RecId</b> field value used by Dynamics 365 finance and operations apps to identify a record. One possible scenario is when a customer is using incremental CSV and a delete occurs. In this case the CSV file contains only three fields, the first being the unique <b>Id</b> value.
 
-Thus is a customer wants to convert from the Id value to RecId they can use this T-SQL script:
+If a customer wants to convert from the <b>Id</b> value to <b>RecId</b> they can use this T-SQL script:
 
 Select RecId, Id, ISNULL(\
            a.recid\
