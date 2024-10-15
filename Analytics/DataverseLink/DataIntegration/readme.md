@@ -82,3 +82,24 @@ One of the known limitations with Synapse Link is derived tables, this is outlin
 In order to assist in identifying the tables that are required to be exported so that the derived tables can be created correctly there is a SQL script which can be executed on a CHE or a sandbox environment. 
 [Get derived tables](/Analytics/DataverseLink/DataIntegration/AdditionalScripts/get_derivetables.sql)
 
+## Convert Id to RecId
+In some situations customers want to be able to convert from the unique <b>Id</b> field value used by Synapse Link to identify a record to the unique <b>RecId</b> field value used by Dynamics 365 finance and operations apps to identify a record. One possible scenario is when a customer is using incremental CSV and a delete occurs. In this case the CSV file contains only three fields, the first being the unique Id value.
+
+Thus is a customer wants to convert from the Id value to RecId they can use this T-SQL script:
+
+Select RecId, Id, ISNULL(
+           a.recid
+           , (CONVERT(BIGINT, SUBSTRING(CAST(CAST(a.id AS UNIQUEIDENTIFIER) AS BINARY(16)), 9, 1))
+             + CONVERT(BIGINT, SUBSTRING(CAST(CAST(a.id AS UNIQUEIDENTIFIER) AS BINARY(16)), 10, 1)) * 256
+             + CONVERT(BIGINT, SUBSTRING(CAST(CAST(a.id AS UNIQUEIDENTIFIER) AS BINARY(16)), 11, 1)) * 65536
+             + CONVERT(BIGINT, SUBSTRING(CAST(CAST(a.id AS UNIQUEIDENTIFIER) AS BINARY(16)), 12, 1)) * 16777216
+             + CONVERT(BIGINT, SUBSTRING(CAST(CAST(a.id AS UNIQUEIDENTIFIER) AS BINARY(16)), 13, 1)) * 4294967296
+             + CONVERT(BIGINT, SUBSTRING(CAST(CAST(a.id AS UNIQUEIDENTIFIER) AS BINARY(16)), 14, 1)) * 1099511627776
+             + CONVERT(BIGINT, SUBSTRING(CAST(CAST(a.id AS UNIQUEIDENTIFIER) AS BINARY(16)), 15, 1)) * 281474976710656
+             + CONVERT(BIGINT, SUBSTRING(CAST(CAST(a.id AS UNIQUEIDENTIFIER) AS BINARY(16)), 16, 1)) * 72057594037927936
+             )
+
+For example:
+
+![IdToRecIdpicture.png](IdToRecIdpicture.png)
+
