@@ -72,7 +72,7 @@ function Delete-Views(){
             $objectschema =$reader["table_schema"]
              
             # deleting GlobalOptionsetMetadata or srsanalysisenums can add additional steps when rerunning, so skipping deleting them            
-            if (($objectName -ne "GlobalOptionsetMetadata") -or 
+            if (($objectName -ne "GlobalOptionsetMetadata") -and 
                 ($objectName -ne "srsanalysisenums"))
             {
                 # Close the DataReader before executing any other command
