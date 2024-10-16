@@ -25,7 +25,11 @@
 	--TODO: set value 1 or 0 to remove mserp_ prefix from the entity name and column names
 	declare @remove_mserp_prefix int = 1;
 	
-	
+	-- TODO: set value 1 or 0 to convert simple entity optionset values to BYOD enum values
+	-- Added to support BYOD simple entities
+	-- Requires enum values to be pushed to srsanalysisenums
+	declare @translate_BYOD_enums int = 0;
+
 	-- Create the external datasource and return external datasource name
 	-- External data sources are used to establish location and connectivity (via database scope credentials) 
 	-- between SQL engine and external data store in this case data lake
