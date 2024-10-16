@@ -49,7 +49,7 @@
 	
 	--select @modeljson, @enumtranslation
 	-- call sp source_createOrAlterViews to create openrowset views on SQL endpoint that supports Data virtualization 
-	exec dvtosql.source_createOrAlterViews @externalds_name, @modeljson, @enumtranslation, @incrementalCSV, @add_EDL_AuditColumns, @sourcechema, @rowsetoptions, @translate_enums, @remove_mserp_prefix
+	exec dvtosql.source_createOrAlterViews @externalds_name, @modeljson, @enumtranslation, @incrementalCSV, @add_EDL_AuditColumns, @sourcechema, @rowsetoptions, @translate_enums, @remove_mserp_prefix, @translate_BYOD_enums
 
 
 	-- Script create external data source and credential with the name of container in the storage account url
