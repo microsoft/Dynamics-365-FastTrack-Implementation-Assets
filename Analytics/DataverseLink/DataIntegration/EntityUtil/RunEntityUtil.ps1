@@ -32,7 +32,7 @@ function Get-Menu {
     Write-Host ''
     Write-Host 'Which step in the entity util would you like to run?'
     Write-Host ''
-    Write-Host '1. Create the JOSN file with a list of all dependencies for the identified entities from a sandbox environment.'
+    Write-Host '1. Create the JSON file with a list of all dependencies for the identified entities from a sandbox environment.'
     Write-Host '2. Create missing tables and views in an Azure Synapse, SQL database, Synapse serverless replica or Fabric.'
     Write-Host '3. Delete all of the tables and views in the target database.'
     Write-Host '4. Delete all of the tables and views in the source serverless database.'
