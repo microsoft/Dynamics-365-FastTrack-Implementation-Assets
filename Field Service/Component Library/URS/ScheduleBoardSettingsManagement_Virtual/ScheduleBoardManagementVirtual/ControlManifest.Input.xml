@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <control namespace="MicrosoftOptimize25" constructor="ScheduleBoardManagementVirtual" version="1.0.0" display-name-key="ScheduleBoardManagementVirtual" description-key="This control aims to make managing aspects of Schedule Board Settings easier." control-type="virtual" >
+
+    <external-service-usage enabled="false">
+    </external-service-usage>
+
+    <property name="ScheduleBoardSetting" display-name-key="ScheduleBoardSetting" description-key="Selected schedule board setting" of-type="SingleLine.Text" usage="output" required="false" />
+
+    <resources>
+      <code path="index.ts" order="1"/>
+      <platform-library name="React" version="16.8.6" />
+      <platform-library name="Fluent" version="9.46.2" />
+      <css path="./ScheduleBoardManagement.css" order="1" />
+    </resources>
+
+    <feature-usage>      
+      <uses-feature name="WebAPI" required="true" />
+    </feature-usage>
+  </control>
+</manifest>
