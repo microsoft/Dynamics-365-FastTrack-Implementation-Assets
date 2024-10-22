@@ -1,0 +1,538 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>SABatchTracingParameters</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+///
+///  This source code is freeware and is provided on an "as is" basis without warranties of any kind,
+///  whether express or implied, including without limitation warranties that the code is free of defect,
+///  fit for a particular purpose or non-infringing.  The entire risk as to the quality and performance of
+///  the code is with the end user.
+///
+[Form]
+public class SABatchTracingParameters extends FormRun
+{
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Form manages the parameters for batch tracing
+    /// </summary>
+    public void init()
+    {
+        super();
+        SABatchTracingParameters::findOrCreate();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateBatchJobSchedulingPriorityControls</Name>
+				<Source><![CDATA[
+    private void updateBatchJobSchedulingPriorityControls(boolean _enabled)
+    {
+        
+        AdvancedGroup_SchedulingPriority.enabled(_enabled);
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>SABatchTracingParameters</Name>
+				<Methods>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int ret = super();
+
+            element.updateBatchJobSchedulingPriorityControls(SABatchTracingParameters.SchedulingPriorityIsOverridden);
+    
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>AdvancedGroup_SchedulingPriorityIsOverridden</Name>
+				<Type>CheckBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+        
+            ret = super();
+
+            element.updateBatchJobSchedulingPriorityControls(this.checked());
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>initialize</Name>
+						<Source><![CDATA[
+        protected void initialize()
+        {
+            super();
+
+            element.updateBatchJobSchedulingPriorityControls(this.checked());
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ResetButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        /// Reset Settings
+        /// </summary>
+        public void clicked()
+        {
+            
+            SABatchTracingHelper batchTracingHelper = new SABatchTracingHelper();
+            batchTracingHelper.resetSettings();
+
+            super();
+
+            SABatchTracingParameters_ds.research();
+            SABatchTracingParameters_ds.refresh();
+
+            FormRun parentForm = element.args().caller();
+            if (parentForm)
+            {
+                parentForm.dataSource().research();
+                parentForm.dataSource().refresh();
+            }
+
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<AllowPreLoading>No</AllowPreLoading>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>SABatchTracingParameters</Name>
+			<Table>SABatchTracingParameters</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DefaultFileSize</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IncludeSQLBindParmValues</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MaxBatchHours</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MaxFileSize</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MaxFileSizeLimit</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MaxTaskToCreate</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MaxTraceMins</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MinFileSizeLimit</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PollingDelayStartStop</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PollingDelayTaskBundle</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SchedulingPriority</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SchedulingPriorityIsOverridden</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SysFindTraceFormSortDesc</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TaskCreatePerBundle</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@SABatchTracing:BatchTracingParameters</Caption>
+		<Pattern xmlns="">TableOfContents</Pattern>
+		<PatternVersion xmlns="">1.1</PatternVersion>
+		<ShowDeleteButton xmlns="">No</ShowDeleteButton>
+		<ShowNewButton xmlns="">No</ShowNewButton>
+		<Style xmlns="">TableOfContents</Style>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>Tab</Name>
+				<Type>Tab</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>TabGeneral</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>GeneralTitle</Name>
+								<Skip>Yes</Skip>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>StaticTextGeneral</Name>
+										<Skip>Yes</Skip>
+										<Type>StaticText</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Style>MainInstruction</Style>
+										<Text>@SABatchTracing:ParametersGeneralDesc</Text>
+									</AxFormControl>
+								</Controls>
+								<AllowUserSetup>No</AllowUserSetup>
+								<FrameType>None</FrameType>
+								<Style>TOCTitleContainer</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormTabControl">
+								<Name>GeneralFastTab</Name>
+								<Type>Tab</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormTabPageControl">
+										<Name>SettingsTabPage</Name>
+										<Pattern>FieldsFieldGroups</Pattern>
+										<PatternVersion>1.1</PatternVersion>
+										<Type>TabPage</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>SettingsGroup</Name>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormComboBoxControl">
+														<Name>SettingsGroup_IncludeSQLBindParmValues</Name>
+														<Type>ComboBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>IncludeSQLBindParmValues</DataField>
+														<DataSource>SABatchTracingParameters</DataSource>
+														<Items />
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormIntegerControl">
+														<Name>SettingsGroup_MaxFileSize</Name>
+														<Type>Integer</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>MaxFileSize</DataField>
+														<DataSource>SABatchTracingParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormIntegerControl">
+														<Name>SettingsGroup_MaxTraceMins</Name>
+														<Type>Integer</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>MaxTraceMins</DataField>
+														<DataSource>SABatchTracingParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>SettingsGroup_MaxBatchHours</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>MaxBatchHours</DataField>
+														<DataSource>SABatchTracingParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormIntegerControl">
+														<Name>SettingsGroup_TaskCreatePerBundle</Name>
+														<Type>Integer</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>TaskCreatePerBundle</DataField>
+														<DataSource>SABatchTracingParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormIntegerControl">
+														<Name>SettingsGroup_MaxTaskToCreate</Name>
+														<Type>Integer</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>MaxTaskToCreate</DataField>
+														<DataSource>SABatchTracingParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>SettingsGroup_SysFindTraceAdvanced</Name>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>SysFindTraceAdvanced</DataField>
+														<DataSource>SABatchTracingParameters</DataSource>
+													</AxFormControl>
+												</Controls>
+												<DataGroup>General</DataGroup>
+												<DataSource>SABatchTracingParameters</DataSource>
+												<FrameType>None</FrameType>
+											</AxFormControl>
+										</Controls>
+										<ColumnsMode>Fill</ColumnsMode>
+										<Caption>@SABatchTracing:Settings</Caption>
+										<FastTabExpanded>Yes</FastTabExpanded>
+									</AxFormControl>
+								</Controls>
+								<ArrangeMethod>Vertical</ArrangeMethod>
+								<Style>FastTabs</Style>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SABatchTracing:ParametersGeneral</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>TabAdvanced</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>AdvancedTitle</Name>
+								<Skip>Yes</Skip>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>StatisTextAdvanced</Name>
+										<Skip>Yes</Skip>
+										<Type>StaticText</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Style>MainInstruction</Style>
+										<Text>@SABatchTracing:ParametersAdvancedDesc</Text>
+									</AxFormControl>
+								</Controls>
+								<AllowUserSetup>No</AllowUserSetup>
+								<FrameType>None</FrameType>
+								<Style>TOCTitleContainer</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormTabControl">
+								<Name>AdvancedFastTab</Name>
+								<Type>Tab</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormTabPageControl">
+										<Name>AdvancedTabPage</Name>
+										<Pattern>FieldsFieldGroups</Pattern>
+										<PatternVersion>1.1</PatternVersion>
+										<Type>TabPage</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>AdvancedGroup</Name>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormIntegerControl">
+														<Name>AdvancedGroup_MinFileSizeLimit</Name>
+														<AllowEdit>No</AllowEdit>
+														<Type>Integer</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>MinFileSizeLimit</DataField>
+														<DataSource>SABatchTracingParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormIntegerControl">
+														<Name>AdvancedGroup_MaxFileSizeLimit</Name>
+														<AllowEdit>No</AllowEdit>
+														<Type>Integer</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>MaxFileSizeLimit</DataField>
+														<DataSource>SABatchTracingParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormIntegerControl">
+														<Name>AdvancedGroup_DefaultFileSize</Name>
+														<AllowEdit>No</AllowEdit>
+														<Type>Integer</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>DefaultFileSize</DataField>
+														<DataSource>SABatchTracingParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormIntegerControl">
+														<Name>AdvancedGroup_PollingDelayTaskBundle</Name>
+														<Type>Integer</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>PollingDelayTaskBundle</DataField>
+														<DataSource>SABatchTracingParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormIntegerControl">
+														<Name>AdvancedGroup_PollingDelayStartStop</Name>
+														<Type>Integer</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>PollingDelayStartStop</DataField>
+														<DataSource>SABatchTracingParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>AdvancedGroup_SchedulingPriorityIsOverridden</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>SchedulingPriorityIsOverridden</DataField>
+														<DataSource>SABatchTracingParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormComboBoxControl">
+														<Name>AdvancedGroup_SchedulingPriority</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<Type>ComboBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>SchedulingPriority</DataField>
+														<DataSource>SABatchTracingParameters</DataSource>
+														<Items />
+													</AxFormControl>
+												</Controls>
+												<DataGroup>Advanced</DataGroup>
+												<DataSource>SABatchTracingParameters</DataSource>
+												<FrameType>None</FrameType>
+											</AxFormControl>
+										</Controls>
+										<ColumnsMode>Fill</ColumnsMode>
+										<Caption>@SABatchTracing:AdvancedSettings</Caption>
+										<FastTabExpanded>Yes</FastTabExpanded>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormTabPageControl">
+										<Name>ResetTabPage</Name>
+										<Pattern>Custom</Pattern>
+										<Type>TabPage</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>ResetGroup</Name>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormButtonControl">
+														<Name>ResetButton</Name>
+														<Type>Button</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Text>@SABatchTracing:AdvancedResetButton</Text>
+													</AxFormControl>
+												</Controls>
+												<FrameType>None</FrameType>
+											</AxFormControl>
+										</Controls>
+										<ColumnsMode>Fill</ColumnsMode>
+										<Caption>@SABatchTracing:AdvancedReset</Caption>
+										<FastTabExpanded>Yes</FastTabExpanded>
+									</AxFormControl>
+								</Controls>
+								<ArrangeMethod>Vertical</ArrangeMethod>
+								<Style>FastTabs</Style>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SABatchTracing:ParametersAdvanced</Caption>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+				<Style>VerticalTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

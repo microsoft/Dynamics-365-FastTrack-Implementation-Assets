@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SABatchTracing_SysFindTraceFormDataSource_SysTracingTable_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+///
+///  This source code is freeware and is provided on an "as is" basis without warranties of any kind,
+///  whether express or implied, including without limitation warranties that the code is free of defect,
+///  fit for a particular purpose or non-infringing.  The entire risk as to the quality and performance of
+///  the code is with the end user.
+///
+/// <summary>
+///     The <c>SABatchTracing_SysFindTraceFormDataSource_SysTracingTable_Extension</c> changed the sort order in SysFindTrace
+///     By default the order of the records in not in data desc. Personalization view also do not seem to work in this form. 
+/// </summary>
+[ExtensionOf(formDataSourceStr(SysFindTrace, SysTracingTable))]
+final class SABatchTracing_SysFindTraceFormDataSource_SysTracingTable_Extension
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>executeQuery</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets the order on the captured traces form.
+    /// </summary>
+    public void executeQuery()
+    {
+
+        Query query = this.query();
+        QueryBuildDataSource qbds;
+        if (SABatchTracingParameters::findOrCreate().SysFindTraceFormSortDesc == NoYes::Yes && query.dataSourceCount() > 0)
+        {
+            qbds = query.dataSourceNo(1);
+            if (qbds && qbds.name() == tableStr(SysTracingTable))
+            {
+                query.dataSourceName(tableStr(SysTracingTable)).addOrderByField(fieldNum(SysTracingTable,StopTime), SortOrder::Descending);
+            }
+        }
+        next executeQuery();
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
