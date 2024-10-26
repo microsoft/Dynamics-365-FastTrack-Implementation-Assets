@@ -1,0 +1,36 @@
+trigger: none
+
+jobs:
+- deployment: Target
+  displayName: Dataverse DevOps Import to Target
+  workspace:
+    clean: all
+  pool:
+    name: Azure Pipelines
+    vmImage: windows-latest
+  environment: Target
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - checkout: self
+        - task: PowerPlatformToolInstaller@2
+          displayName: Install PAC CLI to Host
+          inputs:
+            DefaultVersion: true
+        - task: PowerPlatformPackSolution@2
+          displayName: Pack Solution
+          inputs:
+            SolutionSourceFolder: '$(Build.SourcesDirectory)\YourSolutionUniqueName'
+            SolutionOutputFile: '$(Build.SourcesDirectory)\YourSolutionUniqueName.zip'
+            SolutionType: 'Both'
+        - task: PowerPlatformImportSolution@2
+          displayName: Import Solution to Target
+          inputs:
+            authenticationType: 'PowerPlatformSPN'
+            PowerPlatformSPN: 'Dataverse target environment'
+            SolutionInputFile: '$(Build.SourcesDirectory)\YourSolutionUniqueName_managed.zip'
+            AsyncOperation: true
+            MaxAsyncWaitTime: '60'
+            ConvertToManaged: true
+            PublishCustomizationChanges: true
