@@ -40,7 +40,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 | [`Monitoring and Telemetry`](MonitoringandTelemetry)           | Monitoring Dynamics 365 using App Insights           |
 | [`Customer Service`](Customer%20Service) | Dynamics 365 Customer Service samples & guides |
 | [`Field Service`](Field%20Service) | Dynamics 365 Field Service samples & guides |
-| [`BatchTracing`](BatchTracing)         | Tool for cpaturing D365 traces from batch  |
+| [`BatchTracing`](BatchTracing)         | Tool for capturing D365 traces from batch  |
 | [`.gitignore`](.gitignore)             | Define what to ignore at commit time.      |
 | `CHANGELOG.md`                         | List of changes to the sample.             |
 | [`CONTRIBUTING.md`](#contributing)     | Guidelines for contributing to the sample. |
