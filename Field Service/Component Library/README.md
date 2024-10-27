@@ -1,3 +1,13 @@
 # Field Service Component Library
 
-## This serves as a repository for Component Library implementation assets for Field Service
+## Universal Resource Scheduling (URS) Components
+
+Microsoft's FastTrack implementation assets for Universal Resource Scheduling (URS) in Dynamics 365 Field Service provide components for managing schedule board settings, including both standard and virtual configurations. These components help organizations customize and optimize their resource scheduling capabilities within Field Service implementations.
+
+### Schedule Board Settings Management Component
+
+A Power Apps Component Framework (PCF) control that enhances Dynamics 365 Field Service by providing an intuitive interface for managing Schedule Board configurations, including the ability to copy, delete, and toggle schedule board tabs. This component helps dispatchers efficiently manage multiple board views with different settings, addressing a common need for "Save As" functionality in schedule board management.
+
+### Schedule Board Settings Management Component (Virtual)
+
+A specialized virtual PCF control variant of the Schedule Board Settings Management PCF control. This component provides the same robust configuration management capabilities as the standard version but is using the virtual PCF control framework for faster load times and a smaller bundle.js file size.
