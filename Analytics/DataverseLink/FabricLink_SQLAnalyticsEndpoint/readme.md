@@ -1,43 +1,50 @@
 # Using Dataverse Link to Microsoft Fabric with SQL Analytics Endpoint and Warehouse
-Microsoft Dataverse direct link to Microsoft Fabric enables organizations to extend their Power Apps and Dynamics 365 enterprise applications (Sales), and business processes into Fabric.
-The Link to Microsoft Fabric feature built into Power Apps makes all your Dynamics 365 (Customer Engagement and Finance and Operations Apps) and Power Apps data available in Microsoft OneLake, the built-in data lake for Microsoft Fabric.
 
-Dataverse also generates an enterprise-ready Fabric Lakehouse and SQL endpoint for your Power Apps and Dynamics 365 data. This makes it easier for data analysts, data engineers, and database admins to combine business data with data already present in OneLake using Spark, Python, or SQL. As data gets updated, changes are reflected in lakehouse automatically.
+Microsoft Dataverse direct link to Microsoft Fabric enables organizations to extend their Power Apps and Dynamics 365 enterprise applications (Sales), and business processes into Fabric. The Link to Microsoft Fabric feature built into Power Apps makes all your Dynamics 365 (Customer Engagement and Finance and Operations Apps) and Power Apps data available in Microsoft OneLake, the built-in data lake for Microsoft Fabric.
 
-Data and BI team that are currently using SQL Server technologies (Synapse Serverless, Synapse Dedicated Pool, Azure SQL or SQL Server) to build virtual datawarehouse or datamart solution with Dynamics 365 data, can easily migrate their solution to Microsoft Fabric by using Microsoft Fabric SQL Analytics Endpoint and Fabric Datawarehouse workload.
+Dataverse also generates an enterprise-ready Fabric Lakehouse and SQL endpoint for your Power Apps and Dynamics 365 data. This makes it easier for data analysts, data engineers, and database admins to combine business data with data already present in OneLake using Spark, Python, or SQL. As data gets updated, changes are reflected in the lakehouse automatically.
 
-## Setup Link to Microsoft Fabric 
+Data and BI teams that are currently using SQL Server technologies (Synapse Serverless, Synapse Dedicated Pool, Azure SQL, or SQL Server) to build virtual data warehouses or data mart solutions with Dynamics 365 data can easily migrate their solution to Microsoft Fabric by using Microsoft Fabric SQL Analytics Endpoint and Fabric Datawarehouse workload.
+
+## Setup Link to Microsoft Fabric
+Follow the documentation to create Link to Microsoft Fabric 
+https://learn.microsoft.com/en-us/power-apps/maker/data-platform/azure-synapse-link-view-in-fabric
 
 ## Things to consider before querying data using SQL Analytics Endpoint and Warehouse
-When migrating from Export to data lake solution using Synapse Serverless database or Azure SQL database, you may run into following challenges 
-1. Fabric Lakehouse and warehouses by default are configured with case-sensitive (CS) collation Latin1_General_100_BIN2_UTF8. As result of this make tablename and columnname case sensitive, you have to change your existing TSQL script and queries to adapat case sensitivity. 
-2. All dataverse tables that have track changes on, by default selected with Fabric link. If you are only interested in just a subset of table, you have to just ignore rest of the tables from the orignial lakehouse.
-3. Data produced by Dataverse Fabric link may have deleted rows, you need to filter out deleted rows (IsDelete=1) while consuming the data.
-4. When choosing a derived table from finance and operations apps, columns from the corresponding base table currently aren't included.For example, if you choose DirPartyTable table (base table), exported data does not contains fields from the child tables (companyinfo,dirorganizationbase,ominternalorganization,dirperson,omoperatingunit,dirorganization,omteam). To get all the columns into DirPartyTable you must also add other child tables and then create the view using the recid columns. 
-5. Fabric Lakehouse tables string columns have default collation Latin1_General_100_BIN2_UTF8. As a result of this filters and joins on data becomes case senstive. For example *where custtable.dataareaid = 'usmf'* filter is case sensitive and only filter data that matches the case. 
 
-## Overcome challenges with SQL Analytics Endpoint and warehouse
-Follow bellow steps to overcome above challenges 
-1. Create Fabric warehouse with case-insensitive collation to make table and column name case-insensitive (challenge #1)
-2. Create views on Fabric warehouse for requited tables to filter list of tables, filter deleted rows, join derived tables and solve data case sensitivity 
+When migrating from Export to data lake solution using Synapse Serverless database or Azure SQL database, you may run into the following challenges:
+1. Fabric Lakehouse and warehouses by default are configured with case-sensitive (CS) collation Latin1_General_100_BIN2_UTF8. As a result, table names and column names become case-sensitive, and you have to change your existing TSQL script and queries to adapt to case sensitivity.
+2. All Dataverse tables that have track changes on are by default selected with Fabric link. If you are only interested in just a subset of tables, you have to ignore the rest of the tables from the original lakehouse.
+3. Data produced by Dataverse Fabric link may have deleted rows; you need to filter out deleted rows (IsDelete=1) while consuming the data.
+4. When choosing a derived table from Finance and Operations apps, columns from the corresponding base table currently aren't included. For example, if you choose the DirPartyTable table (base table), the exported data does not contain fields from the child tables (companyinfo, dirorganizationbase, ominternalorganization, dirperson, omoperatingunit, dirorganization, omteam). To get all the columns into DirPartyTable, you must also add other child tables and then create the view using the recid columns.
+5. Fabric Lakehouse tables' string columns have default collation Latin1_General_100_BIN2_UTF8. As a result, filters and joins on data become case-sensitive. For example, *where custtable.dataareaid = 'usmf'* filter is case-sensitive and only filters data that matches the case.
+
+## Overcome challenges with SQL Analytics Endpoint and Warehouse
+
+Follow the steps below to overcome the above challenges:
+1. Create a Fabric warehouse with case-insensitive collation to make table and column names case-insensitive (challenge #1).
+2. Create views on Fabric warehouse for required tables to filter the list of tables, filter deleted rows, join derived tables, and solve data case sensitivity.
 
 ### 1. Create Fabric warehouse with case-insensitive collation
-To mitigate the problem with case-sensitive collation for SQL Analytics Endpoint, You can create Fabric warehouses with case-insensitive (CI) collation - Latin1_General_100_CI_AS_KS_WS_SC_UTF8. Currently, the only method available for creating a case-insensitive data warehouse is via REST API. 
-This article provides a step-by-step guide on how to create a warehouse with case-insensitive collation through the REST API. It also explains how to use Visual Studio Code with the REST Client extension to facilitate the process.
+
+To mitigate the problem with case-sensitive collation for SQL Analytics Endpoint, you can create Fabric warehouses with case-insensitive (CI) collation - Latin1_General_100_CI_AS_KS_WS_SC_UTF8. Currently, the only method available for creating a case-insensitive data warehouse is via REST API. This article provides a step-by-step guide on how to create a warehouse with case-insensitive collation through the REST API. It also explains how to use Visual Studio Code with the REST Client extension to facilitate the process.
 https://learn.microsoft.com/en-us/fabric/data-warehouse/collation
 
 ### 2. Create Views on the Fabric warehouse
-Once you have the Fabric warehouse created, we can create the views on the Fabric Warehouse using 3 part naming convention as bellow to mitigate the 
-*create or alter view [dbo].tablename as select columnname collation from [lakehousedatabase].[dbo].[table]* 
+
+Once you have the Fabric warehouse created, you can create the views on the Fabric Warehouse using a 3-part naming convention as below to mitigate the:
+*create or alter view [dbo].tablename as select columnname collation from [lakehousedatabase].[dbo].[table]*
 
 #### A. Create stored procedure on Lakehouse SQL Analytics Endpoint
-RUN THIS SCRIPT TO CREATE STORED PROCEDURE ON SQL ANALYTICS ENDPOINT GENERATED BY DATAVERSE FABRIC LINK
-STORED PROCEDURE DOES FOLLOWINGS
-1. Get schema definition for filters list of tables from Lakehouse database and generate views ddl statement 
-2. Apply filter in the view for deleted rows IsDelete = null
-3. Apply logic to join derived tables like dirpartytable, companyinfo and have all columns in the parent table
-4. Change column collation to COLLATE Latin1_General_100_CI_AS_KS_WS_SC_UTF8 to enable CASE INSENTIVE DATA
-5. Bonus feature: For enum columns add a translated string column to represent string value
+
+RUN THIS SCRIPT TO CREATE A STORED PROCEDURE ON SQL ANALYTICS ENDPOINT GENERATED BY DATAVERSE FABRIC LINK
+STORED PROCEDURE DOES THE FOLLOWING:
+1. Get schema definition for filters list of tables from Lakehouse database and generate views DDL statement.
+2. Apply filter in the view for deleted rows IsDelete = null.
+3. Apply logic to join derived tables like dirpartytable, companyinfo, and have all columns in the parent table.
+4. Change column collation to COLLATE Latin1_General_100_CI_AS_KS_WS_SC_UTF8 to enable CASE INSENSITIVE DATA.
+5. Bonus feature: For enum columns, add a translated string column to represent string value.
+
 ```sql
 /* RUN THIS SCRIPT TO CREATE STORED PROCEDURE ON SQL ANALYTICS ENDPOINT GENERATED BY DATAVERSE FABRIC LINK
 STORED PROCEDURE DOES FOLLOWINGS
