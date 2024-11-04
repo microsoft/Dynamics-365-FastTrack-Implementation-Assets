@@ -7,7 +7,7 @@ Dataverse also generates an enterprise-ready Fabric Lakehouse and SQL endpoint f
 Data and BI teams that are currently using SQL Server technologies (Synapse Serverless, Synapse Dedicated Pool, Azure SQL, or SQL Server) to build virtual data warehouses or data mart solutions with Dynamics 365 data can easily migrate their solution to Microsoft Fabric by using Microsoft Fabric SQL Analytics Endpoint and Fabric Datawarehouse workload.
 
 ## Setup Link to Microsoft Fabric
-Follow the documentation to create Link to Microsoft Fabric 
+Follow the documentation to create Link to Microsoft Fabric  
 https://learn.microsoft.com/en-us/power-apps/maker/data-platform/azure-synapse-link-view-in-fabric
 
 ## Things to consider before querying data using SQL Analytics Endpoint and Warehouse
