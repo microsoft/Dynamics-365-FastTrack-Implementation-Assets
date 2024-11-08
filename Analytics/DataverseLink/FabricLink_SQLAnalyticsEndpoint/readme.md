@@ -282,7 +282,7 @@ BEGIN
 
 END
 ```
-#### B. Exexute script to create the views on Fabric 
+#### B. Execute script to create the views on Fabric 
 RUN THIS SCRIPT ON TARGET FABRIC WAREHOUSE DATABASE TO CREATE VIEWS 
 
 ```{=sql}
