@@ -1,20 +1,21 @@
-# Azure Data Explorer sample dashboards
+# Errors Telemetry dasboard
+This dashboard shows information about errors that are reported by the environments. Using this dashboard, it is possible to:
+- Investigate the nature and distributiion of the errors over time. 
+- Review the errors in the envirionemnts
+- Revire the source of errors, gruppong them by legal entity, reer type and users
 
+## Dashboard overview
 
-| Dashboard  | Description  | Take me there (use CTRL+click to open in a new tab) |
-| ------ | ------ | ------ |
-| Slow queries | Slow queries reported by the AOS.     | [Slow Queries](SlowQueries) |
-| Errors       | Errors reported by the envioronments. |  [Errors](Errors) |
-| Order 2 Cash | Order to cash process telemetry. | |
+<div align=center><img src="./img/ErrorsDashboard.png"></div>
 
 ## Steps to import the sample dashboard:
-  1. Import the file (e.g "ADE-Dashboard-D365FO-Monitoring-SlowQueries.json").
+  1. Import the file "dashboard-D365FO-Monitoring-Errors.json".
   
   <div align=center><img src="./img/1ImportSample.png" width="600" height="300"></div>
 
   2. Name the dashboard appropriately.
   
-   <div align=center><img src="./img/2EditName.png" width="300" height="200"></div>
+   <div align=center><img src="./img/2EditName.png" width="656" height="195"></div>
   
   3. Click to select datasources. 
   
