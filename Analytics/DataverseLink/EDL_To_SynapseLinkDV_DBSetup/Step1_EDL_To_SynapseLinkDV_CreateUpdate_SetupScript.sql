@@ -1139,6 +1139,9 @@ BEGIN;
 	AND NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N''[{schema}].[{tablename}]'') AND type in (N''U'')) 
 	BEGIN
 
+	--remove in this context soft deletion to avoid duplicate conflicts with RecId Index
+	DELETE FROM {schema}._new_{tablename} Where IsDelete = 1;
+		
 	print(''--_new_{tablename} exists and {tablename} does not exists ...rename the table --'')
 	exec sp_rename ''{schema}._new_{tablename}'', ''{tablename}''
  
@@ -1205,8 +1208,7 @@ BEGIN;
 	INNER JOIN {schema}._new_{tablename} AS source ON target.id = source.id and source.isdelete = 1;
 	
 	SELECT @deleteCount = @@ROWCOUNT;
-
-
+		
 	--Now remove data from the source to avoid update during the merge function
 	DELETE FROM {schema}._new_{tablename} Where IsDelete = 1;
 
