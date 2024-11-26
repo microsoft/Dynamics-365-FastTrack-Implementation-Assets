@@ -38,5 +38,50 @@
 		"Key": " n'0' ",
 		"Value": " N'0' ",
 		"ViewName": "ASSETLEASEBOOKVERSIONENTITY"
+	},
+	{
+		"Key": " t6.id",
+		"Value": " t6.Id",
+		"ViewName": "LEDGERJOURNALENTITY"
+	},
+	{
+		"Key": " n'person'",
+		"Value": " N'Person'",
+		"ViewName": "DIRPERSONBASEENTITY"
+	},
+	{
+		"Key": " for xml path ('') ",
+		"Value": " ",
+		"ViewName": "HCMEMPLOYEEV2ENTITY"
+	},
+	{
+		"Key": " ';' + rtrim(cr.citizenshipcountryregion) ",
+		"Value": " string_agg(rtrim(cr.citizenshipcountryregion), ';') within group (order by cr.citizenshipcountryregion) ",
+		"ViewName": "HCMEMPLOYEEV2ENTITY"
+	},
+	{
+		"Key": " 1, 1, ",
+		"Value": " 1, 0, ",
+		"ViewName": "HCMEMPLOYEEV2ENTITY"
+	},
+	{
+		"Key": "order by cr.citizenshipcountryregion ",
+		"Value": " ",
+		"ViewName": "HCMEMPLOYEEV2ENTITY"
+	},
+	{
+		"Key": "n'person'",
+		"Value": "N'Person'",
+		"ViewName": "HCMEMPLOYEEV2ENTITY"
+	},
+	{
+		"Key": "(t13.filtercode)",
+		"Value": "(t13.filtercode1_)",
+		"ViewName": "ECORESRELEASEDPRODUCTV2ENTITY"
+	},
+	{
+		"Key": "(t13.filtergroup)",
+		"Value": "(t13.filtergroup1_)",
+		"ViewName": "ECORESRELEASEDPRODUCTV2ENTITY"
 	}
 ]
