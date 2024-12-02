@@ -1,6 +1,6 @@
 # Field Service Analytics
 
-## This serves as a repository for Analytics implementation assets for Field Service
+### This serves as a repository for Analytics implementation assets for Field Service
 
 ## Operational monitoring
 ### Field Service Mobile Offline Analytics Telemetry Dashboard
