@@ -14,5 +14,6 @@
   "sandboxPwd": "<sandbox JIT access password>",
   "backwardcompatiblecolumns": "_SysRowId,DataLakeModified_DateTime,$FileName,LSN,LastProcessedChange_DateTime",
   "exlcudecolumns": "id,Id,SinkCreatedOn,SinkModifiedOn,modifieddatetime,modifiedby,modifiedtransactionid,dataareaid,recversion,partition,sysrowversion,recid,tableid,versionnumber,createdon,modifiedon,isDelete,IsDelete,PartitionId,createddatetime,createdby,createdtransactionid,PartitionId,sysdatastatecode,createdonpartition",
-  "inheritedTablesToBeCreated": "dirpartytable"
+  "inheritedTablesToBeCreated": "dirpartytable",
+  "tenantId": "Azure Tenant ID"
 }
