@@ -31,6 +31,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 | [`Commerce`](Commerce)                 | Dynamics 365 Commerce guides               |
 | [`Analytics`](Analytics)               | Dynamics 365 Analytics guides              |
 | [`SQL Maintenance`](SQL%20Maintenance) | Indexes & statistics maintenance script    |
+| [`Storage Management`](Storage%20Management) | Data cleanup scripts    |
 | [`Dual-write`](Dual-write)             | Dynamics 365 Dual-write guides             |
 | [`SCM`](SCM)      		                 | Tools for SCM and WHS solutions            |
 | [`ScheduleAPI`](ScheduleAPI)	         | Project Operations - Schedule API example  |
