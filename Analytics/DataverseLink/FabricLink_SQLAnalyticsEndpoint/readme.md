@@ -74,7 +74,7 @@ DECLARE @addcolumns NVARCHAR(max) = '';
 DECLARE @filter_deleted_rows_clause NVARCHAR(200) = '';
 
 IF @filter_deleted_rows = 1
-	SET @filter_deleted_rows_clause = ' where isnull({tablename}.IsDelete,0) = 0 '
+	SET @filter_deleted_rows_clause = ' where {tablename}.IsDelete IS NULL '
 SET @CreateViewDDL = 'CREATE OR ALTER VIEW  {target_table_schema}.{tablename}  AS 
 	SELECT {selectcolumns}
 	FROM  {source_database_name}.{source_table_schema}.{tablename} ';
