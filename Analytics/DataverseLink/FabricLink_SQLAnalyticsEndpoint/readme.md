@@ -138,10 +138,7 @@ FROM (
 			)
 	GROUP BY y.TABLE_NAME
 	) x
-WHERE (
-		@TablesToInclude_FnOOnly = 1
-		AND x.FnOTable = 1
-		)
+WHERE (@TablesToInclude_FnOOnly = 0 or( @TablesToInclude_FnOOnly = 1 AND x.FnOTable = 1))
 
 --SELECT *
 --FROM #sqltadata
