@@ -1,0 +1,6 @@
+<catalogassignments>
+  <catalogassignment catalogid.uniquename="SA_Sales_Transaction" object.uniquename="SA_Checkout" objectidtype="customapi">
+    <iscustomizable>1</iscustomizable>
+    <name>SA_Sales_OnCheckout</name>
+  </catalogassignment>
+</catalogassignments>

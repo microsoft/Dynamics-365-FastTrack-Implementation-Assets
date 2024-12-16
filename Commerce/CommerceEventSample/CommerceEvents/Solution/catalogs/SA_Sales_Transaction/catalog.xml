@@ -1,0 +1,13 @@
+<catalog uniquename="SA_Sales_Transaction">
+  <description default="Sales transaction">
+    <label description="Sales transaction" languagecode="1033" />
+  </description>
+  <displayname default="SA_Sales_Transaction">
+    <label description="SA_Sales_Transaction" languagecode="1033" />
+  </displayname>
+  <iscustomizable>1</iscustomizable>
+  <name>SA_Sales_Transaction</name>
+  <parentcatalogid>
+    <uniquename>SA_Sales</uniquename>
+  </parentcatalogid>
+</catalog>

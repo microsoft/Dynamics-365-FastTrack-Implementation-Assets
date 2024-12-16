@@ -1,0 +1,12 @@
+<customapirequestparameter uniquename="msdynmkt_bindingid">
+  <description default="msdynmkt_bindingid">
+    <label description="msdynmkt_bindingid" languagecode="1033" />
+  </description>
+  <displayname default="bindingid">
+    <label description="bindingid" languagecode="1033" />
+  </displayname>
+  <iscustomizable>0</iscustomizable>
+  <isoptional>1</isoptional>
+  <name>msdynmkt_bindingid</name>
+  <type>10</type>
+</customapirequestparameter>

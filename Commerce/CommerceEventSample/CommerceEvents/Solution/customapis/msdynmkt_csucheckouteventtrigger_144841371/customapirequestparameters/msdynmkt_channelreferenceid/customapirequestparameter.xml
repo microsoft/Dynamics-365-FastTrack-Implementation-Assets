@@ -1,0 +1,12 @@
+<customapirequestparameter uniquename="msdynmkt_channelreferenceid">
+  <description default="msdynmkt_channelreferenceid">
+    <label description="msdynmkt_channelreferenceid" languagecode="1033" />
+  </description>
+  <displayname default="ChannelReferenceId">
+    <label description="ChannelReferenceId" languagecode="1033" />
+  </displayname>
+  <iscustomizable>0</iscustomizable>
+  <isoptional>0</isoptional>
+  <name>msdynmkt_channelreferenceid</name>
+  <type>10</type>
+</customapirequestparameter>

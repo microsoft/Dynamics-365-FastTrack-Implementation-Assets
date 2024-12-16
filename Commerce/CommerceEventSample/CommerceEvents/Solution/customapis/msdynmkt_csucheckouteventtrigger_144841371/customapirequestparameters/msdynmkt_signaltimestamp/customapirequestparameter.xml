@@ -1,0 +1,12 @@
+<customapirequestparameter uniquename="msdynmkt_signaltimestamp">
+  <description default="msdynmkt_signaltimestamp">
+    <label description="msdynmkt_signaltimestamp" languagecode="1033" />
+  </description>
+  <displayname default="CDP-A Signal Timestamp">
+    <label description="CDP-A Signal Timestamp" languagecode="1033" />
+  </displayname>
+  <iscustomizable>0</iscustomizable>
+  <isoptional>0</isoptional>
+  <name>msdynmkt_signaltimestamp</name>
+  <type>1</type>
+</customapirequestparameter>
