@@ -1,0 +1,436 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sites_CSUEventPoller_name": {
+            "defaultValue": "CSUEventPoller",
+            "type": "String"
+        },
+        "serverfarms_ASP_D365BetterTogetherRG_bf4d_externalid": {
+            "defaultValue": "/subscriptions/79def5f1-f626-479f-8db5-b1272680adc1/resourceGroups/D365BetterTogetherRG/providers/Microsoft.Web/serverfarms/ASP-D365BetterTogetherRG-bf4d",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2023-12-01",
+            "name": "[parameters('sites_CSUEventPoller_name')]",
+            "location": "East US",
+            "tags": {
+                "hidden-link: /app-insights-resource-id": "/subscriptions/79def5f1-f626-479f-8db5-b1272680adc1/resourceGroups/d365bettertogetherrg/providers/microsoft.insights/components/CSUEventPollerInsights",
+                "hidden-link: /app-insights-instrumentation-key": "3867e54a-2ece-4bf3-97f0-fe0875525477",
+                "hidden-link: /app-insights-conn-string": "InstrumentationKey=3867e54a-2ece-4bf3-97f0-fe0875525477;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/;ApplicationId=cecc4124-151a-44a6-ad61-635174e8da12"
+            },
+            "kind": "functionapp",
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "csueventpoller.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "csueventpoller.scm.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[parameters('serverfarms_ASP_D365BetterTogetherRG_bf4d_externalid')]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "dnsConfiguration": {},
+                "vnetRouteAllEnabled": false,
+                "vnetImagePullEnabled": false,
+                "vnetContentShareEnabled": false,
+                "siteConfig": {
+                    "numberOfWorkers": 1,
+                    "acrUseManagedIdentityCreds": false,
+                    "alwaysOn": false,
+                    "http20Enabled": false,
+                    "functionAppScaleLimit": 200,
+                    "minimumElasticInstanceCount": 1
+                },
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": false,
+                "clientCertEnabled": false,
+                "clientCertMode": "Required",
+                "hostNamesDisabled": false,
+                "vnetBackupRestoreEnabled": false,
+                "customDomainVerificationId": "265D6D641DA576658EE78F67531027846A231B67208B6CA1662E89D37B5EDF33",
+                "containerSize": 1536,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": true,
+                "redundancyMode": "None",
+                "publicNetworkAccess": "Enabled",
+                "storageAccountRequired": false,
+                "keyVaultReferenceIdentity": "SystemAssigned"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies",
+            "apiVersion": "2023-12-01",
+            "name": "[concat(parameters('sites_CSUEventPoller_name'), '/ftp')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_CSUEventPoller_name'))]"
+            ],
+            "tags": {
+                "hidden-link: /app-insights-resource-id": "/subscriptions/79def5f1-f626-479f-8db5-b1272680adc1/resourceGroups/d365bettertogetherrg/providers/microsoft.insights/components/CSUEventPollerInsights",
+                "hidden-link: /app-insights-instrumentation-key": "3867e54a-2ece-4bf3-97f0-fe0875525477",
+                "hidden-link: /app-insights-conn-string": "InstrumentationKey=3867e54a-2ece-4bf3-97f0-fe0875525477;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/;ApplicationId=cecc4124-151a-44a6-ad61-635174e8da12"
+            },
+            "properties": {
+                "allow": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies",
+            "apiVersion": "2023-12-01",
+            "name": "[concat(parameters('sites_CSUEventPoller_name'), '/scm')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_CSUEventPoller_name'))]"
+            ],
+            "tags": {
+                "hidden-link: /app-insights-resource-id": "/subscriptions/79def5f1-f626-479f-8db5-b1272680adc1/resourceGroups/d365bettertogetherrg/providers/microsoft.insights/components/CSUEventPollerInsights",
+                "hidden-link: /app-insights-instrumentation-key": "3867e54a-2ece-4bf3-97f0-fe0875525477",
+                "hidden-link: /app-insights-conn-string": "InstrumentationKey=3867e54a-2ece-4bf3-97f0-fe0875525477;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/;ApplicationId=cecc4124-151a-44a6-ad61-635174e8da12"
+            },
+            "properties": {
+                "allow": true
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/config",
+            "apiVersion": "2023-12-01",
+            "name": "[concat(parameters('sites_CSUEventPoller_name'), '/web')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_CSUEventPoller_name'))]"
+            ],
+            "tags": {
+                "hidden-link: /app-insights-resource-id": "/subscriptions/79def5f1-f626-479f-8db5-b1272680adc1/resourceGroups/d365bettertogetherrg/providers/microsoft.insights/components/CSUEventPollerInsights",
+                "hidden-link: /app-insights-instrumentation-key": "3867e54a-2ece-4bf3-97f0-fe0875525477",
+                "hidden-link: /app-insights-conn-string": "InstrumentationKey=3867e54a-2ece-4bf3-97f0-fe0875525477;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/;ApplicationId=cecc4124-151a-44a6-ad61-635174e8da12"
+            },
+            "properties": {
+                "numberOfWorkers": 1,
+                "defaultDocuments": [
+                    "Default.htm",
+                    "Default.html",
+                    "Default.asp",
+                    "index.htm",
+                    "index.html",
+                    "iisstart.htm",
+                    "default.aspx",
+                    "index.php"
+                ],
+                "netFrameworkVersion": "v6.0",
+                "requestTracingEnabled": false,
+                "remoteDebuggingEnabled": false,
+                "remoteDebuggingVersion": "VS2022",
+                "httpLoggingEnabled": false,
+                "acrUseManagedIdentityCreds": false,
+                "logsDirectorySizeLimit": 35,
+                "detailedErrorLoggingEnabled": false,
+                "publishingUsername": "$CSUEventPoller",
+                "scmType": "None",
+                "use32BitWorkerProcess": false,
+                "webSocketsEnabled": false,
+                "alwaysOn": false,
+                "managedPipelineMode": "Integrated",
+                "virtualApplications": [
+                    {
+                        "virtualPath": "/",
+                        "physicalPath": "site\\wwwroot",
+                        "preloadEnabled": false
+                    }
+                ],
+                "loadBalancing": "LeastRequests",
+                "experiments": {
+                    "rampUpRules": []
+                },
+                "autoHealEnabled": false,
+                "vnetRouteAllEnabled": false,
+                "vnetPrivatePortsCount": 0,
+                "publicNetworkAccess": "Enabled",
+                "cors": {
+                    "allowedOrigins": [
+                        "https://portal.azure.com"
+                    ],
+                    "supportCredentials": false
+                },
+                "localMySqlEnabled": false,
+                "ipSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 2147483647,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 2147483647,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictionsUseMain": false,
+                "http20Enabled": false,
+                "minTlsVersion": "1.2",
+                "scmMinTlsVersion": "1.2",
+                "ftpsState": "FtpsOnly",
+                "preWarmedInstanceCount": 0,
+                "functionAppScaleLimit": 200,
+                "functionsRuntimeScaleMonitoringEnabled": false,
+                "minimumElasticInstanceCount": 1,
+                "azureStorageAccounts": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2023-12-01",
+            "name": "[concat(parameters('sites_CSUEventPoller_name'), '/038ea3bf50bf426089132a107903c865')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_CSUEventPoller_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "ZipDeploy",
+                "message": "Created via a push deployment",
+                "start_time": "2024-08-05T13:54:06.0159772Z",
+                "end_time": "2024-08-05T13:54:07.2659808Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2023-12-01",
+            "name": "[concat(parameters('sites_CSUEventPoller_name'), '/0c78a176c1644a9db8759157d35f763d')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_CSUEventPoller_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "ZipDeploy",
+                "message": "Created via a push deployment",
+                "start_time": "2024-08-02T08:19:10.1935535Z",
+                "end_time": "2024-08-02T08:19:11.7579568Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2023-12-01",
+            "name": "[concat(parameters('sites_CSUEventPoller_name'), '/1755ff10ac014b10bd97ac4608b02e8d')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_CSUEventPoller_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "ZipDeploy",
+                "message": "Created via a push deployment",
+                "start_time": "2024-08-01T11:30:37.4388973Z",
+                "end_time": "2024-08-01T11:30:38.8795828Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2023-12-01",
+            "name": "[concat(parameters('sites_CSUEventPoller_name'), '/237431ed1d904fe88611225df2138cce')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_CSUEventPoller_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "ZipDeploy",
+                "message": "Created via a push deployment",
+                "start_time": "2024-08-05T14:02:43.1998649Z",
+                "end_time": "2024-08-05T14:02:44.4654835Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2023-12-01",
+            "name": "[concat(parameters('sites_CSUEventPoller_name'), '/43b81195756442e09237a828d07950f7')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_CSUEventPoller_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "ZipDeploy",
+                "message": "Created via a push deployment",
+                "start_time": "2024-08-01T11:37:21.5702947Z",
+                "end_time": "2024-08-01T11:37:23.0103259Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2023-12-01",
+            "name": "[concat(parameters('sites_CSUEventPoller_name'), '/4a9c469fa32947899430276d0f6bdf5f')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_CSUEventPoller_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "ZipDeploy",
+                "message": "Created via a push deployment",
+                "start_time": "2024-08-01T11:48:47.4627208Z",
+                "end_time": "2024-08-01T11:48:48.5877636Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2023-12-01",
+            "name": "[concat(parameters('sites_CSUEventPoller_name'), '/4c5b17d830c1421498592ebc971a1711')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_CSUEventPoller_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "ZipDeploy",
+                "message": "Created via a push deployment",
+                "start_time": "2024-08-06T09:56:39.8270319Z",
+                "end_time": "2024-08-06T09:56:41.3895806Z",
+                "active": true
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2023-12-01",
+            "name": "[concat(parameters('sites_CSUEventPoller_name'), '/4fb993fdf9064851985ea845c1a366c3')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_CSUEventPoller_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "ZipDeploy",
+                "message": "Created via a push deployment",
+                "start_time": "2024-08-01T12:01:12.5594226Z",
+                "end_time": "2024-08-01T12:01:13.7313178Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2023-12-01",
+            "name": "[concat(parameters('sites_CSUEventPoller_name'), '/8cd7f1545be34f3d97f60ed6314e8e82')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_CSUEventPoller_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "ZipDeploy",
+                "message": "Created via a push deployment",
+                "start_time": "2024-08-05T12:33:35.629252Z",
+                "end_time": "2024-08-05T12:33:37.4155742Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2023-12-01",
+            "name": "[concat(parameters('sites_CSUEventPoller_name'), '/f0bd30f9be0c417889b6adb949421450')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_CSUEventPoller_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "N/A",
+                "author": "N/A",
+                "deployer": "ZipDeploy",
+                "message": "Created via a push deployment",
+                "start_time": "2024-08-05T14:17:48.7173522Z",
+                "end_time": "2024-08-05T14:17:49.8736019Z",
+                "active": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/functions",
+            "apiVersion": "2023-12-01",
+            "name": "[concat(parameters('sites_CSUEventPoller_name'), '/PollCSUEvents')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_CSUEventPoller_name'))]"
+            ],
+            "properties": {
+                "script_root_path_href": "https://csueventpoller.azurewebsites.net/admin/vfs/site/wwwroot/PollCSUEvents/",
+                "script_href": "https://csueventpoller.azurewebsites.net/admin/vfs/site/wwwroot/bin/CSUEventPollerFunctionApp.dll",
+                "config_href": "https://csueventpoller.azurewebsites.net/admin/vfs/site/wwwroot/PollCSUEvents/function.json",
+                "test_data_href": "https://csueventpoller.azurewebsites.net/admin/vfs/data/Functions/sampledata/PollCSUEvents.dat",
+                "href": "https://csueventpoller.azurewebsites.net/admin/functions/PollCSUEvents",
+                "config": {
+                    "generatedBy": "Microsoft.NET.Sdk.Functions.Generator-4.4.0",
+                    "configurationSource": "attributes",
+                    "bindings": [
+                        {
+                            "type": "timerTrigger",
+                            "schedule": "0 */1 * * * *",
+                            "useMonitor": true,
+                            "runOnStartup": false,
+                            "name": "myTimer"
+                        }
+                    ],
+                    "disabled": false,
+                    "scriptFile": "../bin/CSUEventPollerFunctionApp.dll",
+                    "entryPoint": "PollCSUEvents.Run"
+                },
+                "language": "DotNetAssembly",
+                "isDisabled": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/hostNameBindings",
+            "apiVersion": "2023-12-01",
+            "name": "[concat(parameters('sites_CSUEventPoller_name'), '/', parameters('sites_CSUEventPoller_name'), '.azurewebsites.net')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_CSUEventPoller_name'))]"
+            ],
+            "properties": {
+                "siteName": "CSUEventPoller",
+                "hostNameType": "Verified"
+            }
+        }
+    ]
+}

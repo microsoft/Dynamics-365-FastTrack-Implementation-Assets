@@ -1,0 +1,15 @@
+<customapi uniquename="SA_Checkout">
+  <allowedcustomprocessingsteptype>1</allowedcustomprocessingsteptype>
+  <bindingtype>0</bindingtype>
+  <description default="Checkout Custom API">
+    <label description="Checkout Custom API" languagecode="1033" />
+  </description>
+  <displayname default="SA_Checkout">
+    <label description="SA_Checkout" languagecode="1033" />
+  </displayname>
+  <iscustomizable>1</iscustomizable>
+  <isfunction>0</isfunction>
+  <isprivate>0</isprivate>
+  <name>SA_Checkout</name>
+  <workflowsdkstepenabled>0</workflowsdkstepenabled>
+</customapi>

@@ -1,0 +1,12 @@
+<customapirequestparameter uniquename="checkoutparm">
+  <description default="string of the JSON payload">
+    <label description="string of the JSON payload" languagecode="1033" />
+  </description>
+  <displayname default="checkoutparm">
+    <label description="checkoutparm" languagecode="1033" />
+  </displayname>
+  <iscustomizable>1</iscustomizable>
+  <isoptional>0</isoptional>
+  <name>checkoutparm</name>
+  <type>10</type>
+</customapirequestparameter>

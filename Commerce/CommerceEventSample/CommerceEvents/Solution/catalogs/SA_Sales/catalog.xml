@@ -1,0 +1,10 @@
+<catalog uniquename="SA_Sales">
+  <description default="SA_Sales">
+    <label description="SA_Sales" languagecode="1033" />
+  </description>
+  <displayname default="SA_Sales">
+    <label description="SA_Sales" languagecode="1033" />
+  </displayname>
+  <iscustomizable>1</iscustomizable>
+  <name>SA_Sales</name>
+</catalog>

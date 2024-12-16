@@ -1,0 +1,12 @@
+<customapirequestparameter uniquename="msdynmkt_profileid">
+  <description default="msdynmkt_profileid">
+    <label description="msdynmkt_profileid" languagecode="1033" />
+  </description>
+  <displayname default="Profile Id">
+    <label description="Profile Id" languagecode="1033" />
+  </displayname>
+  <iscustomizable>0</iscustomizable>
+  <isoptional>0</isoptional>
+  <name>msdynmkt_profileid</name>
+  <type>10</type>
+</customapirequestparameter>

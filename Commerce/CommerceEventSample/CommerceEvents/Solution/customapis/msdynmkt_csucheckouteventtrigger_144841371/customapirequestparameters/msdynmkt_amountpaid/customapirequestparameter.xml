@@ -1,0 +1,12 @@
+<customapirequestparameter uniquename="msdynmkt_amountpaid">
+  <description default="msdynmkt_amountpaid">
+    <label description="msdynmkt_amountpaid" languagecode="1033" />
+  </description>
+  <displayname default="AmountPaid">
+    <label description="AmountPaid" languagecode="1033" />
+  </displayname>
+  <iscustomizable>0</iscustomizable>
+  <isoptional>0</isoptional>
+  <name>msdynmkt_amountpaid</name>
+  <type>2</type>
+</customapirequestparameter>
