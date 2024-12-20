@@ -1,7 +1,7 @@
 # Vendor Self-Service
 
 ## Overview
-The Vendor Self-Service solution enables organizations using Dynamics 365 Field Service to efficiently manage external vendors and contractors. This solution automates the process of setting up vendor resources, managing their characteristics, and handling their access to the system.
+The Vendor Self-Service solution enables organizations using Dynamics 365 Field Service to efficiently manage external vendors and contractors. This solution automates the process of setting up vendor resources, managing their characteristics, and handling their access to the system. Ultimately these resources can then login to the Field Service mobile app to do field work.
 
 ## Architecture
 
@@ -29,7 +29,10 @@ The Vendor Self-Service solution enables organizations using Dynamics 365 Field 
 1. Download the solution ZIP file from the repository
 2. Import the solution (unmanaged) into your environment
 3. Set environment variables on solution import with your 4 Azure Function URIs, the License SKU Id (the GUID of the license to apply to vendor resources, typically Field Service Contractor, GUID can be obtained from the M365 portal or Entra portal) and Entra Security Group Id (the GUID of the security group providing D365 privilages via security roles)
-4. Publish all customizations
+Azure Function URIs can be obtained from the Azure Portal
+License SKU Id can be obtained from the M365 admin portal's licensing page, by clicking on the desired license and copying the GUID at the end of the URL
+Entra Security Group Id can be obtained from the Entra or Azure Portals via navigating to the group and copying the displayed Id
+5. Publish all customizations
 
 ## Usage
 
@@ -45,6 +48,7 @@ The actual users of this solution are the vendor administrators themselves. All 
    - Assigns your designated license
    - Adds user to your designated security group
    - Creates bookable resource upon creation of user record
+5. Once the user accepts their invite, they can then login to the Field Service mobile app to do field work
 
 ### Syncing changes from vendor resources to backend bookable resources
 Fields on the Contact that have matching fields on the bookable resource sync automatically via plugin. The plugin is synchronous so any errors surfaced on the bookable resource will get presented to the vendor administrator.
