@@ -4,18 +4,23 @@
 The Vendor Self-Service solution enables organizations using Dynamics 365 Field Service to efficiently manage external vendors and contractors. This solution automates the process of setting up vendor resources, managing their characteristics, and handling their access to the system. Ultimately these resources can then login to the Field Service mobile app to do field work.
 
 ## Architecture
+![](Images/architecture.png)
 
 ### Components
 1. **Dynamics 365 Solution**
    - Custom entities for vendor management in a lightweight model-driven app
    - Plugins for automated resource setup and real-time syncing of Field Service configurations and characteristics
    - Power Automate flows for vendor lifecycle management via Azure Function calls
+   
+   ![](Images/solutioncomponents.png)
 
 2. **Azure Functions**
    - InviteVendorResource
    - AssignUserLicense
    - RemoveUserLicense
    - AddToEntraIDGroup
+
+   ![](Images/azurefunctions.png)
 
 ## Setup Steps
 
@@ -27,12 +32,15 @@ The Vendor Self-Service solution enables organizations using Dynamics 365 Field 
 
 ### Dynamics 365 Solution
 1. Download the solution ZIP file from the repository
-2. Import the solution (unmanaged) into your environment
+2. Import the solution (unmanaged) into your environment - note the solution dependencies below:
+![](Images/dependencies.png)
 3. Set environment variables on solution import with your 4 Azure Function URIs, the License SKU Id (the GUID of the license to apply to vendor resources, typically Field Service Contractor, GUID can be obtained from the M365 portal or Entra portal) and Entra Security Group Id (the GUID of the security group providing D365 privilages via security roles)
-   - Azure Function URIs can be obtained from the Azure Portal
+   ![](Images/solutionvariables.png)
+   - Azure Function URIs can be obtained from the Azure Portal Functions themselves
    - License SKU Id can be obtained from the M365 admin portal's licensing page, by clicking on the desired license and copying the GUID at the end of the URL
+     ![](Images/licenseid.png)
    - Entra Security Group Id can be obtained from the Entra or Azure Portals via navigating to the group and copying the displayed Id
-5. Publish all customizations
+4. Publish all customizations
 
 ## Usage
 
