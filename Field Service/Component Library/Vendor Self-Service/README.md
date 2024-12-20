@@ -29,9 +29,9 @@ The Vendor Self-Service solution enables organizations using Dynamics 365 Field 
 1. Download the solution ZIP file from the repository
 2. Import the solution (unmanaged) into your environment
 3. Set environment variables on solution import with your 4 Azure Function URIs, the License SKU Id (the GUID of the license to apply to vendor resources, typically Field Service Contractor, GUID can be obtained from the M365 portal or Entra portal) and Entra Security Group Id (the GUID of the security group providing D365 privilages via security roles)
-Azure Function URIs can be obtained from the Azure Portal
-License SKU Id can be obtained from the M365 admin portal's licensing page, by clicking on the desired license and copying the GUID at the end of the URL
-Entra Security Group Id can be obtained from the Entra or Azure Portals via navigating to the group and copying the displayed Id
+   - Azure Function URIs can be obtained from the Azure Portal
+   - License SKU Id can be obtained from the M365 admin portal's licensing page, by clicking on the desired license and copying the GUID at the end of the URL
+   - Entra Security Group Id can be obtained from the Entra or Azure Portals via navigating to the group and copying the displayed Id
 5. Publish all customizations
 
 ## Usage
