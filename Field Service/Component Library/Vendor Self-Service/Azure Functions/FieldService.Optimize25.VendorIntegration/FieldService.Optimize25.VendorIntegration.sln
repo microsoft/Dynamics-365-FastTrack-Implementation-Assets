@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35431.28
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FieldService.Optimize25.VendorIntegration", "FieldService.Optimize25.VendorIntegration.csproj", "{CBE6B220-3633-46EB-B6A3-D647A5999366}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CBE6B220-3633-46EB-B6A3-D647A5999366}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBE6B220-3633-46EB-B6A3-D647A5999366}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBE6B220-3633-46EB-B6A3-D647A5999366}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBE6B220-3633-46EB-B6A3-D647A5999366}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EA37CCCA-DD68-4B2C-AC23-85319C060E67}
+	EndGlobalSection
+EndGlobal
