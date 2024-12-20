@@ -11,3 +11,6 @@ A Power Apps Component Framework (PCF) control that enhances Dynamics 365 Field 
 ### Schedule Board Settings Management Component (Virtual)
 
 A specialized virtual PCF control variant of the Schedule Board Settings Management PCF control. This component provides the same robust configuration management capabilities as the standard version but is using the virtual PCF control framework for faster load times and a smaller bundle.js file size.
+
+## Vendor Self-Service
+The Vendor Self-Service solution enables organizations using Dynamics 365 Field Service to efficiently manage external vendors and contractors. This solution automates the process of setting up vendor resources, managing their characteristics, and handling their access to the system. Ultimately these resources can then login to the Field Service mobile app to do field work.
