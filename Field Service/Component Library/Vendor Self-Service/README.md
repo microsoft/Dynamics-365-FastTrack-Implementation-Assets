@@ -34,9 +34,28 @@ The Vendor Self-Service solution enables organizations using Dynamics 365 Field 
 ## Usage
 
 ### Setting up a new vendor administrator
+The actual users of this solution are the vendor administrators themselves. All functionalities are available to system admins in Dynamics 365. However, to setup a new vendor admin, simply give them the included Field Service - Vendor Admin security role, ensure they have access to the Vendor Administration model driven app, and that's it.
+
 ### Provisioning new vendor resources
+1. Create a Contact record
+2. Fill in required vendor information (at least name and email, but address is recommended as well if location-aware scheduling is needed), save record, add desired Vendor Technician Characteristics
+3. Set the "Setup Technician" flag to true
+4. System automatically:
+   - Sends invitation via Azure B2B to the email on the Contact and creates a user in Entra
+   - Assigns your designated license
+   - Adds user to your designated security group
+   - Creates bookable resource upon creation of user record
+
 ### Syncing changes from vendor resources to backend bookable resources
+Fields on the Contact that have matching fields on the bookable resource sync automatically via plugin. The plugin is synchronous so any errors surfaced on the bookable resource will get presented to the vendor administrator.
+Vendor Technician Characteristics created or deleted on the Contact will sync to the bookable resource characteristics for the bookable resource.
+Should the address change from initial values on the Contact, you must re-geocode the record manually using the Geo Code button in the command bar of the contact.
+Work Hours are surfaced with a form-within-a-form OOB control and operate no differently than adjusting work hours via the bookable resource form.
+
 ### Deprovisioning and reprovisioning existing vendor resources
+**Note: Do not set the Setup Technician toggle to off**
+To deprovision a resource, simply deactivate the Contact record. This will unassign the license from the respective Entra user and ultimately deactivate the system user.
+Conversely, to reprovision an existing resource, simply reactivate the Contact record. This will reassign the license to the respective Entra user and ultimately reactivate the system user.
 
 ## Disclaimer
 
