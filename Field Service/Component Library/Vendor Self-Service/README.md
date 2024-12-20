@@ -51,15 +51,15 @@ The actual users of this solution are the vendor administrators themselves. All 
 5. Once the user accepts their invite, they can then login to the Field Service mobile app to do field work
 
 ### Syncing changes from vendor resources to backend bookable resources
-Fields on the Contact that have matching fields on the bookable resource sync automatically via plugin. The plugin is synchronous so any errors surfaced on the bookable resource will get presented to the vendor administrator.
-Vendor Technician Characteristics created or deleted on the Contact will sync to the bookable resource characteristics for the bookable resource.
-Should the address change from initial values on the Contact, you must re-geocode the record manually using the Geo Code button in the command bar of the contact.
-Work Hours are surfaced with a form-within-a-form OOB control and operate no differently than adjusting work hours via the bookable resource form.
+- Fields on the Contact that have matching fields on the bookable resource sync automatically via plugin. The plugin is synchronous so any errors surfaced on the bookable resource will get presented to the vendor administrator.
+- Vendor Technician Characteristics created or deleted on the Contact will sync to the bookable resource characteristics for the bookable resource.
+- Should the address change from initial values on the Contact, you must re-geocode the record manually using the Geo Code button in the command bar of the contact.
+- Work Hours are surfaced with a form-within-a-form OOB control and operate no differently than adjusting work hours via the bookable resource form.
 
 ### Deprovisioning and reprovisioning existing vendor resources
 **Note: Do not set the Setup Technician toggle to off**
-To deprovision a resource, simply deactivate the Contact record. This will unassign the license from the respective Entra user and ultimately deactivate the system user.
-Conversely, to reprovision an existing resource, simply reactivate the Contact record. This will reassign the license to the respective Entra user and ultimately reactivate the system user.
+- To deprovision a resource, simply deactivate the Contact record. This will unassign the license from the respective Entra user and ultimately deactivate the system user.
+- Conversely, to reprovision an existing resource, simply reactivate the Contact record. This will reassign the license to the respective Entra user and ultimately reactivate the system user.
 
 ## Disclaimer
 
