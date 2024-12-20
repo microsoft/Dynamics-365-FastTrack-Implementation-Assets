@@ -26,7 +26,7 @@ The Vendor Self-Service solution enables organizations using Dynamics 365 Field 
 
 ### Azure Functions
 1. Provison an Azure Function App (or leverage an existing one)
-2. Deploy Azure Functions to Function App
+2. Deploy Azure Functions to Function App (Guide: https://learn.microsoft.com/en-us/azure/azure-functions/functions-create-your-first-function-visual-studio#publish-the-project-to-azure)
 3. Ensure ClientId, ClientSecret, and TenantId environment variables are populated with a service principal that has rights to send Azure B2B invites, create users, add users to Entra security groups, and apply/remove M365 licenses
 4. Ensure Functions are turned on and available to be invoked from Power Automate flows in your tenant
 
