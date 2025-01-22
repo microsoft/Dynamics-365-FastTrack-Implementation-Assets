@@ -4,7 +4,7 @@
 
 The built-in master planning engine is deprecated and is being replaced by the Planning Optimization Add-in for Microsoft Dynamics 365 Supply Chain Management.  
 Planning Optimization enables master planning calculations to occur outside of Supply Chain Management and its Azure SQL database. The benefits that are associated with Planning Optimization include improved performance and minimized impact on the SQL database during master planning runs. Given, quick planning runs can be done even during office hours, planners can immediately react to demand or parameter changes. 
-For more information about Planning Optimization, see ![Master planning system architecture](https://learn.microsoft.com/en-us/dynamics365/supply-chain/master-planning/master-planning-architecture)
+For more information about Planning Optimization, see [Master planning system architecture](https://learn.microsoft.com/en-us/dynamics365/supply-chain/master-planning/master-planning-architecture)
 
 # Why do we need a comparison report?
 It may be a challenge for customers that are currently using the existing deprecated planning to move to Planning Optimization, and this comparison report together with the indications on this page can help customers feel more comfortable with the move, as well as saving them time by enabling them to focus only on the items where they see differences in Number of orders, Quantity, Number of products and Percentage of change. 
@@ -22,7 +22,7 @@ The necessary tables outlined under ‘Setup required tables’ step 1.3. should
 Use a Dynamics 365 environment preferably UAT environment with data very close to the production environment, with access to planning parameters to generate a master plan and an Optimization plan. 
 # •	Power BI Desktop application
 Power BI Desktop is a free application you install on your local computer that lets you connect to, transform, and visualize your data. With Power BI Desktop, you can connect to multiple different sources of data, and combine them (often called modeling) into a data model. This data model lets you build visuals, and collections of visuals you can share as reports, with other people inside your organization. 
-You can get the most recent version of Power BI Desktop from the ![Windows Store](https://aka.ms/pbidesktopstore), or as a single executable containing all supported languages that you ![download](https://www.microsoft.com/en-us/download/details.aspx?id=58494) and install on your computer.
+You can get the most recent version of Power BI Desktop from the [Windows Store](https://aka.ms/pbidesktopstore), or as a single executable containing all supported languages that you [download](https://www.microsoft.com/en-us/download/details.aspx?id=58494) and install on your computer.
 # High level scenario
 •	In Dynamics 365 F&SCM application, generate a plan using the existing legacy master plan - (Plan A)
 
@@ -112,6 +112,6 @@ On the report output, any differences between the corresponding values of number
 As shown in the below screenshot, ‘Planned production orders’ were drilled down in ‘Orders overview’ and the corresponding planned production orders for each month and each item are displayed dynamically in the respective report controls ‘Order by delivery data month’ and ‘Order by item’.
  
 The attributes for the discrepancies between master planning and planning optimization are explained in the following links.
-![Differences between Planning Optimization and the deprecated master planning engine](https://learn.microsoft.com/en-us/dynamics365/supply-chain/master-planning/planning-optimization/planning-optimization-differences-with-built-in)
+[Differences between Planning Optimization and the deprecated master planning engine](https://learn.microsoft.com/en-us/dynamics365/supply-chain/master-planning/planning-optimization/planning-optimization-differences-with-built-in)
 
-![Parameters not used by Planning Optimization](https://learn.microsoft.com/en-us/dynamics365/supply-chain/master-planning/planning-optimization/not-used-parameters)
+[Parameters not used by Planning Optimization](https://learn.microsoft.com/en-us/dynamics365/supply-chain/master-planning/planning-optimization/not-used-parameters)
