@@ -83,7 +83,7 @@ https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/connect-overview
 ![Pic7](Images/Picture7.png) 
 
 1.7.	Use the attached script below to create a new Schema ‘ReqPlan’ and the required views ‘EcoResProductSystemLanguage’ and ‘ReqPlannedOrderEntity’ in the database.
-![Script](Script/Required schemas view creation script.sql)
+[Script](Script/Requiredschemasviewcreationscript.sql)
 
 ![Pic8](Images/Picture8.png)  
 
