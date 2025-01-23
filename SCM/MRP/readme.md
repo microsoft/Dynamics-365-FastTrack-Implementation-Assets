@@ -92,6 +92,7 @@ Once the required data objects like tables and views are available in the Synaps
 
 # 2.	Execute the report
 Download the PowerBI report [PowerBI](PowerBI/PlanComparisonReport_AzureSynapse.pbix)
+
 2.1.	Open the report design ‘PlanComparisonReport_AzureSynapse’ using ‘Power BI Desktop’ application. Click on ‘Transform data’ drop down list and select ‘Edit parameters’ option.
 ![Pic9](Images/Picture9.png)
 2.2.	Provide the Synapse Serverless SQL Endpoint as Server and database name as parameter values and click ‘Ok’.
