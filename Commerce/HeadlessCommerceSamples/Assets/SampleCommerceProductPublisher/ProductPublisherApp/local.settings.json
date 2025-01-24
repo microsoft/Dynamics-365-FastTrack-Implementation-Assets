@@ -1,0 +1,17 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "CLIENTID": "",
+    "CLIENTSECRET": "",
+    "CSUURL": "",
+    "AUTHORITY": "",
+    "OUN": "128",
+    "AUDIENCE": "",
+    "TENANTID": "",
+    "CATALOGID": 0,
+    "DEFAULTPAGESIZE": 100,
+    "PUBLISHPRICES": true
+  }
+}
