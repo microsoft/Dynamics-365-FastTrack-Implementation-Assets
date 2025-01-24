@@ -113,7 +113,7 @@
                               "source": {
                                 "type": "SqlServerSource",
                                 "sqlReaderQuery": {
-                                  "value": "select * from @{pipeline().parameters.Schema}.@{item().TableName}",
+                                  "value": "DECLARE @MyTableSchema NVARCHAR(60)\n\t,@MyTableName NVARCHAR(128)\n\t,@DynamicSQL NVARCHAR(MAX);\n\nSELECT \n\t@MyTableSchema = '@{pipeline().parameters.Schema}',\n\t@MyTableName = '@{item().TableName}';\n\nSET @DynamicSQL = N'SELECT ';\n\nSELECT @DynamicSQL = @DynamicSQL + COLUMN_NAME + ', '\nFROM INFORMATION_SCHEMA.COLUMNS\nWHERE TABLE_NAME = @MyTableName\n\tAND TABLE_SCHEMA = @MyTableSchema\nORDER BY ORDINAL_POSITION ASC;\n\n-- Remove the trailing comma and add the rest of your query\nSET @DynamicSQL = LEFT(@DynamicSQL, LEN(@DynamicSQL) - 1) + ' FROM ' + @MyTableName;\n\n-- Execute the dynamically generated SQL statement\nEXEC sp_executesql @DynamicSQL;",
                                   "type": "Expression"
                                 },
                                 "queryTimeout": "02:00:00",
