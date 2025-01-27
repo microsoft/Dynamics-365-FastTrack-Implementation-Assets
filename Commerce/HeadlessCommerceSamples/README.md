@@ -1,7 +1,5 @@
 # Dynamics 365 Headless Commerce Integration
 
-[[_TOC_]]
-
 ## Overview
 
 This documentation is intended to help customers and partners kickstart and accelerate Dynamics 365 Commerce Headless Commerce integrations.
@@ -16,9 +14,9 @@ APIs synchronize data between third-party commerce platforms and Dynamics 365 Co
 
 The Dynamics 365 Commerce Scale Unit (CSU) acts as the middle layer, connecting any app or endpoint to the backend.
 
-![Headless Commerce Architecture](./resources/architecture.png "Headless Commerce Architecture")
+![Headless Commerce Architecture](../HeadlessCommerceSamples/Resources/Architecture.png)
 
-More information in the [Architecture](./docs/architecture/architecture.md) documentation.
+More information in the [Architecture](./Docs/Architecture/architecture.md) documentation.
 
 ## Benefits of Headless Commerce Integration
 
@@ -41,22 +39,22 @@ More information in the [Architecture](./docs/architecture/architecture.md) docu
 
 This repository is composed of documentation folders describing the architecture and the key components of the data model/APIs for the integration.
 
-#### Folder structure
+### Folder structure
 
-| Folder   |                                                                                      | Description                                                                                                                                                                                                                                                                                         |
-| -------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Docs\    |                                                                                      |
-|          | [Architecture](./docs/architecture/architecture.md)                                  | A an overview of headless integration patterns and concepts.                                                                                                                                                                                                                                        |
-|          | [Customers](./docs/customers/customers.overview.md)                                  | Details for integrating Customer master data.                                                                                                                                                                                                                                                       |
-|          | Inventory <!-- [Inventory](./docs/inventory/inventory.overview.md) -->               | Coming Soon.                                                                                                                                                                                                                                                                                        |
-|          | Orders <!-- [Orders](./docs/orders/orders.overview.md) -->                           | Coming soon.                                                                                                                                                                                                                                                                                        |
-|          | Payments <!-- [Payments](./docs/payments/payments.overview.md) -->                   | Coming soon.                                                                                                                                                                                                                                                                                        |
-|          | [Prices](./docs/prices/prices.overview.md)                                           | Details for integrating product pricing and discounts.                                                                                                                                                                                                                                              |
-|          | [Products](./docs/products/products.overview.md)                                     | Details for integrating product master data.                                                                                                                                                                                                                                                        |
-| Assets\  |                                                                                      | Code samples and tools                                                                                                                                                                                                                                                                              |
-|          | [HeadlessCommerceCommonAPICollection](./Assets/HeadlessCommerceCommonAPICollection/) | This collection provides a set of common headless commerce APIs to help understand and interact with them using Insomnia                                                                                                                                                                            |
+| Folder   |       | Description        |
+| -------- | ----- | ------------------ |
+| Docs\    |       |
+|          | [Architecture](./Docs/Architecture/architecture.md)                                  | A an overview of headless integration patterns and concepts.                                                             |
+|          | [Customers](./Docs/Customers/customers.overview.md)                                  | Details for integrating Customer master data.                   |
+|          | Inventory <!-- [Inventory](./Docs/Inventory/inventory.overview.md) -->               | Coming Soon.                                                                                                  
+|          | Orders <!-- [Orders](./Docs/Orders/orders.overview.md) -->                           | Coming soon.                                                    |
+|          | Payments <!-- [Payments](./Docs/Payments/payments.overview.md) -->                   | Coming soon.                                                    |
+|          | [Prices](./Docs/Prices/prices.overview.md)                                           | Details for integrating product pricing and discounts.                                                                   |
+|          | [Products](./Docs/Products/products.overview.md)                                     | Details for integrating product master data.                                                                             |
+| Assets\  |                                                                                      | Code samples and tools                                                                                           |
+|          | [HeadlessCommerceCommonAPICollection](./Assets/HeadlessCommerceCommonAPICollection/) | This collection provides a set of common headless commerce APIs to help understand and interact with them using Insomnia                                                          |
 |          | [SampleCommerceProductPublisher](./Assets/SampleCommerceProductPublisher/README.md)  | To help kickstart the Product integration, we provide a sample code of a Function App and a publisher component that uses Dynamics 365 Retail Proxy to perform the API calls to the Headless Commerce Engine APIs and retrieve the product information based on changes in the product information. |
-|          | [SampleCustomerCreateSearch](./Assets/SampleCustomerCreateSearch/)                   | Logic app samples to create a new customer and to search for a customer using headless APIs.                                                                                                                                                                                                        |
+|          | [SampleCustomerCreateSearch](./Assets/SampleCustomerCreateSearch/)                   | Logic app samples to create a new customer and to search for a customer using headless APIs.                              |
 
 ### Assets Notes
 
@@ -65,7 +63,7 @@ This repository is composed of documentation folders describing the architecture
 - Import the provided Insomnia collection into your Insomnia workspace.
 - Use the predefined requests to interact with the headless commerce APIs.
 - You will need to configure your Insomnia environment with your own required keys and secrets.
-- Refer to the [API documentation] (https://learn.microsoft.com/en-us/dynamics365/commerce/dev-itpro/retail-server-customer-consumer-api) for detailed information on each endpoint.
+- Refer to the headless commerce [API documentation](https://learn.microsoft.com/en-us/dynamics365/commerce/dev-itpro/retail-server-customer-consumer-api) for detailed information on each endpoint.
 
 ## Contributing
 

@@ -1,7 +1,4 @@
-# Product integration
-
-[[_TOC_]]
-
+# Product Integration
 
 ### Integration approach
 
@@ -56,7 +53,7 @@ To make it easier and provide a kickstart, there is a product publisher example 
 
 As part of this documentation, we provide a sample publisher code for your reference.
 
-Please check [Sample Product Publisher](./assets/samplecommerceproductpublisher) for the source code and further documentation.
+Please check [Sample Product Publisher](../../Assets/SampleCommerceProductPublisher/README.md) for the source code and further documentation.
 
 ### What does the publisher do, and why do I need one?
 
@@ -88,7 +85,7 @@ As mentioned earlier, this process is computationally expensive, and the workloa
 * ReadChangedProducts
 * EndReadChangedProducts
 
-![publisher flow](../../resources/products.publisher.diagram.png)
+![publisher flow](../../Resources/products.publisher.diagram.png)
 
 This is part of the [Products Controller](https://learn.microsoft.com/en-us/dynamics365/commerce/dev-itpro/retail-server-customer-consumer-api#products-controller) in the Commerce Scale Unit.  
 
