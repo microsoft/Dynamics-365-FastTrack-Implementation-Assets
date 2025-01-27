@@ -63,7 +63,7 @@ This repository is composed of documentation folders describing the architecture
 - Import the provided Insomnia collection into your Insomnia workspace.
 - Use the predefined requests to interact with the headless commerce APIs.
 - You will need to configure your Insomnia environment with your own required keys and secrets.
-- Refer to the [API documentation](https://learn.microsoft.com/en-us/dynamics365/commerce/dev-itpro/retail-server-customer-consumer-api) for detailed information on each endpoint.
+- Refer to the headless commerce [API documentation](https://learn.microsoft.com/en-us/dynamics365/commerce/dev-itpro/retail-server-customer-consumer-api) for detailed information on each endpoint.
 
 ## Contributing
 
