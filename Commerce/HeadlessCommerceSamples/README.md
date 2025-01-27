@@ -16,9 +16,9 @@ APIs synchronize data between third-party commerce platforms and Dynamics 365 Co
 
 The Dynamics 365 Commerce Scale Unit (CSU) acts as the middle layer, connecting any app or endpoint to the backend.
 
-![Headless Commerce Architecture](./resources/architecture.png "Headless Commerce Architecture")
+![Headless Commerce Architecture](../HeadlessCommerceSamples/Resources/Architecture.png)
 
-More information in the [Architecture](./docs/architecture/architecture.md) documentation.
+More information in the [Architecture](./Docs/Architecture/architecture.md) documentation.
 
 ## Benefits of Headless Commerce Integration
 
