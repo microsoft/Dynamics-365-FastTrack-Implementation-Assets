@@ -1,9 +1,9 @@
-# Prices
+# Price and Discount Integration
 
 ## Synchronizing prices from Dynamics 365 with an external marketing platform
 There are two primary patterns to use when integrating your external marketing system with Dynamics 365 Commerce.  The first pattern is on-demand (aka "real-time") integration (e.g., product detail page or search results/list page). The second pattern is asynchronous where a prices are fetched in bulk from Dynamics 365 Commerce and then stored in the external marketing platform.  Both patterns are illustrated in this diagram.
 
-![Interaction diagram](../../resources/prices.interaction.png)
+![Interaction diagram](../../Resources/prices.interaction.png)
 
 ### On-demand price calculation
 There are two flavors of on-demand pricing.  The first is **cart-based pricing** which considers the entire cart contents.  This allows for quantity, threshold (spend at least $X), and mix & and match (aka "buy one get one" BOGO) discounts as well as customer-specific and affiliation rules.  This pattern requires creating the entire cart in Headless Commerce in order for the price calculation to be accurate. <!-- Commented out until order page is published. Order and cart management is covered in the [orders](../orders/orders.overview.md) page. -->
