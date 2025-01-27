@@ -8,7 +8,7 @@ The integration process assumes that customers are initially created in the exte
 
 ## Architecture
 
-![Architecture diagram](../../resources/customers.architecture.png)
+![Architecture diagram](../../Resources/customers.architecture.png)
 
 ## Integration Overview
 

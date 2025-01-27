@@ -88,7 +88,7 @@ As mentioned earlier, this process is computationally expensive, and the workloa
 * ReadChangedProducts
 * EndReadChangedProducts
 
-![publisher flow](../../resources/products.publisher.diagram.png)
+![publisher flow](../../Resources/products.publisher.diagram.png)
 
 This is part of the [Products Controller](https://learn.microsoft.com/en-us/dynamics365/commerce/dev-itpro/retail-server-customer-consumer-api#products-controller) in the Commerce Scale Unit.  
 

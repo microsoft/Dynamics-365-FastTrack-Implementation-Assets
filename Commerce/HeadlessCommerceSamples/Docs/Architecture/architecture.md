@@ -14,7 +14,7 @@ The **Headless Commerce Engine** is the core microservice of Dynamics 365 Commer
 
 ## Integration Architecture
 
-![Diagram](../../resources/Architecture.png)
+![Diagram](../../Resources/Architecture.png)
 
 Headless Commerce is a modern, scalable service designed to handle essential functions such as product discovery (search), order creation, and store operations. It facilitates order creation and asynchronously relays order details to Headquarters, which manages the order lifecycle. While Headless Commerce is extensible and allows for a wide range of customizations, it is recommended to keep customizations focused and within the scope of its original workloads.
 
