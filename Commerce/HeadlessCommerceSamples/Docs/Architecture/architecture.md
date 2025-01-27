@@ -1,6 +1,4 @@
-# Headless Commerce
-
-[[_TOC_]]
+# Headless Commerce Architecture
 
 ## Overview
 
@@ -53,12 +51,12 @@ When designing your integration strategy, consider grouping your activities by b
 
 | Scenario                                       | Direction                                | Patterns                                                                                                                                                                     | Notes                                                                                                                                                                                  |
 | ---------------------------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Price](../prices/Prices.overview.md)          | From D365 to external system<sup>1</sup> | Real-time pricing can be retrieved using GetActivePrices(). For asynchronous product price lists, use the product publishing framework to export data to external platforms. | Dynamics 365 has complex pricing and discounting logic that is challenging to replicate elsewhere. Only simple price list exports are feasible.                                        |
+| [Price](../Prices/Prices.overview.md)          | From D365 to external system<sup>1</sup> | Real-time pricing can be retrieved using GetActivePrices(). For asynchronous product price lists, use the product publishing framework to export data to external platforms. | Dynamics 365 has complex pricing and discounting logic that is challenging to replicate elsewhere. Only simple price list exports are feasible.                                        |
 | [Customer](../Customers/customers.overview.md) | From external system to D365             | This pattern involves sending the "Customer" payload to Dynamics 365 based on specific business events.                                                                      | Use the customer APIs in Dynamics 365 Commerce to verify if the customer exists. If the customer does not exist, create a new record; otherwise, update the existing customer details. |
-| [Product](../Products/products.overview.md)    | From D365 to external system<sup>1</sup> | Product publishing framework                                                                                                                                                 |                                                                                                                                                                                        |
-| [Inventory]()                                  | Coming soon                              |                                                                                                                                                                              |                                                                                                                                                                                        |
-| [Order creation]()<sup>2</sup>                 | Coming soon                              |                                                                                                                                                                              |                                                                                                                                                                                        |
-| [Payments]()                                   | Coming soon                              |                                                                                                                                                                              |                                                                                                                                                                                        |
+| [Product](../Products/products.overview.md)    | From D365 to external system<sup>1</sup> | Product publishing framework                                                                                                                                               | 
+ | [Inventory](../Inventory/inventory.overview.md)  |       | Coming soon    |    |   |
+| [Order creation](../Orders/orders.overview.md)<sup>2</sup>   |      | Coming soon    |    |      |
+| [Payments](../Payments/payments.overview.md)     |     | Coming soon   |    |      |
 
 **Footnote 1:** Headless Commerce does not natively publish events, so the middleware will either need an external event or to set a timer. See our article on using the product publisher to detect changes in product and related data (e.g., prices).
 

@@ -1,7 +1,4 @@
-# Product integration
-
-[[_TOC_]]
-
+# Product Integration
 
 ### Integration approach
 
