@@ -53,7 +53,7 @@ To make it easier and provide a kickstart, there is a product publisher example 
 
 As part of this documentation, we provide a sample publisher code for your reference.
 
-Please check [Sample Product Publisher](./assets/samplecommerceproductpublisher) for the source code and further documentation.
+Please check [Sample Product Publisher](../../Assets/SampleCommerceProductPublisher/README.md) for the source code and further documentation.
 
 ### What does the publisher do, and why do I need one?
 
