@@ -1,4 +1,4 @@
-## Overview:
+## Using EntityUtil to create Entity shapes in Synapse and Fabric:
 The utility provided and outlined below is built to assist in migrating from BYOD to Synapse Link. As known there are [rules](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/rowversion-change-track#enable-row-version-change-tracking-for-data-entities)  that need to be followed by entities so that they can be exported via Synapse Link. As not all entities support these rules this utility has been created to recreate those entities that are not supported as views in an Azure Synapse database or an Azure SQL database. 
 
 If the customer would like to leverage Fabric, this tool can be used to create the entities as VIEWS within Fabric. However it is necessary to create all of the inherited tables, as views, within Fabric first, therefore it is necessary to run "Select 5" before "Select 2".
