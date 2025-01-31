@@ -5,6 +5,11 @@ If the customer would like to leverage Fabric, this tool can be used to create t
  
 Note: Caution should be taken if data is being used for integration as near-real-time data integrity is not guaranteed. 
 
+### Complex entity performance
+Some of the complex enities have many joins and underlying syntax that can result in poor performance when run on severless architecture. Performance may vary between customers based on the volume of data. If you are impacted by the poor performance it is recommended that you revisit the business requirements and investigate if there is an alternative entity available to support the requirements or if you are able to create your own views based on the underlying tables.
+<br>Entities with known performance issues include: <br>
+InventWarehouseOnHandV2Entity
+
 ## Prerequisites
 If you are creating the VIEWS within the serverless database these steps will help you create the initial virtual data warehouse structure that will be used as the basis for the VIEWs. [Virtual data warehouse](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Analytics/DataverseLink/VirtualDatawarehouse/readme.md).
 
