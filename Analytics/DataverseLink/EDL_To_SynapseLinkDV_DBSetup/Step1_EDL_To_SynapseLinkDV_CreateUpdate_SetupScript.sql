@@ -725,7 +725,7 @@ declare @tablelist_inNewFolders nvarchar(max);
 declare @minfoldername nvarchar(100) = '';
 declare @maxfoldername nvarchar(100) = '';
 declare @SelectTableData nvarchar(max);
-declare @newdatetimemarker datetime2 = getdate();
+declare @newdatetimemarker datetime2 = getutcdate();
 declare @whereClause nvarchar(200) = ' where {datetime_markercolumn} between ''{lastdatetimemarker}'' and ''{newdatetimemarker}''';
 
 set @SelectTableData  = 'SELECT * from {tableschema}.{tablename}';
