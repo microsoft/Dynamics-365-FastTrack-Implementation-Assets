@@ -1,12 +1,14 @@
-# AOS Slow Query Telemetry dashboard
-This dashboard shows information about slow queries that are reported by the AOS. Using this dashboard, it is possible to:
-- Measure the number of slow queries over time.
-- List slow by their duration.
-- Investigate slow queries based on location.
+# Forms Interactions Telemetry dashboard
+This dashboard shows information about fomr interactions in Dynacmis 365 Finance and SCM applicaitons. Using this dashboard, it is possible to:
+- Investigate the most used form in the environment.
+- Review the opening time of the forms.
+- Investigate forms which fail to open.
+- Review form interactions by user or legal entity.
+- List all the form interacions. 
 
 ## Dashboard overview
-
-<div align=center><img src="./img/SlowQueriesDashboard1.png"></div>
+Note: the "Interaction difference" column can be used to identify forms that never complete the initialization. 
+<div align=center><img src="./img/FormsInteractionsDashboard.png"></div>
 
 ## Steps to import the sample dashboard:
   1. Import the file "ADE-Dashboard-D365FO-Monitoring-SlowQueries.json".
@@ -15,7 +17,7 @@ This dashboard shows information about slow queries that are reported by the AOS
 
   2. Name the dashboard appropriately.
   
-   <div align=center><img src="./img/2EditName.png" width="300" height="200"></div>
+   <div align=center><img src="./img/2EditNameForms.png" width="645" height="175"></div>
   
   3. Click to select datasources. 
   
