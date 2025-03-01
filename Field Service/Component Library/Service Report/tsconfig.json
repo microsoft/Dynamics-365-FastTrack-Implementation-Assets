@@ -1,0 +1,14 @@
+{
+    "extends": "./node_modules/pcf-scripts/tsconfig_base.json",
+    "compilerOptions": {
+        "typeRoots": ["node_modules/@types"],
+        "experimentalDecorators": true,
+        "noImplicitAny": false,
+        "skipLibCheck": true,
+        "strictNullChecks": false,
+        "allowJs": true,
+        "jsx": "react",
+        "module": "commonjs",
+        "target": "es2017"
+    }
+}
