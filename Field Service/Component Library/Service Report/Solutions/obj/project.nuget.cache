@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "RyVKyT776Q0=",
+  "success": true,
+  "projectFilePath": "C:\\Code\\CRM.Solutions.FieldServiceReportingFT\\Solutions\\Solutions.cdsproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\abhiseksinha\\.nuget\\packages\\microsoft.netframework.referenceassemblies\\1.0.0\\microsoft.netframework.referenceassemblies.1.0.0.nupkg.sha512",
+    "C:\\Users\\abhiseksinha\\.nuget\\packages\\microsoft.netframework.referenceassemblies.net471\\1.0.0\\microsoft.netframework.referenceassemblies.net471.1.0.0.nupkg.sha512",
+    "C:\\Users\\abhiseksinha\\.nuget\\packages\\microsoft.powerapps.msbuild.pcf\\1.39.3\\microsoft.powerapps.msbuild.pcf.1.39.3.nupkg.sha512",
+    "C:\\Users\\abhiseksinha\\.nuget\\packages\\microsoft.powerapps.msbuild.solution\\1.40.4\\microsoft.powerapps.msbuild.solution.1.40.4.nupkg.sha512"
+  ],
+  "logs": []
+}
