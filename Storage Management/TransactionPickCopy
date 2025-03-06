@@ -1,0 +1,193 @@
+/*
+This script takes three parameters:
+
+A list of tables (comma-separated).
+A maximum archiving date.
+A simulation boolean.
+
+Determines the list of fiscal years that are properly closed for each legal entity.
+
+Filters the list to exclude fiscal years with an end date greater than the maximum archiving date.
+
+Loops through the list of eligible legal entities and fiscal years, and deletes records from the specified tables.
+
+Disables Change Data Capture or Change Tracking before deleting records and re-enables them afterward.
+
+If simulation mode is enabled, it counts the records and estimates the duration instead of deleting them.
+*/
+
+DECLARE @Tables NVARCHAR(MAX) = 'INVENTTRANS' -- Replace with your list of tables (comma separated)
+DECLARE @MaxArchivingDate DATE = '2025-01-01' -- Replace with your max archiving date
+DECLARE @Simulation BIT = 1 -- Set to 1 for simulation mode, 0 for actual deletion
+
+DECLARE @SQL NVARCHAR(MAX)
+DECLARE @Table NVARCHAR(255)
+DECLARE @EligibleDates TABLE (DataAreaID NVARCHAR(10), FiscalYearStartDate DATE, FiscalYearEndDate DATE)
+DECLARE @LE NVARCHAR(10)
+DECLARE @StartDate DATE
+DECLARE @EndDate DATE
+DECLARE @DateField NVARCHAR(255)
+DECLARE @CDCState BIT
+
+-- Populate the EligibleDates table
+INSERT INTO @EligibleDates
+SELECT 
+    da.ID AS DataAreaID,
+    fcy.STARTDATE AS FiscalYearStartDate,
+    fcy.ENDDATE AS FiscalYearEndDate
+FROM 
+    dbo.DATAAREA da
+INNER JOIN 
+    dbo.LEDGER l ON da.ID = l.NAME
+INNER JOIN 
+    dbo.LEDGERFISCALCALENDARPERIOD lfp ON l.RECID = lfp.LEDGER
+INNER JOIN 
+    dbo.FISCALCALENDARPERIOD fcp ON lfp.FISCALCALENDARPERIOD = fcp.RECID
+INNER JOIN 
+    dbo.FISCALCALENDARYEAR fcy ON fcp.FISCALCALENDARYEAR = fcy.RECID
+INNER JOIN
+    (SELECT 
+        fcp.FISCALCALENDARYEAR, fc.RECID, l.PARTITION, da.ID, COUNT(*) AS NBOCCURENCES
+    FROM
+        dbo.DATAAREA da
+    JOIN 
+        dbo.LEDGER l ON da.ID = l.NAME
+    JOIN 
+        dbo.LEDGERFISCALCALENDARPERIOD lfp ON l.RECID = lfp.LEDGER
+    JOIN 
+        dbo.FISCALCALENDARPERIOD fcp ON lfp.FISCALCALENDARPERIOD = fcp.RECID
+    JOIN 
+        dbo.FISCALCALENDAR fc ON fcp.FISCALCALENDAR = fc.RECID AND fc.RECID = l.FISCALCALENDAR
+    WHERE 
+        lfp.STATUS IN (0, 2) AND lfp.PARTITION = fcp.PARTITION
+    GROUP BY 
+        fcp.FISCALCALENDARYEAR, fc.RECID, l.PARTITION, da.ID
+    HAVING 
+        COUNT(*) = (
+            SELECT 
+                COUNT(*)
+            FROM 
+                dbo.FISCALCALENDARPERIOD fcp2
+            WHERE 
+                fcp2.FISCALCALENDARYEAR = fcp.FISCALCALENDARYEAR
+                AND fcp2.PARTITION = l.PARTITION
+                AND fcp2.FISCALCALENDAR = fc.RECID
+        )
+    ) Allperiods ON Allperiods.FISCALCALENDARYEAR = fcp.FISCALCALENDARYEAR 
+    AND Allperiods.ID = da.ID 
+    AND Allperiods.PARTITION = da.PARTITION 
+    AND Allperiods.RECID = l.RECID
+WHERE 
+    fcy.ENDDATE <= @MaxArchivingDate
+GROUP BY 
+    da.ID, fcy.STARTDATE, fcy.ENDDATE
+
+select * from @EligibleDates
+
+-- Split the list of tables
+DECLARE @TableList TABLE (TableName NVARCHAR(255))
+INSERT INTO @TableList (TableName)
+SELECT value FROM STRING_SPLIT(@Tables, ',')
+
+select * from @TableList
+
+-- Loop through each eligible LE and fiscal year
+DECLARE LE_CURSOR CURSOR FOR
+SELECT DataAreaID, FiscalYearStartDate, FiscalYearEndDate FROM @EligibleDates
+
+OPEN LE_CURSOR
+FETCH NEXT FROM LE_CURSOR INTO @LE, @StartDate, @EndDate
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    Print 'LE :' + @LE + ' StartDate :' + CONVERT(NVARCHAR, @StartDate, 120) + ' EndDate :'+ CONVERT(NVARCHAR, @EndDate, 120)
+	DECLARE TABLE_CURSOR CURSOR FOR
+    SELECT TableName FROM @TableList
+
+    OPEN TABLE_CURSOR
+    FETCH NEXT FROM TABLE_CURSOR INTO @Table
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        -- Check for CreatedDateTime and ModifiedDateTime fields
+        IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @Table AND COLUMN_NAME = 'CreatedDateTime')
+        BEGIN
+            SET @DateField = 'CreatedDateTime'
+			PRINT 'Filter field : ' + @Table +'.'+ @DateField
+        END
+        ELSE IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @Table AND COLUMN_NAME = 'ModifiedDateTime')
+        BEGIN
+            SET @DateField = 'ModifiedDateTime'
+			PRINT 'Filter field : ' + @Table +'.'+ @DateField
+        END
+        ELSE
+        BEGIN
+            PRINT 'Warning: Table ' + @Table + ' does not have CreatedDateTime or ModifiedDateTime fields.'
+            FETCH NEXT FROM TABLE_CURSOR INTO @Table
+            CONTINUE
+        END
+
+
+		-- Check if CDC is enabled and disable it if necessary
+        SELECT @CDCState = is_tracked_by_cdc
+        FROM sys.tables
+        WHERE name = @Table AND schema_id = SCHEMA_ID('dbo')
+
+        IF @CDCState = 1
+        BEGIN
+            SET @SQL = 'EXEC sys.sp_cdc_disable_table @source_schema = ''dbo'', @source_name = ''' + @Table + ''''
+            EXEC sp_executesql @SQL
+        END
+
+        -- Disable Change Data Capture or Change Tracking if enabled
+        SET @SQL = 'IF EXISTS (SELECT * FROM sys.change_tracking_tables WHERE object_id = OBJECT_ID(''' + @Table + ''')) ALTER TABLE ' + @Table + ' DISABLE CHANGE_TRACKING'
+        EXEC sp_executesql @SQL
+
+		
+        -- Delete records if not in simulation mode
+        IF @Simulation = 0
+        BEGIN
+            SET @SQL = 'DELETE FROM ' + @Table + ' WHERE DataAreaID = ''' + @LE + ''' AND ' + @DateField + ' BETWEEN ''' + CONVERT(NVARCHAR, @StartDate, 120) + ''' AND ''' + CONVERT(NVARCHAR, @EndDate, 120) + ''''
+            EXEC sp_executesql @SQL
+        END
+        ELSE
+        BEGIN
+-- Simulation mode: Estimate duration of delete statement and count records
+            BEGIN TRANSACTION
+            DECLARE @StartTime DATETIME = GETDATE()
+            SET @SQL = 'DELETE FROM ' + @Table + ' WHERE DataAreaID = ''' + @LE + ''' AND ' + @DateField + ' BETWEEN ''' + CONVERT(NVARCHAR, @StartDate, 120) + ''' AND ''' + CONVERT(NVARCHAR, @EndDate, 120) + ''''
+            Print @SQL
+			EXEC sp_executesql @SQL
+            DECLARE @EndTime DATETIME = GETDATE()
+            ROLLBACK TRANSACTION
+            DECLARE @Duration INT = DATEDIFF(SECOND, @StartTime, @EndTime)
+			DECLARE @DeletedRecords INT
+            SET @SQL = 'SELECT @DeletedRecords = COUNT(*) FROM ' + @Table + ' WHERE DataAreaID = ''' + @LE + ''' AND ' + @DateField + ' BETWEEN ''' + CONVERT(NVARCHAR, @StartDate, 120) + ''' AND ''' + CONVERT(NVARCHAR, @EndDate, 120) + ''''
+            Print @SQL
+            EXEC sp_executesql @SQL, N'@DeletedRecords INT OUTPUT', @DeletedRecords OUTPUT
+            select @LE as 'Legal Entity', CONVERT(NVARCHAR, @StartDate, 120) as 'Start Date', CONVERT(NVARCHAR, @EndDate, 120) as 'End Date' ,@DeletedRecords as 'Nb Records Deleted', @Duration as 'Estimated Duration'
+--			Print 'Estimated duration for ' + @Table + ' in LE ' + @LE + ' for fiscal year ' + CONVERT(NVARCHAR, @StartDate, 120) + ' to ' + CONVERT(NVARCHAR, @EndDate, 120) + ' is ' + CONVERT(NVARCHAR, @Duration) + ' seconds. Estimated number of records to be deleted: ' + CONVERT(NVARCHAR, @DeletedRecords) + '.'
+        END
+
+		
+        -- Re-enable Change Data Capture or Change Tracking if previously enabled
+        IF @CDCState = 1
+        BEGIN
+            SET @SQL = 'EXEC sys.sp_cdc_enable_table @source_schema = ''dbo'', @source_name = ''' + @Table + ''''
+            EXEC sp_executesql @SQL
+        END
+		
+		SET @SQL = 'IF EXISTS (SELECT * FROM sys.change_tracking_tables WHERE object_id = OBJECT_ID(''' + @Table + ''')) ALTER TABLE ' + @Table + ' ENABLE CHANGE_TRACKING'
+        EXEC sp_executesql @SQL
+
+        FETCH NEXT FROM TABLE_CURSOR INTO @Table
+    END
+
+    CLOSE TABLE_CURSOR
+    DEALLOCATE TABLE_CURSOR
+
+    FETCH NEXT FROM LE_CURSOR INTO @LE, @StartDate, @EndDate
+END
+
+CLOSE LE_CURSOR
+DEALLOCATE LE_CURSOR
