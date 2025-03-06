@@ -10,7 +10,9 @@ SELECT SQLNAME
 FROM SQLDICTIONARY a
 JOIN TABLEMETADATATABLE b ON a.TABLEID = b.TABLEID
 -- Transaction (4),WorksheetHeader (5),WorksheetLine (6),Worksheet (9),TransactionHeader (10),TransactionLine (11),Staging (12)
-WHERE a.fieldid = 0 AND a.array = 0 AND b.TABLEGROUP IN (4, 5, 6, 9, 10, 11, 12)
+WHERE a.fieldid = 0 AND a.array = 0 AND b.TABLEGROUP IN (4, 5, 6, 9, 10, 11, 12) 
+-- Tables WHSASNITEM, WHSASNITEMRECEIPT, WHSUOMSTRUCTURE  / you can add your customtables to this list
+or a.NAME in ('WHSASNITEM', 'WHSASNITEMRECEIPT', 'WHSUOMSTRUCTURE')) 
 OPEN TableCursor
 FETCH NEXT FROM TableCursor INTO @TableName
 WHILE @@FETCH_STATUS = 0
