@@ -37,7 +37,7 @@ var FieldServiceReporting;
         BookableResourceBookingLibrary.prototype.ReportLoad = function (executionContext) {
             var formContext = executionContext.getFormContext();
             formContext && formContext.ui.headerSection.setTabNavigatorVisible(false);
-            var reportview = Xrm.Page.getAttribute("msdyn_reportview");
+            var reportview = Xrm.Page.getAttribute("d365ft_reportview");
             if (reportview && reportview.getValue()) {
                 reportview.setValue("");
             }
@@ -69,7 +69,7 @@ var FieldServiceReporting;
             }
             if (formContext && formContext.data) {
                 formContext.data.save().then(function () {
-                    formContext.getAttribute("msdyn_reportview").setValue("save");
+                    formContext.getAttribute("d365ft_reportview").setValue("save");
                 }).catch(function (error) {
                     if (Xrm && Xrm.Reporting) {
                         Xrm.Reporting.reportFailure(BookableResourceBookingLibrary.TelemetryComponentName, error);

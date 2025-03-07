@@ -156,13 +156,13 @@
     <value>Inprimaki honektan teknikarien mugikorreko txostenak daude ikusgai.</value>
     <comment>'Bookable Resource Booking' : Description for systemform in Entity FormXml ID: '{f1e15fe0-125a-45ce-8d8d-d1a7e85d0fa6}'</comment>
   </data>
-  <data name="1:Description,BookableResourceBookingmsdyn_reportview" xml:space="preserve">
+  <data name="1:Description,BookableResourceBookingd365ft_reportview" xml:space="preserve">
     <value />
-    <comment>'BookableResourceBooking' : Description for Attribute 'msdyn_reportview' on Entity</comment>
+    <comment>'BookableResourceBooking' : Description for Attribute 'd365ft_reportview' on Entity</comment>
   </data>
-  <data name="1:displayname,BookableResourceBookingmsdyn_reportview" xml:space="preserve">
+  <data name="1:displayname,BookableResourceBookingd365ft_reportview" xml:space="preserve">
     <value>txosten-ikuspegia</value>
-    <comment>'BookableResourceBooking' : displayname for Attribute 'msdyn_reportview' on Entity</comment>
+    <comment>'BookableResourceBooking' : displayname for Attribute 'd365ft_reportview' on Entity</comment>
   </data>
   <data name="1:label,Bookable Resource Booking{0200259d-20c2-931c-e8d6-499b2046d2c8}" xml:space="preserve">
     <value>Aurreikusitako iritsiera-ordua</value>
