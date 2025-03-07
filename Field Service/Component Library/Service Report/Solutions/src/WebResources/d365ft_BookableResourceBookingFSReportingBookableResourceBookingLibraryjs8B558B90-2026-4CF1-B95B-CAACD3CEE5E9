@@ -1,0 +1,101 @@
+/*! WARNING! Do not update this file manually! Manual update of this file is not supported and will likely lead to issues. In addition, future solution upgrades wont apply to manually edited files. */
+var FieldServiceReporting;
+(function (FieldServiceReporting) {
+    "use strict";
+    var BookableResourceBookingLibrary = /** @class */ (function () {
+        function BookableResourceBookingLibrary() {
+            this.FormContext = null;
+            this.IsOnLoadExecuted = false;
+            this.reportingFormId = "f1e15fe0-125a-45ce-8d8d-d1a7e85d0fa6";
+            this.reportingFormName = "reporting";
+        }
+        BookableResourceBookingLibrary.prototype.Load = function (executionContext) {
+            // Since OnLoad will be fired after first saving without page reloading we should check this
+            if (!this.IsOnLoadExecuted) {
+                this.FormContext = executionContext.getFormContext();
+                this.OnLoad();
+                this.IsOnLoadExecuted = true;
+            }
+        };
+        BookableResourceBookingLibrary.prototype.OnLoad = function () {
+            this.handleTabFocus();
+        };
+        /**
+         * Gets tab name from query parameters and sets focus on it.
+         * Handles changing tab focus if there is a parameter passed from navigateTo or openForm method.
+         */
+        BookableResourceBookingLibrary.prototype.handleTabFocus = function () {
+            var queryParameters = this.FormContext && this.FormContext.context && this.FormContext.context.getQueryStringParameters();
+            var focusTabName = queryParameters && queryParameters[BookableResourceBookingQueryParameters.focusTabName];
+            if (focusTabName) {
+                var tab = this.FormContext.ui.tabs.get(focusTabName);
+                if (tab) {
+                    tab.setFocus();
+                }
+            }
+        };
+        BookableResourceBookingLibrary.prototype.ReportLoad = function (executionContext) {
+            var formContext = executionContext.getFormContext();
+            formContext && formContext.ui.headerSection.setTabNavigatorVisible(false);
+            var reportview = Xrm.Page.getAttribute("msdyn_reportview");
+            if (reportview && reportview.getValue()) {
+                reportview.setValue("");
+            }
+        };
+        BookableResourceBookingLibrary.prototype.open = function () {
+            var bookingID = Xrm.Page.data.entity.getId();
+            var pageInput = {
+                pageType: "entityrecord",
+                entityName: "bookableresourcebooking",
+                formId: this.reportingFormId,
+                entityId: bookingID,
+            };
+            Xrm.Navigation.openForm(pageInput).then(function success() {
+                console.log("Loaded Report View");
+            }, function error(err) {
+                console.log("Error loading Report View ", err);
+            });
+        };
+        BookableResourceBookingLibrary.prototype.isReportForm = function () {
+            var currentItem = Xrm.Page.ui.formSelector.getCurrentItem();
+            // const formName = currentItem.getLabel().toLowerCase();
+            var formId = currentItem.getId().toLowerCase();
+            return formId === this.reportingFormId;
+        };
+        BookableResourceBookingLibrary.prototype.saveReport = function (executionContext) {
+            var formContext = executionContext;
+            if (typeof executionContext.getFormContext === "function") {
+                formContext = executionContext.getFormContext();
+            }
+            if (formContext && formContext.data) {
+                formContext.data.save().then(function () {
+                    formContext.getAttribute("msdyn_reportview").setValue("save");
+                }).catch(function (error) {
+                    if (Xrm && Xrm.Reporting) {
+                        Xrm.Reporting.reportFailure(BookableResourceBookingLibrary.TelemetryComponentName, error);
+                    }
+                });
+            }
+        };
+        BookableResourceBookingLibrary.TelemetryComponentName = "FSReportingLibrary";
+        return BookableResourceBookingLibrary;
+    }());
+    FieldServiceReporting.BookableResourceBookingLibrary = BookableResourceBookingLibrary;
+    var BookableResourceBookingQueryParameters;
+    (function (BookableResourceBookingQueryParameters) {
+        BookableResourceBookingQueryParameters["focusTabName"] = "parameter_focusTabName";
+    })(BookableResourceBookingQueryParameters || (BookableResourceBookingQueryParameters = {}));
+})(FieldServiceReporting || (FieldServiceReporting = {}));
+/*! WARNING! Do not update this file manually! Manual update of this file is not supported and will likely lead to issues. In addition, future solution upgrades wont apply to manually edited files. */
+/// <reference path="./FSReporting.BookableResourceBookingLibrary.ts" />
+var FieldServiceReporting;
+(function (FieldServiceReporting) {
+    "use strict";
+    var BookableResourceBooking = /** @class */ (function () {
+        function BookableResourceBooking() {
+        }
+        BookableResourceBooking.Library = new FieldServiceReporting.BookableResourceBookingLibrary();
+        return BookableResourceBooking;
+    }());
+    FieldServiceReporting.BookableResourceBooking = BookableResourceBooking;
+})(FieldServiceReporting || (FieldServiceReporting = {}));
