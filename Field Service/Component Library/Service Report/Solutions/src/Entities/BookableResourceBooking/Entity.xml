@@ -4,10 +4,10 @@
   <EntityInfo>
     <entity Name="BookableResourceBooking">
       <attributes>
-        <attribute PhysicalName="msdyn_reportview">
+        <attribute PhysicalName="d365ft_reportview">
           <Type>nvarchar</Type>
-          <Name>msdyn_reportview</Name>
-          <LogicalName>msdyn_reportview</LogicalName>
+          <Name>d365ft_reportview</Name>
+          <LogicalName>d365ft_reportview</LogicalName>
           <RequiredLevel>none</RequiredLevel>
           <DisplayMask>ValidForAdvancedFind|ValidForForm|ValidForGrid</DisplayMask>
           <ImeMode>auto</ImeMode>
