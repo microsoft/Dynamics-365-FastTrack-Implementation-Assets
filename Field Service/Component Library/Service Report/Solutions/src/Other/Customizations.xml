@@ -1,0 +1,2007 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ImportExportXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Entities>
+    <Entity>
+      <Name LocalizedName="Bookable Resource Booking" OriginalName="Bookable Resource Booking">BookableResourceBooking</Name>
+      <EntityInfo>
+        <entity Name="BookableResourceBooking">
+          <attributes>
+            <attribute PhysicalName="d365ft_reportview">
+              <Type>nvarchar</Type>
+              <Name>d365ft_reportview</Name>
+              <LogicalName>d365ft_reportview</LogicalName>
+              <RequiredLevel>none</RequiredLevel>
+              <DisplayMask>ValidForAdvancedFind|ValidForForm|ValidForGrid</DisplayMask>
+              <ImeMode>auto</ImeMode>
+              <ValidForUpdateApi>1</ValidForUpdateApi>
+              <ValidForReadApi>1</ValidForReadApi>
+              <ValidForCreateApi>1</ValidForCreateApi>
+              <IsCustomField>1</IsCustomField>
+              <IsAuditEnabled>1</IsAuditEnabled>
+              <IsSecured>0</IsSecured>
+              <IntroducedVersion>1.0.0.0</IntroducedVersion>
+              <IsCustomizable>1</IsCustomizable>
+              <IsRenameable>1</IsRenameable>
+              <CanModifySearchSettings>1</CanModifySearchSettings>
+              <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+              <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+              <SourceType>0</SourceType>
+              <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+              <IsSortableEnabled>0</IsSortableEnabled>
+              <CanModifyGlobalFilterSettings>1</CanModifyGlobalFilterSettings>
+              <CanModifyIsSortableSettings>1</CanModifyIsSortableSettings>
+              <IsDataSourceSecret>0</IsDataSourceSecret>
+              <AutoNumberFormat></AutoNumberFormat>
+              <IsSearchable>0</IsSearchable>
+              <IsFilterable>0</IsFilterable>
+              <IsRetrievable>0</IsRetrievable>
+              <IsLocalizable>0</IsLocalizable>
+              <Format>text</Format>
+              <MaxLength>100</MaxLength>
+              <Length>200</Length>
+              <displaynames>
+                <displayname description="reportview" languagecode="1033" />
+                <displayname description="reportview" languagecode="1025" />
+                <displayname description="reportview" languagecode="1026" />
+                <displayname description="reportview" languagecode="1027" />
+                <displayname description="reportview" languagecode="1029" />
+                <displayname description="reportview" languagecode="1030" />
+                <displayname description="Berichtsansicht" languagecode="1031" />
+                <displayname description="reportview" languagecode="1032" />
+                <displayname description="reportview" languagecode="3082" />
+                <displayname description="reportview" languagecode="1061" />
+                <displayname description="txosten-ikuspegia" languagecode="1069" />
+                <displayname description="raporttinäkymä" languagecode="1035" />
+                <displayname description="reportview" languagecode="1036" />
+                <displayname description="reportview" languagecode="1110" />
+                <displayname description="reportview" languagecode="1037" />
+                <displayname description="reportview" languagecode="1081" />
+                <displayname description="reportview" languagecode="1050" />
+                <displayname description="reportview" languagecode="1038" />
+                <displayname description="tampilan laporan" languagecode="1057" />
+                <displayname description="reportview" languagecode="1040" />
+                <displayname description="レポート ビュー" languagecode="1041" />
+                <displayname description="reportview" languagecode="1087" />
+                <displayname description="보고서 보기" languagecode="1042" />
+                <displayname description="reportview" languagecode="1063" />
+                <displayname description="atskaites skats" languagecode="1062" />
+                <displayname description="reportview" languagecode="1086" />
+                <displayname description="reportview" languagecode="1044" />
+                <displayname description="reportview" languagecode="1043" />
+                <displayname description="widok raportu" languagecode="1045" />
+                <displayname description="reportview" languagecode="1046" />
+                <displayname description="reportview" languagecode="2070" />
+                <displayname description="reportview" languagecode="1048" />
+                <displayname description="reportview" languagecode="1049" />
+                <displayname description="reportview" languagecode="1051" />
+                <displayname description="reportview" languagecode="1060" />
+                <displayname description="reportview" languagecode="3098" />
+                <displayname description="reportview" languagecode="2074" />
+                <displayname description="reportview" languagecode="1053" />
+                <displayname description="reportview" languagecode="1054" />
+                <displayname description="reportview" languagecode="1055" />
+                <displayname description="reportview" languagecode="1058" />
+                <displayname description="dạng xem báo cáo" languagecode="1066" />
+                <displayname description="reportview" languagecode="2052" />
+                <displayname description="reportview" languagecode="3076" />
+                <displayname description="reportview" languagecode="1028" />
+              </displaynames>
+              <Descriptions>
+                <Description description="" languagecode="1033" />
+                <Description description="" languagecode="1025" />
+                <Description description="" languagecode="1026" />
+                <Description description="" languagecode="1027" />
+                <Description description="" languagecode="1029" />
+                <Description description="" languagecode="1030" />
+                <Description description="" languagecode="1031" />
+                <Description description="" languagecode="1032" />
+                <Description description="" languagecode="3082" />
+                <Description description="" languagecode="1061" />
+                <Description description="" languagecode="1069" />
+                <Description description="" languagecode="1035" />
+                <Description description="" languagecode="1036" />
+                <Description description="" languagecode="1110" />
+                <Description description="" languagecode="1037" />
+                <Description description="" languagecode="1081" />
+                <Description description="" languagecode="1050" />
+                <Description description="" languagecode="1038" />
+                <Description description="" languagecode="1057" />
+                <Description description="" languagecode="1040" />
+                <Description description="" languagecode="1041" />
+                <Description description="" languagecode="1087" />
+                <Description description="" languagecode="1042" />
+                <Description description="" languagecode="1063" />
+                <Description description="" languagecode="1062" />
+                <Description description="" languagecode="1086" />
+                <Description description="" languagecode="1044" />
+                <Description description="" languagecode="1043" />
+                <Description description="" languagecode="1045" />
+                <Description description="" languagecode="1046" />
+                <Description description="" languagecode="2070" />
+                <Description description="" languagecode="1048" />
+                <Description description="" languagecode="1049" />
+                <Description description="" languagecode="1051" />
+                <Description description="" languagecode="1060" />
+                <Description description="" languagecode="3098" />
+                <Description description="" languagecode="2074" />
+                <Description description="" languagecode="1053" />
+                <Description description="" languagecode="1054" />
+                <Description description="" languagecode="1055" />
+                <Description description="" languagecode="1058" />
+                <Description description="" languagecode="1066" />
+                <Description description="" languagecode="2052" />
+                <Description description="" languagecode="3076" />
+                <Description description="" languagecode="1028" />
+              </Descriptions>
+            </attribute>
+          </attributes>
+          <EntitySetName>bookableresourcebookings</EntitySetName>
+        </entity>
+      </EntityInfo>
+      <FormXml>
+        <forms type="main">
+          <systemform>
+            <formid>{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}</formid>
+            <form>
+              <formLibraries>
+                <Library name="d365ft_/BookableResourceBooking/FSReporting.BookableResourceBooking.Library.js" libraryUniqueId="{9c071516-0d79-2d79-db38-6b72a2b4dc49}" solutionaction="Added" />
+              </formLibraries>
+              <events>
+                <event name="onload" application="false" active="false" solutionaction="Added">
+                  <Handlers>
+                    <Handler functionName="FieldServiceReporting.BookableResourceBooking.Library.Load" libraryName="d365ft_/BookableResourceBooking/FSReporting.BookableResourceBooking.Library.js" handlerUniqueId="{8a8a92ec-a262-95a5-7050-7b663b7936b3}" enabled="true" parameters="" passExecutionContext="true" ordinalvalue="0" solutionaction="Added" />
+                  </Handlers>
+                </event>
+              </events>
+              <formparameters solutionaction="Added">
+                <querystringparameter name="parameter_focusTabName" type="SafeString" solutionaction="Added" />
+              </formparameters>
+            </form>
+          </systemform>
+          <systemform>
+            <formid>{f1e15fe0-125a-45ce-8d8d-d1a7e85d0fa6}</formid>
+            <IntroducedVersion>1.0.0.0</IntroducedVersion>
+            <FormPresentation>1</FormPresentation>
+            <FormActivationState>1</FormActivationState>
+            <form shownavigationbar="true" showImage="false" maxWidth="1900">
+              <tabs>
+                <tab verticallayout="true" id="{785b4643-990a-48f1-b1d9-94827c37b084}" IsUserDefined="1" labelid="{1e783d2c-d86b-46a3-96ba-e588fd9ddb38}" name="{785b4643-990a-48f1-b1d9-94827c37b084}" expanded="true" locklevel="0" showlabel="true">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                    <label description="عام" languagecode="1025" />
+                    <label description="Общи" languagecode="1026" />
+                    <label description="General" languagecode="1027" />
+                    <label description="Obecné" languagecode="1029" />
+                    <label description="Generelt" languagecode="1030" />
+                    <label description="Allgemein" languagecode="1031" />
+                    <label description="Γενικά" languagecode="1032" />
+                    <label description="General" languagecode="3082" />
+                    <label description="Üldine" languagecode="1061" />
+                    <label description="Orokorra" languagecode="1069" />
+                    <label description="Yleiset" languagecode="1035" />
+                    <label description="Général" languagecode="1036" />
+                    <label description="Xeral" languagecode="1110" />
+                    <label description="כללי" languagecode="1037" />
+                    <label description="सामान्य" languagecode="1081" />
+                    <label description="Općenito" languagecode="1050" />
+                    <label description="Általános" languagecode="1038" />
+                    <label description="Umum" languagecode="1057" />
+                    <label description="Generale" languagecode="1040" />
+                    <label description="全般" languagecode="1041" />
+                    <label description="Жалпы мәліметтер" languagecode="1087" />
+                    <label description="일반" languagecode="1042" />
+                    <label description="Bendroji informacija" languagecode="1063" />
+                    <label description="Vispārīgi" languagecode="1062" />
+                    <label description="Umum" languagecode="1086" />
+                    <label description="Generelt" languagecode="1044" />
+                    <label description="Algemeen" languagecode="1043" />
+                    <label description="Ogólne" languagecode="1045" />
+                    <label description="Geral" languagecode="1046" />
+                    <label description="Geral" languagecode="2070" />
+                    <label description="General" languagecode="1048" />
+                    <label description="Общие сведения" languagecode="1049" />
+                    <label description="Všeobecné" languagecode="1051" />
+                    <label description="Splošno" languagecode="1060" />
+                    <label description="Општи подаци" languagecode="3098" />
+                    <label description="Opšti podaci" languagecode="2074" />
+                    <label description="Allmänt" languagecode="1053" />
+                    <label description="ทั่วไป" languagecode="1054" />
+                    <label description="Genel" languagecode="1055" />
+                    <label description="Загальні" languagecode="1058" />
+                    <label description="Tổng quát" languagecode="1066" />
+                    <label description="常规" languagecode="2052" />
+                    <label description="一般" languagecode="3076" />
+                    <label description="一般" languagecode="1028" />
+                  </labels>
+                  <columns>
+                    <column width="100%">
+                      <sections>
+                        <section showlabel="false" showbar="false" IsUserDefined="0" id="{631b1320-b616-4340-8345-a250272d8f46}" name="{631b1320-b616-4340-8345-a250272d8f46}" columns="1" locklevel="0" labelwidth="115" celllabelalignment="Left" celllabelposition="Left" labelid="{780740d6-fe10-4a52-9f49-db44346e4a29}">
+                          <labels>
+                            <label description="General" languagecode="1033" />
+                            <label description="عام" languagecode="1025" />
+                            <label description="Общи" languagecode="1026" />
+                            <label description="General" languagecode="1027" />
+                            <label description="Obecné" languagecode="1029" />
+                            <label description="Generelt" languagecode="1030" />
+                            <label description="Allgemein" languagecode="1031" />
+                            <label description="Γενικά" languagecode="1032" />
+                            <label description="General" languagecode="3082" />
+                            <label description="Üldine" languagecode="1061" />
+                            <label description="Orokorra" languagecode="1069" />
+                            <label description="Yleiset" languagecode="1035" />
+                            <label description="Général" languagecode="1036" />
+                            <label description="Xeral" languagecode="1110" />
+                            <label description="כללי" languagecode="1037" />
+                            <label description="सामान्य" languagecode="1081" />
+                            <label description="Općenito" languagecode="1050" />
+                            <label description="Általános" languagecode="1038" />
+                            <label description="Umum" languagecode="1057" />
+                            <label description="Generale" languagecode="1040" />
+                            <label description="全般" languagecode="1041" />
+                            <label description="Жалпы мәліметтер" languagecode="1087" />
+                            <label description="일반" languagecode="1042" />
+                            <label description="Bendroji informacija" languagecode="1063" />
+                            <label description="Vispārīgi" languagecode="1062" />
+                            <label description="Umum" languagecode="1086" />
+                            <label description="Generelt" languagecode="1044" />
+                            <label description="Algemeen" languagecode="1043" />
+                            <label description="Ogólne" languagecode="1045" />
+                            <label description="Geral" languagecode="1046" />
+                            <label description="Geral" languagecode="2070" />
+                            <label description="General" languagecode="1048" />
+                            <label description="Общие сведения" languagecode="1049" />
+                            <label description="Všeobecné" languagecode="1051" />
+                            <label description="Splošno" languagecode="1060" />
+                            <label description="Општи подаци" languagecode="3098" />
+                            <label description="Opšti podaci" languagecode="2074" />
+                            <label description="Allmänt" languagecode="1053" />
+                            <label description="ทั่วไป" languagecode="1054" />
+                            <label description="Genel" languagecode="1055" />
+                            <label description="Загальні" languagecode="1058" />
+                            <label description="Tổng quát" languagecode="1066" />
+                            <label description="常规" languagecode="2052" />
+                            <label description="一般" languagecode="3076" />
+                            <label description="一般" languagecode="1028" />
+                          </labels>
+                          <rows>
+                            <row>
+                              <cell id="{a83cc563-4791-4f02-95a7-83ae2f62c801}" showlabel="true" locklevel="0" visible="false" labelid="{e0480f01-0642-46bd-9267-9bc29d12676e}">
+                                <labels>
+                                  <label description="Name" languagecode="1033" />
+                                  <label description="الاسم" languagecode="1025" />
+                                  <label description="Име" languagecode="1026" />
+                                  <label description="Nom" languagecode="1027" />
+                                  <label description="Jméno" languagecode="1029" />
+                                  <label description="Navn" languagecode="1030" />
+                                  <label description="Name" languagecode="1031" />
+                                  <label description="Όνομα" languagecode="1032" />
+                                  <label description="Nombre" languagecode="3082" />
+                                  <label description="Nimi" languagecode="1061" />
+                                  <label description="Izena" languagecode="1069" />
+                                  <label description="Nimi" languagecode="1035" />
+                                  <label description="Nom" languagecode="1036" />
+                                  <label description="Nome" languagecode="1110" />
+                                  <label description="שם" languagecode="1037" />
+                                  <label description="नाम" languagecode="1081" />
+                                  <label description="Naziv" languagecode="1050" />
+                                  <label description="Név" languagecode="1038" />
+                                  <label description="Nama" languagecode="1057" />
+                                  <label description="Nome" languagecode="1040" />
+                                  <label description="名前" languagecode="1041" />
+                                  <label description="Атауы" languagecode="1087" />
+                                  <label description="이름" languagecode="1042" />
+                                  <label description="Pavadinimas / vardas ir pavardė" languagecode="1063" />
+                                  <label description="Nosaukums/vārds, uzvārds" languagecode="1062" />
+                                  <label description="Nama" languagecode="1086" />
+                                  <label description="Navn" languagecode="1044" />
+                                  <label description="Naam" languagecode="1043" />
+                                  <label description="Nazwa" languagecode="1045" />
+                                  <label description="Nome" languagecode="1046" />
+                                  <label description="Nome" languagecode="2070" />
+                                  <label description="Nume" languagecode="1048" />
+                                  <label description="Имя" languagecode="1049" />
+                                  <label description="Názov" languagecode="1051" />
+                                  <label description="Ime" languagecode="1060" />
+                                  <label description="Назив" languagecode="3098" />
+                                  <label description="Ime" languagecode="2074" />
+                                  <label description="Namn" languagecode="1053" />
+                                  <label description="ชื่อ" languagecode="1054" />
+                                  <label description="Ad" languagecode="1055" />
+                                  <label description="Ім’я" languagecode="1058" />
+                                  <label description="Tên" languagecode="1066" />
+                                  <label description="名称" languagecode="2052" />
+                                  <label description="名稱" languagecode="3076" />
+                                  <label description="名稱" languagecode="1028" />
+                                </labels>
+                                <control id="name" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="name" uniqueid="{e8e4bc42-6c9c-4aeb-3c26-e0ddca0a7a5e}" disabled="false" />
+                              </cell>
+                            </row>
+                            <row>
+                              <cell id="{0b73c6aa-dcb9-2d1d-c5db-5bdd2d451cdd}" showlabel="false" locklevel="0">
+                                <labels>
+                                  <label description="reportview" languagecode="1033" />
+                                  <label description="reportview" languagecode="1025" />
+                                  <label description="reportview" languagecode="1026" />
+                                  <label description="reportview" languagecode="1027" />
+                                  <label description="reportview" languagecode="1029" />
+                                  <label description="reportview" languagecode="1030" />
+                                  <label description="Berichtsansicht" languagecode="1031" />
+                                  <label description="reportview" languagecode="1032" />
+                                  <label description="reportview" languagecode="3082" />
+                                  <label description="reportview" languagecode="1061" />
+                                  <label description="txosten-ikuspegia" languagecode="1069" />
+                                  <label description="raporttinäkymä" languagecode="1035" />
+                                  <label description="reportview" languagecode="1036" />
+                                  <label description="reportview" languagecode="1110" />
+                                  <label description="reportview" languagecode="1037" />
+                                  <label description="reportview" languagecode="1081" />
+                                  <label description="reportview" languagecode="1050" />
+                                  <label description="reportview" languagecode="1038" />
+                                  <label description="tampilan laporan" languagecode="1057" />
+                                  <label description="reportview" languagecode="1040" />
+                                  <label description="レポート ビュー" languagecode="1041" />
+                                  <label description="reportview" languagecode="1087" />
+                                  <label description="보고서 보기" languagecode="1042" />
+                                  <label description="reportview" languagecode="1063" />
+                                  <label description="atskaites skats" languagecode="1062" />
+                                  <label description="reportview" languagecode="1086" />
+                                  <label description="reportview" languagecode="1044" />
+                                  <label description="reportview" languagecode="1043" />
+                                  <label description="widok raportu" languagecode="1045" />
+                                  <label description="reportview" languagecode="1046" />
+                                  <label description="reportview" languagecode="2070" />
+                                  <label description="reportview" languagecode="1048" />
+                                  <label description="reportview" languagecode="1049" />
+                                  <label description="reportview" languagecode="1051" />
+                                  <label description="reportview" languagecode="1060" />
+                                  <label description="reportview" languagecode="3098" />
+                                  <label description="reportview" languagecode="2074" />
+                                  <label description="reportview" languagecode="1053" />
+                                  <label description="reportview" languagecode="1054" />
+                                  <label description="reportview" languagecode="1055" />
+                                  <label description="reportview" languagecode="1058" />
+                                  <label description="dạng xem báo cáo" languagecode="1066" />
+                                  <label description="reportview" languagecode="2052" />
+                                  <label description="reportview" languagecode="3076" />
+                                  <label description="reportview" languagecode="1028" />
+                                </labels>
+                                <control id="d365ft_reportview" classid="{F9A8A302-114E-466A-B582-6771B2AE0D92}" datafieldname="d365ft_reportview" disabled="false" uniqueid="{cab0aba9-98da-6040-c66c-90cab9da5d4e}" />
+                              </cell>
+                            </row>
+                            <row>
+                              <cell id="{14860d5c-e726-9179-ca17-3e7803e1891c}" showlabel="false" locklevel="0" visible="false">
+                                <labels>
+                                  <label description="Offline Timestamp" languagecode="1033" />
+                                  <label description="طابع زمني دون اتصال" languagecode="1025" />
+                                  <label description="Времево клеймо офлайн" languagecode="1026" />
+                                  <label description="Data i hora fora de línia" languagecode="1027" />
+                                  <label description="Časové razítko offline" languagecode="1029" />
+                                  <label description="Offline tidsstempel" languagecode="1030" />
+                                  <label description="Offline-Zeitstempel" languagecode="1031" />
+                                  <label description="Χρονική σήμανση χωρίς σύνδεση" languagecode="1032" />
+                                  <label description="Marca de tiempo sin conexión" languagecode="3082" />
+                                  <label description="Ühenduseta ajatempel" languagecode="1061" />
+                                  <label description="Internetetik deskonektatzeko unearen denbora-zigilua" languagecode="1069" />
+                                  <label description="Offline-tilan aikaleima" languagecode="1035" />
+                                  <label description="Horodatage hors connexion" languagecode="1036" />
+                                  <label description="Marca de hora sen conexión" languagecode="1110" />
+                                  <label description="חותמת זמן לא מקוונת" languagecode="1037" />
+                                  <label description="ऑफ़लाइन समय-स्टैंप" languagecode="1081" />
+                                  <label description="Izvanmrežna vremenska oznaka" languagecode="1050" />
+                                  <label description="Offline időbélyeg" languagecode="1038" />
+                                  <label description="Stempel Waktu Offline" languagecode="1057" />
+                                  <label description="Timestamp offline" languagecode="1040" />
+                                  <label description="オフラインのタイムスタンプ" languagecode="1041" />
+                                  <label description="Офлайн уақыт шкаласы" languagecode="1087" />
+                                  <label description="오프라인 타임스탬프" languagecode="1042" />
+                                  <label description="Atjungties režimo laiko žyma" languagecode="1063" />
+                                  <label description="Bezsaistes laikspiedols" languagecode="1062" />
+                                  <label description="Cap Waktu Luar Talian" languagecode="1086" />
+                                  <label description="Frakoblet tidsstempel" languagecode="1044" />
+                                  <label description="Offline tijdstempel" languagecode="1043" />
+                                  <label description="Sygnatura czasowa trybu offline" languagecode="1045" />
+                                  <label description="Carimbo de Data/Hora Offline" languagecode="1046" />
+                                  <label description="Carimbo de Data/Hora Offline" languagecode="2070" />
+                                  <label description="Marcă de timp offline" languagecode="1048" />
+                                  <label description="Метка времени автономного режима" languagecode="1049" />
+                                  <label description="Offline časová pečiatka" languagecode="1051" />
+                                  <label description="Časovni žig za način brez povezave" languagecode="1060" />
+                                  <label description="Временска ознака ван мреже" languagecode="3098" />
+                                  <label description="Vremenska oznaka van mreže" languagecode="2074" />
+                                  <label description="Offline-tidsstämpel" languagecode="1053" />
+                                  <label description="การประทับเวลาแบบออฟไลน์" languagecode="1054" />
+                                  <label description="Çevrimdışı Zaman Damgası" languagecode="1055" />
+                                  <label description="Позначка часу в автономному режимі" languagecode="1058" />
+                                  <label description="Dấu thời gian ngoại tuyến" languagecode="1066" />
+                                  <label description="脱机时间戳" languagecode="2052" />
+                                  <label description="離線時間戳記" languagecode="3076" />
+                                  <label description="離線時間戳記" languagecode="1028" />
+                                </labels>
+                                <control id="msdyn_offlinetimestamp" classid="{5B773807-9FB2-42db-97C3-7A91EFF8ADFF}" datafieldname="msdyn_offlinetimestamp" disabled="false" uniqueid="{e1a66de4-d062-1bd3-4831-89bdd4ecd597}" />
+                              </cell>
+                            </row>
+                          </rows>
+                        </section>
+                        <section showlabel="true" showbar="false" IsUserDefined="0" id="{e55a0e01-1092-d3e4-5eed-350c7e73296a}" name="{785b4643-990a-48f1-b1d9-94827c37b084}_section_2" columns="11" locklevel="0" labelwidth="115" celllabelalignment="Left" celllabelposition="Left" layout="varwidth">
+                          <labels>
+                            <label description="Signature" languagecode="1033" />
+                            <label description="التوقيع" languagecode="1025" />
+                            <label description="Подпис" languagecode="1026" />
+                            <label description="Signatura" languagecode="1027" />
+                            <label description="Podpis" languagecode="1029" />
+                            <label description="Underskrift" languagecode="1030" />
+                            <label description="Signatur" languagecode="1031" />
+                            <label description="Υπογραφή" languagecode="1032" />
+                            <label description="Firma" languagecode="3082" />
+                            <label description="Signatuur" languagecode="1061" />
+                            <label description="Sinadura" languagecode="1069" />
+                            <label description="Allekirjoitus" languagecode="1035" />
+                            <label description="Signature" languagecode="1036" />
+                            <label description="Sinatura" languagecode="1110" />
+                            <label description="חתימה" languagecode="1037" />
+                            <label description="हस्ताक्षर" languagecode="1081" />
+                            <label description="Potpis" languagecode="1050" />
+                            <label description="Aláírás" languagecode="1038" />
+                            <label description="Tanda Tangan" languagecode="1057" />
+                            <label description="Firma" languagecode="1040" />
+                            <label description="署名" languagecode="1041" />
+                            <label description="Қолтаңба" languagecode="1087" />
+                            <label description="서명" languagecode="1042" />
+                            <label description="Parašas" languagecode="1063" />
+                            <label description="Paraksts" languagecode="1062" />
+                            <label description="Tandatangan" languagecode="1086" />
+                            <label description="Signatur" languagecode="1044" />
+                            <label description="Handtekening" languagecode="1043" />
+                            <label description="Podpis" languagecode="1045" />
+                            <label description="Assinatura" languagecode="1046" />
+                            <label description="Assinatura" languagecode="2070" />
+                            <label description="Semnătură" languagecode="1048" />
+                            <label description="Подпись" languagecode="1049" />
+                            <label description="Podpis" languagecode="1051" />
+                            <label description="Podpis" languagecode="1060" />
+                            <label description="Потпис" languagecode="3098" />
+                            <label description="Potpis" languagecode="2074" />
+                            <label description="Signatur" languagecode="1053" />
+                            <label description="ลายเซ็น" languagecode="1054" />
+                            <label description="İmza" languagecode="1055" />
+                            <label description="Підпис" languagecode="1058" />
+                            <label description="Chữ ký" languagecode="1066" />
+                            <label description="签名" languagecode="2052" />
+                            <label description="簽章" languagecode="3076" />
+                            <label description="簽章" languagecode="1028" />
+                          </labels>
+                          <rows>
+                            <row>
+                              <cell id="{cb6eec35-94db-86e0-57a9-1c76c2ba485e}" showlabel="false" locklevel="0">
+                                <labels>
+                                  <label description="Signature" languagecode="1033" />
+                                  <label description="التوقيع" languagecode="1025" />
+                                  <label description="Подпис" languagecode="1026" />
+                                  <label description="Signatura" languagecode="1027" />
+                                  <label description="Podpis" languagecode="1029" />
+                                  <label description="Signatur" languagecode="1030" />
+                                  <label description="Signatur" languagecode="1031" />
+                                  <label description="Υπογραφή" languagecode="1032" />
+                                  <label description="Firma" languagecode="3082" />
+                                  <label description="Signatuur" languagecode="1061" />
+                                  <label description="Sinadura" languagecode="1069" />
+                                  <label description="Allekirjoitus" languagecode="1035" />
+                                  <label description="Signature" languagecode="1036" />
+                                  <label description="Sinatura" languagecode="1110" />
+                                  <label description="חתימה" languagecode="1037" />
+                                  <label description="हस्ताक्षर" languagecode="1081" />
+                                  <label description="Potpis" languagecode="1050" />
+                                  <label description="Aláírás" languagecode="1038" />
+                                  <label description="Tanda tangan" languagecode="1057" />
+                                  <label description="Firma" languagecode="1040" />
+                                  <label description="署名" languagecode="1041" />
+                                  <label description="Қолтаңба" languagecode="1087" />
+                                  <label description="서명" languagecode="1042" />
+                                  <label description="Parašas" languagecode="1063" />
+                                  <label description="Paraksts" languagecode="1062" />
+                                  <label description="Tandatangan" languagecode="1086" />
+                                  <label description="Signatur" languagecode="1044" />
+                                  <label description="Handtekening" languagecode="1043" />
+                                  <label description="Podpis" languagecode="1045" />
+                                  <label description="Assinatura" languagecode="1046" />
+                                  <label description="Assinatura" languagecode="2070" />
+                                  <label description="Semnătură" languagecode="1048" />
+                                  <label description="Подпись" languagecode="1049" />
+                                  <label description="Podpis" languagecode="1051" />
+                                  <label description="Podpis" languagecode="1060" />
+                                  <label description="Потпис" languagecode="3098" />
+                                  <label description="Potpis" languagecode="2074" />
+                                  <label description="Signatur" languagecode="1053" />
+                                  <label description="ลายเซ็น" languagecode="1054" />
+                                  <label description="İmza" languagecode="1055" />
+                                  <label description="Підпис" languagecode="1058" />
+                                  <label description="Chữ ký" languagecode="1066" />
+                                  <label description="签名" languagecode="2052" />
+                                  <label description="簽章" languagecode="3076" />
+                                  <label description="簽章" languagecode="1028" />
+                                </labels>
+                                <control id="msdyn_signature" classid="{F9A8A302-114E-466A-B582-6771B2AE0D92}" datafieldname="msdyn_signature" disabled="false" uniqueid="{38ec47d7-b452-1586-d19e-5ab0eca42bd6}" />
+                              </cell>
+                              <cell id="{5438567d-3804-9925-8907-ce164be6841e}" showlabel="false">
+                                <labels>
+                                  <label description="" languagecode="1033" />
+                                  <label description="" languagecode="1025" />
+                                  <label description="" languagecode="1026" />
+                                  <label description="" languagecode="1027" />
+                                  <label description="" languagecode="1029" />
+                                  <label description="" languagecode="1030" />
+                                  <label description="" languagecode="1031" />
+                                  <label description="" languagecode="1032" />
+                                  <label description="" languagecode="3082" />
+                                  <label description="" languagecode="1061" />
+                                  <label description="" languagecode="1069" />
+                                  <label description="" languagecode="1035" />
+                                  <label description="" languagecode="1036" />
+                                  <label description="" languagecode="1110" />
+                                  <label description="" languagecode="1037" />
+                                  <label description="" languagecode="1081" />
+                                  <label description="" languagecode="1050" />
+                                  <label description="" languagecode="1038" />
+                                  <label description="" languagecode="1057" />
+                                  <label description="" languagecode="1040" />
+                                  <label description="" languagecode="1041" />
+                                  <label description="" languagecode="1087" />
+                                  <label description="" languagecode="1042" />
+                                  <label description="" languagecode="1063" />
+                                  <label description="" languagecode="1062" />
+                                  <label description="" languagecode="1086" />
+                                  <label description="" languagecode="1044" />
+                                  <label description="" languagecode="1043" />
+                                  <label description="" languagecode="1045" />
+                                  <label description="" languagecode="1046" />
+                                  <label description="" languagecode="2070" />
+                                  <label description="" languagecode="1048" />
+                                  <label description="" languagecode="1049" />
+                                  <label description="" languagecode="1051" />
+                                  <label description="" languagecode="1060" />
+                                  <label description="" languagecode="3098" />
+                                  <label description="" languagecode="2074" />
+                                  <label description="" languagecode="1053" />
+                                  <label description="" languagecode="1054" />
+                                  <label description="" languagecode="1055" />
+                                  <label description="" languagecode="1058" />
+                                  <label description="" languagecode="1066" />
+                                  <label description="" languagecode="2052" />
+                                  <label description="" languagecode="3076" />
+                                  <label description="" languagecode="1028" />
+                                </labels>
+                              </cell>
+                            </row>
+                          </rows>
+                        </section>
+                      </sections>
+                    </column>
+                  </columns>
+                </tab>
+              </tabs>
+              <Navigation>
+                <NavBar>
+                  <NavBarByRelationshipItem Icon="$webresource:msdyn_/Icons/Sitemap/WorkOrder_32.png" RelationshipName="msdyn_bookableresourcebooking_msdyn_workorderproduct_Booking" Id="nav_msdyn_bookableresourcebooking_msdyn_workorderproduct_Booking" Sequence="1000" Client="Web" Area="Sales">
+                    <Titles>
+                      <Title LCID="1033" Text="Work Order Products" />
+                      <Title LCID="1025" Text="منتجات أمر العمل" />
+                      <Title LCID="1026" Text="Продукти за работна поръчка" />
+                      <Title LCID="1027" Text="Productes d’ordre de treball" />
+                      <Title LCID="1029" Text="Produkty na pracovních příkazech" />
+                      <Title LCID="1030" Text="Arbejdsordreprodukter" />
+                      <Title LCID="1031" Text="Arbeitsauftragsprodukte" />
+                      <Title LCID="1032" Text="Προϊόντα παραγγελίας εργασίας" />
+                      <Title LCID="3082" Text="Productos de orden de trabajo" />
+                      <Title LCID="1061" Text="Töökäsu tooted" />
+                      <Title LCID="1069" Text="Lan-eskaeren produktuak" />
+                      <Title LCID="1035" Text="Työtilauksen tuotteet" />
+                      <Title LCID="1036" Text="Produits d’ordre de travail" />
+                      <Title LCID="1110" Text="Produtos do pedido de traballo" />
+                      <Title LCID="1037" Text="מוצרים בהזמנת עבודה" />
+                      <Title LCID="1081" Text="कार्य ऑर्डर उत्पाद" />
+                      <Title LCID="1050" Text="Proizvodi na radnom nalogu" />
+                      <Title LCID="1038" Text="Munkarendelés termékei" />
+                      <Title LCID="1057" Text="Produk Perintah Kerja" />
+                      <Title LCID="1040" Text="Prodotti ordine di lavoro" />
+                      <Title LCID="1041" Text="作業指示書製品" />
+                      <Title LCID="1087" Text="Жұмысқа тапсырыс өнімдері" />
+                      <Title LCID="1042" Text="작업 주문 제품" />
+                      <Title LCID="1063" Text="Darbo užsakymo produktai" />
+                      <Title LCID="1062" Text="Darba pasūtījuma preces" />
+                      <Title LCID="1086" Text="Produk Pesanan Kerja" />
+                      <Title LCID="1044" Text="Arbeidsordreprodukter" />
+                      <Title LCID="1043" Text="Werkorderproducten" />
+                      <Title LCID="1045" Text="Produkty objęte zleceniem pracy" />
+                      <Title LCID="1046" Text="Produtos da Ordem de Serviço" />
+                      <Title LCID="2070" Text="Produtos de Ordem de Intervenção" />
+                      <Title LCID="1048" Text="Produse din comanda de lucru" />
+                      <Title LCID="1049" Text="Продукты по заказу на работу" />
+                      <Title LCID="1051" Text="Produkty objednávok prác" />
+                      <Title LCID="1060" Text="Izdelki delovnega naloga" />
+                      <Title LCID="3098" Text="Производи на радном налогу" />
+                      <Title LCID="2074" Text="Proizvodi radnog naloga" />
+                      <Title LCID="1053" Text="Arbetsorderposter" />
+                      <Title LCID="1054" Text="ผลิตภัณฑ์ในใบสั่งงาน" />
+                      <Title LCID="1055" Text="İş Emri Ürünleri" />
+                      <Title LCID="1058" Text="Продукти для наряду-замовлення" />
+                      <Title LCID="1066" Text="Sản phẩm trong lệnh sản xuất" />
+                      <Title LCID="2052" Text="工作订单产品" />
+                      <Title LCID="3076" Text="工單產品" />
+                      <Title LCID="1028" Text="工單產品" />
+                    </Titles>
+                  </NavBarByRelationshipItem>
+                  <NavBarByRelationshipItem Icon="$webresource:msdyn_/Icons/Sitemap/Calendar_32.png" RelationshipName="msdyn_bookableresourcebooking_msdyn_bookingjournal_Booking" Id="nav_msdyn_bookableresourcebooking_msdyn_bookingjournal_Booking" Sequence="1001" Client="Web" Area="Service">
+                    <Titles>
+                      <Title LCID="1033" Text="Booking Journal" />
+                      <Title LCID="1025" Text="دفتر يومية الحجز" />
+                      <Title LCID="1026" Text="Журнал за резервация" />
+                      <Title LCID="1027" Text="Diari de reserves" />
+                      <Title LCID="1029" Text="Deník rezervací" />
+                      <Title LCID="1030" Text="Reservationskladde" />
+                      <Title LCID="1031" Text="Buchungsjournal" />
+                      <Title LCID="1032" Text="Ημερολόγιο κράτησης" />
+                      <Title LCID="3082" Text="Diario de reserva" />
+                      <Title LCID="1061" Text="Broneeringu tööleht" />
+                      <Title LCID="1069" Text="Erreserba-egunkaria" />
+                      <Title LCID="1035" Text="Varauksen kirjauskansio" />
+                      <Title LCID="1036" Text="Journal des réservations" />
+                      <Title LCID="1110" Text="Diario de reservas" />
+                      <Title LCID="1037" Text="יומן הזמנות" />
+                      <Title LCID="1081" Text="बुकिंग जर्नल" />
+                      <Title LCID="1050" Text="Dnevnik rezervacija" />
+                      <Title LCID="1038" Text="Foglalási napló" />
+                      <Title LCID="1057" Text="Jurnal Pemesanan" />
+                      <Title LCID="1040" Text="Giornale di registrazione prenotazioni" />
+                      <Title LCID="1041" Text="予約仕訳帳" />
+                      <Title LCID="1087" Text="Тапсырыс беру журналы" />
+                      <Title LCID="1042" Text="예약 분개장" />
+                      <Title LCID="1063" Text="Rezervavimo žurnalas" />
+                      <Title LCID="1062" Text="Rezervāciju žurnāls" />
+                      <Title LCID="1086" Text="Jurnal Penempahan" />
+                      <Title LCID="1044" Text="Bestillingsjournal" />
+                      <Title LCID="1043" Text="Boekingsjournaal" />
+                      <Title LCID="1045" Text="Arkusz rezerwacji" />
+                      <Title LCID="1046" Text="Diário de Reservas" />
+                      <Title LCID="2070" Text="Diário da Reserva" />
+                      <Title LCID="1048" Text="Jurnal de rezervări" />
+                      <Title LCID="1049" Text="Журнал резервирования" />
+                      <Title LCID="1051" Text="Denník rezervácií" />
+                      <Title LCID="1060" Text="Dnevnik rezervacij" />
+                      <Title LCID="3098" Text="Дневник резервација" />
+                      <Title LCID="2074" Text="Dnevnik rezervisanja" />
+                      <Title LCID="1053" Text="Bokningsjournal" />
+                      <Title LCID="1054" Text="สมุดรายวันการจอง" />
+                      <Title LCID="1055" Text="Ayırma Günlüğü" />
+                      <Title LCID="1058" Text="Журнал резервувань" />
+                      <Title LCID="1066" Text="Nhật ký đăng ký" />
+                      <Title LCID="2052" Text="预订日记帐" />
+                      <Title LCID="3076" Text="預約日誌" />
+                      <Title LCID="1028" Text="預約日誌" />
+                    </Titles>
+                  </NavBarByRelationshipItem>
+                  <NavBarByRelationshipItem Icon="$webresource:msdyn_/Icons/Sitemap/Calendar_32.png" RelationshipName="msdyn_bookableresourcebooking_msdyn_bookingtimestamp_Booking" Id="nav_msdyn_bookableresourcebooking_msdyn_bookingtimestamp_Booking" Client="Web" Area="Service" Sequence="1002">
+                    <Titles>
+                      <Title LCID="1033" Text="Booking Timestamps" />
+                      <Title LCID="1025" Text="الطوابع الزمنية للحجز" />
+                      <Title LCID="1026" Text="Времеви клейма за резервиране" />
+                      <Title LCID="1027" Text="Dates i hores de les reserves" />
+                      <Title LCID="1029" Text="Časová razítka rezervací" />
+                      <Title LCID="1030" Text="Tidsstempler for reservation" />
+                      <Title LCID="1031" Text="Buchungszeitstempel" />
+                      <Title LCID="1032" Text="Χρονικές σημάνσεις κράτησης" />
+                      <Title LCID="3082" Text="Marcas de tiempo de reserva" />
+                      <Title LCID="1061" Text="Broneeringu ajatemplid" />
+                      <Title LCID="1069" Text="Erreserben denbora-zigiluak" />
+                      <Title LCID="1035" Text="Varauksen aikaleimat" />
+                      <Title LCID="1036" Text="Horodatages de réservation" />
+                      <Title LCID="1110" Text="Marcas de hora das reservas" />
+                      <Title LCID="1037" Text="חותמות זמן של הזמנות" />
+                      <Title LCID="1081" Text="बुकिंग समय स्टैंप" />
+                      <Title LCID="1050" Text="Vremenske oznake rezervacije" />
+                      <Title LCID="1038" Text="Foglalási időbélyegek" />
+                      <Title LCID="1057" Text="Stempel Waktu Pemesanan" />
+                      <Title LCID="1040" Text="Timestamp prenotazione" />
+                      <Title LCID="1041" Text="予約タイムスタンプ" />
+                      <Title LCID="1087" Text="Тапсырыс беру уақытының белгілері" />
+                      <Title LCID="1042" Text="예약 타임스탬프" />
+                      <Title LCID="1063" Text="Rezervavimo laiko žymos" />
+                      <Title LCID="1062" Text="Rezervāciju laikspiedoli" />
+                      <Title LCID="1086" Text="Cap Waktu Penempahan" />
+                      <Title LCID="1044" Text="Bestillingstidsstempler" />
+                      <Title LCID="1043" Text="Tijdstempels voor boekingen" />
+                      <Title LCID="1045" Text="Sygnatury czasowe rezerwacji" />
+                      <Title LCID="1046" Text="Carimbos de Data/Hora da Reserva" />
+                      <Title LCID="2070" Text="Carimbos de Data/Hora da Reserva" />
+                      <Title LCID="1048" Text="Mărci de timp rezervări" />
+                      <Title LCID="1049" Text="Метки времени резервирования" />
+                      <Title LCID="1051" Text="Časové pečiatky rezervácií" />
+                      <Title LCID="1060" Text="Časovni žigi rezervacij" />
+                      <Title LCID="3098" Text="Временске ознаке резервација" />
+                      <Title LCID="2074" Text="Vremenske oznake rezervacija" />
+                      <Title LCID="1053" Text="Tidsstämplar för bokning" />
+                      <Title LCID="1054" Text="การบันทึกเวลาการจอง" />
+                      <Title LCID="1055" Text="Ayırma Zaman Damgaları" />
+                      <Title LCID="1058" Text="Позначки часу резервувань" />
+                      <Title LCID="1066" Text="Dấu thời gian đăng ký" />
+                      <Title LCID="2052" Text="预订时间戳" />
+                      <Title LCID="3076" Text="預約時間戳記" />
+                      <Title LCID="1028" Text="預約時間戳記" />
+                    </Titles>
+                  </NavBarByRelationshipItem>
+                  <NavBarByRelationshipItem Icon="$webresource:msdyn_/Icons/Sitemap/WorkOrder_32.png" RelationshipName="msdyn_bookableresourcebooking_msdyn_workorderservice_Booking" Id="nav_msdyn_bookableresourcebooking_msdyn_workorderservice_Booking" Client="Web" Area="Sales" Sequence="1003">
+                    <Titles>
+                      <Title LCID="1033" Text="Work Order Services" />
+                      <Title LCID="1025" Text="خدمات أمر العمل" />
+                      <Title LCID="1026" Text="Услуги за работна поръчка" />
+                      <Title LCID="1027" Text="Serveis de l’ordre de treball" />
+                      <Title LCID="1029" Text="Služby na pracovních příkazech" />
+                      <Title LCID="1030" Text="Servicer i arbejdsordre" />
+                      <Title LCID="1031" Text="Arbeitsauftragsservices" />
+                      <Title LCID="1032" Text="Υπηρεσίες παραγγελίας εργασίας" />
+                      <Title LCID="3082" Text="Servicios de orden de trabajo" />
+                      <Title LCID="1061" Text="Töökäsu teenused" />
+                      <Title LCID="1069" Text="Lan-eskaeren zerbitzuak" />
+                      <Title LCID="1035" Text="Työtilauksen palvelut" />
+                      <Title LCID="1036" Text="Services d’ordre de travail" />
+                      <Title LCID="1110" Text="Servizos do pedido de traballo" />
+                      <Title LCID="1037" Text="שירותים בהזמנת עבודה" />
+                      <Title LCID="1081" Text="कार्य ऑर्डर सेवाएँ" />
+                      <Title LCID="1050" Text="Usluge na radnom nalogu" />
+                      <Title LCID="1038" Text="Munkarendelés szolgáltatásai" />
+                      <Title LCID="1057" Text="Layanan Perintah Kerja" />
+                      <Title LCID="1040" Text="Servizi ordine di lavoro" />
+                      <Title LCID="1041" Text="作業指示書サービス" />
+                      <Title LCID="1087" Text="Жұмысқа тапсырыс қызметтері" />
+                      <Title LCID="1042" Text="작업 주문 서비스" />
+                      <Title LCID="1063" Text="Darbo užsakymo paslaugos" />
+                      <Title LCID="1062" Text="Darba pasūtījuma servisi" />
+                      <Title LCID="1086" Text="Perkhidmatan Pesanan Kerja" />
+                      <Title LCID="1044" Text="Arbeidsordreservicer" />
+                      <Title LCID="1043" Text="Werkorderservices" />
+                      <Title LCID="1045" Text="Usługi objęte zleceniem pracy" />
+                      <Title LCID="1046" Text="Serviços da Ordem de Serviço" />
+                      <Title LCID="2070" Text="Serviços de Ordem de Intervenção" />
+                      <Title LCID="1048" Text="Servicii din comanda de lucru" />
+                      <Title LCID="1049" Text="Сервисы по заказу на работу" />
+                      <Title LCID="1051" Text="Služby objednávok prác" />
+                      <Title LCID="1060" Text="Storitve delovnega naloga" />
+                      <Title LCID="3098" Text="Услуге радног налога" />
+                      <Title LCID="2074" Text="Usluge radnog naloga" />
+                      <Title LCID="1053" Text="Arbetsordertjänster" />
+                      <Title LCID="1054" Text="การบริการของใบสั่งงาน" />
+                      <Title LCID="1055" Text="İş Emri Servisleri" />
+                      <Title LCID="1058" Text="Послуги для наряду-замовлення" />
+                      <Title LCID="1066" Text="Dịch vụ trong lệnh sản xuất" />
+                      <Title LCID="2052" Text="工作订单服务" />
+                      <Title LCID="3076" Text="工單服務" />
+                      <Title LCID="1028" Text="工單服務" />
+                    </Titles>
+                  </NavBarByRelationshipItem>
+                  <NavBarByRelationshipItem Icon="$webresource:msdyn_/Icons/Sitemap/WorkOrder_32.png" RelationshipName="msdyn_bookableresourcebooking_msdyn_workorderservicetask_Booking" Id="nav_msdyn_bookableresourcebooking_msdyn_workorderservicetask_Booking" Client="Web" Area="Sales" Sequence="1003">
+                    <Titles>
+                      <Title LCID="1033" Text="Work Order Service Tasks" />
+                      <Title LCID="1025" Text="مهام خدمة أمر العمل" />
+                      <Title LCID="1026" Text="Задачи за услуги за работна поръчка" />
+                      <Title LCID="1027" Text="Tasques de servei de l’ordre de treball" />
+                      <Title LCID="1029" Text="Úkoly související se službami na pracovních příkazech" />
+                      <Title LCID="1030" Text="Serviceopgaver i arbejdsordre" />
+                      <Title LCID="1031" Text="Arbeitsauftragsserviceaufgaben" />
+                      <Title LCID="1032" Text="Εργασίες υπηρεσίας παραγγελίας εργασίας" />
+                      <Title LCID="3082" Text="Tareas de servicio de orden de trabajo" />
+                      <Title LCID="1061" Text="Töökäsu teenuse ülesanded" />
+                      <Title LCID="1069" Text="Lan-eskaeren zerbitzuen zereginak" />
+                      <Title LCID="1035" Text="Työtilauksen palvelutehtävät" />
+                      <Title LCID="1036" Text="Tâches de service d’ordre de travail" />
+                      <Title LCID="1110" Text="Tarefas de servizo do pedido de traballo" />
+                      <Title LCID="1037" Text="משימות שירות בהזמנת עבודה" />
+                      <Title LCID="1081" Text="कार्य ऑर्डर सेवा कार्य" />
+                      <Title LCID="1050" Text="Zadaci za usluge na radnom nalogu" />
+                      <Title LCID="1038" Text="Munkarendelés szolgáltatási feladatai" />
+                      <Title LCID="1057" Text="Tugas Layanan Perintah Kerja" />
+                      <Title LCID="1040" Text="Attività servizio ordine di lavoro" />
+                      <Title LCID="1041" Text="作業指示書サービス タスク" />
+                      <Title LCID="1087" Text="Жұмысқа тапсырыс қызметінің тапсырмалары" />
+                      <Title LCID="1042" Text="작업 주문 서비스 작업" />
+                      <Title LCID="1063" Text="Darbo užsakymo aptarnavimo užduotys" />
+                      <Title LCID="1062" Text="Darba pasūtījuma servisa uzdevumi" />
+                      <Title LCID="1086" Text="Kerja Perkhidmatan Pesanan Kerja" />
+                      <Title LCID="1044" Text="Serviceoppgaver for arbeidsordre" />
+                      <Title LCID="1043" Text="Servicetaken voor werkorders" />
+                      <Title LCID="1045" Text="Zadania serwisowe objęte zleceniem pracy" />
+                      <Title LCID="1046" Text="Tarefas do Serviço da Ordem de Serviço" />
+                      <Title LCID="2070" Text="Tarefas de Serviço de Ordem de Intervenção" />
+                      <Title LCID="1048" Text="Activități de serviciu din comanda de lucru" />
+                      <Title LCID="1049" Text="Задачи сервиса по заказу на работу" />
+                      <Title LCID="1051" Text="Úlohy služieb objednávok prác" />
+                      <Title LCID="1060" Text="Storitvena opravila delovnega naloga" />
+                      <Title LCID="3098" Text="Сервисни задаци радног налога" />
+                      <Title LCID="2074" Text="Servisni zadaci radnog naloga" />
+                      <Title LCID="1053" Text="Serviceuppgifter för arbetsorder" />
+                      <Title LCID="1054" Text="งานการบริการของใบสั่งงาน" />
+                      <Title LCID="1055" Text="İş Emri Servis Görevleri" />
+                      <Title LCID="1058" Text="Завдання з обслуговування для наряду-замовлення" />
+                      <Title LCID="1066" Text="Công việc dịch vụ trong lệnh sản xuất" />
+                      <Title LCID="2052" Text="工作订单服务任务" />
+                      <Title LCID="3076" Text="工單服務工作" />
+                      <Title LCID="1028" Text="工單服務工作" />
+                    </Titles>
+                  </NavBarByRelationshipItem>
+                  <NavBarByRelationshipItem Icon="$webresource:msdyn_/Icons/Sitemap/PurchaseOrder_32.png" RelationshipName="msdyn_bookableresourcebooking_msdyn_purchaseorderproduct_AssociateToBooking" Sequence="10000" Client="Web" Area="Info" Id="nav_msdyn_bookableresourcebooking_msdyn_purchaseorderproduct_AssociateToBooking" Show="false">
+                    <Titles>
+                      <Title LCID="1033" Text="Purchase Order Products" />
+                      <Title LCID="1025" Text="منتجات أمر الشراء" />
+                      <Title LCID="1026" Text="Продукти в поръчката за покупка" />
+                      <Title LCID="1027" Text="Productes de l’ordre de compra" />
+                      <Title LCID="1029" Text="Produkty na nákupních objednávkách" />
+                      <Title LCID="1030" Text="Produkter i indkøbsordre" />
+                      <Title LCID="1031" Text="Bestellungsprodukte" />
+                      <Title LCID="1032" Text="Προϊόντα παραγγελίας αγοράς" />
+                      <Title LCID="3082" Text="Productos de pedido de compra" />
+                      <Title LCID="1061" Text="Ostutellimuse tooted" />
+                      <Title LCID="1069" Text="Erosketa-eskaeren produktuak" />
+                      <Title LCID="1035" Text="Ostotilauksen tuotteet" />
+                      <Title LCID="1036" Text="Produits du bon de commande" />
+                      <Title LCID="1110" Text="Produtos do pedido de compra" />
+                      <Title LCID="1037" Text="מוצרים בהזמנת רכש" />
+                      <Title LCID="1081" Text="क्रय ऑर्डर उत्पाद" />
+                      <Title LCID="1050" Text="Proizvodi na narudžbenici" />
+                      <Title LCID="1038" Text="Megrendelés termékei" />
+                      <Title LCID="1057" Text="Produk Pesanan Pembelian" />
+                      <Title LCID="1040" Text="Prodotti ordine di acquisto" />
+                      <Title LCID="1041" Text="発注書の製品" />
+                      <Title LCID="1087" Text="Сатып алуға тапсырыс өнімдері" />
+                      <Title LCID="1042" Text="구매 주문 제품" />
+                      <Title LCID="1063" Text="Pirkimo užsakymo produktai" />
+                      <Title LCID="1062" Text="Pirkšanas pasūtījuma preces" />
+                      <Title LCID="1086" Text="Produk Pesanan Belian" />
+                      <Title LCID="1044" Text="Bestillingsprodukter" />
+                      <Title LCID="1043" Text="Inkooporderproducten" />
+                      <Title LCID="1045" Text="Produkty objęte zamówieniem zakupu" />
+                      <Title LCID="1046" Text="Produtos da Ordem de Compra" />
+                      <Title LCID="2070" Text="Produtos de Nota de Encomenda" />
+                      <Title LCID="1048" Text="Produse din comanda de achiziționare" />
+                      <Title LCID="1049" Text="Продукты по заказу на покупку" />
+                      <Title LCID="1051" Text="Produkty nákupných objednávok" />
+                      <Title LCID="1060" Text="Izdelki na naročilnici" />
+                      <Title LCID="3098" Text="Производи на поруџбеници" />
+                      <Title LCID="2074" Text="Proizvodi na porudžbenici" />
+                      <Title LCID="1053" Text="Inköpsorderprodukter" />
+                      <Title LCID="1054" Text="ผลิตภัณฑ์ในใบสั่งซื้อ" />
+                      <Title LCID="1055" Text="Satın Alma Siparişi Ürünleri" />
+                      <Title LCID="1058" Text="Продукти для замовлення на придбання" />
+                      <Title LCID="1066" Text="Sản phẩm trong đơn hàng mua hàng" />
+                      <Title LCID="2052" Text="采购订单产品" />
+                      <Title LCID="3076" Text="採購單產品" />
+                      <Title LCID="1028" Text="採購單產品" />
+                    </Titles>
+                  </NavBarByRelationshipItem>
+                  <NavBarByRelationshipItem Icon="$webresource:msdyn_/Icons/Sitemap/PurchaseOrder_32.png" RelationshipName="msdyn_bookableresourcebooking_msdyn_purchaseorderreceiptproduct_AssociateToBooking" Sequence="10000" Client="Web" Area="Info" Id="nav_msdyn_bookableresourcebooking_msdyn_purchaseorderreceiptproduct_AssociateToBooking" Show="false">
+                    <Titles>
+                      <Title LCID="1033" Text="Purchase Order Receipt Products" />
+                      <Title LCID="1025" Text="منتجات إيصال أمر الشراء" />
+                      <Title LCID="1026" Text="Продукти в обратната разписка на поръчката за покупка" />
+                      <Title LCID="1027" Text="Productes de rebut de l’ordre de compra" />
+                      <Title LCID="1029" Text="Produkty na potvrzeních nákupních objednávek" />
+                      <Title LCID="1030" Text="Produkter i indkøbsordrekvittering" />
+                      <Title LCID="1031" Text="Bestellungszugangsprodukte" />
+                      <Title LCID="1032" Text="Προϊόντα απόδειξης παραγγελίας αγοράς" />
+                      <Title LCID="3082" Text="Productos de recibo de pedido de compra" />
+                      <Title LCID="1061" Text="Ostutellimuse sissetulevad tooted" />
+                      <Title LCID="1069" Text="Erosketa-eskaeren agiriko produktuak" />
+                      <Title LCID="1035" Text="Ostotilauksen vastaanoton tuotteet" />
+                      <Title LCID="1036" Text="Produits du reçu de bon de commande" />
+                      <Title LCID="1110" Text="Produtos de confirmación do pedido de compra" />
+                      <Title LCID="1037" Text="מוצרים בקבלה של הזמנת רכש" />
+                      <Title LCID="1081" Text="क्रय ऑर्डर रसीद उत्पाद" />
+                      <Title LCID="1050" Text="Proizvodi na potvrdi narudžbenice" />
+                      <Title LCID="1038" Text="Megrendelés átvett termékei" />
+                      <Title LCID="1057" Text="Produk Tanda Terima Pesanan Pembelian" />
+                      <Title LCID="1040" Text="Prodotti ricevuta ordine di acquisto" />
+                      <Title LCID="1041" Text="発注書の受け取り製品" />
+                      <Title LCID="1087" Text="Сатып алуға тапсырыс түсімінің өнімдері" />
+                      <Title LCID="1042" Text="구매 주문 영수증 기재 제품" />
+                      <Title LCID="1063" Text="Pirkimo užsakymo kvito produktai" />
+                      <Title LCID="1062" Text="Pirkšanas pasūtījuma apliecinājuma preces" />
+                      <Title LCID="1086" Text="Produk Resit Pesanan Belian" />
+                      <Title LCID="1044" Text="Produkter for bestillingsbekreftelse" />
+                      <Title LCID="1043" Text="Producten van inkooporderontvangsten" />
+                      <Title LCID="1045" Text="Produkty objęte przyjęciem zamówienia zakupu" />
+                      <Title LCID="1046" Text="Produtos do Recebimento da Ordem de Compra" />
+                      <Title LCID="2070" Text="Produtos de Receção de Nota de Encomenda" />
+                      <Title LCID="1048" Text="Produse din chitanța comenzii de achiziționare" />
+                      <Title LCID="1049" Text="Продукты получения заказа на покупку" />
+                      <Title LCID="1051" Text="Produkty potvrdení nákupných objednávok" />
+                      <Title LCID="1060" Text="Izdelki na potrdilu o prejeti naročilnici" />
+                      <Title LCID="3098" Text="Производи на признаници за поруџбеницу" />
+                      <Title LCID="2074" Text="Primljeni proizvodi na porudžbenici" />
+                      <Title LCID="1053" Text="Inleveransprodukter för inköpsorder" />
+                      <Title LCID="1054" Text="ผลิตภัณฑ์ในใบรับสินค้าของใบสั่งซื้อ" />
+                      <Title LCID="1055" Text="Satın Alma Siparişi Giriş Ürünleri" />
+                      <Title LCID="1058" Text="Продукти, отримані за замовленням на придбання" />
+                      <Title LCID="1066" Text="Sản phẩm trong biên nhận đơn hàng mua hàng" />
+                      <Title LCID="2052" Text="采购订单收据产品" />
+                      <Title LCID="3076" Text="採購單收據產品" />
+                      <Title LCID="1028" Text="採購單收據產品" />
+                    </Titles>
+                  </NavBarByRelationshipItem>
+                  <NavBarByRelationshipItem Icon="$webresource:msdyn_/Icons/Sitemap/RTV_32.png" RelationshipName="msdyn_bookableresourcebooking_msdyn_rtv_Booking" Sequence="10000" Client="Web" Area="Info" Id="nav_msdyn_bookableresourcebooking_msdyn_rtv_Booking" Show="false">
+                    <Titles>
+                      <Title LCID="1033" Text="RTVs" />
+                      <Title LCID="1025" Text="عمليات الإرجاع إلى البائع (RTV)" />
+                      <Title LCID="1026" Text="RTV" />
+                      <Title LCID="1027" Text="Devolucions a proveïdor (RTV)" />
+                      <Title LCID="1029" Text="Vrácení dodavateli" />
+                      <Title LCID="1030" Text="RTV'er" />
+                      <Title LCID="1031" Text="RTVs" />
+                      <Title LCID="1032" Text="ΕΣΠ" />
+                      <Title LCID="3082" Text="RTV" />
+                      <Title LCID="1061" Text="RTV-d" />
+                      <Title LCID="1069" Text="RTVak" />
+                      <Title LCID="1035" Text="Palautukset toimittajalle" />
+                      <Title LCID="1036" Text="Retours au fournisseur" />
+                      <Title LCID="1110" Text="RTV" />
+                      <Title LCID="1037" Text="אישורי RTV" />
+                      <Title LCID="1081" Text="RTV" />
+                      <Title LCID="1050" Text="RTV-ovi" />
+                      <Title LCID="1038" Text="Visszáruk a szállítónak" />
+                      <Title LCID="1057" Text="RTV" />
+                      <Title LCID="1040" Text="RTV" />
+                      <Title LCID="1041" Text="RTV" />
+                      <Title LCID="1087" Text="Жеткізушіге қайтару жағдайлары" />
+                      <Title LCID="1042" Text="RTV" />
+                      <Title LCID="1063" Text="RTV" />
+                      <Title LCID="1062" Text="RTV (atgriešana)" />
+                      <Title LCID="1086" Text="Dikembalikan Ke Vendor (RTV)" />
+                      <Title LCID="1044" Text="RTV-er" />
+                      <Title LCID="1043" Text="RTV's" />
+                      <Title LCID="1045" Text="Zwroty do dostawcy" />
+                      <Title LCID="1046" Text="DAFs" />
+                      <Title LCID="2070" Text="RTVs" />
+                      <Title LCID="1048" Text="RLF-uri" />
+                      <Title LCID="1049" Text="Возвраты поставщику" />
+                      <Title LCID="1051" Text="Vrátenia dodávateľovi" />
+                      <Title LCID="1060" Text="RTV-ji" />
+                      <Title LCID="3098" Text="Повраћаји продавцу" />
+                      <Title LCID="2074" Text="Povraćaji prodavcu" />
+                      <Title LCID="1053" Text="RTV:er" />
+                      <Title LCID="1054" Text="RTV" />
+                      <Title LCID="1055" Text="RTV'ler" />
+                      <Title LCID="1058" Text="Повернення постачальнику" />
+                      <Title LCID="1066" Text="RTV (Trả về cho nhà cung cấp)" />
+                      <Title LCID="2052" Text="RTV" />
+                      <Title LCID="3076" Text="RTV" />
+                      <Title LCID="1028" Text="RTV" />
+                    </Titles>
+                  </NavBarByRelationshipItem>
+                  <NavBarByRelationshipItem Icon="$webresource:msdyn_/Icons/Sitemap/PurchaseOrder_32.png" RelationshipName="msdyn_bookableresourcebooking_msdyn_purchaseorder_Booking" Sequence="10000" Client="Web" Area="Info" Id="nav_msdyn_bookableresourcebooking_msdyn_purchaseorder_Booking" Show="false">
+                    <Titles>
+                      <Title LCID="1033" Text="Purchase Orders" />
+                      <Title LCID="1025" Text="أوامر الشراء" />
+                      <Title LCID="1026" Text="Поръчки за покупка" />
+                      <Title LCID="1027" Text="Ordres de compra" />
+                      <Title LCID="1029" Text="Nákupní objednávky" />
+                      <Title LCID="1030" Text="Indkøbsordrer" />
+                      <Title LCID="1031" Text="Bestellungen" />
+                      <Title LCID="1032" Text="Παραγγελίες αγοράς" />
+                      <Title LCID="3082" Text="Pedidos de compra" />
+                      <Title LCID="1061" Text="Ostutellimused" />
+                      <Title LCID="1069" Text="Erosketa-eskaerak" />
+                      <Title LCID="1035" Text="Ostotilaukset" />
+                      <Title LCID="1036" Text="Bons de commande" />
+                      <Title LCID="1110" Text="Pedidos de compra" />
+                      <Title LCID="1037" Text="הזמנות רכש" />
+                      <Title LCID="1081" Text="क्रय ऑर्डर" />
+                      <Title LCID="1050" Text="Narudžbenice" />
+                      <Title LCID="1038" Text="Megrendelések" />
+                      <Title LCID="1057" Text="Pesanan Pembelian" />
+                      <Title LCID="1040" Text="Ordini di acquisto" />
+                      <Title LCID="1041" Text="発注書" />
+                      <Title LCID="1087" Text="Сатып алуға тапсырыстар" />
+                      <Title LCID="1042" Text="구매 주문" />
+                      <Title LCID="1063" Text="Pirkimo užsakymai" />
+                      <Title LCID="1062" Text="Pirkšanas pasūtījumi" />
+                      <Title LCID="1086" Text="Pesanan Belian" />
+                      <Title LCID="1044" Text="Bestillinger" />
+                      <Title LCID="1043" Text="Inkooporders" />
+                      <Title LCID="1045" Text="Zamówienia zakupu" />
+                      <Title LCID="1046" Text="Ordens de Compra" />
+                      <Title LCID="2070" Text="Notas de Encomenda" />
+                      <Title LCID="1048" Text="Comenzi de achiziționare" />
+                      <Title LCID="1049" Text="Заказы на покупку" />
+                      <Title LCID="1051" Text="Nákupné objednávky" />
+                      <Title LCID="1060" Text="Naročilnice" />
+                      <Title LCID="3098" Text="Поруџбенице" />
+                      <Title LCID="2074" Text="Porudžbenice" />
+                      <Title LCID="1053" Text="Inköpsorder" />
+                      <Title LCID="1054" Text="ใบสั่งซื้อ" />
+                      <Title LCID="1055" Text="Satın Alma Siparişleri" />
+                      <Title LCID="1058" Text="Замовлення на придбання" />
+                      <Title LCID="1066" Text="Đơn hàng mua hàng" />
+                      <Title LCID="2052" Text="采购订单" />
+                      <Title LCID="3076" Text="採購單" />
+                      <Title LCID="1028" Text="採購單" />
+                    </Titles>
+                  </NavBarByRelationshipItem>
+                </NavBar>
+                <NavBarAreas>
+                  <NavBarArea Id="Info">
+                    <Titles>
+                      <Title LCID="1033" Text="Common" />
+                      <Title LCID="1025" Text="عام" />
+                      <Title LCID="1026" Text="Общо" />
+                      <Title LCID="1027" Text="Comú" />
+                      <Title LCID="1029" Text="Společné" />
+                      <Title LCID="1030" Text="Fælles" />
+                      <Title LCID="1031" Text="Gemeinsam verwendet" />
+                      <Title LCID="1032" Text="Κοινές" />
+                      <Title LCID="3082" Text="Común" />
+                      <Title LCID="1061" Text="Ühine" />
+                      <Title LCID="1069" Text="Ohikoa" />
+                      <Title LCID="1035" Text="Yhteiset" />
+                      <Title LCID="1036" Text="Commun" />
+                      <Title LCID="1110" Text="Común" />
+                      <Title LCID="1037" Text="פריטים נפוצים‬‬‬‬‬" />
+                      <Title LCID="1081" Text="सामान्य" />
+                      <Title LCID="1050" Text="Uobičajeno" />
+                      <Title LCID="1038" Text="Közös" />
+                      <Title LCID="1057" Text="Umum" />
+                      <Title LCID="1040" Text="Elementi comuni" />
+                      <Title LCID="1041" Text="共通" />
+                      <Title LCID="1087" Text="Жалпы" />
+                      <Title LCID="1042" Text="일반" />
+                      <Title LCID="1063" Text="Bendroji" />
+                      <Title LCID="1062" Text="Kopējs" />
+                      <Title LCID="1086" Text="Biasa" />
+                      <Title LCID="1044" Text="Felles" />
+                      <Title LCID="1043" Text="Gemeenschappelijk" />
+                      <Title LCID="1045" Text="Wspólne" />
+                      <Title LCID="1046" Text="Comum" />
+                      <Title LCID="2070" Text="Comum" />
+                      <Title LCID="1048" Text="Comun" />
+                      <Title LCID="1049" Text="Общее" />
+                      <Title LCID="1051" Text="Bežné" />
+                      <Title LCID="1060" Text="Skupno" />
+                      <Title LCID="3098" Text="Уобичајено" />
+                      <Title LCID="2074" Text="Uobičajeno" />
+                      <Title LCID="1053" Text="Gemensamt" />
+                      <Title LCID="1054" Text="ทั่วไป" />
+                      <Title LCID="1055" Text="Ortak" />
+                      <Title LCID="1058" Text="Спільні" />
+                      <Title LCID="1066" Text="Thông thường" />
+                      <Title LCID="2052" Text="通用" />
+                      <Title LCID="3076" Text="通用" />
+                      <Title LCID="1028" Text="通用" />
+                    </Titles>
+                  </NavBarArea>
+                  <NavBarArea Id="Sales">
+                    <Titles>
+                      <Title LCID="1033" Text="Details" />
+                      <Title LCID="1025" Text="التفاصيل" />
+                      <Title LCID="1026" Text="Подробности" />
+                      <Title LCID="1027" Text="Detalls" />
+                      <Title LCID="1029" Text="Podrobnosti" />
+                      <Title LCID="1030" Text="Oplysninger" />
+                      <Title LCID="1031" Text="Details" />
+                      <Title LCID="1032" Text="Λεπτομέρειες" />
+                      <Title LCID="3082" Text="Detalles" />
+                      <Title LCID="1061" Text="Üksikasjad" />
+                      <Title LCID="1069" Text="Xehetasunak" />
+                      <Title LCID="1035" Text="Tiedot" />
+                      <Title LCID="1036" Text="Détails" />
+                      <Title LCID="1110" Text="Detalles" />
+                      <Title LCID="1037" Text="פרטים" />
+                      <Title LCID="1081" Text="विवरण" />
+                      <Title LCID="1050" Text="Pojedinosti" />
+                      <Title LCID="1038" Text="Részletek" />
+                      <Title LCID="1057" Text="Rincian" />
+                      <Title LCID="1040" Text="Dettagli" />
+                      <Title LCID="1041" Text="詳細" />
+                      <Title LCID="1087" Text="Мәліметтер" />
+                      <Title LCID="1042" Text="세부 정보" />
+                      <Title LCID="1063" Text="Išsami informacija" />
+                      <Title LCID="1062" Text="Detalizēta informācija" />
+                      <Title LCID="1086" Text="Butiran" />
+                      <Title LCID="1044" Text="Detaljer" />
+                      <Title LCID="1043" Text="Details" />
+                      <Title LCID="1045" Text="Szczegóły" />
+                      <Title LCID="1046" Text="Detalhes" />
+                      <Title LCID="2070" Text="Detalhes" />
+                      <Title LCID="1048" Text="Detalii" />
+                      <Title LCID="1049" Text="Подробно" />
+                      <Title LCID="1051" Text="Podrobnosti" />
+                      <Title LCID="1060" Text="Podrobnosti" />
+                      <Title LCID="3098" Text="Детаљи" />
+                      <Title LCID="2074" Text="Detalji" />
+                      <Title LCID="1053" Text="Information" />
+                      <Title LCID="1054" Text="รายละเอียด" />
+                      <Title LCID="1055" Text="Ayrıntılar" />
+                      <Title LCID="1058" Text="Докладно" />
+                      <Title LCID="1066" Text="Chi tiết" />
+                      <Title LCID="2052" Text="详细信息" />
+                      <Title LCID="3076" Text="詳細資料​​" />
+                      <Title LCID="1028" Text="詳細資料​​" />
+                    </Titles>
+                  </NavBarArea>
+                  <NavBarArea Id="Service">
+                    <Titles>
+                      <Title LCID="1033" Text="Other" />
+                      <Title LCID="1025" Text="غير ذلك" />
+                      <Title LCID="1026" Text="Друго" />
+                      <Title LCID="1027" Text="Un altre" />
+                      <Title LCID="1029" Text="Ostatní" />
+                      <Title LCID="1030" Text="Andet" />
+                      <Title LCID="1031" Text="Sonstige" />
+                      <Title LCID="1032" Text="Άλλη" />
+                      <Title LCID="3082" Text="Otros" />
+                      <Title LCID="1061" Text="Muu" />
+                      <Title LCID="1069" Text="Beste bat" />
+                      <Title LCID="1035" Text="Muut" />
+                      <Title LCID="1036" Text="Autre" />
+                      <Title LCID="1110" Text="Outro" />
+                      <Title LCID="1037" Text="אחר" />
+                      <Title LCID="1081" Text="अन्य" />
+                      <Title LCID="1050" Text="Ostalo" />
+                      <Title LCID="1038" Text="Egyéb" />
+                      <Title LCID="1057" Text="Lainnya" />
+                      <Title LCID="1040" Text="Altro" />
+                      <Title LCID="1041" Text="その他" />
+                      <Title LCID="1087" Text="Басқа" />
+                      <Title LCID="1042" Text="기타" />
+                      <Title LCID="1063" Text="Kita" />
+                      <Title LCID="1062" Text="Cits" />
+                      <Title LCID="1086" Text="Lain-lain" />
+                      <Title LCID="1044" Text="Andre" />
+                      <Title LCID="1043" Text="Overige" />
+                      <Title LCID="1045" Text="Inne" />
+                      <Title LCID="1046" Text="Outros" />
+                      <Title LCID="2070" Text="Outro" />
+                      <Title LCID="1048" Text="Altceva" />
+                      <Title LCID="1049" Text="Другое" />
+                      <Title LCID="1051" Text="Iné" />
+                      <Title LCID="1060" Text="Drugo" />
+                      <Title LCID="3098" Text="Друго" />
+                      <Title LCID="2074" Text="Ostalo" />
+                      <Title LCID="1053" Text="Annat" />
+                      <Title LCID="1054" Text="อื่นๆ" />
+                      <Title LCID="1055" Text="Diğer" />
+                      <Title LCID="1058" Text="Інший" />
+                      <Title LCID="1066" Text="Khác" />
+                      <Title LCID="2052" Text="其他" />
+                      <Title LCID="3076" Text="其他" />
+                      <Title LCID="1028" Text="其他" />
+                    </Titles>
+                  </NavBarArea>
+                  <NavBarArea Id="Marketing">
+                    <Titles>
+                      <Title LCID="1033" Text="Marketing" />
+                      <Title LCID="1025" Text="التسويق" />
+                      <Title LCID="1026" Text="Маркетинг" />
+                      <Title LCID="1027" Text="Màrqueting" />
+                      <Title LCID="1029" Text="Marketing" />
+                      <Title LCID="1030" Text="Marketing" />
+                      <Title LCID="1031" Text="Marketing" />
+                      <Title LCID="1032" Text="Μάρκετινγκ" />
+                      <Title LCID="3082" Text="Marketing" />
+                      <Title LCID="1061" Text="Turundus" />
+                      <Title LCID="1069" Text="Marketina" />
+                      <Title LCID="1035" Text="Markkinointi" />
+                      <Title LCID="1036" Text="Marketing" />
+                      <Title LCID="1110" Text="Márketing" />
+                      <Title LCID="1037" Text="שיווק" />
+                      <Title LCID="1081" Text="मार्केटिंग" />
+                      <Title LCID="1050" Text="Marketing" />
+                      <Title LCID="1038" Text="Marketing" />
+                      <Title LCID="1057" Text="Pemasaran" />
+                      <Title LCID="1040" Text="Marketing" />
+                      <Title LCID="1041" Text="マーケティング" />
+                      <Title LCID="1087" Text="Маркетинг" />
+                      <Title LCID="1042" Text="마케팅" />
+                      <Title LCID="1063" Text="Rinkodara" />
+                      <Title LCID="1062" Text="Mārketings" />
+                      <Title LCID="1086" Text="Pemasaran" />
+                      <Title LCID="1044" Text="Markedsføring" />
+                      <Title LCID="1043" Text="Marketing" />
+                      <Title LCID="1045" Text="Marketing" />
+                      <Title LCID="1046" Text="Marketing" />
+                      <Title LCID="2070" Text="Marketing" />
+                      <Title LCID="1048" Text="Marketing" />
+                      <Title LCID="1049" Text="Маркетинг" />
+                      <Title LCID="1051" Text="Marketing" />
+                      <Title LCID="1060" Text="Trženje" />
+                      <Title LCID="3098" Text="Маркетинг" />
+                      <Title LCID="2074" Text="Marketing" />
+                      <Title LCID="1053" Text="Marknadsföring" />
+                      <Title LCID="1054" Text="การตลาด" />
+                      <Title LCID="1055" Text="Pazarlama" />
+                      <Title LCID="1058" Text="Маркетинг" />
+                      <Title LCID="1066" Text="Tiếp thị" />
+                      <Title LCID="2052" Text="市场营销" />
+                      <Title LCID="3076" Text="行銷" />
+                      <Title LCID="1028" Text="行銷" />
+                    </Titles>
+                  </NavBarArea>
+                  <NavBarArea Id="ProcessCenter">
+                    <Titles>
+                      <Title LCID="1033" Text="Process Sessions" />
+                      <Title LCID="1025" Text="جلسات عمل العمليات" />
+                      <Title LCID="1026" Text="Сесии на процес" />
+                      <Title LCID="1027" Text="Sessions del procés" />
+                      <Title LCID="1029" Text="Relace procesů" />
+                      <Title LCID="1030" Text="Processessioner" />
+                      <Title LCID="1031" Text="Prozesssitzungen" />
+                      <Title LCID="1032" Text="Περίοδοι λειτουργίας διεργασίας" />
+                      <Title LCID="3082" Text="Sesiones de proceso" />
+                      <Title LCID="1061" Text="Protsessiseansid" />
+                      <Title LCID="1069" Text="Prozesu-saioak" />
+                      <Title LCID="1035" Text="Käsittelyistunnot" />
+                      <Title LCID="1036" Text="Sessions de processus" />
+                      <Title LCID="1110" Text="Sesións de proceso" />
+                      <Title LCID="1037" Text="הפעלות תהליך" />
+                      <Title LCID="1081" Text="प्रक्रिया सत्र" />
+                      <Title LCID="1050" Text="Procesne sesije" />
+                      <Title LCID="1038" Text="Feldolgozási munkamenetek" />
+                      <Title LCID="1057" Text="Sesi Proses" />
+                      <Title LCID="1040" Text="Sessioni di processo" />
+                      <Title LCID="1041" Text="プロセス セッション" />
+                      <Title LCID="1087" Text="Процесс сеанстары" />
+                      <Title LCID="1042" Text="프로세스 세션" />
+                      <Title LCID="1063" Text="Procesų seansai" />
+                      <Title LCID="1062" Text="Procesa sesijas" />
+                      <Title LCID="1086" Text="Sesi Proses" />
+                      <Title LCID="1044" Text="Behandle økter" />
+                      <Title LCID="1043" Text="Sessies verwerken" />
+                      <Title LCID="1045" Text="Sesje procesów" />
+                      <Title LCID="1046" Text="Sessões do Processo" />
+                      <Title LCID="2070" Text="Sessões de Processamento" />
+                      <Title LCID="1048" Text="Sesiuni de proces" />
+                      <Title LCID="1049" Text="Сеансы процессов" />
+                      <Title LCID="1051" Text="Relácie procesov" />
+                      <Title LCID="1060" Text="Seje procesov" />
+                      <Title LCID="3098" Text="Сесије обраде" />
+                      <Title LCID="2074" Text="Sesije procesa" />
+                      <Title LCID="1053" Text="Bearbetningssessioner" />
+                      <Title LCID="1054" Text="เซสชันกระบวนการ" />
+                      <Title LCID="1055" Text="İşlem Oturumları" />
+                      <Title LCID="1058" Text="Сеанси процесів" />
+                      <Title LCID="1066" Text="Phiên quá trình" />
+                      <Title LCID="2052" Text="流程会话" />
+                      <Title LCID="3076" Text="程序工作階段" />
+                      <Title LCID="1028" Text="程序工作階段" />
+                    </Titles>
+                  </NavBarArea>
+                </NavBarAreas>
+              </Navigation>
+              <formLibraries>
+                <Library name="msdyn_/Utils/FieldServiceTrial.js" libraryUniqueId="{62643626-170a-6a0d-138c-2196a2643605}" />
+                <Library name="d365ft_/BookableResourceBooking/FSReporting.BookableResourceBooking.Library.js" libraryUniqueId="{9a73a560-a604-5264-acbb-e15950c47b6e}" />
+              </formLibraries>
+              <events>
+                <event name="onload" application="false" active="false">
+                  <Handlers>
+                    <Handler functionName="FieldServiceTrial.Library.Load" libraryName="msdyn_/Utils/FieldServiceTrial.js" handlerUniqueId="{d7149de9-30be-14ee-9473-132c171e8070}" enabled="true" parameters="" passExecutionContext="true" />
+                    <Handler functionName="FieldServiceReporting.BookableResourceBooking.Library.ReportLoad" libraryName="d365ft_/BookableResourceBooking/FSReporting.BookableResourceBooking.Library.js" handlerUniqueId="{8a8a92ec-a262-95a5-7050-7b663b7936b3}" enabled="true" parameters="" passExecutionContext="true" />
+                  </Handlers>
+                </event>
+              </events>
+              <controlDescriptions>
+                <controlDescription forControl="{cab0aba9-98da-6040-c66c-90cab9da5d4e}">
+                  <customControl id="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}">
+                    <parameters>
+                      <datafieldname>d365ft_reportview</datafieldname>
+                    </parameters>
+                  </customControl>
+                  <customControl formFactor="0" name="d365ft_D365FTControls.ReportPreview">
+                    <parameters>
+                      <ReportView>d365ft_reportview</ReportView>
+                      <Signature>msdyn_signature</Signature>
+                      <BookingId>bookableresourcebookingid</BookingId>
+                      <WorkOrder>
+                        <BindAttribute>msdyn_workorder</BindAttribute>
+                        <FilterRelationshipName />
+                        <DependentAttributeName />
+                        <DependentAttributeType />
+                        <AvailableViewIds />
+                        <AllowFilterOff>true</AllowFilterOff>
+                        <DisableQuickFind>true</DisableQuickFind>
+                        <DisableViewPicker>true</DisableViewPicker>
+                      </WorkOrder>
+                    </parameters>
+                  </customControl>
+                  <customControl formFactor="1" name="d365ft_D365FTControls.ReportPreview">
+                    <parameters>
+                      <ReportView>d365ft_reportview</ReportView>
+                      <Signature>msdyn_signature</Signature>
+                      <BookingId>bookableresourcebookingid</BookingId>
+                      <WorkOrder>
+                        <BindAttribute>msdyn_workorder</BindAttribute>
+                        <FilterRelationshipName />
+                        <DependentAttributeName />
+                        <DependentAttributeType />
+                        <AvailableViewIds />
+                        <AllowFilterOff>true</AllowFilterOff>
+                        <DisableQuickFind>true</DisableQuickFind>
+                        <DisableViewPicker>true</DisableViewPicker>
+                      </WorkOrder>
+                    </parameters>
+                  </customControl>
+                  <customControl formFactor="2" name="d365ft_D365FTControls.ReportPreview">
+                    <parameters>
+                      <ReportView>d365ft_reportview</ReportView>
+                      <Signature>msdyn_signature</Signature>
+                      <BookingId>bookableresourcebookingid</BookingId>
+                      <WorkOrder>
+                        <BindAttribute>msdyn_workorder</BindAttribute>
+                        <FilterRelationshipName />
+                        <DependentAttributeName />
+                        <DependentAttributeType />
+                        <AvailableViewIds />
+                        <AllowFilterOff>true</AllowFilterOff>
+                        <DisableQuickFind>true</DisableQuickFind>
+                        <DisableViewPicker>true</DisableViewPicker>
+                      </WorkOrder>
+                    </parameters>
+                  </customControl>
+                </controlDescription>
+                <controlDescription forControl="{38ec47d7-b452-1586-d19e-5ab0eca42bd6}">
+                  <customControl id="{E0DECE4B-6FC8-4a8f-A065-082708572369}">
+                    <parameters>
+                      <datafieldname>msdyn_signature</datafieldname>
+                    </parameters>
+                  </customControl>
+                  <customControl formFactor="0" name="MscrmControls.Signature.SignatureControl">
+                    <parameters>
+                      <value>msdyn_signature</value>
+                    </parameters>
+                  </customControl>
+                  <customControl formFactor="1" name="MscrmControls.Signature.SignatureControl">
+                    <parameters>
+                      <value>msdyn_signature</value>
+                    </parameters>
+                  </customControl>
+                  <customControl formFactor="2" name="MscrmControls.Signature.SignatureControl">
+                    <parameters>
+                      <value>msdyn_signature</value>
+                    </parameters>
+                  </customControl>
+                </controlDescription>
+              </controlDescriptions>
+              <DisplayConditions Order="4">
+                <Role Id="{DC08BFDE-DA92-E111-9D8C-000C2959F9B8}" />
+              </DisplayConditions>
+            </form>
+            <LocalizedNames>
+              <LocalizedName description="Reporting" languagecode="1033" />
+              <LocalizedName description="إعداد التقارير" languagecode="1025" />
+              <LocalizedName description="Отчитане" languagecode="1026" />
+              <LocalizedName description="Informes" languagecode="1027" />
+              <LocalizedName description="Vykazování" languagecode="1029" />
+              <LocalizedName description="Rapportering" languagecode="1030" />
+              <LocalizedName description="Berichterstellung" languagecode="1031" />
+              <LocalizedName description="Αναφορά" languagecode="1032" />
+              <LocalizedName description="Informes" languagecode="3082" />
+              <LocalizedName description="Aruandlus" languagecode="1061" />
+              <LocalizedName description="Txostenak" languagecode="1069" />
+              <LocalizedName description="Raportointi" languagecode="1035" />
+              <LocalizedName description="Création de rapports" languagecode="1036" />
+              <LocalizedName description="Informes" languagecode="1110" />
+              <LocalizedName description="דיווח" languagecode="1037" />
+              <LocalizedName description="रिपोर्टिंग" languagecode="1081" />
+              <LocalizedName description="Izvještavanje" languagecode="1050" />
+              <LocalizedName description="Jelentéskészítés" languagecode="1038" />
+              <LocalizedName description="Laporan" languagecode="1057" />
+              <LocalizedName description="Report" languagecode="1040" />
+              <LocalizedName description="レポート" languagecode="1041" />
+              <LocalizedName description="Есептер" languagecode="1087" />
+              <LocalizedName description="보고" languagecode="1042" />
+              <LocalizedName description="Ataskaitos" languagecode="1063" />
+              <LocalizedName description="Atskaišu veidošana" languagecode="1062" />
+              <LocalizedName description="Pelaporan" languagecode="1086" />
+              <LocalizedName description="Rapportering" languagecode="1044" />
+              <LocalizedName description="Rapportage" languagecode="1043" />
+              <LocalizedName description="Raportowanie" languagecode="1045" />
+              <LocalizedName description="Relatório" languagecode="1046" />
+              <LocalizedName description="Relatórios" languagecode="2070" />
+              <LocalizedName description="Raportare" languagecode="1048" />
+              <LocalizedName description="Отчетность" languagecode="1049" />
+              <LocalizedName description="Vytváranie zostáv" languagecode="1051" />
+              <LocalizedName description="Poročanje" languagecode="1060" />
+              <LocalizedName description="Извештавање" languagecode="3098" />
+              <LocalizedName description="Izveštavanje" languagecode="2074" />
+              <LocalizedName description="Rapportering" languagecode="1053" />
+              <LocalizedName description="การรายงาน" languagecode="1054" />
+              <LocalizedName description="Raporlama" languagecode="1055" />
+              <LocalizedName description="Звітування" languagecode="1058" />
+              <LocalizedName description="Báo cáo" languagecode="1066" />
+              <LocalizedName description="报告" languagecode="2052" />
+              <LocalizedName description="報告" languagecode="3076" />
+              <LocalizedName description="報告" languagecode="1028" />
+            </LocalizedNames>
+            <Descriptions>
+              <Description description="This form displays technician mobile reports." languagecode="1033" />
+              <Description description="يعرض هذا النموذج تقارير الأجهزة المحمول للتقنيين." languagecode="1025" />
+              <Description description="Този формуляр показва мобилни отчети на техник." languagecode="1026" />
+              <Description description="Aquest formulari mostra els informes mòbils del tècnic." languagecode="1027" />
+              <Description description="Tento formulář zobrazuje mobilní sestavy pro techniky." languagecode="1029" />
+              <Description description="Denne formular viser tekniske mobilrapporter." languagecode="1030" />
+              <Description description="Dieses Formular zeigt technische Mobilgeräteberichte an." languagecode="1031" />
+              <Description description="Αυτή η φόρμα περιέχει αναφορές κινητών συσκευών τεχνικών." languagecode="1032" />
+              <Description description="Este formulario muestra informes móviles del técnico." languagecode="3082" />
+              <Description description="Sellel vormil kuvatakse tehniku mobiiliaruanded." languagecode="1061" />
+              <Description description="Inprimaki honektan teknikarien mugikorreko txostenak daude ikusgai." languagecode="1069" />
+              <Description description="Tämä lomake näyttää teknikon mobiiliraportit." languagecode="1035" />
+              <Description description="Ce formulaire affiche les rapports mobiles du technicien." languagecode="1036" />
+              <Description description="Este formulario mostra os informes móbiles de técnicos." languagecode="1110" />
+              <Description description="טופס זה מציג דוחות למכשירים ניידים של טכנאים." languagecode="1037" />
+              <Description description="यह प्रपत्र तकनीशियन मोबाइल रिपोर्ट प्रदर्शित करता है." languagecode="1081" />
+              <Description description="Taj obrazac prikazuje mobilna izvješća tehničara." languagecode="1050" />
+              <Description description="Ez az űrlap a technikus mobil jelentéseit jeleníti meg." languagecode="1038" />
+              <Description description="Formulir ini menampilkan laporan seluler teknisi." languagecode="1057" />
+              <Description description="In questo modulo vengono visualizzati i report per dispositivi mobili dei tecnici." languagecode="1040" />
+              <Description description="このフォームには技術者のモバイル レポートが表示されます。" languagecode="1041" />
+              <Description description="Бұл пішін техниктердің мобильді есептерін көрсетеді." languagecode="1087" />
+              <Description description="이 양식에는 기술자 모바일 보고서가 표시됩니다." languagecode="1042" />
+              <Description description="Šioje formoje rodomos techniko mobiliesiems įrenginiams skirtos ataskaitos." languagecode="1063" />
+              <Description description="Šī veidlapa parāda tehnisko darbinieku atskaites mobilajām ierīcēm." languagecode="1062" />
+              <Description description="Borang ini memaparkan laporan mudah alih juruteknik." languagecode="1086" />
+              <Description description="Dette skjemaet viser mobilrapporter for tekniker." languagecode="1044" />
+              <Description description="Op dit formulier worden mobiele rapporten voor technici weergegeven." languagecode="1043" />
+              <Description description="W tym formularzu są wyświetlane raporty mobilne techników." languagecode="1045" />
+              <Description description="Este formulário exibe relatórios móveis técnicos." languagecode="1046" />
+              <Description description="Este formulário apresenta relatórios móveis de técnicos." languagecode="2070" />
+              <Description description="Acest formular afișează rapoarte mobile ale tehnicianului." languagecode="1048" />
+              <Description description="В этой форме отображаются мобильные отчеты технических специалистов." languagecode="1049" />
+              <Description description="V tomto formulári sa zobrazujú mobilné zostavy technikov." languagecode="1051" />
+              <Description description="Ta obrazec prikazuje mobilna poročila tehnika." languagecode="1060" />
+              <Description description="Овај образац приказује извештаје са мобилних уређаја техничара." languagecode="3098" />
+              <Description description="Ovaj obrazac prikazuje izveštaje sa mobilnih uređaja tehničara." languagecode="2074" />
+              <Description description="I det här formuläret visas mobilrapporter för tekniker." languagecode="1053" />
+              <Description description="ฟอร์มนี้แสดงรายงานอุปกรณ์มือถือของช่างเทคนิค" languagecode="1054" />
+              <Description description="Bu form, teknisyen mobil raporlarını görüntüler." languagecode="1055" />
+              <Description description="У цій формі відображаються технічні звіти для мобільних пристроїв." languagecode="1058" />
+              <Description description="Biểu mẫu này hiển thị báo cáo dành cho di động của kỹ thuật viên." languagecode="1066" />
+              <Description description="此窗体显示技术人员移动报表。" languagecode="2052" />
+              <Description description="此表單顯示技術人員行動報表。" languagecode="3076" />
+              <Description description="此表單顯示技術人員行動報表。" languagecode="1028" />
+            </Descriptions>
+          </systemform>
+        </forms>
+      </FormXml>
+      <RibbonDiffXml>
+        <CustomActions>
+          <CustomAction Id="Mscrm.bookableresourcebooking.FieldServiceReporting.Report.CustomAction" Location="Mscrm.Form.bookableresourcebooking.MainTab.Save.Controls._children" Sequence="75">
+            <CommandUIDefinition>
+              <Button Alt="$LocLabels:Mscrm.bookableresourcebooking.FieldServiceReporting.Report.Alt" Command="Mscrm.bookableresourcebooking.FieldServiceReporting.OpenReport" Id="Mscrm.bookableresourcebooking.FieldServiceReporting.Report" Image32by32="$webresource:Service/_imgs/ribbon/runreport32.png" Image16by16="$webresource:Service/_imgs/ribbon/RunReport_16.png" LabelText="$LocLabels:Mscrm.bookableresourcebooking.FieldServiceReporting.Report.LabelText" Sequence="75" TemplateAlias="o2" ToolTipTitle="$LocLabels:Mscrm.bookableresourcebooking.FieldServiceReporting.Report.ToolTipTitle" ToolTipDescription="$LocLabels:Mscrm.bookableresourcebooking.FieldServiceReporting.Report.ToolTipDescription" ModernImage="Report" />
+            </CommandUIDefinition>
+          </CustomAction>
+          <CustomAction Id="Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport.CustomAction" Location="Mscrm.Form.bookableresourcebooking.MainTab.Save.Controls._children" Sequence="6">
+            <CommandUIDefinition>
+              <Button Alt="$LocLabels:Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport.Alt" Command="Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport" Id="Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport" LabelText="$LocLabels:Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport.LabelText" Sequence="6" TemplateAlias="o1" ToolTipTitle="$LocLabels:Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport.ToolTipTitle" ModernImage="Save" />
+            </CommandUIDefinition>
+          </CustomAction>
+        </CustomActions>
+        <Templates>
+          <RibbonTemplates Id="Mscrm.Templates" />
+        </Templates>
+        <CommandDefinitions>
+          <CommandDefinition Id="Mscrm.bookableresourcebooking.FieldServiceReporting.OpenReport">
+            <EnableRules>
+              <EnableRule Id="Mscrm.IsEntityAvailableForUserInMocaOffline" />
+              <EnableRule Id="Mscrm.FormStateNotNew" />
+              <EnableRule Id="Mscrm.bookableresourcebooking.FieldServiceReporting.isNotReportForm" />
+            </EnableRules>
+            <DisplayRules />
+            <Actions>
+              <JavaScriptFunction FunctionName="FieldServiceReporting.BookableResourceBooking.Library.open" Library="$webresource:d365ft_/BookableResourceBooking/FSReporting.BookableResourceBooking.Library.js">
+                <CrmParameter Value="PrimaryControl" />
+              </JavaScriptFunction>
+            </Actions>
+          </CommandDefinition>
+          <CommandDefinition Id="Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport">
+            <EnableRules>
+              <EnableRule Id="Mscrm.IsEntityAvailableForUserInMocaOffline" />
+              <EnableRule Id="Mscrm.bookableresourcebooking.FieldServiceReporting.isReportForm" />
+            </EnableRules>
+            <DisplayRules />
+            <Actions>
+              <JavaScriptFunction FunctionName="FieldServiceReporting.BookableResourceBooking.Library.saveReport" Library="$webresource:d365ft_/BookableResourceBooking/FSReporting.BookableResourceBooking.Library.js">
+                <CrmParameter Value="PrimaryControl" />
+              </JavaScriptFunction>
+            </Actions>
+          </CommandDefinition>
+          <CommandDefinition Id="Mscrm.SavePrimary">
+            <EnableRules>
+              <EnableRule Id="Mscrm.AvailableOnForm" />
+              <EnableRule Id="Mscrm.CanSavePrimary" />
+              <EnableRule Id="Mscrm.ReadPrimaryPermission" />
+              <EnableRule Id="Mscrm.IsAutoSaveDisable" />
+              <EnableRule Id="Mscrm.IsEntityAvailableForUserInMocaOffline" />
+              <EnableRule Id="Mscrm.bookableresourcebooking.FieldServiceReporting.isNotReportForm" />
+            </EnableRules>
+            <DisplayRules>
+              <DisplayRule Id="Mscrm.CanSavePrimaryEntityType" />
+            </DisplayRules>
+            <Actions>
+              <JavaScriptFunction FunctionName="XrmCore.Commands.Save.saveForm" Library="$webresource:Main_system_library.js">
+                <CrmParameter Value="PrimaryControl" />
+              </JavaScriptFunction>
+            </Actions>
+          </CommandDefinition>
+          <CommandDefinition Id="Mscrm.SaveAndClosePrimary">
+            <EnableRules>
+              <EnableRule Id="Mscrm.IsAutoSaveDisable" />
+              <EnableRule Id="Mscrm.AvailableOnForm" />
+              <EnableRule Id="Mscrm.CanSavePrimary" />
+              <EnableRule Id="Mscrm.IsEntityAvailableForUserInMocaOffline" />
+              <EnableRule Id="Mscrm.bookableresourcebooking.FieldServiceReporting.isNotReportForm" />
+            </EnableRules>
+            <DisplayRules>
+              <DisplayRule Id="Mscrm.CanSaveAndClosePrimaryEntityType" />
+            </DisplayRules>
+            <Actions>
+              <JavaScriptFunction FunctionName="XrmCore.Commands.Save.saveAndCloseForm" Library="$webresource:Main_system_library.js">
+                <CrmParameter Value="PrimaryControl" />
+              </JavaScriptFunction>
+            </Actions>
+          </CommandDefinition>
+        </CommandDefinitions>
+        <RuleDefinitions>
+          <TabDisplayRules />
+          <DisplayRules>
+            <DisplayRule Id="Mscrm.CanSavePrimaryEntityType">
+              <OrRule>
+                <Or>
+                  <EntityPrivilegeRule PrivilegeType="Create" PrivilegeDepth="Basic" AppliesTo="PrimaryEntity" />
+                </Or>
+                <Or>
+                  <EntityPrivilegeRule PrivilegeType="Write" PrivilegeDepth="Basic" AppliesTo="PrimaryEntity" />
+                </Or>
+              </OrRule>
+              <EntityPrivilegeRule PrivilegeType="Read" PrivilegeDepth="Basic" AppliesTo="PrimaryEntity" />
+            </DisplayRule>
+            <DisplayRule Id="Mscrm.CanSaveAndClosePrimaryEntityType">
+              <OrRule>
+                <Or>
+                  <EntityPrivilegeRule PrivilegeType="Create" PrivilegeDepth="Basic" AppliesTo="PrimaryEntity" />
+                </Or>
+                <Or>
+                  <EntityPrivilegeRule PrivilegeType="Write" PrivilegeDepth="Basic" AppliesTo="PrimaryEntity" />
+                </Or>
+              </OrRule>
+            </DisplayRule>
+          </DisplayRules>
+          <EnableRules>
+            <EnableRule Id="Mscrm.FormStateNotNew">
+              <FormStateRule State="Create" InvertResult="true" />
+            </EnableRule>
+            <EnableRule Id="Mscrm.bookableresourcebooking.FieldServiceReporting.isReportForm">
+              <CustomRule FunctionName="FieldServiceReporting.BookableResourceBooking.Library.isReportForm" Library="$webresource:d365ft_/BookableResourceBooking/FSReporting.BookableResourceBooking.Library.js" Default="false" />
+            </EnableRule>
+            <EnableRule Id="Mscrm.bookableresourcebooking.FieldServiceReporting.isNotReportForm">
+              <CustomRule FunctionName="FieldServiceReporting.BookableResourceBooking.Library.isReportForm" Library="$webresource:d365ft_/BookableResourceBooking/FSReporting.BookableResourceBooking.Library.js" Default="true" InvertResult="true" />
+            </EnableRule>
+            <EnableRule Id="Mscrm.AvailableOnForm">
+              <EntityRule AppliesTo="PrimaryEntity" Context="Form" Default="false" />
+            </EnableRule>
+            <EnableRule Id="Mscrm.CanSavePrimary">
+              <OrRule>
+                <Or>
+                  <RecordPrivilegeRule PrivilegeType="Create" AppliesTo="PrimaryEntity" />
+                  <FormStateRule State="Create" />
+                </Or>
+                <Or>
+                  <RecordPrivilegeRule PrivilegeType="Write" AppliesTo="PrimaryEntity" />
+                  <FormStateRule State="Existing" />
+                </Or>
+              </OrRule>
+            </EnableRule>
+            <EnableRule Id="Mscrm.ReadPrimaryPermission">
+              <RecordPrivilegeRule PrivilegeType="Read" AppliesTo="PrimaryEntity" />
+            </EnableRule>
+            <EnableRule Id="Mscrm.IsAutoSaveDisable">
+              <OrRule>
+                <Or>
+                  <FormStateRule State="Create" />
+                </Or>
+                <Or>
+                  <CustomRule FunctionName="XrmCore.Rules.AutoSave.isAutoSaveEnabled" Library="$webresource:Main_system_library.js" InvertResult="true" />
+                </Or>
+                <Or>
+                  <CustomRule FunctionName="XrmCore.Rules.RefreshForm.isRefreshForm" Library="$webresource:Main_system_library.js" InvertResult="true" />
+                </Or>
+                <Or>
+                  <CommandClientTypeRule Type="Modern" />
+                </Or>
+              </OrRule>
+            </EnableRule>
+            <EnableRule Id="Mscrm.IsEntityAvailableForUserInMocaOffline">
+              <CustomRule FunctionName="XrmCore.Rules.Online.IsEntityAvailableForUserInMocaOffline" Library="$webresource:Main_system_library.js">
+                <CrmParameter Value="SelectedEntityTypeName" />
+              </CustomRule>
+            </EnableRule>
+          </EnableRules>
+        </RuleDefinitions>
+        <LocLabels>
+          <LocLabel Id="Mscrm.bookableresourcebooking.FieldServiceReporting.Report.LabelText">
+            <Titles>
+              <Title description="Report" languagecode="1033" />
+              <Title description="‏‏تقرير" languagecode="1025" />
+              <Title description="Отчет" languagecode="1026" />
+              <Title description="Informe" languagecode="1027" />
+              <Title description="Sestava" languagecode="1029" />
+              <Title description="Rapport" languagecode="1030" />
+              <Title description="Bericht" languagecode="1031" />
+              <Title description="Αναφορά" languagecode="1032" />
+              <Title description="Informe" languagecode="3082" />
+              <Title description="Aruanne" languagecode="1061" />
+              <Title description="Txostena" languagecode="1069" />
+              <Title description="Raportti" languagecode="1035" />
+              <Title description="Rapport" languagecode="1036" />
+              <Title description="Informe" languagecode="1110" />
+              <Title description="דוח" languagecode="1037" />
+              <Title description="रिपोर्ट" languagecode="1081" />
+              <Title description="Izvješće" languagecode="1050" />
+              <Title description="Jelentés" languagecode="1038" />
+              <Title description="Laporan" languagecode="1057" />
+              <Title description="Report" languagecode="1040" />
+              <Title description="レポート" languagecode="1041" />
+              <Title description="Есеп" languagecode="1087" />
+              <Title description="보고서" languagecode="1042" />
+              <Title description="Ataskaita" languagecode="1063" />
+              <Title description="Atskaite" languagecode="1062" />
+              <Title description="Laporan" languagecode="1086" />
+              <Title description="Rapport" languagecode="1044" />
+              <Title description="Rapport" languagecode="1043" />
+              <Title description="Raport" languagecode="1045" />
+              <Title description="Relatório" languagecode="1046" />
+              <Title description="Relatório" languagecode="2070" />
+              <Title description="Raport" languagecode="1048" />
+              <Title description="Отчет" languagecode="1049" />
+              <Title description="Zostava" languagecode="1051" />
+              <Title description="Poročilo" languagecode="1060" />
+              <Title description="Извештај" languagecode="3098" />
+              <Title description="Izveštaj" languagecode="2074" />
+              <Title description="Rapport" languagecode="1053" />
+              <Title description="รายงาน" languagecode="1054" />
+              <Title description="Rapor" languagecode="1055" />
+              <Title description="Звіт" languagecode="1058" />
+              <Title description="Báo cáo" languagecode="1066" />
+              <Title description="报告" languagecode="2052" />
+              <Title description="報表" languagecode="3076" />
+              <Title description="報表" languagecode="1028" />
+            </Titles>
+          </LocLabel>
+          <LocLabel Id="Mscrm.bookableresourcebooking.FieldServiceReporting.Report.ToolTipTitle">
+            <Titles>
+              <Title description="Report" languagecode="1033" />
+              <Title description="‏‏تقرير" languagecode="1025" />
+              <Title description="Отчет" languagecode="1026" />
+              <Title description="Informe" languagecode="1027" />
+              <Title description="Sestava" languagecode="1029" />
+              <Title description="Rapport" languagecode="1030" />
+              <Title description="Bericht" languagecode="1031" />
+              <Title description="Αναφορά" languagecode="1032" />
+              <Title description="Informe" languagecode="3082" />
+              <Title description="Aruanne" languagecode="1061" />
+              <Title description="Txostena" languagecode="1069" />
+              <Title description="Raportti" languagecode="1035" />
+              <Title description="Rapport" languagecode="1036" />
+              <Title description="Informe" languagecode="1110" />
+              <Title description="דוח" languagecode="1037" />
+              <Title description="रिपोर्ट" languagecode="1081" />
+              <Title description="Izvješće" languagecode="1050" />
+              <Title description="Jelentés" languagecode="1038" />
+              <Title description="Laporan" languagecode="1057" />
+              <Title description="Report" languagecode="1040" />
+              <Title description="レポート" languagecode="1041" />
+              <Title description="Есеп" languagecode="1087" />
+              <Title description="보고서" languagecode="1042" />
+              <Title description="Ataskaita" languagecode="1063" />
+              <Title description="Atskaite" languagecode="1062" />
+              <Title description="Laporan" languagecode="1086" />
+              <Title description="Rapport" languagecode="1044" />
+              <Title description="Rapport" languagecode="1043" />
+              <Title description="Raport" languagecode="1045" />
+              <Title description="Relatório" languagecode="1046" />
+              <Title description="Relatório" languagecode="2070" />
+              <Title description="Raport" languagecode="1048" />
+              <Title description="Отчет" languagecode="1049" />
+              <Title description="Zostava" languagecode="1051" />
+              <Title description="Poročilo" languagecode="1060" />
+              <Title description="Извештај" languagecode="3098" />
+              <Title description="Izveštaj" languagecode="2074" />
+              <Title description="Rapport" languagecode="1053" />
+              <Title description="รายงาน" languagecode="1054" />
+              <Title description="Rapor" languagecode="1055" />
+              <Title description="Звіт" languagecode="1058" />
+              <Title description="Báo cáo" languagecode="1066" />
+              <Title description="报告" languagecode="2052" />
+              <Title description="報表" languagecode="3076" />
+              <Title description="報表" languagecode="1028" />
+            </Titles>
+          </LocLabel>
+          <LocLabel Id="Mscrm.bookableresourcebooking.FieldServiceReporting.Report.ToolTipDescription">
+            <Titles>
+              <Title description="Generate a report for this booking." languagecode="1033" />
+              <Title description="إنشاء تقرير لهذا الحجز." languagecode="1025" />
+              <Title description="Генерирайте отчет за тази резервация." languagecode="1026" />
+              <Title description="Genera un informe per a aquesta reserva." languagecode="1027" />
+              <Title description="Vygeneruje sestavu pro tuto rezervaci." languagecode="1029" />
+              <Title description="Opret en rapport til denne reservation." languagecode="1030" />
+              <Title description="Generiert einen Bericht für diese Buchung." languagecode="1031" />
+              <Title description="Δημιουργήστε μια αναφορά για αυτήν την κράτηση." languagecode="1032" />
+              <Title description="Genere un informe para esta reserva." languagecode="3082" />
+              <Title description="Looge selle broneeringu jaoks aruanne." languagecode="1061" />
+              <Title description="Sortu txosten bat erreserba honetarako." languagecode="1069" />
+              <Title description="Luo raportti tälle varaukselle." languagecode="1035" />
+              <Title description="Générez un rapport pour cette réservation." languagecode="1036" />
+              <Title description="Xere un informe para esta reserva." languagecode="1110" />
+              <Title description="צור דוח עבור הזמנה זו." languagecode="1037" />
+              <Title description="इस बुकिंग के लिए एक रिपोर्ट जनरेट करें." languagecode="1081" />
+              <Title description="Generiraj izvješće za ovu rezervaciju." languagecode="1050" />
+              <Title description="Jelentés létrehozása a foglaláshoz." languagecode="1038" />
+              <Title description="Buat laporan untuk pemesanan ini." languagecode="1057" />
+              <Title description="Genera un report per questa prenotazione." languagecode="1040" />
+              <Title description="この予約のレポートを生成します。" languagecode="1041" />
+              <Title description="Осы тапсырыс үшін есеп жасаңыз." languagecode="1087" />
+              <Title description="이 예약에 대한 보고서를 생성합니다." languagecode="1042" />
+              <Title description="Generuoti šio rezervavimo ataskaitą." languagecode="1063" />
+              <Title description="Ģenerēt atskaiti šai rezervācijai." languagecode="1062" />
+              <Title description="Jana laporan untuk tempahan ini." languagecode="1086" />
+              <Title description="Generer en rapport for denne bestillingen." languagecode="1044" />
+              <Title description="Genereer een rapport voor deze boeking." languagecode="1043" />
+              <Title description="Wygeneruj raport dla tej rezerwacji." languagecode="1045" />
+              <Title description="Gere um relatório para esta reserva." languagecode="1046" />
+              <Title description="Gerar um relatório para esta reserva." languagecode="2070" />
+              <Title description="Generați un raport pentru această rezervare." languagecode="1048" />
+              <Title description="Создание отчета для этого резервирования." languagecode="1049" />
+              <Title description="Vygenerujte zostavu pre túto rezerváciu." languagecode="1051" />
+              <Title description="Ustvarite poročilo za to rezervacijo." languagecode="1060" />
+              <Title description="Генеришите извештај за ову резервацију." languagecode="3098" />
+              <Title description="Generišite izveštaj za ovu rezervaciju." languagecode="2074" />
+              <Title description="Generera en rapport för den här bokningen." languagecode="1053" />
+              <Title description="สร้างรายงานสำหรับการจองนี้" languagecode="1054" />
+              <Title description="Bu ayırma için bir rapor oluşturun." languagecode="1055" />
+              <Title description="Створити звіт для цього резервування." languagecode="1058" />
+              <Title description="Tạo một báo cáo cho lượt đăng ký này." languagecode="1066" />
+              <Title description="为此预订生成报告。" languagecode="2052" />
+              <Title description="為此預約產生報表。" languagecode="3076" />
+              <Title description="為此預約產生報表。" languagecode="1028" />
+            </Titles>
+          </LocLabel>
+          <LocLabel Id="Mscrm.bookableresourcebooking.FieldServiceReporting.Report.Alt">
+            <Titles>
+              <Title description="Report" languagecode="1033" />
+              <Title description="‏‏تقرير" languagecode="1025" />
+              <Title description="Отчет" languagecode="1026" />
+              <Title description="Informe" languagecode="1027" />
+              <Title description="Sestava" languagecode="1029" />
+              <Title description="Rapport" languagecode="1030" />
+              <Title description="Bericht" languagecode="1031" />
+              <Title description="Αναφορά" languagecode="1032" />
+              <Title description="Informe" languagecode="3082" />
+              <Title description="Aruanne" languagecode="1061" />
+              <Title description="Txostena" languagecode="1069" />
+              <Title description="Raportti" languagecode="1035" />
+              <Title description="Rapport" languagecode="1036" />
+              <Title description="Informe" languagecode="1110" />
+              <Title description="דוח" languagecode="1037" />
+              <Title description="रिपोर्ट" languagecode="1081" />
+              <Title description="Izvješće" languagecode="1050" />
+              <Title description="Jelentés" languagecode="1038" />
+              <Title description="Laporan" languagecode="1057" />
+              <Title description="Report" languagecode="1040" />
+              <Title description="レポート" languagecode="1041" />
+              <Title description="Есеп" languagecode="1087" />
+              <Title description="보고서" languagecode="1042" />
+              <Title description="Ataskaita" languagecode="1063" />
+              <Title description="Atskaite" languagecode="1062" />
+              <Title description="Laporan" languagecode="1086" />
+              <Title description="Rapport" languagecode="1044" />
+              <Title description="Rapport" languagecode="1043" />
+              <Title description="Raport" languagecode="1045" />
+              <Title description="Relatório" languagecode="1046" />
+              <Title description="Relatório" languagecode="2070" />
+              <Title description="Raport" languagecode="1048" />
+              <Title description="Отчет" languagecode="1049" />
+              <Title description="Zostava" languagecode="1051" />
+              <Title description="Poročilo" languagecode="1060" />
+              <Title description="Извештај" languagecode="3098" />
+              <Title description="Izveštaj" languagecode="2074" />
+              <Title description="Rapport" languagecode="1053" />
+              <Title description="รายงาน" languagecode="1054" />
+              <Title description="Rapor" languagecode="1055" />
+              <Title description="Звіт" languagecode="1058" />
+              <Title description="Báo cáo" languagecode="1066" />
+              <Title description="报告" languagecode="2052" />
+              <Title description="報表" languagecode="3076" />
+              <Title description="報表" languagecode="1028" />
+            </Titles>
+          </LocLabel>
+          <LocLabel Id="Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport.LabelText">
+            <Titles>
+              <Title description="Save to Timeline" languagecode="1033" />
+              <Title description="حفظ في المخطط الزمني" languagecode="1025" />
+              <Title description="Записване във времевата линия" languagecode="1026" />
+              <Title description="Desa a la cronologia" languagecode="1027" />
+              <Title description="Uložit na časovou osu" languagecode="1029" />
+              <Title description="Gem til tidslinje" languagecode="1030" />
+              <Title description="In der Zeitskala speichern" languagecode="1031" />
+              <Title description="Αποθήκευση στο Χρονοδιάγραμμα" languagecode="1032" />
+              <Title description="Guardar en escala de tiempo" languagecode="3082" />
+              <Title description="Ajaskaalale salvestamine" languagecode="1061" />
+              <Title description="Gorde denbora-eskalan" languagecode="1069" />
+              <Title description="Tallenna aikajanalle" languagecode="1035" />
+              <Title description="Enregistrer dans la chronologie" languagecode="1036" />
+              <Title description="Gardar na liña de tempo" languagecode="1110" />
+              <Title description="שמור בציר הזמן" languagecode="1037" />
+              <Title description="समयरेखा पर सहेजें" languagecode="1081" />
+              <Title description="Spremi na vremensku crtu" languagecode="1050" />
+              <Title description="Mentés idővonalra" languagecode="1038" />
+              <Title description="Simpan ke Garis Waktu" languagecode="1057" />
+              <Title description="Salva nella sequenza temporale" languagecode="1040" />
+              <Title description="タイムラインに保存" languagecode="1041" />
+              <Title description="Уақыт шкаласына сақтау" languagecode="1087" />
+              <Title description="시간 표시줄에 저장" languagecode="1042" />
+              <Title description="Įrašuti į laiko planavimo juostą" languagecode="1063" />
+              <Title description="Saglabāt laika skalā" languagecode="1062" />
+              <Title description="Simpan ke Garis Masa" languagecode="1086" />
+              <Title description="Lagre på tidslinjen" languagecode="1044" />
+              <Title description="Opslaan in tijdlijn" languagecode="1043" />
+              <Title description="Zapisz na osi czasu" languagecode="1045" />
+              <Title description="Salvar na Linha do Tempo" languagecode="1046" />
+              <Title description="Guardar na Linha Cronológica" languagecode="2070" />
+              <Title description="Salvați în Cronologie" languagecode="1048" />
+              <Title description="Сохранить на временной шкале" languagecode="1049" />
+              <Title description="Uloženie na časovú os" languagecode="1051" />
+              <Title description="Shranjevanje na časovnico" languagecode="1060" />
+              <Title description="Чување у временску осу" languagecode="3098" />
+              <Title description="Čuvanje u vremensku osu" languagecode="2074" />
+              <Title description="Spara på tidslinje" languagecode="1053" />
+              <Title description="บันทึกไปยังเส้นเวลา" languagecode="1054" />
+              <Title description="Zaman Çizelgesine Kaydet" languagecode="1055" />
+              <Title description="Зберегти на часову шкалу" languagecode="1058" />
+              <Title description="Lưu vào dòng thời gian" languagecode="1066" />
+              <Title description="保存到时间线" languagecode="2052" />
+              <Title description="儲存至時間表" languagecode="3076" />
+              <Title description="儲存至時間表" languagecode="1028" />
+            </Titles>
+          </LocLabel>
+          <LocLabel Id="Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport.ToolTipTitle">
+            <Titles>
+              <Title description="Save to Timeline" languagecode="1033" />
+              <Title description="حفظ في المخطط الزمني" languagecode="1025" />
+              <Title description="Записване във времевата линия" languagecode="1026" />
+              <Title description="Desa a la cronologia" languagecode="1027" />
+              <Title description="Uložit na časovou osu" languagecode="1029" />
+              <Title description="Gem til tidslinje" languagecode="1030" />
+              <Title description="In der Zeitskala speichern" languagecode="1031" />
+              <Title description="Αποθήκευση στο Χρονοδιάγραμμα" languagecode="1032" />
+              <Title description="Guardar en escala de tiempo" languagecode="3082" />
+              <Title description="Ajaskaalale salvestamine" languagecode="1061" />
+              <Title description="Gorde denbora-eskalan" languagecode="1069" />
+              <Title description="Tallenna aikajanalle" languagecode="1035" />
+              <Title description="Enregistrer dans la chronologie" languagecode="1036" />
+              <Title description="Gardar na liña de tempo" languagecode="1110" />
+              <Title description="שמור בציר הזמן" languagecode="1037" />
+              <Title description="समयरेखा पर सहेजें" languagecode="1081" />
+              <Title description="Spremi na vremensku crtu" languagecode="1050" />
+              <Title description="Mentés idővonalra" languagecode="1038" />
+              <Title description="Simpan ke Garis Waktu" languagecode="1057" />
+              <Title description="Salva nella sequenza temporale" languagecode="1040" />
+              <Title description="タイムラインに保存" languagecode="1041" />
+              <Title description="Уақыт шкаласына сақтау" languagecode="1087" />
+              <Title description="시간 표시줄에 저장" languagecode="1042" />
+              <Title description="Įrašuti į laiko planavimo juostą" languagecode="1063" />
+              <Title description="Saglabāt laika skalā" languagecode="1062" />
+              <Title description="Simpan ke Garis Masa" languagecode="1086" />
+              <Title description="Lagre på tidslinjen" languagecode="1044" />
+              <Title description="Opslaan in tijdlijn" languagecode="1043" />
+              <Title description="Zapisz na osi czasu" languagecode="1045" />
+              <Title description="Salvar na Linha do Tempo" languagecode="1046" />
+              <Title description="Guardar na Linha Cronológica" languagecode="2070" />
+              <Title description="Salvați în Cronologie" languagecode="1048" />
+              <Title description="Сохранить на временной шкале" languagecode="1049" />
+              <Title description="Uloženie na časovú os" languagecode="1051" />
+              <Title description="Shranjevanje na časovnico" languagecode="1060" />
+              <Title description="Чување у временску осу" languagecode="3098" />
+              <Title description="Čuvanje u vremensku osu" languagecode="2074" />
+              <Title description="Spara på tidslinje" languagecode="1053" />
+              <Title description="บันทึกไปยังเส้นเวลา" languagecode="1054" />
+              <Title description="Zaman Çizelgesine Kaydet" languagecode="1055" />
+              <Title description="Зберегти на часову шкалу" languagecode="1058" />
+              <Title description="Lưu vào dòng thời gian" languagecode="1066" />
+              <Title description="保存到时间线" languagecode="2052" />
+              <Title description="儲存至時間表" languagecode="3076" />
+              <Title description="儲存至時間表" languagecode="1028" />
+            </Titles>
+          </LocLabel>
+          <LocLabel Id="Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport.Alt">
+            <Titles>
+              <Title description="Save to Timeline" languagecode="1033" />
+              <Title description="حفظ في المخطط الزمني" languagecode="1025" />
+              <Title description="Записване във времевата линия" languagecode="1026" />
+              <Title description="Desa a la cronologia" languagecode="1027" />
+              <Title description="Uložit na časovou osu" languagecode="1029" />
+              <Title description="Gem til tidslinje" languagecode="1030" />
+              <Title description="In der Zeitskala speichern" languagecode="1031" />
+              <Title description="Αποθήκευση στο Χρονοδιάγραμμα" languagecode="1032" />
+              <Title description="Guardar en escala de tiempo" languagecode="3082" />
+              <Title description="Ajaskaalale salvestamine" languagecode="1061" />
+              <Title description="Gorde denbora-eskalan" languagecode="1069" />
+              <Title description="Tallenna aikajanalle" languagecode="1035" />
+              <Title description="Enregistrer dans la chronologie" languagecode="1036" />
+              <Title description="Gardar na liña de tempo" languagecode="1110" />
+              <Title description="שמור בציר הזמן" languagecode="1037" />
+              <Title description="समयरेखा पर सहेजें" languagecode="1081" />
+              <Title description="Spremi na vremensku crtu" languagecode="1050" />
+              <Title description="Mentés idővonalra" languagecode="1038" />
+              <Title description="Simpan ke Garis Waktu" languagecode="1057" />
+              <Title description="Salva nella sequenza temporale" languagecode="1040" />
+              <Title description="タイムラインに保存" languagecode="1041" />
+              <Title description="Уақыт шкаласына сақтау" languagecode="1087" />
+              <Title description="시간 표시줄에 저장" languagecode="1042" />
+              <Title description="Įrašuti į laiko planavimo juostą" languagecode="1063" />
+              <Title description="Saglabāt laika skalā" languagecode="1062" />
+              <Title description="Simpan ke Garis Masa" languagecode="1086" />
+              <Title description="Lagre på tidslinjen" languagecode="1044" />
+              <Title description="Opslaan in tijdlijn" languagecode="1043" />
+              <Title description="Zapisz na osi czasu" languagecode="1045" />
+              <Title description="Salvar na Linha do Tempo" languagecode="1046" />
+              <Title description="Guardar na Linha Cronológica" languagecode="2070" />
+              <Title description="Salvați în Cronologie" languagecode="1048" />
+              <Title description="Сохранить на временной шкале" languagecode="1049" />
+              <Title description="Uloženie na časovú os" languagecode="1051" />
+              <Title description="Shranjevanje na časovnico" languagecode="1060" />
+              <Title description="Чување у временску осу" languagecode="3098" />
+              <Title description="Čuvanje u vremensku osu" languagecode="2074" />
+              <Title description="Spara på tidslinje" languagecode="1053" />
+              <Title description="บันทึกไปยังเส้นเวลา" languagecode="1054" />
+              <Title description="Zaman Çizelgesine Kaydet" languagecode="1055" />
+              <Title description="Зберегти на часову шкалу" languagecode="1058" />
+              <Title description="Lưu vào dòng thời gian" languagecode="1066" />
+              <Title description="保存到时间线" languagecode="2052" />
+              <Title description="儲存至時間表" languagecode="3076" />
+              <Title description="儲存至時間表" languagecode="1028" />
+            </Titles>
+          </LocLabel>
+        </LocLabels>
+      </RibbonDiffXml>
+    </Entity>
+  </Entities>
+  <Roles />
+  <WebResources>
+    <WebResource>
+      <WebResourceId>{8b558b90-2026-4cf1-b95b-caacd3cee5e9}</WebResourceId>
+      <Name>d365ft_/BookableResourceBooking/FSReporting.BookableResourceBooking.Library.js</Name>
+      <DisplayName>FSReporting.BookableResourceBooking.Library.js</DisplayName>
+      <WebResourceType>3</WebResourceType>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsEnabledForMobileClient>1</IsEnabledForMobileClient>
+      <IsAvailableForMobileOffline>1</IsAvailableForMobileOffline>
+      <IsCustomizable>0</IsCustomizable>
+      <CanBeDeleted>0</CanBeDeleted>
+      <IsHidden>0</IsHidden>
+      <FileName>/WebResources/d365ft_BookableResourceBookingFSReportingBookableResourceBookingLibraryjs8B558B90-2026-4CF1-B95B-CAACD3CEE5E9</FileName>
+    </WebResource>
+  </WebResources>
+  <Workflows />
+  <FieldSecurityProfiles />
+  <Templates />
+  <EntityMaps />
+  <EntityRelationships />
+  <OrganizationSettings />
+  <optionsets />
+  <CustomControls>
+    <CustomControl>
+      <Name>d365ft_D365FTControls.ReportPreview</Name>
+      <FileName>/Controls/d365ft_D365FTControls.ReportPreview/ControlManifest.xml</FileName>
+    </CustomControl>
+  </CustomControls>
+  <SolutionPluginAssemblies />
+  <SdkMessageProcessingSteps />
+  <EntityDataProviders />
+  <Languages>
+    <Language>1033</Language>
+  </Languages>
+</ImportExportXml>

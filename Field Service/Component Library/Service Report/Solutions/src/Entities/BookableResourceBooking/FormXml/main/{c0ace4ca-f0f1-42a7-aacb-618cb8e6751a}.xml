@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}</formid>
+    <form>
+      <formLibraries>
+        <Library name="d365ft_/BookableResourceBooking/FSReporting.BookableResourceBooking.Library.js" libraryUniqueId="{9c071516-0d79-2d79-db38-6b72a2b4dc49}" solutionaction="Added" />
+      </formLibraries>
+      <events>
+        <event name="onload" application="false" active="false" solutionaction="Added">
+          <Handlers>
+            <Handler functionName="FieldServiceReporting.BookableResourceBooking.Library.Load" libraryName="d365ft_/BookableResourceBooking/FSReporting.BookableResourceBooking.Library.js" handlerUniqueId="{8a8a92ec-a262-95a5-7050-7b663b7936b3}" enabled="true" parameters="" passExecutionContext="true" ordinalvalue="0" solutionaction="Added" />
+          </Handlers>
+        </event>
+      </events>
+      <formparameters solutionaction="Added">
+        <querystringparameter name="parameter_focusTabName" type="SafeString" solutionaction="Added"/>
+      </formparameters>
+    </form>
+  </systemform>
+</forms>
