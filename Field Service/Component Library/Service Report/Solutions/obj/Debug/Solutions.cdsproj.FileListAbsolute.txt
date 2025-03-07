@@ -1,2 +1,0 @@
-C:\Code\CRM.Solutions.FieldServiceReportingFT\Solutions\obj\Debug\Solutions.cdsproj.AssemblyReference.cache
-C:\Code\CRM.Solutions.FieldServiceReportingFT\Solutions\obj\Debug\Solutions.cdsproj.CoreCompileInputs.cache
