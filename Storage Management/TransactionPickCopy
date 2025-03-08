@@ -16,7 +16,7 @@ Disables Change Data Capture or Change Tracking before deleting records and re-e
 If simulation mode is enabled, it counts the records and estimates the duration instead of deleting them.
 */
 
-DECLARE @Tables NVARCHAR(MAX) = 'INVENTTRANS' -- Replace with your list of tables (comma separated)
+DECLARE @Tables NVARCHAR(MAX) =	'INVENTTRANS,GENERALJOURNALACCOUNTENTRY,LEDGERJOURNALTRANS,SALESLINE,INVENTTRANSORIGIN,TAXTRANS,RETAILTRANSACTIONPAYMENTTRANS,CUSTTRANS,RETAILTRANSACTIONSALESTRANS,CUSTINVOICETRANS,INVENTSETTLEMENT,TAXTRANSGENERALJOURNALACCOUNTENTRY,RETAILTRANSACTIONTABLE' -- Replace with your list of tables (comma separated)
 DECLARE @MaxArchivingDate DATE = '2025-01-01' -- Replace with your max archiving date
 DECLARE @Simulation BIT = 1 -- Set to 1 for simulation mode, 0 for actual deletion
 
@@ -127,7 +127,17 @@ BEGIN
             CONTINUE
         END
 
-
+		IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @Table AND COLUMN_NAME = 'DataAreaId')
+        BEGIN
+			PRINT 'DataAreaId exists in ' + @Table
+        END
+        ELSE
+        BEGIN
+            PRINT 'Warning: Table ' + @Table + ' does not have DataAreaId'
+            FETCH NEXT FROM TABLE_CURSOR INTO @Table
+            CONTINUE
+        END
+		
 		-- Check if CDC is enabled and disable it if necessary
         SELECT @CDCState = is_tracked_by_cdc
         FROM sys.tables
@@ -143,32 +153,41 @@ BEGIN
         SET @SQL = 'IF EXISTS (SELECT * FROM sys.change_tracking_tables WHERE object_id = OBJECT_ID(''' + @Table + ''')) ALTER TABLE ' + @Table + ' DISABLE CHANGE_TRACKING'
         EXEC sp_executesql @SQL
 
-		
         -- Delete records if not in simulation mode
-        IF @Simulation = 0
+        DECLARE @StartTime DATETIME
+		DECLARE @EndTime DATETIME 
+		DECLARE @Duration INT
+		DECLARE @DeletedRecords INT
+		IF @Simulation = 0
         BEGIN
-            SET @SQL = 'DELETE FROM ' + @Table + ' WHERE DataAreaID = ''' + @LE + ''' AND ' + @DateField + ' BETWEEN ''' + CONVERT(NVARCHAR, @StartDate, 120) + ''' AND ''' + CONVERT(NVARCHAR, @EndDate, 120) + ''''
-            EXEC sp_executesql @SQL
-        END
-        ELSE
-        BEGIN
--- Simulation mode: Estimate duration of delete statement and count records
-            BEGIN TRANSACTION
-            DECLARE @StartTime DATETIME = GETDATE()
-            SET @SQL = 'DELETE FROM ' + @Table + ' WHERE DataAreaID = ''' + @LE + ''' AND ' + @DateField + ' BETWEEN ''' + CONVERT(NVARCHAR, @StartDate, 120) + ''' AND ''' + CONVERT(NVARCHAR, @EndDate, 120) + ''''
-            Print @SQL
-			EXEC sp_executesql @SQL
-            DECLARE @EndTime DATETIME = GETDATE()
-            ROLLBACK TRANSACTION
-            DECLARE @Duration INT = DATEDIFF(SECOND, @StartTime, @EndTime)
-			DECLARE @DeletedRecords INT
             SET @SQL = 'SELECT @DeletedRecords = COUNT(*) FROM ' + @Table + ' WHERE DataAreaID = ''' + @LE + ''' AND ' + @DateField + ' BETWEEN ''' + CONVERT(NVARCHAR, @StartDate, 120) + ''' AND ''' + CONVERT(NVARCHAR, @EndDate, 120) + ''''
             Print @SQL
             EXEC sp_executesql @SQL, N'@DeletedRecords INT OUTPUT', @DeletedRecords OUTPUT
-            select @LE as 'Legal Entity', CONVERT(NVARCHAR, @StartDate, 120) as 'Start Date', CONVERT(NVARCHAR, @EndDate, 120) as 'End Date' ,@DeletedRecords as 'Nb Records Deleted', @Duration as 'Estimated Duration'
---			Print 'Estimated duration for ' + @Table + ' in LE ' + @LE + ' for fiscal year ' + CONVERT(NVARCHAR, @StartDate, 120) + ' to ' + CONVERT(NVARCHAR, @EndDate, 120) + ' is ' + CONVERT(NVARCHAR, @Duration) + ' seconds. Estimated number of records to be deleted: ' + CONVERT(NVARCHAR, @DeletedRecords) + '.'
+			SET @StartTime = GETDATE()
+            SET @SQL = 'DELETE FROM ' + @Table + ' WHERE DataAreaID = ''' + @LE + ''' AND ' + @DateField + ' BETWEEN ''' + CONVERT(NVARCHAR, @StartDate, 120) + ''' AND ''' + CONVERT(NVARCHAR, @EndDate, 120) + ''''
+            Print @SQL
+			EXEC sp_executesql @SQL
+            SET @EndTime = GETDATE()
+			SET @Duration = DATEDIFF(SECOND, @StartTime, @EndTime)
+			select @Table as 'Table', @LE as 'Legal Entity', CONVERT(NVARCHAR, @StartDate, 120) as 'Start Date', CONVERT(NVARCHAR, @EndDate, 120) as 'End Date' ,@DeletedRecords as 'Nb Records Deleted', @Duration as 'Estimated Duration'
         END
-
+        ELSE
+        BEGIN
+			-- Simulation mode: Estimate duration of delete statement and count records
+            BEGIN TRANSACTION
+            SET @StartTime = GETDATE()
+            SET @SQL = 'DELETE FROM ' + @Table + ' WHERE DataAreaID = ''' + @LE + ''' AND ' + @DateField + ' BETWEEN ''' + CONVERT(NVARCHAR, @StartDate, 120) + ''' AND ''' + CONVERT(NVARCHAR, @EndDate, 120) + ''''
+            Print @SQL
+			EXEC sp_executesql @SQL
+            SET @EndTime = GETDATE()
+            ROLLBACK TRANSACTION
+            SET @Duration = DATEDIFF(SECOND, @StartTime, @EndTime)
+            SET @SQL = 'SELECT @DeletedRecords = COUNT(*) FROM ' + @Table + ' WHERE DataAreaID = ''' + @LE + ''' AND ' + @DateField + ' BETWEEN ''' + CONVERT(NVARCHAR, @StartDate, 120) + ''' AND ''' + CONVERT(NVARCHAR, @EndDate, 120) + ''''
+            Print @SQL
+            EXEC sp_executesql @SQL, N'@DeletedRecords INT OUTPUT', @DeletedRecords OUTPUT
+            select @Table as 'Table', @LE as 'Legal Entity', CONVERT(NVARCHAR, @StartDate, 120) as 'Start Date', CONVERT(NVARCHAR, @EndDate, 120) as 'End Date' ,@DeletedRecords as 'Nb Records Deleted', @Duration as 'Estimated Duration'
+			-- Print 'Estimated duration for ' + @Table + ' in LE ' + @LE + ' for fiscal year ' + CONVERT(NVARCHAR, @StartDate, 120) + ' to ' + CONVERT(NVARCHAR, @EndDate, 120) + ' is ' + CONVERT(NVARCHAR, @Duration) + ' seconds. Estimated number of records to be deleted: ' + CONVERT(NVARCHAR, @DeletedRecords) + '.'
+        END
 		
         -- Re-enable Change Data Capture or Change Tracking if previously enabled
         IF @CDCState = 1
