@@ -47,8 +47,3 @@ The script includes several configurable parameters to tailor the cleanup proces
 
 ## Contributing
 We welcome contributions to improve this script. If you have suggestions or improvements, please submit a pull request or open an issue in the repository.
-
-## License
-This project is licensed under the MIT License. See the LICENSE file for details.   
-   
-   git clone https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets.git
