@@ -3,7 +3,7 @@ IF OBJECT_ID('dbo.KeepOnlyRecordsSp', 'P') IS NOT NULL
 GO
 CREATE PROCEDURE KeepOnlyRecordsSp
     @Table NVARCHAR(255),
-    @LE NVARCHAR(10),
+    @LE NVARCHAR(Max),
     @KeepFromDate DATE,
     @Simulation BIT
 AS
