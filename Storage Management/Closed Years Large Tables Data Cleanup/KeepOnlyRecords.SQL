@@ -2,8 +2,8 @@ IF OBJECT_ID('dbo.KeepOnlyRecordsSp', 'P') IS NOT NULL
     DROP PROCEDURE dbo.KeepOnlyRecordsSp;
 GO
 CREATE PROCEDURE KeepOnlyRecordsSp
-    @Table NVARCHAR(255),
-    @LE NVARCHAR(Max),
+    @Table NVARCHAR(MAX),
+    @LE NVARCHAR(MAX),
     @KeepFromDate DATE,
     @Simulation BIT
 AS
