@@ -3,7 +3,7 @@ Description:
 This script is designed to cleanup records from specified tables in a database. It uses a cursor to loop through the table names ordered by size (Data + Index) and calls a stored procedure to archive records based on the provided parameters.
 
 Parameters:
-- @Tables: List of tables to be archived (comma separated)
+- @SkipTables: List of tables to be SKip(comma separated)
 - @MaxArchivingDate: Maximum archiving date
 - @Simulation: Set to 1 for simulation mode, 0 for actual deletion
 - @LE: List of legal entities
@@ -15,8 +15,8 @@ The script performs the following steps:
 4. Drops the stored procedure at the end.
 */
 
-DECLARE @Tables NVARCHAR(MAX) = 'INVENTTRANS,LEDGERJOURNALTRANS,SALESLINE,TAXTRANS,RETAILTRANSACTIONPAYMENTTRANS,CUSTTRANS,RETAILTRANSACTIONSALESTRANS,CUSTINVOICETRANS,RETAILTRANSACTIONTABLE,MCRRETURNSALESTABLE,MCRSALESLINE,MCRSALESTABLE,RETAILSALESLINE,RETAILSALESTABLE,SALESLINE,SALESLINE_BR,SALESLINE_IN,SALESLINE_W,SALESTABLE,SALESTABLE_BR,SALESTABLE_RU,SALESTABLE_W,INVENTTRANSARCHIVE,INVENTTRANS,INVENTJOURNALTABLE,INVENTJOURNALTABLE_IN,INVENTJOURNALTRANS,INVENTJOURNALTRANS_IN,TAXTRANS,TAXTRANS_BR,TAXTRANSGENERALJOURNALACCOUNTENTRY,TAXTRANS_IN,TAXTRANS_IT,TAXTRANS_REPORTING,TAXTRANS_RU,TAXTRANSSUBLEDGERJOURNALACCOUNTENTRY,TAXTRANS_TH,TAXTRANS_W' -- Replace with your list of tables (comma separated)
-DECLARE @MaxArchivingDate DATE = '2015-01-01' -- Replace with your max archiving date
+DECLARE @SkipTables NVARCHAR(MAX) = 'INVENTREPORTDIMHISTORY' -- Replace with your list of tables (comma separated)
+DECLARE @MaxArchivingDate DATE = '2024-01-01' -- Replace with your max archiving date
 DECLARE @Simulation BIT = 1 -- Set to 1 for simulation mode, 0 for actual deletion
 DECLARE @LE NVARCHAR(Max) = '445I,BRMF,CNMF,DAT,DEMF,FRRT,FRSI,GBPM,GBSI,GLCO,GLMF,GLRT,GLSI,INMF,ITCO,JPMF,MXMF,MYMF,RUMF,RURT,SAMF,THMF,THPM,us01,USMF,USP2,USPI,USPM,USRT,USSI'
 
@@ -49,9 +49,10 @@ BEGIN
                 FROM SQLDICTIONARY a
                 JOIN TABLEMETADATATABLE b ON a.TABLEID = b.TABLEID
                 -- Transaction (4), WorksheetHeader (5), WorksheetLine (6), Worksheet (9), TransactionHeader (10), TransactionLine (11), Staging (12)
-                WHERE a.fieldid = 0 AND a.array = 0 AND b.TABLEGROUP IN (4, 5, 6, 9, 10, 11)
+                WHERE (a.fieldid = 0 AND a.array = 0 AND b.TABLEGROUP IN (4, 5, 6, 9, 10, 11)
                 -- Tables WHSASNITEM, WHSASNITEMRECEIPT, WHSUOMSTRUCTURE  / you can add your customtables to this list
-                or a.NAME in ('WHSASNITEM', 'WHSASNITEMRECEIPT', 'WHSUOMSTRUCTURE') -- or a.Name in (@Tables)
+                or a.NAME in ('WHSASNITEM', 'WHSASNITEMRECEIPT', 'WHSUOMSTRUCTURE') )
+				and a.Name not in (@SkipTables)
             )
         GROUP BY 
             t.name
@@ -65,10 +66,9 @@ BEGIN
     WHILE @@FETCH_STATUS = 0
     BEGIN
         -- Call stored procedure to archive records for the current table
-        EXEC KeepOnlyRecordsSp @TableName, @LE, @MaxArchivingDate, @Simulation
+		EXEC KeepOnlyRecordsSp @TableName, @LE, @MaxArchivingDate, @Simulation
+		FETCH NEXT FROM TableCursor INTO @TableName, @TotalSpace
         
-        FETCH NEXT FROM TableCursor INTO @TableName, @TotalSpace
-
     END
     
     CLOSE TableCursor
