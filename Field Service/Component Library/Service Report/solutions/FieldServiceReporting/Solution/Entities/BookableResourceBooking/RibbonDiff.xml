@@ -1,0 +1,195 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RibbonDiffXml>
+  <CustomActions>
+    <CustomAction Id="Mscrm.bookableresourcebooking.FieldServiceReporting.Report.CustomAction" Location="Mscrm.Form.bookableresourcebooking.MainTab.Save.Controls._children" Sequence="75">
+      <CommandUIDefinition>
+        <Button Alt="$LocLabels:Mscrm.bookableresourcebooking.FieldServiceReporting.Report.Alt" Command="Mscrm.bookableresourcebooking.FieldServiceReporting.OpenReport" Id="Mscrm.bookableresourcebooking.FieldServiceReporting.Report" Image32by32="$webresource:Service/_imgs/ribbon/runreport32.png" Image16by16="$webresource:Service/_imgs/ribbon/RunReport_16.png" LabelText="$LocLabels:Mscrm.bookableresourcebooking.FieldServiceReporting.Report.LabelText" Sequence="75" TemplateAlias="o2" ToolTipTitle="$LocLabels:Mscrm.bookableresourcebooking.FieldServiceReporting.Report.ToolTipTitle" ToolTipDescription="$LocLabels:Mscrm.bookableresourcebooking.FieldServiceReporting.Report.ToolTipDescription" ModernImage="Report" />
+      </CommandUIDefinition>
+    </CustomAction>
+    <CustomAction Id="Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport.CustomAction" Location="Mscrm.Form.bookableresourcebooking.MainTab.Save.Controls._children" Sequence="6">
+      <CommandUIDefinition>
+        <Button Alt="$LocLabels:Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport.Alt" Command="Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport" Id="Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport" LabelText="$LocLabels:Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport.LabelText" Sequence="6" TemplateAlias="o1" ToolTipTitle="$LocLabels:Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport.ToolTipTitle" ModernImage="Save" />
+      </CommandUIDefinition>
+    </CustomAction>
+  </CustomActions>
+  <Templates>
+    <RibbonTemplates Id="Mscrm.Templates" />
+  </Templates>
+  <CommandDefinitions>
+    <CommandDefinition Id="Mscrm.bookableresourcebooking.FieldServiceReporting.OpenReport">
+      <EnableRules>
+        <EnableRule Id="Mscrm.IsEntityAvailableForUserInMocaOffline" />
+        <EnableRule Id="Mscrm.FormStateNotNew" />
+        <EnableRule Id="Mscrm.bookableresourcebooking.FieldServiceReporting.isNotReportForm"/>
+      </EnableRules>
+      <DisplayRules />
+      <Actions>
+        <JavaScriptFunction FunctionName="FieldServiceReporting.BookableResourceBooking.Library.open" Library="$webresource:o25fs_/BookableResourceBooking/FSReporting.BookableResourceBooking.Library.js">
+          <CrmParameter Value="PrimaryControl" />
+        </JavaScriptFunction>
+      </Actions>
+    </CommandDefinition>
+    <CommandDefinition Id="Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport">
+      <EnableRules>
+        <EnableRule Id="Mscrm.IsEntityAvailableForUserInMocaOffline" />
+        <EnableRule Id="Mscrm.bookableresourcebooking.FieldServiceReporting.isReportForm" />
+      </EnableRules>
+      <DisplayRules />
+      <Actions>
+        <JavaScriptFunction FunctionName="FieldServiceReporting.BookableResourceBooking.Library.saveReport" Library="$webresource:o25fs_/BookableResourceBooking/FSReporting.BookableResourceBooking.Library.js">
+          <CrmParameter Value="PrimaryControl" />
+        </JavaScriptFunction>
+      </Actions>
+    </CommandDefinition>
+    <CommandDefinition Id="Mscrm.SavePrimary">
+      <EnableRules>
+        <EnableRule Id="Mscrm.AvailableOnForm" />
+        <EnableRule Id="Mscrm.CanSavePrimary" />
+        <EnableRule Id="Mscrm.ReadPrimaryPermission" />
+        <EnableRule Id="Mscrm.IsAutoSaveDisable" />
+        <EnableRule Id="Mscrm.IsEntityAvailableForUserInMocaOffline" />
+        <EnableRule Id="Mscrm.bookableresourcebooking.FieldServiceReporting.isNotReportForm"/>
+      </EnableRules>
+      <DisplayRules>
+        <DisplayRule Id="Mscrm.CanSavePrimaryEntityType" />
+      </DisplayRules>
+      <Actions>
+        <JavaScriptFunction FunctionName="XrmCore.Commands.Save.saveForm" Library="$webresource:Main_system_library.js">
+          <CrmParameter Value="PrimaryControl" />
+        </JavaScriptFunction>
+      </Actions>
+    </CommandDefinition>
+    <CommandDefinition Id="Mscrm.SaveAndClosePrimary">
+      <EnableRules>
+        <EnableRule Id="Mscrm.IsAutoSaveDisable" />
+        <EnableRule Id="Mscrm.AvailableOnForm" />
+        <EnableRule Id="Mscrm.CanSavePrimary" />
+        <EnableRule Id="Mscrm.IsEntityAvailableForUserInMocaOffline" />
+        <EnableRule Id="Mscrm.bookableresourcebooking.FieldServiceReporting.isNotReportForm"/>
+      </EnableRules>
+      <DisplayRules>
+        <DisplayRule Id="Mscrm.CanSaveAndClosePrimaryEntityType" />
+      </DisplayRules>
+      <Actions>
+        <JavaScriptFunction FunctionName="XrmCore.Commands.Save.saveAndCloseForm" Library="$webresource:Main_system_library.js">
+          <CrmParameter Value="PrimaryControl" />
+        </JavaScriptFunction>
+      </Actions>
+    </CommandDefinition>
+  </CommandDefinitions>
+  <RuleDefinitions>
+    <TabDisplayRules />
+    <DisplayRules>
+      <DisplayRule Id="Mscrm.CanSavePrimaryEntityType">
+        <OrRule>
+          <Or>
+            <EntityPrivilegeRule PrivilegeType="Create" PrivilegeDepth="Basic" AppliesTo="PrimaryEntity" />
+          </Or>
+          <Or>
+            <EntityPrivilegeRule PrivilegeType="Write" PrivilegeDepth="Basic" AppliesTo="PrimaryEntity" />
+          </Or>
+        </OrRule>
+        <EntityPrivilegeRule PrivilegeType="Read" PrivilegeDepth="Basic" AppliesTo="PrimaryEntity" />
+      </DisplayRule>
+      <DisplayRule Id="Mscrm.CanSaveAndClosePrimaryEntityType">
+        <OrRule>
+          <Or>
+            <EntityPrivilegeRule PrivilegeType="Create" PrivilegeDepth="Basic" AppliesTo="PrimaryEntity" />
+          </Or>
+          <Or>
+            <EntityPrivilegeRule PrivilegeType="Write" PrivilegeDepth="Basic" AppliesTo="PrimaryEntity" />
+          </Or>
+        </OrRule>
+      </DisplayRule>
+    </DisplayRules>
+    <EnableRules>
+      <EnableRule Id="Mscrm.FormStateNotNew">
+        <FormStateRule State="Create" InvertResult="true" />
+      </EnableRule>
+      <EnableRule Id="Mscrm.bookableresourcebooking.FieldServiceReporting.isReportForm">
+        <CustomRule FunctionName="FieldServiceReporting.BookableResourceBooking.Library.isReportForm" Library="$webresource:o25fs_/BookableResourceBooking/FSReporting.BookableResourceBooking.Library.js" Default="false" />
+      </EnableRule>
+      <EnableRule Id="Mscrm.bookableresourcebooking.FieldServiceReporting.isNotReportForm">
+        <CustomRule FunctionName="FieldServiceReporting.BookableResourceBooking.Library.isReportForm" Library="$webresource:o25fs_/BookableResourceBooking/FSReporting.BookableResourceBooking.Library.js" Default="true" InvertResult="true"/>
+      </EnableRule>
+
+      <EnableRule Id="Mscrm.AvailableOnForm">
+        <EntityRule AppliesTo="PrimaryEntity" Context="Form" Default="false" />
+      </EnableRule>
+      <EnableRule Id="Mscrm.CanSavePrimary">
+        <OrRule>
+          <Or>
+            <RecordPrivilegeRule PrivilegeType="Create" AppliesTo="PrimaryEntity" />
+            <FormStateRule State="Create" />
+          </Or>
+          <Or>
+            <RecordPrivilegeRule PrivilegeType="Write" AppliesTo="PrimaryEntity" />
+            <FormStateRule State="Existing" />
+          </Or>
+        </OrRule>
+      </EnableRule>
+      <EnableRule Id="Mscrm.ReadPrimaryPermission">
+        <RecordPrivilegeRule PrivilegeType="Read" AppliesTo="PrimaryEntity" />
+      </EnableRule>
+      <EnableRule Id="Mscrm.IsAutoSaveDisable">
+        <OrRule>
+          <Or>
+            <FormStateRule State="Create" />
+          </Or>
+          <Or>
+            <CustomRule FunctionName="XrmCore.Rules.AutoSave.isAutoSaveEnabled" Library="$webresource:Main_system_library.js" InvertResult="true" />
+          </Or>
+          <Or>
+            <CustomRule FunctionName="XrmCore.Rules.RefreshForm.isRefreshForm" Library="$webresource:Main_system_library.js" InvertResult="true" />
+          </Or>
+          <Or>
+            <CommandClientTypeRule Type="Modern" />
+          </Or>
+        </OrRule>
+      </EnableRule>
+      <EnableRule Id="Mscrm.IsEntityAvailableForUserInMocaOffline">
+        <CustomRule FunctionName="XrmCore.Rules.Online.IsEntityAvailableForUserInMocaOffline" Library="$webresource:Main_system_library.js">
+          <CrmParameter Value="SelectedEntityTypeName" />
+        </CustomRule>
+      </EnableRule>
+
+    </EnableRules>
+  </RuleDefinitions>
+  <LocLabels>
+    <LocLabel Id="Mscrm.bookableresourcebooking.FieldServiceReporting.Report.LabelText">
+      <Titles>
+        <Title description="Report" languagecode="1033" />
+      </Titles>
+    </LocLabel>
+    <LocLabel Id="Mscrm.bookableresourcebooking.FieldServiceReporting.Report.ToolTipTitle">
+      <Titles>
+        <Title description="Report" languagecode="1033" />
+      </Titles>
+    </LocLabel>
+    <LocLabel Id="Mscrm.bookableresourcebooking.FieldServiceReporting.Report.ToolTipDescription">
+      <Titles>
+        <Title description="Generate a report for this booking." languagecode="1033" />
+      </Titles>
+    </LocLabel>
+    <LocLabel Id="Mscrm.bookableresourcebooking.FieldServiceReporting.Report.Alt">
+      <Titles>
+        <Title description="Report" languagecode="1033" />
+      </Titles>
+    </LocLabel>
+    <LocLabel Id="Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport.LabelText">
+      <Titles>
+        <Title description="Save to Timeline" languagecode="1033" />
+      </Titles>
+    </LocLabel>
+    <LocLabel Id="Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport.ToolTipTitle">
+      <Titles>
+        <Title description="Save to Timeline" languagecode="1033" />
+      </Titles>
+    </LocLabel>
+    <LocLabel Id="Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport.Alt">
+      <Titles>
+        <Title description="Save to Timeline" languagecode="1033" />
+      </Titles>
+    </LocLabel>
+  </LocLabels>
+</RibbonDiffXml>

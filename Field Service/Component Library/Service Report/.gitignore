@@ -1,13 +1,63 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
 
-# dependencies
-/node_modules
+*.map
+/.tools
+*.manifest
+*.exe
+!AgentUtilities.exe
+/Packages
+*.suo
+*.orig
+*.user
+/target/**/*
+/drop/**/*
+*.cache
+*.projhash
+*.slnhash
+/**/.vscode
+/init.log
+/Logs/**/*
+*.nlp
 
-# generated directory
-**/generated
+/**/.vs/config/**/*
+/**/*.StyleCop
+*.coverage
 
-# output directory
-/out
+/build/include/Environment.targets
 
-# msbuild output directories
-/obj
+/solutions/**/packages/*
+/solutions/**/solution/templates/**
+/solutions/TypeDefinitions/**/*
+/solutions/**/objd/**/*
+/solutions/**/objd/**/*.*
+/solutions/**/obj/**/*
+/solutions/**/bin/**/*
+/solutions/**/gen/**/*
+/solutions/**/buildd*.*
+/settings.json
+/temp.txt
+
+# Loc related temp file
+/localize/Temp
+/localize/Extern
+/**/build.log
+/**/*_packager.log
+*.error
+/**/vars.log
+/**/UpgradeLog*.htm
+
+/solutions/**/client/**/*.js
+/solutions/**/client/**/*.d.ts
+/solutions/**/client.unittests/**/*.js
+/solutions/**/package/webresources/**/*.*
+*.lock
+*.ide
+*.ide-shm
+*.ide-wal
+/*.PackageDeployer.zip
+/*Package.zip
+*.version
+/SoluitonRead_Debug_*((*))_*.xml
+*.tsbuildinfo

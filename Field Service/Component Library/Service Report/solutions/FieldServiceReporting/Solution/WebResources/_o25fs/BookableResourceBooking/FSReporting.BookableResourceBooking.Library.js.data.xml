@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<WebResource>
+  <WebResourceId>{8b558b90-2026-4cf1-b95b-caacd3cee5e9}</WebResourceId>
+  <Name>o25fs_/BookableResourceBooking/FSReporting.BookableResourceBooking.Library.js</Name>
+  <DisplayName>FSReporting.BookableResourceBooking.Library.js</DisplayName>
+  <WebResourceType>3</WebResourceType>
+  <IntroducedVersion>1.0.0.0</IntroducedVersion>
+  <IsEnabledForMobileClient>1</IsEnabledForMobileClient>
+  <IsAvailableForMobileOffline>1</IsAvailableForMobileOffline>
+  <IsCustomizable>0</IsCustomizable>
+  <CanBeDeleted>0</CanBeDeleted>
+  <IsHidden>0</IsHidden>
+  <FileName>/WebResources/msdyn_BookableResourceBookingFSReportingBookableResourceBookingLibraryjs8B558B90-2026-4CF1-B95B-CAACD3CEE5E9</FileName>
+</WebResource>

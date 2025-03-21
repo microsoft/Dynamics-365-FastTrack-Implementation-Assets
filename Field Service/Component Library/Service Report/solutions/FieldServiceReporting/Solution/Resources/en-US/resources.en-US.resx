@@ -1,0 +1,547 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <metadata name="Source LCID" xml:space="preserve">
+    <value>1033</value>
+  </metadata>
+  <metadata name="Source file" xml:space="preserve">
+    <value>Sample_managed.zip</value>
+  </metadata>
+  <metadata name="Source package type" xml:space="preserve">
+    <value>Both</value>
+  </metadata>
+  <metadata name="SolutionPackager Version" mimetype="application/x-microsoft.net.object.binary.base64">
+    <value>
+        AAEAAAD/////AQAAAAAAAAAEAQAAAA5TeXN0ZW0uVmVyc2lvbgQAAAAGX01ham9yBl9NaW5vcgZfQnVp
+        bGQJX1JldmlzaW9uAAAAAAgICAgJAAAAAAAAAAAAAAAAAAAACw==
+</value>
+  </metadata>
+  <data name="15062:Description,DefaultPublisherdev62249" xml:space="preserve">
+    <value>Dynamics 365</value>
+    <comment> {Locked}'microsoftdynamics' : Description for Solution Publisher</comment>
+  </data>
+  <data name="15062:Description,dev_FieldServiceReporting" xml:space="preserve">
+    <value>Reporting for Dynamics 365 Field Service solutions</value>
+    <comment> 'dev_FieldServiceReporting' : Description for Solution</comment>
+  </data>
+  <data name="15062:LocalizedName,DefaultPublisherdev62249" xml:space="preserve">
+    <value>Dynamics 365</value>
+    <comment>{Locked} 'microsoftdynamics' : LocalizedName for Solution Publisher</comment>
+  </data>
+  <data name="15062:LocalizedName,dev_FieldServiceReporting" xml:space="preserve">
+    <value>Field Service Reporting</value>
+    <comment> 'dev_FieldServiceReporting' : LocalizedName for Solution</comment>
+  </data>
+  <data name="1:Description,Bookable Resource Booking{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>This mobile optimized form combines Booking and Work Order used by field service technicians.</value>
+    <comment>'Bookable Resource Booking' : Description for systemform in Entity FormXml ID: '{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}'</comment>
+  </data>
+  <data name="1:Description,Bookable Resource Booking{32a79486-b187-4ab6-a6fe-f22a88b63261}" xml:space="preserve">
+    <value>This form displays technician mobile reports.</value>
+    <comment>'Bookable Resource Booking' : Description for systemform in Entity FormXml ID: '{32a79486-b187-4ab6-a6fe-f22a88b63261}'</comment>
+  </data>
+  <data name="1:Description,BookableResourceBookingo25fs_reportview" xml:space="preserve">
+    <value />
+    <comment>'BookableResourceBooking' : Description for Attribute 'o25fs_reportview' on Entity</comment>
+  </data>
+  <data name="1:displayname,BookableResourceBookingo25fs_reportview" xml:space="preserve">
+    <value>reportview</value>
+    <comment>'BookableResourceBooking' : displayname for Attribute 'o25fs_reportview' on Entity</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{0200259d-20c2-931c-e8d6-499b2046d2c8}" xml:space="preserve">
+    <value>Estimated Arrival Time</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{0200259d-20c2-931c-e8d6-499b2046d2c8}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{029201cb-550e-9b84-3b81-a5916ae3a167}" xml:space="preserve">
+    <value>Name</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{029201cb-550e-9b84-3b81-a5916ae3a167}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{02987aad-6063-c479-7847-176347de5302}" xml:space="preserve">
+    <value>General</value>
+    <comment>'Bookable Resource Booking' : label for section in Entity FormXml ID: '{02987aad-6063-c479-7847-176347de5302}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{04940cee-129a-e783-71ae-31b93d4b6311}" xml:space="preserve">
+    <value>Booking Method</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{04940cee-129a-e783-71ae-31b93d4b6311}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{075a1e60-ba6e-c51c-998d-b91cd47610d2}" xml:space="preserve">
+    <value>Estimated Travel Duration</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{075a1e60-ba6e-c51c-998d-b91cd47610d2}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{0b73c6aa-dcb9-2d1d-c5db-5bdd2d451cdd}" xml:space="preserve">
+    <value>reportview</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{0b73c6aa-dcb9-2d1d-c5db-5bdd2d451cdd}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{137bdbe3-b858-9164-bc90-c5754e390378}" xml:space="preserve">
+    <value>Field Service</value>
+    <comment>'Bookable Resource Booking' : label for tab in Entity FormXml ID: '{137bdbe3-b858-9164-bc90-c5754e390378}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{14860d5c-e726-9179-ca17-3e7803e1891c}" xml:space="preserve">
+    <value>Offline Timestamp</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{14860d5c-e726-9179-ca17-3e7803e1891c}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{1555dee8-5096-5023-19ac-9e334c5ae1cd}" xml:space="preserve">
+    <value>Agreement Booking Date</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{1555dee8-5096-5023-19ac-9e334c5ae1cd}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{27c2ea5b-4270-3535-187e-ed42805d73cc}" xml:space="preserve">
+    <value>General</value>
+    <comment>'Bookable Resource Booking' : label for section in Entity FormXml ID: '{27c2ea5b-4270-3535-187e-ed42805d73cc}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{2d492c34-9df0-4f76-9e4c-c55e2bc4dfb7}" xml:space="preserve">
+    <value>Signature</value>
+    <comment>'Bookable Resource Booking' : label for section in Entity FormXml ID: '{2d492c34-9df0-4f76-9e4c-c55e2bc4dfb7}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{2e08dbe0-7665-9dc2-246b-a03ddeb5551a}" xml:space="preserve">
+    <value>General</value>
+    <comment>'Bookable Resource Booking' : label for section in Entity FormXml ID: '{2e08dbe0-7665-9dc2-246b-a03ddeb5551a}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{3989e544-c105-b707-ac4b-872212863e19}" xml:space="preserve">
+    <value>Duration</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{3989e544-c105-b707-ac4b-872212863e19}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{3ddae22c-7eb2-1a75-37e0-339b84dc02a8}" xml:space="preserve">
+    <value>Allow Overlapping</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{3ddae22c-7eb2-1a75-37e0-339b84dc02a8}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{4374231a-c3db-c08e-75ab-c6ce4c088c5c}" xml:space="preserve">
+    <value>Travel</value>
+    <comment>'Bookable Resource Booking' : label for section in Entity FormXml ID: '{4374231a-c3db-c08e-75ab-c6ce4c088c5c}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{45029685-9c97-6d32-e6c4-c9eb63439306}" xml:space="preserve">
+    <value>Work Order</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{45029685-9c97-6d32-e6c4-c9eb63439306}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{451553eb-db31-72a7-e5b0-73dceda250d3}" xml:space="preserve">
+    <value>Time Group Detail Selected</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{451553eb-db31-72a7-e5b0-73dceda250d3}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{47493a00-1a52-45b1-9af8-4484c71577a6}" xml:space="preserve">
+    <value>Actual Travel Duration</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{47493a00-1a52-45b1-9af8-4484c71577a6}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{4ab8b411-9cb8-831e-64d4-491416c1057e}" xml:space="preserve">
+    <value>Start Time</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{4ab8b411-9cb8-831e-64d4-491416c1057e}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{4da8cab8-37ec-777a-47dc-0d2675d6a07b}" xml:space="preserve">
+    <value>General</value>
+    <comment>'Bookable Resource Booking' : label for section in Entity FormXml ID: '{4da8cab8-37ec-777a-47dc-0d2675d6a07b}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{5438567d-3804-9925-8907-ce164be6841e}" xml:space="preserve">
+    <value />
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{5438567d-3804-9925-8907-ce164be6841e}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{5a90d174-e75d-d431-43dd-61e86cc62618}" xml:space="preserve">
+    <value>Customer</value>
+    <comment>'Bookable Resource Booking' : label for tab in Entity FormXml ID: '{5a90d174-e75d-d431-43dd-61e86cc62618}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{5d26925b-2634-db25-914a-e9cc9c362a7d}" xml:space="preserve">
+    <value>Booking Type</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{5d26925b-2634-db25-914a-e9cc9c362a7d}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{60eb19c2-3b95-68cc-530b-3e3c2a027e11}" xml:space="preserve">
+    <value>End Time</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{60eb19c2-3b95-68cc-530b-3e3c2a027e11}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{631b1320-b616-4340-8345-a250272d8f46}" xml:space="preserve">
+    <value>General</value>
+    <comment>'Bookable Resource Booking' : label for section in Entity FormXml ID: '{631b1320-b616-4340-8345-a250272d8f46}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{66e55965-73c4-26a0-64a8-495c06e998ae}" xml:space="preserve">
+    <value>Actual Arrival Time</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{66e55965-73c4-26a0-64a8-495c06e998ae}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{69cb94e9-9577-b7e1-b729-e500b804e032}" xml:space="preserve">
+    <value />
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{69cb94e9-9577-b7e1-b729-e500b804e032}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{6be27d42-c8c5-68ee-4000-9b61e9de28ac}" xml:space="preserve">
+    <value>Actual Arrival Time</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{6be27d42-c8c5-68ee-4000-9b61e9de28ac}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{76715b40-5560-038a-c1ac-68dc7e7c306b}" xml:space="preserve">
+    <value>Booking Status</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{76715b40-5560-038a-c1ac-68dc7e7c306b}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{785b4643-990a-48f1-b1d9-94827c37b084}" xml:space="preserve">
+    <value>General</value>
+    <comment>'Bookable Resource Booking' : label for tab in Entity FormXml ID: '{785b4643-990a-48f1-b1d9-94827c37b084}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{804d05ed-8882-3790-a037-82ddec814d86}" xml:space="preserve">
+    <value>Work Order</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{804d05ed-8882-3790-a037-82ddec814d86}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{82d99554-aecc-243c-5b67-c53d1e3eb5ba}" xml:space="preserve">
+    <value>Offline Timestamp</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{82d99554-aecc-243c-5b67-c53d1e3eb5ba}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{88ea8eaa-0623-1272-68dd-edd2b89137a6}" xml:space="preserve">
+    <value>Summary</value>
+    <comment>'Bookable Resource Booking' : label for section in Entity FormXml ID: '{88ea8eaa-0623-1272-68dd-edd2b89137a6}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{8d63e291-3094-5eb9-eac1-a4920ce89c9e}" xml:space="preserve">
+    <value />
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{8d63e291-3094-5eb9-eac1-a4920ce89c9e}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{9b3c30a1-1a18-64e6-ec18-8a1346a3b3b1}" xml:space="preserve">
+    <value>Work Order</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{9b3c30a1-1a18-64e6-ec18-8a1346a3b3b1}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{a329eee7-1a47-97b0-e21c-98c9c2d790a2}" xml:space="preserve">
+    <value>Actual Travel Duration</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{a329eee7-1a47-97b0-e21c-98c9c2d790a2}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{a83cc563-4791-4f02-95a7-83ae2f62c801}" xml:space="preserve">
+    <value>Name</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{a83cc563-4791-4f02-95a7-83ae2f62c801}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{b4769701-30dd-ec6b-3b46-bc305457ca6c}" xml:space="preserve">
+    <value />
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{b4769701-30dd-ec6b-3b46-bc305457ca6c}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{ba8e8844-eb8d-c168-0997-9e7359c748de}" xml:space="preserve">
+    <value>Timeline</value>
+    <comment>'Bookable Resource Booking' : label for section in Entity FormXml ID: '{ba8e8844-eb8d-c168-0997-9e7359c748de}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{c3539477-3254-9a49-3d02-1b30da6e65a2}" xml:space="preserve">
+    <value>Service</value>
+    <comment>'Bookable Resource Booking' : label for tab in Entity FormXml ID: '{c3539477-3254-9a49-3d02-1b30da6e65a2}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{c651b8b5-66da-8413-49a2-73b097cbc82e}" xml:space="preserve">
+    <value>General</value>
+    <comment>'Bookable Resource Booking' : label for tab in Entity FormXml ID: '{c651b8b5-66da-8413-49a2-73b097cbc82e}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{cb6eec35-94db-86e0-57a9-1c76c2ba485e}" xml:space="preserve">
+    <value>Signature</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{cb6eec35-94db-86e0-57a9-1c76c2ba485e}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{cd528e6d-891e-9db7-957a-6ce587c86ee3}" xml:space="preserve">
+    <value>Resource</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{cd528e6d-891e-9db7-957a-6ce587c86ee3}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{ceb53162-6652-6bbb-a893-969c78744854}" xml:space="preserve">
+    <value>Notes</value>
+    <comment>'Bookable Resource Booking' : label for tab in Entity FormXml ID: '{ceb53162-6652-6bbb-a893-969c78744854}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{d0731d71-e1d9-11b2-c4be-a9ddd876d06c}" xml:space="preserve">
+    <value>Others</value>
+    <comment>'Bookable Resource Booking' : label for section in Entity FormXml ID: '{d0731d71-e1d9-11b2-c4be-a9ddd876d06c}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{d20a1c29-c046-0235-6d1c-3915738545b5}" xml:space="preserve">
+    <value>Resource Group</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{d20a1c29-c046-0235-6d1c-3915738545b5}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{d9bbfc47-ba35-446c-94b2-db4a0f9e2831}" xml:space="preserve">
+    <value>Signature</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{d9bbfc47-ba35-446c-94b2-db4a0f9e2831}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{da3770d4-978c-8e12-1e25-dea118b5e2d2}" xml:space="preserve">
+    <value>Work Order</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{da3770d4-978c-8e12-1e25-dea118b5e2d2}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{e069eaa3-11c8-d867-8708-8c7e496e8262}" xml:space="preserve">
+    <value>Others</value>
+    <comment>'Bookable Resource Booking' : label for section in Entity FormXml ID: '{e069eaa3-11c8-d867-8708-8c7e496e8262}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{e15edae2-0324-e506-6821-c3a643a2bb33}" xml:space="preserve">
+    <value>Note Text</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{e15edae2-0324-e506-6821-c3a643a2bb33}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{e55a0e01-1092-d3e4-5eed-350c7e73296a}" xml:space="preserve">
+    <value>Signature</value>
+    <comment>'Bookable Resource Booking' : label for section in Entity FormXml ID: '{e55a0e01-1092-d3e4-5eed-350c7e73296a}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{e841cdd4-1639-1b9e-7e78-b4a229e01aa2}" xml:space="preserve">
+    <value />
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{e841cdd4-1639-1b9e-7e78-b4a229e01aa2}'</comment>
+  </data>
+  <data name="1:label,Bookable Resource Booking{eca84169-4c31-42f7-b499-fd3236f84f91}" xml:space="preserve">
+    <value>Miles Traveled</value>
+    <comment>'Bookable Resource Booking' : label for cell in Entity FormXml ID: '{eca84169-4c31-42f7-b499-fd3236f84f91}'</comment>
+  </data>
+  <data name="1:LocalizedName,Bookable Resource Booking{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>Booking and Work Order</value>
+    <comment>'Bookable Resource Booking' : LocalizedName for systemform in Entity FormXml ID: '{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}'</comment>
+  </data>
+  <data name="1:LocalizedName,Bookable Resource Booking{32a79486-b187-4ab6-a6fe-f22a88b63261}" xml:space="preserve">
+    <value>Reporting</value>
+    <comment>'Bookable Resource Booking' : LocalizedName for systemform in Entity FormXml ID: '{32a79486-b187-4ab6-a6fe-f22a88b63261}'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingInfo{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>Common</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarArea in Entity FormXml ID: 'Info'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingInfo{32a79486-b187-4ab6-a6fe-f22a88b63261}" xml:space="preserve">
+    <value>Common</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarArea in Entity FormXml ID: 'Info'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingMarketing{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>Marketing</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarArea in Entity FormXml ID: 'Marketing'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingMarketing{32a79486-b187-4ab6-a6fe-f22a88b63261}" xml:space="preserve">
+    <value>Marketing</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarArea in Entity FormXml ID: 'Marketing'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingMscrm.bookableresourcebooking.FieldServiceReporting.Report.Alt" xml:space="preserve">
+    <value>Report</value>
+    <comment>'Bookable Resource Booking' : Title for LocLabel on Entity ID: 'Mscrm.bookableresourcebooking.FieldServiceReporting.Report.Alt'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingMscrm.bookableresourcebooking.FieldServiceReporting.Report.LabelText" xml:space="preserve">
+    <value>Report</value>
+    <comment>'Bookable Resource Booking' : Title for LocLabel on Entity ID: 'Mscrm.bookableresourcebooking.FieldServiceReporting.Report.LabelText'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingMscrm.bookableresourcebooking.FieldServiceReporting.Report.ToolTipDescription" xml:space="preserve">
+    <value>Generate a report for this booking.</value>
+    <comment>'Bookable Resource Booking' : Title for LocLabel on Entity ID: 'Mscrm.bookableresourcebooking.FieldServiceReporting.Report.ToolTipDescription'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingMscrm.bookableresourcebooking.FieldServiceReporting.Report.ToolTipTitle" xml:space="preserve">
+    <value>Report</value>
+    <comment>'Bookable Resource Booking' : Title for LocLabel on Entity ID: 'Mscrm.bookableresourcebooking.FieldServiceReporting.Report.ToolTipTitle'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingMscrm.bookableresourcebooking.FieldServiceReporting.SaveReport.Alt" xml:space="preserve">
+    <value>Save to Timeline</value>
+    <comment>'Bookable Resource Booking' : Title for LocLabel on Entity ID: 'Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport.Alt'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingMscrm.bookableresourcebooking.FieldServiceReporting.SaveReport.LabelText" xml:space="preserve">
+    <value>Save to Timeline</value>
+    <comment>'Bookable Resource Booking' : Title for LocLabel on Entity ID: 'Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport.LabelText'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingMscrm.bookableresourcebooking.FieldServiceReporting.SaveReport.ToolTipTitle" xml:space="preserve">
+    <value>Save to Timeline</value>
+    <comment>'Bookable Resource Booking' : Title for LocLabel on Entity ID: 'Mscrm.bookableresourcebooking.FieldServiceReporting.SaveReport.ToolTipTitle'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingnavActivities{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>Activities</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'navActivities'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingnavAsyncOperations{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>Background Processes</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'navAsyncOperations'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingnavAudit{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>Audit History</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'navAudit'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingnavProcessSessions{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>Process Sessions</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'navProcessSessions'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource Bookingnav_msdyn_bookableresourcebooking_msdyn_bookingjournal_Booking{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>Booking Journal</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'nav_msdyn_bookableresourcebooking_msdyn_bookingjournal_Booking'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource Bookingnav_msdyn_bookableresourcebooking_msdyn_bookingjournal_Booking{32a79486-b187-4ab6-a6fe-f22a88b63261}" xml:space="preserve">
+    <value>Booking Journal</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'nav_msdyn_bookableresourcebooking_msdyn_bookingjournal_Booking'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource Bookingnav_msdyn_bookableresourcebooking_msdyn_bookingtimestamp_Booking{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>Booking Timestamps</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'nav_msdyn_bookableresourcebooking_msdyn_bookingtimestamp_Booking'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource Bookingnav_msdyn_bookableresourcebooking_msdyn_bookingtimestamp_Booking{32a79486-b187-4ab6-a6fe-f22a88b63261}" xml:space="preserve">
+    <value>Booking Timestamps</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'nav_msdyn_bookableresourcebooking_msdyn_bookingtimestamp_Booking'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource Bookingnav_msdyn_bookableresourcebooking_msdyn_purchaseorderproduct_AssociateToBooking{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>Purchase Order Products</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'nav_msdyn_bookableresourcebooking_msdyn_purchaseorderproduct_AssociateToBooking'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource Bookingnav_msdyn_bookableresourcebooking_msdyn_purchaseorderproduct_AssociateToBooking{32a79486-b187-4ab6-a6fe-f22a88b63261}" xml:space="preserve">
+    <value>Purchase Order Products</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'nav_msdyn_bookableresourcebooking_msdyn_purchaseorderproduct_AssociateToBooking'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource Bookingnav_msdyn_bookableresourcebooking_msdyn_purchaseorderreceiptproduct_AssociateToBooking{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>Purchase Order Receipt Products</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'nav_msdyn_bookableresourcebooking_msdyn_purchaseorderreceiptproduct_AssociateToBooking'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource Bookingnav_msdyn_bookableresourcebooking_msdyn_purchaseorderreceiptproduct_AssociateToBooking{32a79486-b187-4ab6-a6fe-f22a88b63261}" xml:space="preserve">
+    <value>Purchase Order Receipt Products</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'nav_msdyn_bookableresourcebooking_msdyn_purchaseorderreceiptproduct_AssociateToBooking'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource Bookingnav_msdyn_bookableresourcebooking_msdyn_purchaseorder_Booking{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>Purchase Orders</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'nav_msdyn_bookableresourcebooking_msdyn_purchaseorder_Booking'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource Bookingnav_msdyn_bookableresourcebooking_msdyn_purchaseorder_Booking{32a79486-b187-4ab6-a6fe-f22a88b63261}" xml:space="preserve">
+    <value>Purchase Orders</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'nav_msdyn_bookableresourcebooking_msdyn_purchaseorder_Booking'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource Bookingnav_msdyn_bookableresourcebooking_msdyn_rtv_Booking{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>RTVs</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'nav_msdyn_bookableresourcebooking_msdyn_rtv_Booking'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource Bookingnav_msdyn_bookableresourcebooking_msdyn_rtv_Booking{32a79486-b187-4ab6-a6fe-f22a88b63261}" xml:space="preserve">
+    <value>RTVs</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'nav_msdyn_bookableresourcebooking_msdyn_rtv_Booking'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource Bookingnav_msdyn_bookableresourcebooking_msdyn_timeentry_BookableResourceBooking{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>Time Entries</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'nav_msdyn_bookableresourcebooking_msdyn_timeentry_BookableResourceBooking'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource Bookingnav_msdyn_bookableresourcebooking_msdyn_workorderproduct_Booking{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>Work Order Products</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'nav_msdyn_bookableresourcebooking_msdyn_workorderproduct_Booking'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource Bookingnav_msdyn_bookableresourcebooking_msdyn_workorderproduct_Booking{32a79486-b187-4ab6-a6fe-f22a88b63261}" xml:space="preserve">
+    <value>Work Order Products</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'nav_msdyn_bookableresourcebooking_msdyn_workorderproduct_Booking'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource Bookingnav_msdyn_bookableresourcebooking_msdyn_workorderservicetask_Booking{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>Work Order Service Tasks</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'nav_msdyn_bookableresourcebooking_msdyn_workorderservicetask_Booking'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource Bookingnav_msdyn_bookableresourcebooking_msdyn_workorderservicetask_Booking{32a79486-b187-4ab6-a6fe-f22a88b63261}" xml:space="preserve">
+    <value>Work Order Service Tasks</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'nav_msdyn_bookableresourcebooking_msdyn_workorderservicetask_Booking'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource Bookingnav_msdyn_bookableresourcebooking_msdyn_workorderservice_Booking{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>Work Order Services</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'nav_msdyn_bookableresourcebooking_msdyn_workorderservice_Booking'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource Bookingnav_msdyn_bookableresourcebooking_msdyn_workorderservice_Booking{32a79486-b187-4ab6-a6fe-f22a88b63261}" xml:space="preserve">
+    <value>Work Order Services</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarByRelationshipItem in Entity FormXml ID: 'nav_msdyn_bookableresourcebooking_msdyn_workorderservice_Booking'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingProcessCenter{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>Process Sessions</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarArea in Entity FormXml ID: 'ProcessCenter'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingProcessCenter{32a79486-b187-4ab6-a6fe-f22a88b63261}" xml:space="preserve">
+    <value>Process Sessions</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarArea in Entity FormXml ID: 'ProcessCenter'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingSales{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>Details</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarArea in Entity FormXml ID: 'Sales'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingSales{32a79486-b187-4ab6-a6fe-f22a88b63261}" xml:space="preserve">
+    <value>Details</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarArea in Entity FormXml ID: 'Sales'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingService{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" xml:space="preserve">
+    <value>Other</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarArea in Entity FormXml ID: 'Service'</comment>
+  </data>
+  <data name="1:Title,Bookable Resource BookingService{32a79486-b187-4ab6-a6fe-f22a88b63261}" xml:space="preserve">
+    <value>Other</value>
+    <comment>'Bookable Resource Booking' : Title for NavBarArea in Entity FormXml ID: 'Service'</comment>
+  </data>
+</root>
