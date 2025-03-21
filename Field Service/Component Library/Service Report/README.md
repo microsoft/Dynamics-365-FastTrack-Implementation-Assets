@@ -1,9 +1,10 @@
 # Introduction 
-Adds mobile reporting support for bookings.  
+This is an open-source project that adds mobile reporting support for bookings within the Field Service Mobile.  
 Includes:
 - PCF control to render preview
 - Report generation
-- Relevant forms and ribbon elements
+- Relevant forms, ribbon elements, etc.
+- Solution components
 
 # Getting Started
 ## Installation process
