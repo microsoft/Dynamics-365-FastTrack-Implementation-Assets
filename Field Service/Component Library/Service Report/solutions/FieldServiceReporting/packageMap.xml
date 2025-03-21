@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Mapping>
+  <!--
+    Relative path from <RepoRoot>\Solutions\FieldServiceReporting\Solution\obj\[Debug|Release]\Metadata
+    -->
+  <Folder map="WebResources\o25fs_" to="..\..\..\..\Client" />
+</Mapping>

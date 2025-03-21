@@ -1,0 +1,16 @@
+{
+  "include": [
+    "FSReporting.BookableResourceBooking.ts",
+  ],
+  "exclude": [
+		"node_modules"
+	],
+  "compilerOptions": {
+    "typeRoots": ["node_modules/@types"],
+		"outFile": "FSReporting.BookableResourceBooking.Library.js",
+    "noImplicitAny":  true,
+    "noEmitOnError": true,
+    "target": "es5",
+    "skipLibCheck": true
+  }
+}
