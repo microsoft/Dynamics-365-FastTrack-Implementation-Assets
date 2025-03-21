@@ -1,8 +1,6 @@
 import { IInputs } from "../generated/ManifestTypes";
 import { Booking, Product, Service, ServiceInfo, ServiceTask } from "../models/ReportViewerModel";
 
-/// <reference path="PrivateReferences.ts" />
-
 /**
  * Provides methods to fetch various data. You can add your own data fetches here and call them from index.ts
  */
