@@ -380,7 +380,7 @@ AS
 	declare @CreateViewDDL nvarchar(max); 
 	declare @addcolumns nvarchar(max) = '';
 	declare @GlobalOptionSetMetadataTemplate nvarchar(max)='' 
-	declare @filter_deleted_rows nvarchar(200) =  ' '
+	declare @filter_deleted_rows nvarchar(200) =  ' ' -- ' WHERE ISNULL({tablename}.IsDelete, 0) = 0 '
 	declare @srsanalysisenumsTemplate nvarchar(max)='' -- Added to support BYOD (simple entities) label translation
 
 	-- setup the ddl template 
