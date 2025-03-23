@@ -3,7 +3,7 @@ Description:
 This script is designed to cleanup records from specified tables in a database. It uses a cursor to loop through the table names ordered by size (Data + Index) and calls a stored procedure to archive records based on the provided parameters.
 
 Parameters:
-- @SkipTables: List of tables to be SKip(comma separated)
+- @Tables: List of tables to be archived (comma separated)
 - @MaxArchivingDate: Maximum archiving date
 - @Simulation: Set to 1 for simulation mode, 0 for actual deletion
 - @LE: List of legal entities
@@ -52,7 +52,7 @@ BEGIN
                 WHERE (a.fieldid = 0 AND a.array = 0 AND b.TABLEGROUP IN (4, 5, 6, 9, 10, 11)
                 -- Tables WHSASNITEM, WHSASNITEMRECEIPT, WHSUOMSTRUCTURE  / you can add your customtables to this list
                 or a.NAME in ('WHSASNITEM', 'WHSASNITEMRECEIPT', 'WHSUOMSTRUCTURE') )
-				and a.Name not in (@SkipTables)
+				and a.Name not in (SELECT value FROM STRING_SPLIT(@SkipTables, ','))
             )
         GROUP BY 
             t.name
