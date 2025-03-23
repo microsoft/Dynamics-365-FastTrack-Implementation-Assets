@@ -41,8 +41,11 @@ BEGIN
     DECLARE @EndTime DATETIME 
     DECLARE @Duration INT
     DECLARE @DeletedRecords INT
+	DECLARE @SavedRecords INT
     DECLARE @ColumnList NVARCHAR(MAX)
     DECLARE @RunTimestamp DATETIME
+	DECLARE @Threshold INT = 300000
+	DECLARE @BufferTABLEName NVARCHAR(MAX)
 
     -- Create DBCleanupResultsLog table if it doesn't exist
     IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='DBCleanupResultsLog' AND xtype='U')
@@ -87,7 +90,7 @@ BEGIN
     SELECT @ColumnList = STUFF((
         SELECT ', ' + column_name
         FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE TABLE_NAME = @Table AND DATA_TYPE NOT IN ('timestamp')
+        WHERE TABLE_NAME = @Table AND DATA_TYPE NOT IN ('timestamp') AND TABLE_SCHEMA = 'DBO'
         FOR XML PATH(''), TYPE
     ).value('.', 'NVARCHAR(MAX)'), 1, 2, '')
 
@@ -107,27 +110,47 @@ BEGIN
     EXEC sp_executesql @SQL
 
     -- Drop temporary table if it exists in tempdb
-    IF OBJECT_ID('tempdb..##TempTable') IS NOT NULL
+    IF OBJECT_ID('tempdb..##TempTableCleanuDB') IS NOT NULL
     BEGIN
-        SET @SQL = 'DROP TABLE ##TempTable'
+        SET @SQL = 'DROP TABLE ##TempTableCleanuDB'
+        EXEC sp_executesql @SQL
+    END
+
+	-- Drop temporary table if it exists in tempdb
+    IF OBJECT_ID(@Table+'cleanupbuffer') IS NOT NULL
+    BEGIN
+        SET @SQL = 'DROP TABLE '+@Table+'cleanupbuffer'
         EXEC sp_executesql @SQL
     END
 
     -- Set the run timestamp to current date and time
     SET @RunTimestamp = GETDATE()
 
+        -- Count records to be deleted in simulation mode
+        SET @SQL = 'SELECT @DeletedRecords = COUNT(*) FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' < ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+        EXEC sp_executesql @SQL, N'@DeletedRecords INT OUTPUT', @DeletedRecords OUTPUT
+
+		        -- Count records to be deleted in simulation mode
+        SET @SQL = 'SELECT @SavedRecords = COUNT(*) FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' > ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+        EXEC sp_executesql @SQL, N'@SavedRecords INT OUTPUT', @SavedRecords OUTPUT
+
+		IF @SavedRecords > @Threshold
+			BEGIN
+				set @BufferTABLEName = @Table+'cleanupbuffer'
+			END
+		ELSE
+			BEGIN
+				set @BufferTABLEName = '##TempTableCleanuDB'
+			END
+
     -- Simulation mode: Estimate duration of select, truncate, and insert statements and count records
     IF @Simulation = 1
     BEGIN
         BEGIN TRANSACTION
-        
-        -- Count records to be deleted in simulation mode
-        SET @SQL = 'SELECT @DeletedRecords = COUNT(*) FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' < ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
-        EXEC sp_executesql @SQL, N'@DeletedRecords INT OUTPUT', @DeletedRecords OUTPUT
-        
+
         -- Estimate duration of select statement in simulation mode
         SET @StartTime = GETDATE()
-        SET @SQL = 'SELECT ' + @ColumnList + ' INTO ##TempTable FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' > ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+        SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' > ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
         EXEC sp_executesql @SQL
         
         -- Estimate duration of truncate statement in simulation mode
@@ -135,7 +158,7 @@ BEGIN
         EXEC sp_executesql @SQL
         
         -- Estimate duration of insert statement in simulation mode
-        SET @SQL = 'INSERT INTO ' + @Table + ' (' + @ColumnList + ') SELECT ' + @ColumnList + ' FROM ##TempTable'
+        SET @SQL = 'INSERT INTO ' + @Table + ' (' + @ColumnList + ') SELECT ' + @ColumnList + ' FROM '+@BufferTABLEName
         EXEC sp_executesql @SQL
         
         SET @EndTime = GETDATE()
@@ -155,14 +178,16 @@ BEGIN
     END
     ELSE
     BEGIN
-        SET @SQL = 'SELECT @DeletedRecords = COUNT(*) FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' < ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
-        EXEC sp_executesql @SQL, N'@DeletedRecords INT OUTPUT', @DeletedRecords OUTPUT
         SET @StartTime = GETDATE()
-        SET @SQL = 'SELECT ' + @ColumnList + ' INTO ##TempTable FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' > ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+        SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' > ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
         EXEC sp_executesql @SQL
+        
+        -- Estimate duration of truncate statement in simulation mode
         SET @SQL = 'TRUNCATE TABLE ' + @Table
         EXEC sp_executesql @SQL
-        SET @SQL = 'INSERT INTO ' + @Table + ' (' + @ColumnList + ') SELECT ' + @ColumnList + ' FROM ##TempTable'
+        
+        -- Estimate duration of insert statement in simulation mode
+        SET @SQL = 'INSERT INTO ' + @Table + ' (' + @ColumnList + ') SELECT ' + @ColumnList + ' FROM '+@BufferTABLEName
         EXEC sp_executesql @SQL
         SET @EndTime = GETDATE()
         SET @Duration = DATEDIFF(SECOND, @StartTime, @EndTime)
