@@ -16,9 +16,12 @@ The script performs the following steps:
 */
 
 DECLARE @SkipTables NVARCHAR(MAX) = 'INVENTREPORTDIMHISTORY' -- Replace with your list of tables (comma separated)
-DECLARE @MaxArchivingDate DATE = '2024-01-01' -- Replace with your max archiving date
+DECLARE @MaxArchivingDate DATE = '2023-07-01' -- Replace with your max archiving date
 DECLARE @Simulation BIT = 1 -- Set to 1 for simulation mode, 0 for actual deletion
-DECLARE @LE NVARCHAR(Max) = '445I,BRMF,CNMF,DAT,DEMF,FRRT,FRSI,GBPM,GBSI,GLCO,GLMF,GLRT,GLSI,INMF,ITCO,JPMF,MXMF,MYMF,RUMF,RURT,SAMF,THMF,THPM,us01,USMF,USP2,USPI,USPM,USRT,USSI'
+DECLARE @LE NVARCHAR(Max) = 'MS,445I,BRMF,CNMF,DAT,DEMF,FRRT,FRSI,GBPM,GBSI,GLCO,GLMF,GLRT,GLSI,INMF,ITCO,JPMF,MXMF,MYMF,RUMF,RURT,SAMF,THMF,THPM,us01,USMF,USP2,USPI,USPM,USRT,USSI'
+DECLARE @TOPXTables int = 10
+DECLARE @Threshold INT = 2000000
+DECLARE @BatchSize INT = 5000000
 
 DECLARE @TableName NVARCHAR(255)
 DECLARE @TotalSpace BigINt
@@ -28,37 +31,39 @@ DECLARE @EndDate DATE
 BEGIN
     PRINT 'LE :' + @LE + ' StartDate :' + CONVERT(NVARCHAR, @StartDate, 120) + ' EndDate :' + CONVERT(NVARCHAR, @EndDate, 120)
     
-    -- Cursor to loop through the table names ordered by size (Data + Index)
-    DECLARE @TableList TABLE (TableName NVARCHAR(255), RowCounts bigint, TotalSpace Bigint ) 
-    INSERT INTO @TableList (TableName, RowCounts, TotalSpace)
-        SELECT 
+	    -- Drop temporary table if it exists in tempdb
+    IF OBJECT_ID('FTDBCLEANUPLISTTABLES') IS NOT NULL
+    BEGIN
+        Declare @SQL NVARCHAR(MAX) = 'DROP TABLE FTDBCLEANUPLISTTABLES'
+        EXEC sp_executesql @SQL
+    END
+
+
+    -- Cursor to loop through the table names ordered by size (Data + Index	)
+	SELECT * INTO FTDBCLEANUPLISTTABLES FROM 
+        (
+		SELECT 
             t.name AS TableName,
             SUM(p.rows) AS RowCounts,
-            SUM(a.total_pages) * 8 AS TotalSpaceKB
-        FROM 
+            SUM(a.total_pages) * 8 AS TotalSpace,
+			sdf.TABLEID as TableId
+        FROM
             sys.tables t
-        INNER JOIN      
+        INNER JOIN
             sys.indexes i ON t.object_id = i.object_id
-        INNER JOIN 
+        INNER JOIN
             sys.partitions p ON i.object_id = p.object_id AND i.index_id = p.index_id
-        INNER JOIN 
+        INNER JOIN
             sys.allocation_units a ON p.partition_id = a.container_id
-        WHERE 
-            t.name IN (
-                SELECT distinct SQLNAME
-                FROM SQLDICTIONARY a
-                JOIN TABLEMETADATATABLE b ON a.TABLEID = b.TABLEID
-                -- Transaction (4), WorksheetHeader (5), WorksheetLine (6), Worksheet (9), TransactionHeader (10), TransactionLine (11), Staging (12)
-                WHERE (a.fieldid = 0 AND a.array = 0 AND b.TABLEGROUP IN (4, 5, 6, 9, 10, 11)
-                -- Tables WHSASNITEM, WHSASNITEMRECEIPT, WHSUOMSTRUCTURE  / you can add your customtables to this list
-                or a.NAME in ('WHSASNITEM', 'WHSASNITEMRECEIPT', 'WHSUOMSTRUCTURE') )
-				and a.Name not in (SELECT value FROM STRING_SPLIT(@SkipTables, ','))
-            )
+		inner join (select SQLName,TABLEID from SQLDICTIONARY sd where sd.FIELDID = 0 and sd.ARRAY = 0) sdf on t.name = sdf.SQLNAME
+		inner join TABLEMETADATATABLE TMT ON TMT.TABLEID = sdf.TABLEID
+		where SDF.SQLNAME not in (SELECT value FROM STRING_SPLIT(@SkipTables, ',')) and (TMT.TABLEGROUP IN (4, 5, 6, 9, 10, 11) or SDF.SQLNAME in ('WHSASNITEM', 'WHSASNITEMRECEIPT', 'WHSUOMSTRUCTURE'))
         GROUP BY 
-            t.name
+			t.name, sdf.TABLEID
+			) orderedTables
 
     DECLARE TableCursor CURSOR FOR
-    SELECT TableName, TotalSpace FROM @TableList
+    SELECT Top (@TOPXTables) TableName, TotalSpace FROM FTDBCLEANUPLISTTABLES
     ORDER BY TotalSpace DESC
 
     OPEN TableCursor
@@ -66,7 +71,8 @@ BEGIN
     WHILE @@FETCH_STATUS = 0
     BEGIN
         -- Call stored procedure to archive records for the current table
-		EXEC KeepOnlyRecordsSp @TableName, @LE, @MaxArchivingDate, @Simulation
+		Print 'Table : '+@TableName+ ' totalspace : '+CONVERT(NVARCHAR,@TotalSpace)
+		EXEC KeepOnlyRecordsSp @TableName, @LE, @MaxArchivingDate, @Simulation, @Threshold, @BatchSize
 		FETCH NEXT FROM TableCursor INTO @TableName, @TotalSpace
         
     END
@@ -78,3 +84,4 @@ END
 
 -- Drop the stored procedure at the end
 DROP PROCEDURE dbo.KeepOnlyRecordsSp;
+DROP TABLE dbo.FTDBCLEANUPLISTTABLES;
