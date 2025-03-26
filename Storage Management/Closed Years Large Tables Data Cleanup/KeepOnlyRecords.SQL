@@ -51,6 +51,8 @@ BEGIN
 	DECLARE @BufferTABLEName NVARCHAR(MAX)
 	DECLARE @Interimstart DATETIME
     DECLARE @Interimend DATETIME 
+	DECLARE @nbBatchExecution INT = 0
+
 
     -- Create DBCleanupResultsLog table if it doesn't exist
     IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='DBCleanupResultsLog' AND xtype='U')
@@ -154,28 +156,22 @@ BEGIN
 		print 'BufferTable : '+@BufferTABLEName
 
     -- Simulation mode: Estimate duration of select, truncate, and insert statements and count records
-    IF @Simulation = 1
+	IF @Simulation = 1
     BEGIN
-        
-
         -- Estimate duration of select statement in simulation mode
+		SET @nbBatchExecution = 1
 		SET @Interimstart = GETDATE()
 		WHILE @CurrentRow < @SavedRecords
 		BEGIN
 			BEGIN TRANSACTION
-			IF @CurrentRow = 0
 			Begin 
-				SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
-				print @SQL
-			END
-			ELSE
-			Begin
-				SET @SQL = 'INSERT INTO ' + @BufferTABLEName + ' (' + @ColumnList + ') SELECT ' + @ColumnList + ' FROM '+@Table+' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+				SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
 				print @SQL
 			END
 			SET @sql =@SQL + ' ORDER BY RecId OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
 			EXEC sp_executesql @SQL 
 			SET @CurrentRow = @CurrentRow + @BatchSize;
+			SET @nbBatchExecution = @nbBatchExecution +1
 			COMMIT TRANSACTION
 		END
 		SET @Interimend = GETDATE()
@@ -194,62 +190,73 @@ BEGIN
 		
         -- Estimate duration of insert statement in simulation mode
         SET @CurrentRow = 0
+		SET @nbBatchExecution = 1
 		SET @Interimstart = GETDATE()
 		WHILE @CurrentRow < @SavedRecords
 		BEGIN
-			SET @SQL = 'SELECT ' + @ColumnList + ' FROM '+@BufferTABLEName
-			SET @sql =@SQL + ' ORDER BY RecId OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
+			SET @SQL = 'SELECT ' + @ColumnList + ' FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
 			print @SQL
 			EXEC sp_executesql @SQL 
 			SET @CurrentRow = @CurrentRow + @BatchSize;
+			SET @nbBatchExecution = @nbBatchExecution +1
+		END
+
+		SET @Interimend = GETDATE()
+		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
+		Print 'Copy Back data' + convert(NVARCHAR,@Duration)
+		
+    END
+    ELSE
+    BEGIN
+		-- Estimate duration of select statement in simulation mode
+		SET @nbBatchExecution = 1
+		SET @Interimstart = GETDATE()
+		WHILE @CurrentRow < @SavedRecords
+		BEGIN
+			BEGIN TRANSACTION
+			Begin 
+				SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+				print @SQL
+			END
+			SET @sql =@SQL + ' ORDER BY RecId OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
+			EXEC sp_executesql @SQL 
+			SET @CurrentRow = @CurrentRow + @BatchSize;
+			SET @nbBatchExecution = @nbBatchExecution +1
+			COMMIT TRANSACTION
+		END
+		SET @Interimend = GETDATE()
+		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
+		Print 'copy from main table' + convert(NVARCHAR,@Duration)
+
+		SET @Interimstart = GETDATE()
+		-- Estimate duration of truncate statement in simulation mode
+        BEGIN TRANSACTION
+		SET @SQL = 'TRUNCATE TABLE ' + @Table
+        EXEC sp_executesql @SQL
+		COMMIT TRANSACTION
+		SET @Interimend = GETDATE()
+		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
+		Print 'Trucate table' + convert(NVARCHAR,@Duration)
+		
+        -- Estimate duration of insert statement in simulation mode
+        SET @CurrentRow = 0
+		SET @nbBatchExecution = 1
+		SET @Interimstart = GETDATE()
+		WHILE @CurrentRow < @SavedRecords
+		BEGIN
+			BEGIN TRANSACTION
+			SET @SQL = 'INSERT INTO ' + @Table + ' (' + @ColumnList + ') SELECT ' + @ColumnList + ' FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+			print @SQL
+			EXEC sp_executesql @SQL 
+			SET @CurrentRow = @CurrentRow + @BatchSize;
+			SET @nbBatchExecution = @nbBatchExecution +1
+			COMMIT TRANSACTION
 		END
 
 		SET @Interimend = GETDATE()
 		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
 		Print 'Copy Back data' + convert(NVARCHAR,@Duration)
 
-		
-    END
-    ELSE
-    BEGIN
-
-        -- Estimate duration of select statement in simulation mode
-		WHILE @CurrentRow < @SavedRecords
-		BEGIN
-			BEGIN TRANSACTION
-			IF @CurrentRow = 0
-			Begin 
-				SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
-			END
-			ELSE
-			Begin
-				SET @SQL = 'INSERT INTO ' + @BufferTABLEName + ' (' + @ColumnList + ') SELECT ' + @ColumnList + ' FROM '+@Table+' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
-			END
-			SET @sql =@SQL + ' ORDER BY RecId OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
-			EXEC sp_executesql @SQL
-			SET @CurrentRow = @CurrentRow + @BatchSize;
-			COMMIT TRANSACTION
-		END
-
-		
-		BEGIN TRANSACTION
-        -- Estimate duration of truncate statement in simulation mode
-        SET @SQL = 'TRUNCATE TABLE ' + @Table
-        EXEC sp_executesql @SQL
-		COMMIT TRANSACTION
-        
-        -- Estimate duration of insert statement in simulation mode
-        SET @CurrentRow = 0
-		WHILE @CurrentRow < @SavedRecords
-		BEGIN
-			BEGIN TRANSACTION
-			SET @SQL = 'INSERT INTO ' + @Table + ' (' + @ColumnList + ') SELECT ' + @ColumnList + ' FROM '+@BufferTABLEName
-			SET @sql =@SQL + ' ORDER BY RecId OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
-			EXEC sp_executesql @SQL 
-			SET @CurrentRow = @CurrentRow + @BatchSize;
-			COMMIT TRANSACTION
-		END
-		
     END
 
     SET @EndTime = GETDATE()
