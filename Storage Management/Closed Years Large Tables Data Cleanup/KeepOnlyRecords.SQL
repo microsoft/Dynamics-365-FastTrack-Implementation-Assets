@@ -31,10 +31,13 @@ CREATE PROCEDURE KeepOnlyRecordsSp
     @Table NVARCHAR(Max),
     @LE NVARCHAR(Max),
     @KeepFromDate DATE,
-    @Simulation BIT
+    @Simulation BIT,
+	@Threshold INT = 2000000,
+	@BatchSize INT = 5000000
 AS
 BEGIN
-    DECLARE @SQL NVARCHAR(MAX)
+
+	DECLARE @SQL NVARCHAR(MAX)
     DECLARE @DateField NVARCHAR(255)
     DECLARE @CDCState BIT
     DECLARE @StartTime DATETIME
@@ -44,8 +47,10 @@ BEGIN
 	DECLARE @SavedRecords INT
     DECLARE @ColumnList NVARCHAR(MAX)
     DECLARE @RunTimestamp DATETIME
-	DECLARE @Threshold INT = 300000
+	DECLARE @CurrentRow INT = 0;
 	DECLARE @BufferTABLEName NVARCHAR(MAX)
+	DECLARE @Interimstart DATETIME
+    DECLARE @Interimend DATETIME 
 
     -- Create DBCleanupResultsLog table if it doesn't exist
     IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='DBCleanupResultsLog' AND xtype='U')
@@ -55,6 +60,7 @@ BEGIN
             LegalEntity NVARCHAR(MAX),
             KeepFromDate NVARCHAR(120),
             NbRecordsDeleted INT,
+			NbRecordsSaved INT,
             EstimatedDuration INT,
             RunTimestamp DATETIME
         )
@@ -101,8 +107,8 @@ BEGIN
 
     IF @CDCState = 1
     BEGIN
-        SET @SQL = 'EXEC sys.sp_cdc_disable_table @source_schema = ''dbo'', @source_name = ''' + @Table + ''''
-        EXEC sp_executesql @SQL
+        SET @SQL = 'EXEC sys.sp_cdc_disable_table @source_schema = N''dbo'', @source_name = N''' + @Table + ''', @capture_instance = N''dbo_' + @Table + ''''
+                EXEC sp_executesql @SQL
     END
 
     -- Disable Change Data Capture or Change Tracking if enabled
@@ -125,16 +131,19 @@ BEGIN
 
     -- Set the run timestamp to current date and time
     SET @RunTimestamp = GETDATE()
+    SET @StartTime = GETDATE()
 
         -- Count records to be deleted in simulation mode
         SET @SQL = 'SELECT @DeletedRecords = COUNT(*) FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' < ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
         EXEC sp_executesql @SQL, N'@DeletedRecords INT OUTPUT', @DeletedRecords OUTPUT
 
 		        -- Count records to be deleted in simulation mode
-        SET @SQL = 'SELECT @SavedRecords = COUNT(*) FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' > ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+        SET @SQL = 'SELECT @SavedRecords = COUNT(*) FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
         EXEC sp_executesql @SQL, N'@SavedRecords INT OUTPUT', @SavedRecords OUTPUT
 
-		IF @SavedRecords > @Threshold
+		Print @SQL
+		Print 'nbRecord to save : ' + CONVERT(NVARCHAR,@SavedRecords)
+		IF (@SavedRecords > @Threshold)
 			BEGIN
 				set @BufferTABLEName = @Table+'cleanupbuffer'
 			END
@@ -142,67 +151,132 @@ BEGIN
 			BEGIN
 				set @BufferTABLEName = '##TempTableCleanuDB'
 			END
+		print 'BufferTable : '+@BufferTABLEName
 
     -- Simulation mode: Estimate duration of select, truncate, and insert statements and count records
     IF @Simulation = 1
     BEGIN
-        BEGIN TRANSACTION
+        
 
         -- Estimate duration of select statement in simulation mode
-        SET @StartTime = GETDATE()
-        SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' > ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+		SET @Interimstart = GETDATE()
+		WHILE @CurrentRow < @SavedRecords
+		BEGIN
+			BEGIN TRANSACTION
+			IF @CurrentRow = 0
+			Begin 
+				SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+				print @SQL
+			END
+			ELSE
+			Begin
+				SET @SQL = 'INSERT INTO ' + @BufferTABLEName + ' (' + @ColumnList + ') SELECT ' + @ColumnList + ' FROM '+@Table+' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+				print @SQL
+			END
+			SET @sql =@SQL + ' ORDER BY RecId OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
+			EXEC sp_executesql @SQL 
+			SET @CurrentRow = @CurrentRow + @BatchSize;
+			COMMIT TRANSACTION
+		END
+		SET @Interimend = GETDATE()
+		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
+		Print 'copy from main table' + convert(NVARCHAR,@Duration)
+
+		SET @Interimstart = GETDATE()
+		-- Estimate duration of truncate statement in simulation mode
+        BEGIN TRANSACTION
+		SET @SQL = 'TRUNCATE TABLE ' + @Table
         EXEC sp_executesql @SQL
-        
-        -- Estimate duration of truncate statement in simulation mode
-        SET @SQL = 'TRUNCATE TABLE ' + @Table
-        EXEC sp_executesql @SQL
-        
+		ROLLBACK TRANSACTION
+		SET @Interimend = GETDATE()
+		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
+		Print 'Trucate table' + convert(NVARCHAR,@Duration)
+		
         -- Estimate duration of insert statement in simulation mode
-        SET @SQL = 'INSERT INTO ' + @Table + ' (' + @ColumnList + ') SELECT ' + @ColumnList + ' FROM '+@BufferTABLEName
-        EXEC sp_executesql @SQL
-        
-        SET @EndTime = GETDATE()
-        
-        ROLLBACK TRANSACTION
-        
-        -- Calculate duration of operations in simulation mode
-        SET @Duration = DATEDIFF(SECOND, @StartTime, @EndTime)
-        
-        -- Insert results into persisted table DBCleanupResultsLog 
-        INSERT INTO DBCleanupResultsLog (TableName, LegalEntity, KeepFromDate, NbRecordsDeleted, EstimatedDuration, RunTimestamp)
-        VALUES (@Table, @LE, CONVERT(NVARCHAR, @KeepFromDate, 120), @DeletedRecords, @Duration, @RunTimestamp)
-        
-        -- Select results from log table for verification in simulation mode 
-        SELECT * FROM DBCleanupResultsLog WHERE TableName=@Table AND LegalEntity=@LE AND KeepFromDate=CONVERT(NVARCHAR, @KeepFromDate, 120)
-        
+        SET @CurrentRow = 0
+		SET @Interimstart = GETDATE()
+		WHILE @CurrentRow < @SavedRecords
+		BEGIN
+			SET @SQL = 'SELECT ' + @ColumnList + ' FROM '+@BufferTABLEName
+			SET @sql =@SQL + ' ORDER BY RecId OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
+			print @SQL
+			EXEC sp_executesql @SQL 
+			SET @CurrentRow = @CurrentRow + @BatchSize;
+		END
+
+		SET @Interimend = GETDATE()
+		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
+		Print 'Copy Back data' + convert(NVARCHAR,@Duration)
+
+		
     END
     ELSE
     BEGIN
-        SET @StartTime = GETDATE()
-        SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' > ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
-        EXEC sp_executesql @SQL
-        
+
+        -- Estimate duration of select statement in simulation mode
+		WHILE @CurrentRow < @SavedRecords
+		BEGIN
+			BEGIN TRANSACTION
+			IF @CurrentRow = 0
+			Begin 
+				SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+			END
+			ELSE
+			Begin
+				SET @SQL = 'INSERT INTO ' + @BufferTABLEName + ' (' + @ColumnList + ') SELECT ' + @ColumnList + ' FROM '+@Table+' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+			END
+			SET @sql =@SQL + ' ORDER BY RecId OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
+			EXEC sp_executesql @SQL
+			SET @CurrentRow = @CurrentRow + @BatchSize;
+			COMMIT TRANSACTION
+		END
+
+		
+		BEGIN TRANSACTION
         -- Estimate duration of truncate statement in simulation mode
         SET @SQL = 'TRUNCATE TABLE ' + @Table
         EXEC sp_executesql @SQL
+		COMMIT TRANSACTION
         
         -- Estimate duration of insert statement in simulation mode
-        SET @SQL = 'INSERT INTO ' + @Table + ' (' + @ColumnList + ') SELECT ' + @ColumnList + ' FROM '+@BufferTABLEName
-        EXEC sp_executesql @SQL
-        SET @EndTime = GETDATE()
-        SET @Duration = DATEDIFF(SECOND, @StartTime, @EndTime)
-        
-        -- Insert results into persisted table DBCleanupResultsLog 
-        INSERT INTO DBCleanupResultsLog (TableName, LegalEntity, KeepFromDate, NbRecordsDeleted, EstimatedDuration, RunTimestamp)
-        VALUES (@Table, @LE, CONVERT(NVARCHAR, @KeepFromDate, 120), @DeletedRecords, @Duration, @RunTimestamp)
-        
-        SELECT * FROM DBCleanupResultsLog WHERE TableName=@Table AND LegalEntity=@LE AND KeepFromDate=CONVERT(NVARCHAR, @KeepFromDate, 120)
+        SET @CurrentRow = 0
+		WHILE @CurrentRow < @SavedRecords
+		BEGIN
+			BEGIN TRANSACTION
+			SET @SQL = 'INSERT INTO ' + @Table + ' (' + @ColumnList + ') SELECT ' + @ColumnList + ' FROM '+@BufferTABLEName
+			SET @sql =@SQL + ' ORDER BY RecId OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
+			EXEC sp_executesql @SQL 
+			SET @CurrentRow = @CurrentRow + @BatchSize;
+			COMMIT TRANSACTION
+		END
+		
     END
+
+    SET @EndTime = GETDATE()
+        -- Calculate duration of operations in simulation mode
+    SET @Duration = DATEDIFF(MILLISECOND, @StartTime, @EndTime)
+
+
+    -- Drop temporary table if it exists in tempdb
+    IF OBJECT_ID(@BufferTABLEName) IS NOT NULL
+    BEGIN
+        SET @SQL = 'DROP TABLE '+@BufferTABLEName
+        EXEC sp_executesql @SQL
+    END
+
+
+	        -- Insert results into persisted table DBCleanupResultsLog 
+        INSERT INTO DBCleanupResultsLog (TableName, LegalEntity, KeepFromDate, NbRecordsDeleted, NbRecordsSaved, EstimatedDuration, RunTimestamp)
+        VALUES (@Table, @LE, CONVERT(NVARCHAR, @KeepFromDate, 120), @DeletedRecords,@SavedRecords, @Duration, @RunTimestamp)
+        
+        -- Select results from log table for verification in simulation mode 
+        SELECT * FROM DBCleanupResultsLog WHERE TableName=@Table AND LegalEntity=@LE AND KeepFromDate=CONVERT(NVARCHAR, @KeepFromDate, 120)
+
 
     -- Re-enable Change Data Capture or Change Tracking if previously enabled
     IF @CDCState = 1
     BEGIN
-        SET @SQL = 'EXEC sys.sp_cdc_enable_table @source_schema = ''dbo'', @source_name = ''' + @Table + ''''
+		SET @SQL = 'EXEC sys.sp_cdc_enable_table @source_schema = N''dbo'', @source_name = N''' + @Table + ''', @role_name = NULL'
         EXEC sp_executesql @SQL
     END
 
