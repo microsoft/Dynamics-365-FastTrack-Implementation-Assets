@@ -49,6 +49,7 @@ BEGIN
     DECLARE @RunTimestamp DATETIME
 	DECLARE @CurrentRow INT = 0;
 	DECLARE @BufferTABLEName NVARCHAR(MAX)
+	DECLARE @BufferTableDropPrefix NVARCHAR(10) = ''
 	DECLARE @Interimstart DATETIME
     DECLARE @Interimend DATETIME 
 	DECLARE @nbBatchExecution INT = 0
@@ -117,20 +118,6 @@ BEGIN
     SET @SQL = 'IF EXISTS (SELECT * FROM sys.change_tracking_tables WHERE object_id = OBJECT_ID(''' + @Table + ''')) ALTER TABLE ' + @Table + ' DISABLE CHANGE_TRACKING'
     EXEC sp_executesql @SQL
 
-    -- Drop temporary table if it exists in tempdb
-    IF OBJECT_ID('tempdb..##TempTableCleanuDB') IS NOT NULL
-    BEGIN
-        SET @SQL = 'DROP TABLE ##TempTableCleanuDB'
-        EXEC sp_executesql @SQL
-    END
-
-	-- Drop temporary table if it exists in tempdb
-    IF OBJECT_ID(@Table+'cleanupbuffer') IS NOT NULL
-    BEGIN
-        SET @SQL = 'DROP TABLE '+@Table+'cleanupbuffer'
-        EXEC sp_executesql @SQL
-    END
-
     -- Set the run timestamp to current date and time
     SET @RunTimestamp = GETDATE()
     SET @StartTime = GETDATE()
@@ -148,10 +135,12 @@ BEGIN
 		IF (@SavedRecords > @Threshold)
 			BEGIN
 				set @BufferTABLEName = @Table+'cleanupbuffer'
+				set @BufferTableDropPrefix = ''
 			END
 		ELSE
 			BEGIN
 				set @BufferTABLEName = '##TempTableCleanuDB'
+				set @BufferTableDropPrefix = 'tempdb..'
 			END
 		print 'BufferTable : '+@BufferTABLEName
 
@@ -163,11 +152,15 @@ BEGIN
 		SET @Interimstart = GETDATE()
 		WHILE @CurrentRow < @SavedRecords
 		BEGIN
-			BEGIN TRANSACTION
-			Begin 
-				SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
-				print @SQL
+						-- Drop temporary table if it exists in tempdb
+			IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
+			BEGIN
+				SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+				EXEC sp_executesql @SQL
 			END
+			BEGIN TRANSACTION
+			SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+--			print @SQL
 			SET @sql =@SQL + ' ORDER BY RecId OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
 			EXEC sp_executesql @SQL 
 			SET @CurrentRow = @CurrentRow + @BatchSize;
@@ -213,6 +206,13 @@ BEGIN
 		SET @Interimstart = GETDATE()
 		WHILE @CurrentRow < @SavedRecords
 		BEGIN
+						-- Drop temporary table if it exists in tempdb
+			IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
+			BEGIN
+				SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+				EXEC sp_executesql @SQL
+			END
+
 			BEGIN TRANSACTION
 			Begin 
 				SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
