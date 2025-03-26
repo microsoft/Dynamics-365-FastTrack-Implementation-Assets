@@ -190,6 +190,12 @@ BEGIN
 			SET @SQL = 'SELECT ' + @ColumnList + ' FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
 			print @SQL
 			EXEC sp_executesql @SQL 
+			-- Drop temporary table if it exists in tempdb
+			IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
+			BEGIN
+				SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+				EXEC sp_executesql @SQL
+			END
 			SET @CurrentRow = @CurrentRow + @BatchSize;
 			SET @nbBatchExecution = @nbBatchExecution +1
 		END
@@ -248,8 +254,15 @@ BEGIN
 			SET @SQL = 'INSERT INTO ' + @Table + ' (' + @ColumnList + ') SELECT ' + @ColumnList + ' FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
 			print @SQL
 			EXEC sp_executesql @SQL 
+			-- Drop temporary table if it exists in tempdb
+			IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
+			BEGIN
+				SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+				EXEC sp_executesql @SQL
+			END
 			SET @CurrentRow = @CurrentRow + @BatchSize;
 			SET @nbBatchExecution = @nbBatchExecution +1
+
 			COMMIT TRANSACTION
 		END
 
@@ -262,14 +275,6 @@ BEGIN
     SET @EndTime = GETDATE()
         -- Calculate duration of operations in simulation mode
     SET @Duration = DATEDIFF(MILLISECOND, @StartTime, @EndTime)
-
-
-    -- Drop temporary table if it exists in tempdb
-    IF OBJECT_ID(@BufferTABLEName) IS NOT NULL
-    BEGIN
-        SET @SQL = 'DROP TABLE '+@BufferTABLEName
-        EXEC sp_executesql @SQL
-    END
 
 
 	        -- Insert results into persisted table DBCleanupResultsLog 
