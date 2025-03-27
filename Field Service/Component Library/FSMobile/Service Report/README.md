@@ -17,23 +17,23 @@ Includes:
 
 > Note: If you have installed a previous version of the managed solution from Microsoft Learn, it is recommended that you uninstall it before installing this new solution to avoid any conflicts.
 ### To import and try out the reporting solution as-is in a sandbox environment:
-1. Download [ReportingSolution_managed.zip](http://link.com).
+1. Download [ReportingSolution_managed.zip](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Field%20Service/Component%20Library/FSMobile/Service%20Report/solutions/ReportingSolution_managed.zip).
 2. Import the reporting solution into your environment.
 3. After importing the reporting solution, open your app module in App Designer and enable the "Reporting" form for the "Bookable Resource Booking" table.
 
 
 ### To customize the reporting solution before installation in a sandbox environment:
 1. Leverage your favorite IDE to edit the sample Reporting PCF control. Modify this control to change the layout, add additional branding, updated data, or other updates necessary to meet your reporting requirements. 
-Read the [Extending the control](#Extending-the-control) section below for more details.
+Read the [Extending the control](#extending-the-control) section below for more details.
 2. After modifications are completed, simply run `msbuild /t:build /restore` command from the control's root folder. This will ensure that all necessary packages are downloaded and finally build the projects to generate both unmanaged and managed solutions for import under the "\solutions\FieldServiceReporting\Solution\bin\Debug" directory.
 3. Import the reporting solution into your development environment.
 4. After importing the reporting solution, open your app module in App Designer and enable the "Reporting" form for the "Bookable Resource Booking" table.
 5. Test and follow your organization's application lifecycle management practices to import the solution to non-development environment(s).
 
 
-#	Extending the control
+# Extending the control
 
-##	Prerequisites
+## Prerequisites
 
 This solution uses Microsoft Power Apps component framework (PCF) control, you need install the following components:
 
