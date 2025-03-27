@@ -142,6 +142,9 @@ Now the data should be available in SampleReport.tsx for you to display. You can
 
 Run `npm start` to see how the report looks or build and import it into your org. There are comments throughout the files for additional instructions that allow you to do even more like download and use additional font types, add images, etc...
 
+> Note: The report is available offline provided the data you pull for the report is available to the report in your offline profile. If the report is pulling data from the typical work order, the offline profile is already set up. If you're pulling other entities, make sure that they're included in your offline profile so they can be downloaded to the device and available for the report.
+
+
 ### Adding Custom Font
 In some cases, we need to use a custom font for the pdf or to handle special characters for certain languages. We can do that by adding a custom font for jsPDF.
 
