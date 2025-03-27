@@ -1,0 +1,15 @@
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ParallelBuild Include="ReportPreview\ReportPreview.pcfproj" />
+  </ItemGroup>
+  <Target Name="Clean">
+    <MSBuild Projects="@(ParallelBuild)" BuildInParallel="True" Targets="Clean" />
+  </Target>
+  <Target Name="Restore">
+    <MSBuild Projects="@(ParallelBuild)" BuildInParallel="True" Targets="Restore" />
+  </Target>
+  <Target Name="Build">
+    <MSBuild Projects="@(ParallelBuild)" BuildInParallel="True" Targets="Restore" />
+    <MSBuild Projects="@(ParallelBuild)" BuildInParallel="True" />
+  </Target>
+</Project>

@@ -1,0 +1,309 @@
+﻿<ImportExportXml version="9.1.0.2906" SolutionPackageVersion="9.1" languagecode="1033" generatedBy="OnPremise"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SolutionManifest>
+    <UniqueName>FieldServiceReportingOptimize25</UniqueName>
+    <LocalizedNames>
+      <!-- Localized Solution Name in language code -->
+      <LocalizedName description="Field Service Reporting - Optimize25" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="This is an unofficial solution from the Microsoft Optimize25 for Frontline team to help make aspects of managing Field Service implementations easier, more intuitive, and faster." languagecode="1033" />
+    </Descriptions>
+    <Version>1.0.0.2</Version>
+    <Managed>2</Managed>
+    <Publisher>
+      <!-- Unique Publisher Name of Cds Solution -->
+      <UniqueName>Optimize25Frontline</UniqueName>
+      <LocalizedNames>
+        <LocalizedName description="Optimize25 Frontline" languagecode="1033" />
+      </LocalizedNames>
+      <Descriptions>
+        <Description description="" languagecode="1033" />
+      </Descriptions>
+      <EMailAddress xsi:nil="true"></EMailAddress>
+      <SupportingWebsiteUrl xsi:nil="true"></SupportingWebsiteUrl>
+      <!-- Customization Prefix for the Cds Publisher-->
+      <CustomizationPrefix>o25fs</CustomizationPrefix>
+      <!-- Derived Option Value Prefix for the Customization Prefix of Cds Publisher -->
+      <CustomizationOptionValuePrefix>80895</CustomizationOptionValuePrefix>
+      <Addresses>
+        <!-- Address of the Publisher-->
+        <Address>
+          <AddressNumber>1</AddressNumber>
+          <AddressTypeCode>1</AddressTypeCode>
+          <City xsi:nil="true"></City>
+          <County xsi:nil="true"></County>
+          <Country xsi:nil="true"></Country>
+          <Fax xsi:nil="true"></Fax>
+          <FreightTermsCode xsi:nil="true"></FreightTermsCode>
+          <ImportSequenceNumber xsi:nil="true"></ImportSequenceNumber>
+          <Latitude xsi:nil="true"></Latitude>
+          <Line1 xsi:nil="true"></Line1>
+          <Line2 xsi:nil="true"></Line2>
+          <Line3 xsi:nil="true"></Line3>
+          <Longitude xsi:nil="true"></Longitude>
+          <Name xsi:nil="true"></Name>
+          <PostalCode xsi:nil="true"></PostalCode>
+          <PostOfficeBox xsi:nil="true"></PostOfficeBox>
+          <PrimaryContactName xsi:nil="true"></PrimaryContactName>
+          <ShippingMethodCode>1</ShippingMethodCode>
+          <StateOrProvince xsi:nil="true"></StateOrProvince>
+          <Telephone1 xsi:nil="true"></Telephone1>
+          <Telephone2 xsi:nil="true"></Telephone2>
+          <Telephone3 xsi:nil="true"></Telephone3>
+          <TimeZoneRuleVersionNumber xsi:nil="true"></TimeZoneRuleVersionNumber>
+          <UPSZone xsi:nil="true"></UPSZone>
+          <UTCOffset xsi:nil="true"></UTCOffset>
+          <UTCConversionTimeZoneCode xsi:nil="true"></UTCConversionTimeZoneCode>
+        </Address>
+        <Address>
+          <AddressNumber>2</AddressNumber>
+          <AddressTypeCode>1</AddressTypeCode>
+          <City xsi:nil="true"></City>
+          <County xsi:nil="true"></County>
+          <Country xsi:nil="true"></Country>
+          <Fax xsi:nil="true"></Fax>
+          <FreightTermsCode xsi:nil="true"></FreightTermsCode>
+          <ImportSequenceNumber xsi:nil="true"></ImportSequenceNumber>
+          <Latitude xsi:nil="true"></Latitude>
+          <Line1 xsi:nil="true"></Line1>
+          <Line2 xsi:nil="true"></Line2>
+          <Line3 xsi:nil="true"></Line3>
+          <Longitude xsi:nil="true"></Longitude>
+          <Name xsi:nil="true"></Name>
+          <PostalCode xsi:nil="true"></PostalCode>
+          <PostOfficeBox xsi:nil="true"></PostOfficeBox>
+          <PrimaryContactName xsi:nil="true"></PrimaryContactName>
+          <ShippingMethodCode>1</ShippingMethodCode>
+          <StateOrProvince xsi:nil="true"></StateOrProvince>
+          <Telephone1 xsi:nil="true"></Telephone1>
+          <Telephone2 xsi:nil="true"></Telephone2>
+          <Telephone3 xsi:nil="true"></Telephone3>
+          <TimeZoneRuleVersionNumber xsi:nil="true"></TimeZoneRuleVersionNumber>
+          <UPSZone xsi:nil="true"></UPSZone>
+          <UTCOffset xsi:nil="true"></UTCOffset>
+          <UTCConversionTimeZoneCode xsi:nil="true"></UTCConversionTimeZoneCode>
+        </Address>
+      </Addresses>
+    </Publisher>
+    <RootComponents>
+      <RootComponent type="66" schemaName="o25fs_FSControls.ReportPreview" behavior="0" />
+      <RootComponent type="60" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" behavior="0" />
+      <RootComponent type="1" schemaName="bookableresourcebooking" behavior="1" />
+      <RootComponent type="61" schemaName="o25fs_/BookableResourceBooking/FSReporting.BookableResourceBooking.Library.js" behavior="0" />
+      <RootComponent type="92" id="{0a23cfab-3654-ea11-a81e-000d3ac3e552}" behavior="0" />
+    </RootComponents>
+    <MissingDependencies>
+      <MissingDependency>
+        <Required key="0" type="1" schemaName="bookableresourcebooking" displayName="Bookable Resource Booking" solution="msdynce_Scheduling (9.0.0.0)" />
+        <Dependent key="0" type="1" schemaName="bookableresourcebooking" displayName="Bookable Resource Booking" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="0" type="1" schemaName="bookableresourcebooking" displayName="Bookable Resource Booking" solution="msdynce_Scheduling (9.0.0.0)" />
+        <Dependent key="1" type="2" schemaName="o25fs_reportview" displayName="reportview" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="0" type="1" schemaName="bookableresourcebooking" displayName="Bookable Resource Booking" solution="msdynce_Scheduling (9.0.0.0)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="3" type="1" schemaName="msdyn_bookingtimestamp" displayName="Booking Timestamp" solution="FieldService (8.8.0.88)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="4" type="2" schemaName="resource" displayName="Resource" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="msdynce_Scheduling (9.0.0.0)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="5" type="2" schemaName="name" displayName="Name" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="msdynce_Scheduling (9.0.0.0)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="6" type="2" schemaName="msdyn_totaldurationinprogress" displayName="Total Duration In Progress" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="FieldService (8.8.0.88)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="7" type="2" schemaName="msdyn_preventtimestampcreation" displayName="Prevent Timestamp Creation" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="FieldService (8.8.0.88)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="8" type="2" schemaName="msdyn_totalbreakduration" displayName="Total Break Duration" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="FieldService (8.8.0.88)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="9" type="2" schemaName="msdyn_actualtravelduration" displayName="Actual Travel Duration" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="MicrosoftDynamicsScheduling (3.12.0.448)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="10" type="2" schemaName="starttime" displayName="Start Time" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="msdynce_Scheduling (9.0.0.0)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="11" type="2" schemaName="msdyn_timegroupdetailselected" displayName="Time Group Detail Selected" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="MicrosoftDynamicsScheduling (3.12.0.448)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="12" type="2" schemaName="bookingstatus" displayName="Booking Status" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="msdynce_Scheduling (9.0.0.0)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="13" type="2" schemaName="msdyn_longitude" displayName="Longitude" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="MicrosoftDynamicsScheduling (3.12.0.448)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="14" type="2" schemaName="msdyn_workorder" displayName="Work Order" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="FieldService (8.8.0.88)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="15" type="2" schemaName="msdyn_latitude" displayName="Latitude" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="MicrosoftDynamicsScheduling (3.12.0.448)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="16" type="2" schemaName="msdyn_milestraveled" displayName="Miles Traveled" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="MicrosoftDynamicsScheduling (3.12.0.448)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="17" type="2" schemaName="bookingtype" displayName="Booking Type" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="msdynce_Scheduling (9.0.0.0)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="18" type="2" schemaName="msdyn_actualarrivaltime" displayName="Actual Arrival Time" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="MicrosoftDynamicsScheduling (3.12.0.448)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="19" type="2" schemaName="msdyn_cascadecrewchanges" displayName="Cascade Crew Changes" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="MicrosoftDynamicsScheduling (3.12.0.448)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="20" type="2" schemaName="msdyn_bookingmethod" displayName="Booking Method" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="MicrosoftDynamicsScheduling (3.12.0.448)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="21" type="2" schemaName="msdyn_resourcegroup" displayName="Resource Group" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="MicrosoftDynamicsScheduling (3.12.0.448)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="22" type="2" schemaName="msdyn_estimatedtravelduration" displayName="Estimated Travel Duration" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="MicrosoftDynamicsScheduling (3.12.0.448)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="23" type="2" schemaName="msdyn_crewmembertype" displayName="Crew Member Type" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="msdyn_FieldService_patch_update (8.8.31.18)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="24" type="2" schemaName="msdyn_totalcost" displayName="Total Cost" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="FieldService (8.8.0.88)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="25" type="2" schemaName="endtime" displayName="End Time" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="msdynce_Scheduling (9.0.0.0)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="26" type="2" schemaName="msdyn_estimatedarrivaltime" displayName="Estimated Arrival Time" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="MicrosoftDynamicsScheduling (3.12.0.448)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="27" type="2" schemaName="msdyn_agreementbookingdate" displayName="Agreement Booking Date" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="FieldService (8.8.0.88)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="28" type="2" schemaName="msdyn_worklocation" displayName="Work Location" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="MicrosoftDynamicsScheduling (3.12.0.448)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="29" type="2" schemaName="msdyn_crew" displayName="Crew" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="msdyn_FieldService_patch_update (8.8.31.18)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="30" type="2" schemaName="msdyn_offlinetimestamp" displayName="Offline Timestamp" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="FieldService (8.8.0.88)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="31" type="2" schemaName="msdyn_totalbillableduration" displayName="Total Billable Duration" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="FieldService (8.8.0.88)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="32" type="2" schemaName="msdyn_acceptcascadecrewchanges" displayName="Accept Cascade Crew Changes" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="MicrosoftDynamicsScheduling (3.12.0.448)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="33" type="2" schemaName="duration" displayName="Duration" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="msdynce_Scheduling (9.0.0.0)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="34" type="2" schemaName="msdyn_allowoverlapping" displayName="Allow Overlapping" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="MicrosoftDynamicsScheduling (3.12.0.448)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="35" type="10" schemaName="msdyn_msdyn_timegroupdetail_bookableresourcebooking_TimeGroupDetailSelected" displayName="msdyn_msdyn_timegroupdetail_bookableresourcebooking_TimeGroupDetailSelected" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="MicrosoftDynamicsScheduling (3.12.0.448)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="36" type="10" schemaName="msdyn_bookableresource_bookableresourcebooking_ResourceGroup" displayName="msdyn_bookableresource_bookableresourcebooking_ResourceGroup" parentSchemaName="bookableresource" parentDisplayName="Bookable Resource" solution="MicrosoftDynamicsScheduling (3.12.0.448)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="37" type="10" schemaName="msdyn_bookableresourcebooking_msdyn_workorderproduct_Booking" displayName="msdyn_bookableresourcebooking_msdyn_workorderproduct_Booking" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="FieldService (8.8.0.88)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="38" type="10" schemaName="msdyn_bookableresourcebooking_msdyn_bookingtimestamp_Booking" displayName="msdyn_bookableresourcebooking_msdyn_bookingtimestamp_Booking" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="FieldService (8.8.0.88)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="39" type="10" schemaName="msdyn_bookableresource_bookableresourcebooking_Crew" displayName="msdyn_bookableresource_bookableresourcebooking_Crew" parentSchemaName="bookableresource" parentDisplayName="Bookable Resource" solution="msdyn_FieldService_patch_update (8.8.31.18)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="40" type="10" schemaName="msdyn_bookableresourcebooking_msdyn_bookingjournal_Booking" displayName="msdyn_bookableresourcebooking_msdyn_bookingjournal_Booking" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="FieldService (8.8.0.88)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="41" type="10" schemaName="msdyn_bookableresourcebooking_msdyn_workorderservice_Booking" displayName="msdyn_bookableresourcebooking_msdyn_workorderservice_Booking" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="FieldService (8.8.0.88)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="42" type="10" schemaName="msdyn_bookableresourcebooking_msdyn_workorderservicetask_Booking" displayName="msdyn_bookableresourcebooking_msdyn_workorderservicetask_Booking" parentSchemaName="bookableresourcebooking" parentDisplayName="Bookable Resource Booking" solution="FieldService (8.8.0.88)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="43" type="10" schemaName="msdyn_msdyn_workorder_bookableresourcebooking_WorkOrder" displayName="msdyn_msdyn_workorder_bookableresourcebooking_WorkOrder" parentSchemaName="msdyn_workorder" parentDisplayName="Work Order" solution="FieldService (8.8.0.88)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="44" type="10" schemaName="msdyn_msdyn_agreementbookingdate_bookableresourcebooking_AgreementBookingDate" displayName="msdyn_msdyn_agreementbookingdate_bookableresourcebooking_AgreementBookingDate" parentSchemaName="msdyn_agreementbookingdate" parentDisplayName="Agreement Booking Date" solution="FieldService (8.8.0.88)" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="45" type="20" displayName="Field Service - Administrator" solution="FieldService (8.8.0.88)" id="{00bb53d6-da92-e111-9d8c-000c2959f9b8}" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="46" type="20" displayName="Field Service - Resource" solution="FieldService (8.8.0.88)" id="{dc08bfde-da92-e111-9d8c-000c2959f9b8}" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="47" type="26" schemaName="Active Booking Timestamps" displayName="Active Booking Timestamps" parentSchemaName="msdyn_bookingtimestamp" parentDisplayName="Booking Timestamp" solution="FieldService (8.8.0.88)" id="{130eea39-ba4d-4393-a23f-30aded3a9ed7}" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="48" type="26" schemaName="Bookable Resource Lookup View" displayName="Bookable Resource Lookup View" parentSchemaName="bookableresource" parentDisplayName="Bookable Resource" solution="msdynce_Scheduling (9.0.0.0)" id="{a8a3797b-e027-4b10-9647-e58070accfc4}" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="49" type="26" schemaName="Booking Status filtered by Field Service Status" displayName="Booking Status filtered by Field Service Status" parentSchemaName="bookingstatus" parentDisplayName="Booking Status" solution="FieldService (8.8.0.88)" id="{1b11b197-72ea-41d2-8e88-e9c0aa9231cb}" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="50" type="26" schemaName="Time Group Detail Lookup View" displayName="Time Group Detail Lookup View" parentSchemaName="msdyn_timegroupdetail" parentDisplayName="Time Group Detail" solution="MicrosoftDynamicsScheduling (3.12.0.448)" id="{4de23d19-7523-4514-b6d4-31b079838062}" />
+        <Dependent key="2" type="60" displayName="Reporting" parentDisplayName="Bookable Resource Booking" id="{32a79486-b187-4ab6-a6fe-f22a88b63261}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="51" type="66" schemaName="msdyn_MscrmControls.FieldService.SignatureControl" displayName="msdyn_MscrmControls.FieldService.SignatureControl" solution="msdyn_FieldService_patch_update (8.8.132.216)">
+          <package appName="Dynamics 365 for Field Service" version="8.8.131.79">FieldService_Anchor (8.8.131.79)</package>
+        </Required>
+        <Dependent key="3" type="60" displayName="Booking and Work Order" parentDisplayName="Bookable Resource Booking" id="{c0ace4ca-f0f1-42a7-aacb-618cb8e6751a}" />
+      </MissingDependency>
+    </MissingDependencies>
+  </SolutionManifest>
+</ImportExportXml>
