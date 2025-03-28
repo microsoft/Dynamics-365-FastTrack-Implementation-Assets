@@ -1,30 +1,29 @@
-# Power Autmoate Monitoring Dashboard
-This dashboard consists of two integrated pages. The first page, "Performance Monitoring," displays information about Power Automate executions, types of flows, weekly and monthly executions, failures, and exceptions in your environment.
+# Form Load and Plugin Dashboard
+This dashboard shows information about Form load duration for different forms and Plugin Execution Insights. Using this dashboard, it is possible to identify:
+- Load times for forms (p90, p50, Average load, warmload etc..). 
+- Top x plugins with High esecution times
+- Network Performance for different locations
+- Most Failed plugins
+- Plugins with depth > 2
 
-The second page focuses on errors and exceptions in Power Automate runs, triggers, and actions.
+# Web Requests Dashboard
+This dashboard shows information about Different web requests stastics. Using this dashboard, it is possible to identify:
+- Last 3 weeks percentiles for web requests (p90, p50, Average load, warmload etc..). 
+- Success and failurs
+- Result code distribution
+- Daily web request performance buckets
+- success rates
 
-Using this dashboard, you can identify:
-
-- Flow executions
-- Types of flows
-- Flow execution status
-- Weekly executions
-- Monthly executions
-- Flow success and failure rates
-- Flow runs
-- Flow actions in specific runs (select Run ID for that)
-- Flow triggers
-- Action statistics
-- Most problematic flows
-- Failed triggers
-- Most problematic actions
+You can utilize the queries in these dashboards to set up alerts.
 
 ## Dashboard overview
 
 <div align=center><img src="./img/Dashboard.png"></div>
 
+<div align=center><img src="./img/WebRequestsDashboard.png"></div>
+
 ## Steps to import the sample dashboard:
-  1. Import the file "dashboard-Power Automate Monitoring.json".
+  1. Import the file "dashboard-CSAppInsights.json".
   
   <div align=center><img src="./img/ImportDashboard.png" width="600" height="300"></div>
 
