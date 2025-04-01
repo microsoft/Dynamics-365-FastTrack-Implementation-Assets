@@ -15,13 +15,13 @@ The script performs the following steps:
 4. Drops the stored procedure at the end.
 */
 
-DECLARE @SkipTables NVARCHAR(MAX) = 'INVENTREPORTDIMHISTORY' -- Replace with your list of tables (comma separated)
-DECLARE @MaxArchivingDate DATE = '2023-07-01' -- Replace with your max archiving date
+DECLARE @SkipTables NVARCHAR(MAX) = 'MyTable1,MyTable2,Myatble3' -- Replace with your list of tables (comma separated)
+DECLARE @MaxArchivingDate DATE = '2024-01-01' -- Replace with your max archiving date
 DECLARE @Simulation BIT = 1 -- Set to 1 for simulation mode, 0 for actual deletion
 DECLARE @LE NVARCHAR(Max) = 'MS,445I,BRMF,CNMF,DAT,DEMF,FRRT,FRSI,GBPM,GBSI,GLCO,GLMF,GLRT,GLSI,INMF,ITCO,JPMF,MXMF,MYMF,RUMF,RURT,SAMF,THMF,THPM,us01,USMF,USP2,USPI,USPM,USRT,USSI'
-DECLARE @TOPXTables int = 10
-DECLARE @Threshold INT = 2000000
-DECLARE @BatchSize INT = 5000000
+DECLARE @TOPXTables int = 100
+DECLARE @Threshold INT = 500000
+DECLARE @BatchSize INT = 500000
 
 DECLARE @TableName NVARCHAR(255)
 DECLARE @TotalSpace BigINt
@@ -74,7 +74,6 @@ BEGIN
 		Print 'Table : '+@TableName+ ' totalspace : '+CONVERT(NVARCHAR,@TotalSpace)
 		EXEC KeepOnlyRecordsSp @TableName, @LE, @MaxArchivingDate, @Simulation, @Threshold, @BatchSize
 		FETCH NEXT FROM TableCursor INTO @TableName, @TotalSpace
-        
     END
     
     CLOSE TableCursor
