@@ -152,7 +152,7 @@ BEGIN
 		SET @Interimstart = GETDATE()
 		WHILE @CurrentRow < @SavedRecords
 		BEGIN
-						-- Drop temporary table if it exists in tempdb
+			-- Drop temporary table if it exists in tempdb
 			IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
 			BEGIN
 				SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
@@ -169,7 +169,7 @@ BEGIN
 		END
 		SET @Interimend = GETDATE()
 		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
-		Print 'copy from main table' + convert(NVARCHAR,@Duration)
+		Print 'copy from main table duraion in ms ' + convert(NVARCHAR,@Duration)
 
 		SET @Interimstart = GETDATE()
 		-- Estimate duration of truncate statement in simulation mode
@@ -179,7 +179,7 @@ BEGIN
 		ROLLBACK TRANSACTION
 		SET @Interimend = GETDATE()
 		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
-		Print 'Trucate table' + convert(NVARCHAR,@Duration)
+		Print 'Trucate table duration in ms ' + convert(NVARCHAR,@Duration)
 		
         -- Estimate duration of insert statement in simulation mode
         SET @CurrentRow = 0
@@ -187,7 +187,8 @@ BEGIN
 		SET @Interimstart = GETDATE()
 		WHILE @CurrentRow < @SavedRecords
 		BEGIN
-			SET @SQL = 'SELECT ' + @ColumnList + ' FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+			BEGIN TRANSACTION
+			SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+  @BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+'simulation' +' FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
 			print @SQL
 			EXEC sp_executesql @SQL 
 			-- Drop temporary table if it exists in tempdb
@@ -196,13 +197,21 @@ BEGIN
 				SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
 				EXEC sp_executesql @SQL
 			END
+			IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+'simulation') IS NOT NULL
+			BEGIN
+				SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+'simulation'
+				EXEC sp_executesql @SQL
+			END
 			SET @CurrentRow = @CurrentRow + @BatchSize;
 			SET @nbBatchExecution = @nbBatchExecution +1
+
+			ROLLBACK TRANSACTION
 		END
+
 
 		SET @Interimend = GETDATE()
 		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
-		Print 'Copy Back data' + convert(NVARCHAR,@Duration)
+		Print 'Copy Back data duraiton in ms ' + convert(NVARCHAR,@Duration)
 		
     END
     ELSE
@@ -232,7 +241,7 @@ BEGIN
 		END
 		SET @Interimend = GETDATE()
 		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
-		Print 'copy from main table' + convert(NVARCHAR,@Duration)
+		Print 'copy from main table duration in ms' + convert(NVARCHAR,@Duration)
 
 		SET @Interimstart = GETDATE()
 		-- Estimate duration of truncate statement in simulation mode
@@ -242,7 +251,7 @@ BEGIN
 		COMMIT TRANSACTION
 		SET @Interimend = GETDATE()
 		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
-		Print 'Trucate table' + convert(NVARCHAR,@Duration)
+		Print 'Trucate table duration in ms' + convert(NVARCHAR,@Duration)
 		
         -- Estimate duration of insert statement in simulation mode
         SET @CurrentRow = 0
@@ -268,7 +277,7 @@ BEGIN
 
 		SET @Interimend = GETDATE()
 		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
-		Print 'Copy Back data' + convert(NVARCHAR,@Duration)
+		Print 'Copy Back data duration in ms' + convert(NVARCHAR,@Duration)
 
     END
 
