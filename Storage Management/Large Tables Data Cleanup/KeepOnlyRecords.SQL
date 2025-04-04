@@ -1,3 +1,4 @@
+
 /*
 Description:
 This script is designed to archive records from specified tables in a database. It creates a stored procedure that takes table name, legal entity, date, and simulation mode as parameters. The stored procedure performs the following steps:
@@ -33,7 +34,8 @@ CREATE PROCEDURE KeepOnlyRecordsSp
     @KeepFromDate DATE,
     @Simulation BIT,
 	@Threshold INT = 2000000,
-	@BatchSize INT = 5000000
+	@BatchSize INT = 5000000, 
+	@Resume BIT = 0
 AS
 BEGIN
 
@@ -52,24 +54,10 @@ BEGIN
 	DECLARE @BufferTableDropPrefix NVARCHAR(10) = ''
 	DECLARE @Interimstart DATETIME
     DECLARE @Interimend DATETIME 
-	DECLARE @nbBatchExecution INT = 0
+	DECLARE @nbBatchExecution INT = 1
+	DECLARE @step INT = 0 
 
-
-    -- Create DBCleanupResultsLog table if it doesn't exist
-    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='DBCleanupResultsLog' AND xtype='U')
-    BEGIN
-        CREATE TABLE DBCleanupResultsLog(
-            TableName NVARCHAR(MAX),
-            LegalEntity NVARCHAR(MAX),
-            KeepFromDate NVARCHAR(120),
-            NbRecordsDeleted INT,
-			NbRecordsSaved INT,
-            EstimatedDuration INT,
-            RunTimestamp DATETIME
-        )
-    END
-
-    -- Check for CreatedDateTime and ModifiedDateTime fields
+	    -- Check for CreatedDateTime and ModifiedDateTime fields
     IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @Table AND COLUMN_NAME = 'CREATEDDATETIME')
     BEGIN
         SET @DateField = 'CREATEDDATETIME'
@@ -77,6 +65,10 @@ BEGIN
     ELSE IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @Table AND COLUMN_NAME = 'MODIFIEDDATETIME')
     BEGIN
         SET @DateField = 'MODIFIEDDATETIME'
+    END
+	ELSE IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @Table AND COLUMN_NAME = 'ACCOUNTINGDATE')
+    BEGIN
+        SET @DateField = 'ACCOUNTINGDATE'
     END
     ELSE
     BEGIN
@@ -94,6 +86,46 @@ BEGIN
         PRINT 'Warning: Table ' + @Table + ' does not have DataAreaId'
         RETURN
     END
+
+	IF @Resume = 1
+	BEGIN
+		SELECT TOP 1 @RunTimestamp = StartTime, @STep = Step, @nbBatchExecution = CurrentLoopIndex
+			FROM DBCleanupResultsLog
+			WHERE EndTime IS NULL
+			AND TableName = @Table
+			AND LegalEntity = @LE
+			AND KeepFromDate = @KeepFromDate
+			ORDER BY StartTime DESC
+
+			IF @RunTimestamp IS NULL
+			BEGIN
+				SET @RunTimestamp = GETDATE()
+				SET @Step = 0
+				SET @nbBatchExecution = 1
+				INSERT INTO DBCleanupResultsLog (TableName, LegalEntity, KeepFromDate, StartTime,Step, CurrentLoopIndex)
+				VALUES (@Table, @LE, CONVERT(NVARCHAR, @KeepFromDate, 120), @RunTimestamp, @step, @nbBatchExecution)
+			END
+	END
+	ELSE 
+	BEGIN
+			
+		if exists(SELECT TOP 1 @RunTimestamp 
+			FROM DBCleanupResultsLog
+			WHERE EndTime IS NULL
+			AND TableName = @Table
+			AND LegalEntity = @LE
+			AND KeepFromDate = @KeepFromDate)
+		begin
+			RETURN 
+		end
+
+		SET @RunTimestamp = GETDATE()
+			-- Insert a marker line to be able to resume
+		INSERT INTO DBCleanupResultsLog (TableName, LegalEntity, KeepFromDate, StartTime,Step, CurrentLoopIndex)
+		VALUES (@Table, @LE, CONVERT(NVARCHAR, @KeepFromDate, 120), @RunTimestamp, @step, @nbBatchExecution)
+
+	END
+
 
     -- Get column list excluding timestamp columns
     SELECT @ColumnList = STUFF((
@@ -119,95 +151,144 @@ BEGIN
     EXEC sp_executesql @SQL
 
     -- Set the run timestamp to current date and time
-    SET @RunTimestamp = GETDATE()
     SET @StartTime = GETDATE()
 
-        -- Count records to be deleted in simulation mode
-        SET @SQL = 'SELECT @DeletedRecords = COUNT(*) FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' < ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
-        EXEC sp_executesql @SQL, N'@DeletedRecords INT OUTPUT', @DeletedRecords OUTPUT
+    -- Count records to be deleted in simulation mode
+    SET @SQL = 'SELECT @DeletedRecords = COUNT(*) FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' < ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+    EXEC sp_executesql @SQL, N'@DeletedRecords INT OUTPUT', @DeletedRecords OUTPUT
 
-		        -- Count records to be deleted in simulation mode
-        SET @SQL = 'SELECT @SavedRecords = COUNT(*) FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
-        EXEC sp_executesql @SQL, N'@SavedRecords INT OUTPUT', @SavedRecords OUTPUT
+		    -- Count records to be deleted in simulation mode
+    SET @SQL = 'SELECT @SavedRecords = COUNT(*) FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+    EXEC sp_executesql @SQL, N'@SavedRecords INT OUTPUT', @SavedRecords OUTPUT
 
-		Print @SQL
-		Print 'nbRecord to save : ' + CONVERT(NVARCHAR,@SavedRecords)
-		IF (@SavedRecords > @Threshold)
-			BEGIN
-				set @BufferTABLEName = @Table+'cleanupbuffer'
-				set @BufferTableDropPrefix = ''
-			END
-		ELSE
-			BEGIN
-				set @BufferTABLEName = '##TempTableCleanuDB'
-				set @BufferTableDropPrefix = 'tempdb..'
-			END
-		print 'BufferTable : '+@BufferTABLEName
+	Print @SQL
+	Print 'nbRecord to save : ' + CONVERT(NVARCHAR,@SavedRecords)
+	IF (@SavedRecords > @Threshold)
+		BEGIN
+			set @BufferTABLEName = @Table+'cleanupbuffer'
+			set @BufferTableDropPrefix = ''
+		END
+	ELSE
+		BEGIN
+			set @BufferTABLEName = '##TempTableCleanuDB'
+			set @BufferTableDropPrefix = 'tempdb..'
+		END
+	print 'BufferTable : '+@BufferTABLEName
 
     -- Simulation mode: Estimate duration of select, truncate, and insert statements and count records
 	IF @Simulation = 1
     BEGIN
-        -- Estimate duration of select statement in simulation mode
-		SET @nbBatchExecution = 1
-		SET @Interimstart = GETDATE()
-		WHILE @CurrentRow < @SavedRecords
+--##STEP1 Begin
+        IF @step <= 1
 		BEGIN
-			-- Drop temporary table if it exists in tempdb
-			IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
+			SET @Interimstart = GETDATE()
+			IF @step = 0
 			BEGIN
-				SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
-				EXEC sp_executesql @SQL
+				-- Estimate duration of select statement in simulation mode
+				SET @step =  1
+				SET @nbBatchExecution = 1
 			END
-			BEGIN TRANSACTION
-			SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
---			print @SQL
-			SET @sql =@SQL + ' ORDER BY RecId OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
-			EXEC sp_executesql @SQL 
-			SET @CurrentRow = @CurrentRow + @BatchSize;
-			SET @nbBatchExecution = @nbBatchExecution +1
-			COMMIT TRANSACTION
+			ELSE
+			BEGIN 
+				SET @CurrentRow = @nbBatchExecution*@BatchSize
+			END
+			WHILE @CurrentRow < @SavedRecords
+			BEGIN
+				BEGIN TRY
+					-- Drop temporary table if it exists in tempdb
+					IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
+					BEGIN
+						SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+						EXEC sp_executesql @SQL
+					END
+					BEGIN TRANSACTION
+					SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+		--			print @SQL
+					SET @sql =@SQL + ' ORDER BY RecId OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
+					EXEC sp_executesql @SQL 
+					SET @CurrentRow = @CurrentRow + @BatchSize;
+					SET @nbBatchExecution = @nbBatchExecution +1
+					COMMIT TRANSACTION
+					Update DBCleanupResultsLog
+					set Step = @step, CurrentLoopIndex = @nbBatchExecution
+					where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
+
+				END TRY
+				BEGIN CATCH
+					Print ('issue in step '+convert(NVARCHAR,@step)+' loop ' + convert(NVARCHAR,@nbBatchExecution))
+			END CATCH
+			END
+			SET @Interimend = GETDATE()
+			SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
+			Print 'copy from main table duraion in ms ' + convert(NVARCHAR,@Duration)
 		END
-		SET @Interimend = GETDATE()
-		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
-		Print 'copy from main table duraion in ms ' + convert(NVARCHAR,@Duration)
-
-		SET @Interimstart = GETDATE()
-		-- Estimate duration of truncate statement in simulation mode
-        BEGIN TRANSACTION
-		SET @SQL = 'TRUNCATE TABLE ' + @Table
-        EXEC sp_executesql @SQL
-		ROLLBACK TRANSACTION
-		SET @Interimend = GETDATE()
-		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
-		Print 'Trucate table duration in ms ' + convert(NVARCHAR,@Duration)
-		
-        -- Estimate duration of insert statement in simulation mode
-        SET @CurrentRow = 0
-		SET @nbBatchExecution = 1
-		SET @Interimstart = GETDATE()
-		WHILE @CurrentRow < @SavedRecords
+		ELSE IF @step = 1 or @step = 2 
 		BEGIN
+	--##Step2 Begin
+			SET @step =  2
+			SET @Interimstart = GETDATE()
+			-- Estimate duration of truncate statement in simulation mode
 			BEGIN TRANSACTION
-			SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+  @BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+'simulation' +' FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
-			print @SQL
-			EXEC sp_executesql @SQL 
-			-- Drop temporary table if it exists in tempdb
-			IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
-			BEGIN
-				SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
-				EXEC sp_executesql @SQL
-			END
-			IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+'simulation') IS NOT NULL
-			BEGIN
-				SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+'simulation'
-				EXEC sp_executesql @SQL
-			END
-			SET @CurrentRow = @CurrentRow + @BatchSize;
-			SET @nbBatchExecution = @nbBatchExecution +1
-
+			SET @SQL = 'TRUNCATE TABLE ' + @Table
+			EXEC sp_executesql @SQL
 			ROLLBACK TRANSACTION
-		END
+			SET @Interimend = GETDATE()
+			SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
+		
+			Update DBCleanupResultsLog
+			set Step = @step, CurrentLoopIndex = 0
+			where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
 
+			Print 'Trucate table duration in ms ' + convert(NVARCHAR,@Duration)
+		END
+		ELSE IF @step = 2 or @step = 3
+		BEGIN
+	--##Step3 begin		
+			IF @step = 2
+			BEGIN
+				-- Estimate duration of insert statement in simulation mode
+				SET @step =  3
+				SET @CurrentRow = 0
+				SET @nbBatchExecution = 1
+			END 
+			ELSE
+			BEGIN 
+				SET @CurrentRow = @nbBatchExecution*@BatchSize
+			END
+			SET @Interimstart = GETDATE()
+			WHILE @CurrentRow < @SavedRecords
+			BEGIN
+				BEGIN TRY
+					BEGIN TRANSACTION
+					SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+  @BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+'simulation' +' FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+					print @SQL
+					EXEC sp_executesql @SQL 
+					COMMIT TRANSACTION
+
+					SET @CurrentRow = @CurrentRow + @BatchSize;
+					SET @nbBatchExecution = @nbBatchExecution +1
+
+					Update DBCleanupResultsLog
+					set Step = @step, CurrentLoopIndex = @nbBatchExecution
+					where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
+				END TRY
+				BEGIN CATCH
+					Print ('issue in step '+convert(NVARCHAR,@step)+' loop ' + convert(NVARCHAR,@nbBatchExecution))
+				END CATCH
+
+				-- Drop temporary table if it exists in tempdb
+				IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
+				BEGIN
+					SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+					EXEC sp_executesql @SQL
+				END
+				IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+'simulation') IS NOT NULL
+				BEGIN
+					SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+'simulation'
+					EXEC sp_executesql @SQL
+				END
+			END
+		END
 
 		SET @Interimend = GETDATE()
 		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
@@ -216,82 +297,132 @@ BEGIN
     END
     ELSE
     BEGIN
-		-- Estimate duration of select statement in simulation mode
-		SET @nbBatchExecution = 1
-		SET @Interimstart = GETDATE()
-		WHILE @CurrentRow < @SavedRecords
+--##STEP1 Begin
+        IF @step <= 1
 		BEGIN
-						-- Drop temporary table if it exists in tempdb
-			IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
+			SET @Interimstart = GETDATE()
+			IF @step = 0
 			BEGIN
-				SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
-				EXEC sp_executesql @SQL
+				-- Estimate duration of select statement in simulation mode
+				SET @step =  1
+				SET @nbBatchExecution = 1
 			END
+			ELSE
+			BEGIN 
+				SET @CurrentRow = @nbBatchExecution*@BatchSize
+			END
+			WHILE @CurrentRow < @SavedRecords
+			BEGIN
+				BEGIN TRY
+					-- Drop temporary table if it exists in tempdb
+					IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
+					BEGIN
+						SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+						EXEC sp_executesql @SQL
+					END
+					BEGIN TRANSACTION
+					SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+		--			print @SQL
+					SET @sql =@SQL + ' ORDER BY RecId OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
+					EXEC sp_executesql @SQL 
+					SET @CurrentRow = @CurrentRow + @BatchSize;
+					SET @nbBatchExecution = @nbBatchExecution +1
+					COMMIT TRANSACTION
+					Update DBCleanupResultsLog
+					set Step = @step, CurrentLoopIndex = @nbBatchExecution
+					where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
 
-			BEGIN TRANSACTION
-			Begin 
-				SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
-				print @SQL
+				END TRY
+				BEGIN CATCH
+					Print ('issue in step '+convert(NVARCHAR,@step)+' loop ' + convert(NVARCHAR,@nbBatchExecution))
+			END CATCH
 			END
-			SET @sql =@SQL + ' ORDER BY RecId OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
-			EXEC sp_executesql @SQL 
-			SET @CurrentRow = @CurrentRow + @BatchSize;
-			SET @nbBatchExecution = @nbBatchExecution +1
-			COMMIT TRANSACTION
+			SET @Interimend = GETDATE()
+			SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
+			Print 'copy from main table duraion in ms ' + convert(NVARCHAR,@Duration)
 		END
-		SET @Interimend = GETDATE()
-		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
-		Print 'copy from main table duration in ms' + convert(NVARCHAR,@Duration)
-
-		SET @Interimstart = GETDATE()
-		-- Estimate duration of truncate statement in simulation mode
-        BEGIN TRANSACTION
-		SET @SQL = 'TRUNCATE TABLE ' + @Table
-        EXEC sp_executesql @SQL
-		COMMIT TRANSACTION
-		SET @Interimend = GETDATE()
-		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
-		Print 'Trucate table duration in ms' + convert(NVARCHAR,@Duration)
+		ELSE IF @step = 1 or @step = 2 
+		BEGIN
+	--##Step2 Begin
+			SET @step =  2
+			SET @Interimstart = GETDATE()
+			-- Estimate duration of truncate statement in simulation mode
+			BEGIN TRANSACTION
+			SET @SQL = 'TRUNCATE TABLE ' + @Table
+			EXEC sp_executesql @SQL
+			COMMIT TRANSACTION
+			SET @Interimend = GETDATE()
+			SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
 		
-        -- Estimate duration of insert statement in simulation mode
-        SET @CurrentRow = 0
-		SET @nbBatchExecution = 1
-		SET @Interimstart = GETDATE()
-		WHILE @CurrentRow < @SavedRecords
-		BEGIN
-			BEGIN TRANSACTION
-			SET @SQL = 'INSERT INTO ' + @Table + ' (' + @ColumnList + ') SELECT ' + @ColumnList + ' FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
-			print @SQL
-			EXEC sp_executesql @SQL 
-			-- Drop temporary table if it exists in tempdb
-			IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
-			BEGIN
-				SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
-				EXEC sp_executesql @SQL
-			END
-			SET @CurrentRow = @CurrentRow + @BatchSize;
-			SET @nbBatchExecution = @nbBatchExecution +1
+			Update DBCleanupResultsLog
+			set Step = @step, CurrentLoopIndex = 0
+			where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
 
-			COMMIT TRANSACTION
+			Print 'Trucate table duration in ms ' + convert(NVARCHAR,@Duration)
+		END
+		ELSE IF @step = 2 or @step = 3
+		BEGIN
+	--##Step3 begin		
+			IF @step = 2
+			BEGIN
+				-- Estimate duration of insert statement in simulation mode
+				SET @step =  3
+				SET @CurrentRow = 0
+				SET @nbBatchExecution = 1
+			END 
+			ELSE
+			BEGIN 
+				SET @CurrentRow = @nbBatchExecution*@BatchSize
+			END
+			SET @Interimstart = GETDATE()
+			WHILE @CurrentRow < @SavedRecords
+			BEGIN
+				BEGIN TRY
+					BEGIN TRANSACTION
+					SET @SQL = 'INSERT INTO ' + @Table + ' (' + @ColumnList + ') SELECT ' + @ColumnList + ' FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+					print @SQL
+					EXEC sp_executesql @SQL 
+					COMMIT TRANSACTION
+
+					SET @CurrentRow = @CurrentRow + @BatchSize;
+					SET @nbBatchExecution = @nbBatchExecution +1
+
+					Update DBCleanupResultsLog
+					set Step = @step, CurrentLoopIndex = @nbBatchExecution
+					where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
+				END TRY
+				BEGIN CATCH
+					Print ('issue in step '+convert(NVARCHAR,@step)+' loop ' + convert(NVARCHAR,@nbBatchExecution))
+				END CATCH
+
+				-- Drop temporary table if it exists in tempdb
+				IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
+				BEGIN
+					SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+					EXEC sp_executesql @SQL
+				END
+			END
 		END
 
 		SET @Interimend = GETDATE()
 		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
-		Print 'Copy Back data duration in ms' + convert(NVARCHAR,@Duration)
-
+		Print 'Copy Back data duraiton in ms ' + convert(NVARCHAR,@Duration)
+		
     END
+
+
 
     SET @EndTime = GETDATE()
         -- Calculate duration of operations in simulation mode
     SET @Duration = DATEDIFF(MILLISECOND, @StartTime, @EndTime)
 
 
-	        -- Insert results into persisted table DBCleanupResultsLog 
-        INSERT INTO DBCleanupResultsLog (TableName, LegalEntity, KeepFromDate, NbRecordsDeleted, NbRecordsSaved, EstimatedDuration, RunTimestamp)
-        VALUES (@Table, @LE, CONVERT(NVARCHAR, @KeepFromDate, 120), @DeletedRecords,@SavedRecords, @Duration, @RunTimestamp)
-        
-        -- Select results from log table for verification in simulation mode 
-        SELECT * FROM DBCleanupResultsLog WHERE TableName=@Table AND LegalEntity=@LE AND KeepFromDate=CONVERT(NVARCHAR, @KeepFromDate, 120)
+	Update DBCleanupResultsLog
+		set Step = @step, CurrentLoopIndex = 0, NbRecordsDeleted = @DeletedRecords, NbRecordsSaved = @SavedRecords, EstimatedDuration = @Duration, EndTime = @EndTime
+		where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
+
+    -- Select results from log table for verification in simulation mode 
+    SELECT * FROM DBCleanupResultsLog WHERE TableName=@Table AND LegalEntity=@LE AND KeepFromDate=CONVERT(NVARCHAR, @KeepFromDate, 120)
 
 
     -- Re-enable Change Data Capture or Change Tracking if previously enabled
