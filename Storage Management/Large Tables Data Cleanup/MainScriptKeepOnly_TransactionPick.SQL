@@ -28,41 +28,29 @@ DECLARE @TableName NVARCHAR(255)
 DECLARE @TotalSpace BigINt
 DECLARE @StartDate DATE
 DECLARE @EndDate DATE
+DECLARE @semaacquired INT
+DECLARE @tempTableListTableName NVARCHAR(255) = 'FTDBCLEANUPLISTTABLES'+convert(NVARCHAR,@@SPID)
+DECLARE @SQL NVARCHAR(MAX) = ''
 
 BEGIN
 
-    -- Create DBCleanupResultsLog table if it doesn't exist
-    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='DBCleanupResultsLog' AND xtype='U')
-    BEGIN
-        CREATE TABLE DBCleanupResultsLog(
-            TableName NVARCHAR(1000),
-            LegalEntity NVARCHAR(1000),
-            KeepFromDate NVARCHAR(120),
-            NbRecordsDeleted INT,
-			NbRecordsSaved INT,
-            EstimatedDuration INT,
-            StartTime DATETIME,
-			EndTime DATETIME,
-			Step INT,
-			CurrentLoopIndex INT
-        )
-		CREATE INDEX idx_DBCleanupResultsLog_EndTime_StartTime_TableName_LegalEntity_KeepFromDate
-		ON DBCleanupResultsLog (EndTime, StartTime, TableName, LegalEntity, KeepFromDate);
-			   
-    END
+	-- create the log table if it doesn't exist
+	BEGIN TRANSACTION
+	exec CreateDBCleanup
+	COMMIT TRANSACTION
 
     PRINT 'LE :' + @LE + ' StartDate :' + CONVERT(NVARCHAR, @StartDate, 120) + ' EndDate :' + CONVERT(NVARCHAR, @EndDate, 120)
     
 	    -- Drop temporary table if it exists in tempdb
-    IF OBJECT_ID('FTDBCLEANUPLISTTABLES') IS NOT NULL
+    IF OBJECT_ID(@tempTableListTableName) IS NOT NULL
     BEGIN
-        Declare @SQL NVARCHAR(MAX) = 'DROP TABLE FTDBCLEANUPLISTTABLES'
+        SET @SQL = 'DROP TABLE '+@tempTableListTableName
         EXEC sp_executesql @SQL
     END
 
 
     -- Cursor to loop through the table names ordered by size (Data + Index	)
-	SELECT * INTO FTDBCLEANUPLISTTABLES FROM 
+	SET @SQL = 'SELECT * INTO '+@tempTableListTableName+ ' FROM 
         (
 		SELECT 
             t.name AS TableName,
@@ -79,36 +67,89 @@ BEGIN
             sys.allocation_units a ON p.partition_id = a.container_id
 		inner join (select SQLName,TABLEID from SQLDICTIONARY sd where sd.FIELDID = 0 and sd.ARRAY = 0) sdf on t.name = sdf.SQLNAME
 		inner join TABLEMETADATATABLE TMT ON TMT.TABLEID = sdf.TABLEID
-		where SDF.SQLNAME not in (SELECT value FROM STRING_SPLIT(@SkipTables, ',')) and (TMT.TABLEGROUP IN (4, 5, 6, 9, 10, 11) or SDF.SQLNAME in ('WHSASNITEM', 'WHSASNITEMRECEIPT', 'WHSUOMSTRUCTURE'))
+		where SDF.SQLNAME not in (SELECT value FROM STRING_SPLIT('''+@SkipTables+''', '','')) and (TMT.TABLEGROUP IN (4, 5, 6, 9, 10, 11) or SDF.SQLNAME in (''WHSASNITEM'', ''WHSASNITEMRECEIPT'', ''WHSUOMSTRUCTURE''))
         GROUP BY 
 			t.name, sdf.TABLEID
-			) orderedTables
+			) orderedTables 
+		';
 
-    DECLARE TableCursor CURSOR FOR
-    SELECT Top (@TOPXTables) TableName, TotalSpace FROM FTDBCLEANUPLISTTABLES
-    ORDER BY TotalSpace DESC
+	PRINT @SQL
+	EXEC sp_executesql @SQL
 
-    OPEN TableCursor
-    FETCH NEXT FROM TableCursor INTO @TableName, @TotalSpace
+
+
+	SET @SQL = ' 	
+		IF CURSOR_STATUS(''global'', ''Cursor'+convert(NVARCHAR,@@SPID)+''') >=0
+		BEGIN
+			CLOSE Cursor'+convert(NVARCHAR,@@SPID)+'
+			DEALLOCATE Cursor'+convert(NVARCHAR,@@SPID)+'
+		END
+
+
+		DECLARE Cursor'+convert(NVARCHAR,@@SPID)+' CURSOR FOR  SELECT Top ('+convert(nvarchar,@TOPXTables)+') TableName, TotalSpace FROM '+@tempTableListTableName+' ORDER BY TotalSpace DESC
+	    OPEN Cursor'+convert(NVARCHAR,@@SPID)+'
+		FETCH NEXT FROM Cursor'+convert(NVARCHAR,@@SPID)+' INTO @TableName, @TotalSpace'
+
+	EXEC sp_executesql @SQL, N'@TableName NVARCHAR(255) OUTPUT, @TotalSpace BIGINT OUTPUT', @TableName OUTPUT, @TotalSpace OUTPUT
+
     WHILE @@FETCH_STATUS = 0
     BEGIN
         -- Call stored procedure to archive records for the current table
 		Print 'Table : '+@TableName+ ' totalspace : '+CONVERT(NVARCHAR,@TotalSpace)
 		BEGIN TRY
-			EXEC KeepOnlyRecordsSp @TableName, @LE, @MaxArchivingDate, @Simulation, @Threshold, @BatchSize, @Resume
+			
+			-- Acquire a semaphore
+			EXEC @semaacquired = sp_getapplock @Resource = @TableName, @LockMode = 'Exclusive', @LockOwner = 'Session', @LockTimeout = 10000
+
+			IF @semaacquired >= 0
+			BEGIN
+				-- The semaphore was acquired successfully
+				PRINT 'Semaphore acquired'
+
+				EXEC KeepOnlyRecordsSp @TableName, @LE, @MaxArchivingDate, @Simulation, @Threshold, @BatchSize, @Resume
+
+				-- Release the semaphore
+				EXEC sp_releaseapplock @Resource = @TableName, @LockOwner = 'Session'
+				PRINT 'Semaphore released'
+			END
+			ELSE
+			BEGIN
+				-- Failed to acquire the semaphore
+				PRINT 'Failed to acquire semaphore'
+			END
+
+
 		END TRY
 		BEGIN CATCH
 			PRINT ('Error while processing Table '+@TableName+'')
+			
+			IF @semaacquired >= 0
+			Begin
+				EXEC sp_releaseapplock @Resource = @TableName, @LockOwner = 'Session'
+			END
+			Commit TRANSACTION
 		END CATCH
-		FETCH NEXT FROM TableCursor INTO @TableName, @TotalSpace
+		
+		SET @SQL = 'FETCH NEXT FROM Cursor'+convert(NVARCHAR,@@SPID)+' INTO @TableName, @TotalSpace'
+		EXEC sp_executesql @SQL, N'@TableName NVARCHAR(255) OUTPUT, @TotalSpace BIGINT OUTPUT', @TableName OUTPUT, @TotalSpace OUTPUT
+		
     END
+
+		SET @SQL = '    CLOSE Cursor'+convert(NVARCHAR,@@SPID)+'
+					    DEALLOCATE Cursor'+convert(NVARCHAR,@@SPID)
+		EXEC sp_executesql @SQL
+ 
     
-    CLOSE TableCursor
-    DEALLOCATE TableCursor
 
 END
 
 -- Drop the stored procedure at the end
---DROP table dbo.DBCleanupResultsLog
---DROP PROCEDURE dbo.KeepOnlyRecordsSp;
-DROP TABLE dbo.FTDBCLEANUPLISTTABLES;
+    IF OBJECT_ID(@tempTableListTableName) IS NOT NULL
+    BEGIN
+        SET @SQL = 'DROP TABLE '+@tempTableListTableName
+        EXEC sp_executesql @SQL
+    END
+
+
+
+
