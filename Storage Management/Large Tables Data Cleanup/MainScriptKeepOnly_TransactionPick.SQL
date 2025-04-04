@@ -16,12 +16,13 @@ The script performs the following steps:
 */
 
 DECLARE @SkipTables NVARCHAR(MAX) = 'MyTable1,MyTable2,Myatble3' -- Replace with your list of tables (comma separated)
-DECLARE @MaxArchivingDate DATE = '2024-01-01' -- Replace with your max archiving date
+DECLARE @MaxArchivingDate DATE = '2023-07-01' -- Replace with your max archiving date
 DECLARE @Simulation BIT = 1 -- Set to 1 for simulation mode, 0 for actual deletion
 DECLARE @LE NVARCHAR(Max) = 'MS,445I,BRMF,CNMF,DAT,DEMF,FRRT,FRSI,GBPM,GBSI,GLCO,GLMF,GLRT,GLSI,INMF,ITCO,JPMF,MXMF,MYMF,RUMF,RURT,SAMF,THMF,THPM,us01,USMF,USP2,USPI,USPM,USRT,USSI'
-DECLARE @TOPXTables int = 100
+DECLARE @TOPXTables int = 10
 DECLARE @Threshold INT = 500000
 DECLARE @BatchSize INT = 500000
+DECLARE @Resume BIT = 0
 
 DECLARE @TableName NVARCHAR(255)
 DECLARE @TotalSpace BigINt
@@ -29,6 +30,27 @@ DECLARE @StartDate DATE
 DECLARE @EndDate DATE
 
 BEGIN
+
+    -- Create DBCleanupResultsLog table if it doesn't exist
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='DBCleanupResultsLog' AND xtype='U')
+    BEGIN
+        CREATE TABLE DBCleanupResultsLog(
+            TableName NVARCHAR(1000),
+            LegalEntity NVARCHAR(1000),
+            KeepFromDate NVARCHAR(120),
+            NbRecordsDeleted INT,
+			NbRecordsSaved INT,
+            EstimatedDuration INT,
+            StartTime DATETIME,
+			EndTime DATETIME,
+			Step INT,
+			CurrentLoopIndex INT
+        )
+		CREATE INDEX idx_DBCleanupResultsLog_EndTime_StartTime_TableName_LegalEntity_KeepFromDate
+		ON DBCleanupResultsLog (EndTime, StartTime, TableName, LegalEntity, KeepFromDate);
+			   
+    END
+
     PRINT 'LE :' + @LE + ' StartDate :' + CONVERT(NVARCHAR, @StartDate, 120) + ' EndDate :' + CONVERT(NVARCHAR, @EndDate, 120)
     
 	    -- Drop temporary table if it exists in tempdb
@@ -72,7 +94,12 @@ BEGIN
     BEGIN
         -- Call stored procedure to archive records for the current table
 		Print 'Table : '+@TableName+ ' totalspace : '+CONVERT(NVARCHAR,@TotalSpace)
-		EXEC KeepOnlyRecordsSp @TableName, @LE, @MaxArchivingDate, @Simulation, @Threshold, @BatchSize
+		BEGIN TRY
+			EXEC KeepOnlyRecordsSp @TableName, @LE, @MaxArchivingDate, @Simulation, @Threshold, @BatchSize, @Resume
+		END TRY
+		BEGIN CATCH
+			PRINT ('Error while processing Table '+@TableName+'')
+		END CATCH
 		FETCH NEXT FROM TableCursor INTO @TableName, @TotalSpace
     END
     
@@ -82,5 +109,6 @@ BEGIN
 END
 
 -- Drop the stored procedure at the end
-DROP PROCEDURE dbo.KeepOnlyRecordsSp;
+--DROP table dbo.DBCleanupResultsLog
+--DROP PROCEDURE dbo.KeepOnlyRecordsSp;
 DROP TABLE dbo.FTDBCLEANUPLISTTABLES;
