@@ -22,6 +22,26 @@ The script performs the following steps:
 3. Performs the archiving operations based on the provided parameters.
 */
 
+    -- Create DBCleanupResultsLog table if it doesn't exist
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='DBCleanupResultsLog' AND xtype='U')
+    BEGIN
+        CREATE TABLE DBCleanupResultsLog(
+            TableName NVARCHAR(1000),
+            LegalEntity NVARCHAR(1000),
+            KeepFromDate NVARCHAR(120),
+            NbRecordsDeleted INT,
+			NbRecordsSaved INT,
+            EstimatedDuration INT,
+            StartTime DATETIME,
+			EndTime DATETIME,
+			Step INT,
+			CurrentLoopIndex INT
+        )
+		CREATE INDEX idx_DBCleanupResultsLog_EndTime_StartTime_TableName_LegalEntity_KeepFromDate
+		ON DBCleanupResultsLog (EndTime, StartTime, TableName, LegalEntity, KeepFromDate);
+	END
+
+
 -- Drop the stored procedure if it already exists
 IF OBJECT_ID('dbo.KeepOnlyRecordsSp', 'P') IS NOT NULL
     DROP PROCEDURE dbo.KeepOnlyRecordsSp;
@@ -194,7 +214,6 @@ BEGIN
 			END
 			WHILE @CurrentRow < @SavedRecords
 			BEGIN
-				BEGIN TRY
 					-- Drop temporary table if it exists in tempdb
 					IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
 					BEGIN
@@ -213,10 +232,6 @@ BEGIN
 					set Step = @step, CurrentLoopIndex = @nbBatchExecution
 					where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
 
-				END TRY
-				BEGIN CATCH
-					Print ('issue in step '+convert(NVARCHAR,@step)+' loop ' + convert(NVARCHAR,@nbBatchExecution))
-			END CATCH
 			END
 			SET @Interimend = GETDATE()
 			SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
@@ -258,7 +273,6 @@ BEGIN
 			SET @Interimstart = GETDATE()
 			WHILE @CurrentRow < @SavedRecords
 			BEGIN
-				BEGIN TRY
 					BEGIN TRANSACTION
 					SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+  @BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+'simulation' +' FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
 					print @SQL
@@ -271,10 +285,6 @@ BEGIN
 					Update DBCleanupResultsLog
 					set Step = @step, CurrentLoopIndex = @nbBatchExecution
 					where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
-				END TRY
-				BEGIN CATCH
-					Print ('issue in step '+convert(NVARCHAR,@step)+' loop ' + convert(NVARCHAR,@nbBatchExecution))
-				END CATCH
 
 				-- Drop temporary table if it exists in tempdb
 				IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
@@ -313,7 +323,6 @@ BEGIN
 			END
 			WHILE @CurrentRow < @SavedRecords
 			BEGIN
-				BEGIN TRY
 					-- Drop temporary table if it exists in tempdb
 					IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
 					BEGIN
@@ -332,10 +341,6 @@ BEGIN
 					set Step = @step, CurrentLoopIndex = @nbBatchExecution
 					where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
 
-				END TRY
-				BEGIN CATCH
-					Print ('issue in step '+convert(NVARCHAR,@step)+' loop ' + convert(NVARCHAR,@nbBatchExecution))
-			END CATCH
 			END
 			SET @Interimend = GETDATE()
 			SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
@@ -377,7 +382,6 @@ BEGIN
 			SET @Interimstart = GETDATE()
 			WHILE @CurrentRow < @SavedRecords
 			BEGIN
-				BEGIN TRY
 					BEGIN TRANSACTION
 					SET @SQL = 'INSERT INTO ' + @Table + ' (' + @ColumnList + ') SELECT ' + @ColumnList + ' FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
 					print @SQL
@@ -390,11 +394,6 @@ BEGIN
 					Update DBCleanupResultsLog
 					set Step = @step, CurrentLoopIndex = @nbBatchExecution
 					where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
-				END TRY
-				BEGIN CATCH
-					Print ('issue in step '+convert(NVARCHAR,@step)+' loop ' + convert(NVARCHAR,@nbBatchExecution))
-				END CATCH
-
 				-- Drop temporary table if it exists in tempdb
 				IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
 				BEGIN
