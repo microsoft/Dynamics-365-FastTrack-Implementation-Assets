@@ -222,7 +222,7 @@ BEGIN
 			SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
 			Print 'copy from main table duraion in ms ' + convert(NVARCHAR,@Duration)
 		END
-		ELSE IF @step = 1 or @step = 2 
+		IF @step = 1 or @step = 2 
 		BEGIN
 	--##Step2 Begin
 			SET @step =  2
@@ -241,7 +241,7 @@ BEGIN
 
 			Print 'Trucate table duration in ms ' + convert(NVARCHAR,@Duration)
 		END
-		ELSE IF @step = 2 or @step = 3
+		IF @step = 2 or @step = 3
 		BEGIN
 	--##Step3 begin		
 			IF @step = 2
@@ -341,7 +341,7 @@ BEGIN
 			SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
 			Print 'copy from main table duraion in ms ' + convert(NVARCHAR,@Duration)
 		END
-		ELSE IF @step = 1 or @step = 2 
+		IF @step = 1 or @step = 2 
 		BEGIN
 	--##Step2 Begin
 			SET @step =  2
@@ -360,7 +360,7 @@ BEGIN
 
 			Print 'Trucate table duration in ms ' + convert(NVARCHAR,@Duration)
 		END
-		ELSE IF @step = 2 or @step = 3
+		IF @step = 2 or @step = 3
 		BEGIN
 	--##Step3 begin		
 			IF @step = 2
