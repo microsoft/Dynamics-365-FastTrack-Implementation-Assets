@@ -1,4 +1,3 @@
-
 /*
 Description:
 This script is designed to archive records from specified tables in a database. It creates a stored procedure that takes table name, legal entity, date, and simulation mode as parameters. The stored procedure performs the following steps:
@@ -15,6 +14,9 @@ Parameters:
 - @LE: List of legal entities
 - @KeepFromDate: Date to keep records from
 - @Simulation: Set to 1 for simulation mode, 0 for actual deletion
+- @Threshold: Threshold value to determine buffer table usage (default is 2000000)
+- @BatchSize: Size of each batch for processing records (default is 5000000)
+- @Resume: Set to 1 to resume from previous run, 0 for fresh run (default is 0)
 
 The script performs the following steps:
 1. Drops the stored procedure if it already exists.
@@ -34,7 +36,7 @@ AS
 BEGIN
 
 	DECLARE @SQL NVARCHAR(MAX)
-    DECLARE @DateField NVARCHAR(255)
+    DECLARE @DateField NVARCHAR(255) = ''
     DECLARE @CDCState BIT
     DECLARE @StartTime DATETIME
     DECLARE @EndTime DATETIME 
@@ -52,21 +54,10 @@ BEGIN
 	DECLARE @step INT = 0 
 
 	    -- Check for CreatedDateTime and ModifiedDateTime fields
-    IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @Table AND COLUMN_NAME = 'CREATEDDATETIME')
-    BEGIN
-        SET @DateField = 'CREATEDDATETIME'
-    END
-    ELSE IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @Table AND COLUMN_NAME = 'MODIFIEDDATETIME')
-    BEGIN
-        SET @DateField = 'MODIFIEDDATETIME'
-    END
-	ELSE IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @Table AND COLUMN_NAME = 'ACCOUNTINGDATE')
-    BEGIN
-        SET @DateField = 'ACCOUNTINGDATE'
-    END
-    ELSE
-    BEGIN
-        PRINT 'Warning: Table ' + @Table + ' does not have CreatedDateTime or ModifiedDateTime fields.'
+    SELECT @DateField = CleanupColumn FROM FTDateTimeColumnMappingPerTable WHERE TABLE_NAME = @Table
+	IF @DateField = ''
+	BEGIN
+        PRINT 'Warning: Table ' + @Table + ' does not have a date time'
         RETURN
     END
 
@@ -199,7 +190,7 @@ BEGIN
 				BEGIN TRANSACTION
 				SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
 	--			print @SQL
-				SET @sql =@SQL + ' ORDER BY RecId OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
+				SET @sql =@SQL + ' ORDER BY RecId desc OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
 				EXEC sp_executesql @SQL 
 				SET @CurrentRow = @CurrentRow + @BatchSize;
 				SET @nbBatchExecution = @nbBatchExecution +1
@@ -319,7 +310,7 @@ BEGIN
 					BEGIN TRANSACTION
 					SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
 		--			print @SQL
-					SET @sql =@SQL + ' ORDER BY RecId OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
+					SET @sql =@SQL + ' ORDER BY RecId desc OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
 					EXEC sp_executesql @SQL 
 					SET @CurrentRow = @CurrentRow + @BatchSize;
 					SET @nbBatchExecution = @nbBatchExecution +1
