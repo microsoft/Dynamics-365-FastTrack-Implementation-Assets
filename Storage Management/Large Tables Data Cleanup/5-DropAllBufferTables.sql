@@ -1,7 +1,7 @@
 -- Declare a cursor to iterate through tables containing 'cleanupbuffer'
 DECLARE @TableName NVARCHAR(100)
 DECLARE TableCursor CURSOR FOR
-SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME LIKE '%cleanupbuffer%'
+SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME LIKE '%cleanupbuffer%' or TABLE_NAME like 'FTDBCLEANUPLISTTABLES%'
 
 -- Open the cursor
 OPEN TableCursor
