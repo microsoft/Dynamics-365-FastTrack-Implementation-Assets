@@ -52,6 +52,7 @@ BEGIN
     DECLARE @Interimend DATETIME 
 	DECLARE @nbBatchExecution INT = 1
 	DECLARE @step INT = 0 
+	DECLARE @minRecId BIGINT = 0
 
 	    -- Check for CreatedDateTime and ModifiedDateTime fields
     SELECT @DateField = CleanupColumn FROM FTDateTimeColumnMappingPerTable WHERE TABLE_NAME = @Table
@@ -162,7 +163,10 @@ BEGIN
 	print 'BufferTable : '+@BufferTABLEName
 
 	COMMIT TRANSACTION
-    -- Simulation mode: Estimate duration of select, truncate, and insert statements and count records
+
+	SET @SQL ='SELECT @minRecId = min(RecId) FROM '+@Table+' WHERE ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+	EXEC sp_executesql @SQL, N'@minRecId BIGINT OUTPUT', @minRecId OUTPUT
+	-- Simulation mode: Estimate duration of select, truncate, and insert statements and count records
 	IF @Simulation = 1
     BEGIN
 --##STEP1 Begin
@@ -188,9 +192,8 @@ BEGIN
 					EXEC sp_executesql @SQL
 				END
 				BEGIN TRANSACTION
-				SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
-	--			print @SQL
-				SET @sql =@SQL + ' ORDER BY RecId desc OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
+				SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND RecId >= ' + CONvert(NVARCHAR,@minRecId) 
+				SET @SQL =@SQL + ' ORDER BY RecId desc OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
 				EXEC sp_executesql @SQL 
 				SET @CurrentRow = @CurrentRow + @BatchSize;
 				SET @nbBatchExecution = @nbBatchExecution +1
@@ -308,11 +311,10 @@ BEGIN
 						EXEC sp_executesql @SQL
 					END
 					BEGIN TRANSACTION
-					SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
-		--			print @SQL
-					SET @sql =@SQL + ' ORDER BY RecId desc OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
+					SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND RecId >= ' + CONvert(NVARCHAR,@minRecId) 
+					SET @SQL =@SQL + ' ORDER BY RecId desc OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
 					EXEC sp_executesql @SQL 
-					SET @CurrentRow = @CurrentRow + @BatchSize;
+ 					SET @CurrentRow = @CurrentRow + @BatchSize;
 					SET @nbBatchExecution = @nbBatchExecution +1
 					COMMIT TRANSACTION
 					Update DBCleanupResultsLog
