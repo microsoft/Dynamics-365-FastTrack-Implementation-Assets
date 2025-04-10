@@ -28,10 +28,10 @@ CREATE OR ALTER PROCEDURE KeepOnlyRecordsSp
     @Table NVARCHAR(Max),
     @LE NVARCHAR(Max),
     @KeepFromDate DATE,
-    @Simulation BIT,
-	@Threshold INT = 2000000,
-	@BatchSize INT = 5000000, 
-	@Resume BIT = 0
+    @Simulation BIT = 1,
+    @Threshold INT = 2000000,
+    @BatchSize INT = 5000000, 
+    @Resume BIT = 0
 AS
 BEGIN
 
@@ -416,4 +416,3 @@ BEGIN
     SET @SQL = 'IF EXISTS (SELECT * FROM sys.change_tracking_tables WHERE object_id = OBJECT_ID(''' + @Table + ''')) ALTER TABLE ' + @Table + ' ENABLE CHANGE_TRACKING'
     EXEC sp_executesql @SQL
 END
-GO
