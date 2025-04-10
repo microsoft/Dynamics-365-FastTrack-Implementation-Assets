@@ -23,6 +23,3 @@ END
 -- Close and deallocate the cursor
 CLOSE TableCursor
 DEALLOCATE TableCursor
-
-DROP TABLE DBCleanupResultsLog
-PRINT 'Dropped table: DBCleanupResultsLog' 
