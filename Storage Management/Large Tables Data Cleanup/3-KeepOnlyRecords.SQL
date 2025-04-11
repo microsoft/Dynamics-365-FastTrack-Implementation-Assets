@@ -150,16 +150,17 @@ BEGIN
 
 	Print @SQL
 	Print 'nbRecord to save : ' + CONVERT(NVARCHAR,@SavedRecords)
-	IF (@SavedRecords > @Threshold)
-		BEGIN
+-- too risky to use unpersisted tables when transient errors or SQL azure governance stops the process, impossible to resume other than with PITR
+--	IF (@SavedRecords > @Threshold)
+--		BEGIN
 			set @BufferTABLEName = @Table+'cleanupbuffer'
 			set @BufferTableDropPrefix = ''
-		END
-	ELSE
-		BEGIN
-			set @BufferTABLEName = '##TempTableCleanuDB'
-			set @BufferTableDropPrefix = 'tempdb..'
-		END
+--		END
+--	ELSE
+--		BEGIN
+--			set @BufferTABLEName = '##TempTableCleanuDB
+--			set @BufferTableDropPrefix = 'tempdb..'
+--		END
 	print 'BufferTable : '+@BufferTABLEName
 
 	COMMIT TRANSACTION
