@@ -1,6 +1,6 @@
 # Order integration 
 
-**<span style="color:red">Do not publish. This article is under construction.</span>**
+**<span style="color:red">This article is under construction.</span>**
 
 
 # Sales Order Field Mapping
