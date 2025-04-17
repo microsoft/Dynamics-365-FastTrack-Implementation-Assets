@@ -34,8 +34,8 @@ To use the script, follow these steps:
 3. Execute the script against your AXDB database using a SQL client.
 4. Run the script in the order of the prefix from 0-Prerequisits to 4-MainScript
 
-https://youtu.be/_FnvbF8Vgrw
-
+For a short video of how to use the script please [follow this link](https://youtu.be/_FnvbF8Vgrw)
+ 
 ## Configuration
 The script includes several configurable parameters to tailor the cleanup process to your specific needs. Ensure you review and adjust these parameters before running the script.
 
