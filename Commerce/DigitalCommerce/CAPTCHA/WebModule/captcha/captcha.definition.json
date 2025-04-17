@@ -1,0 +1,29 @@
+{
+    "$type": "contentModule",
+    "friendlyName": "captcha",
+    "name": "captcha",
+    "description": "A module to integration CAPTCHA validation",
+    "categories": ["Security"],
+    "dataActions": {
+        "checkout": {
+            "path": "@msdyn365-commerce/global-state/dist/lib/data-actions/checkout-state-data-action",
+            "runOn": "client"
+        }
+    },
+    "config": {
+        "showText": {
+            "friendlyName": "showText",
+            "description": "example config value",
+            "type": "string",
+            "default": "Example Config Value",
+            "scope": "module",
+            "group": "Layout Properties"
+        }
+    },
+    "resources": {
+        "resourceKey": {
+            "comment": "resource description",
+            "value": "resource value"
+        }
+    }
+}
