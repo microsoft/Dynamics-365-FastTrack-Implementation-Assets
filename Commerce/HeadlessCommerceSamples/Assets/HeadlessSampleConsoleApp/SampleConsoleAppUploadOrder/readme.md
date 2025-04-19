@@ -1,4 +1,4 @@
-﻿# Overview
+# Overview
 
 This is a sample project showing how to use the headless commerce engine for online scenarios.
 
@@ -21,18 +21,9 @@ After you compile the project, please run HeadlessCommerceEngineSample.exe from 
 
 To start, try the following scenario (assuming demo data is configured):
 
-1. Select 128 (Fabrikam extended online store)
-2. Type S to search for products.
-3. Search for bag
-4. Type A to select an item to add to cart.
-5. Type the item number: 92002
-6. Type C to start checkout
-7. Type 99 for standard shipping. (Note: customer pickup will not work since line-level delivery has not been implemented in this example)
-8. Take a note of your order number.
+1. Select operating unit number
 
-![Search](./data/search.png)
-![AddItem](./data/additem.png)
-![AddItem](./data/checkout.png)
+![Order](./data/tx.png)
 
 To see the sales order created in HQ:
 
@@ -41,4 +32,4 @@ To see the sales order created in HQ:
 3. Go to Retail and Commerce > Retail and Commerce IT > Synchronize orders job.
 4. Go to Retail and Commerce > Inquiries and reports > Online store transactions
 
-![Order](./data/order.png)
+![alt text](./data/order.png)

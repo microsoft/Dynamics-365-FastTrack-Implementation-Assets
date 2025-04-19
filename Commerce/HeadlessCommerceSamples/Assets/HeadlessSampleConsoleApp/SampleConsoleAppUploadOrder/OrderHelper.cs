@@ -27,7 +27,7 @@ namespace SampleConsoleAppUploadOrder
                 AmountPaid = 629.48M,
                 ChannelId = client.ChannelId,
                 CreatedDateTime = DateTime.Now,
-                BeginDateTime= DateTime.Now,
+                BeginDateTime = DateTime.Now,
                 CurrencyCode = "USD",
                 CustomerId = "004009",
                 DiscountAmount = 82.5M,
@@ -36,17 +36,17 @@ namespace SampleConsoleAppUploadOrder
                 Id = transactionId,
                 NetAmountWithNoTax = 592.45M,
                 NetAmountWithTax = 629.48M,
-                NetAmountWithoutTax= 592.45M,
-                NetAmount =592.45M,
+                NetAmountWithoutTax = 592.45M,
+                NetAmount = 592.45M,
                 SubtotalAmount = 592.45M,
                 SubtotalAmountWithoutTax = 592.45M,
                 TaxAmount = 37.03M,
                 TotalAmount = 629.48M,
-                NetPrice=674.95M,
+                NetPrice = 674.95M,
                 TransactionTypeValue = (int?)TransactionType.PendingSalesOrder,
                 ReceiptEmail = "test@test.com",
-                ChannelReferenceId= Guid.NewGuid().ToString(),
-                NumberOfItems=2
+                ChannelReferenceId = Guid.NewGuid().ToString(),
+                NumberOfItems = 2
             };
             await FillOrderLines(order);
             await FillPayments(client, order);
@@ -77,11 +77,11 @@ namespace SampleConsoleAppUploadOrder
                 NetAmount = 192.5M,
                 GrossAmount = 192.5M,
                 NetAmountWithAllInclusiveTax = 192.5M,
-                NetAmountWithoutTax=192.5M,
+                NetAmountWithoutTax = 192.5M,
                 LineNumber = 1,
-                DeliveryMode="99",
-                LineDiscount= 82.5M,
-                DiscountAmount= 82.5M,
+                DeliveryMode = "99",
+                LineDiscount = 82.5M,
+                DiscountAmount = 82.5M,
                 ShippingAddress = new()
                 {
                     Name = "John Doe",
@@ -91,7 +91,7 @@ namespace SampleConsoleAppUploadOrder
                     ZipCode = "98004",
                     ThreeLetterISORegionName = "USA",
                 },
-                InventoryLocationId= "DC-CENTRAL"
+                InventoryLocationId = "DC-CENTRAL"
             };
             line1.DiscountLines.Add(new DiscountLine()
             {
@@ -131,8 +131,8 @@ namespace SampleConsoleAppUploadOrder
                 NetAmountWithAllInclusiveTax = 399.95M,
                 NetAmountWithoutTax = 399.95M,
                 LineNumber = 2,
-                LineDiscount=0,
-                DiscountAmount=0,
+                LineDiscount = 0,
+                DiscountAmount = 0,
                 DeliveryMode = "99",
                 ShippingAddress = new()
                 {
@@ -155,7 +155,7 @@ namespace SampleConsoleAppUploadOrder
             });
             order.SalesLines.Add(line1);
             order.SalesLines.Add(line2);
-            return await Task.Run(() => order);
+            return await Task.FromResult(order);
         }
 
         public static async Task<SalesOrder> FillPayments(CommerceClient client, SalesOrder order)
@@ -165,27 +165,27 @@ namespace SampleConsoleAppUploadOrder
             order.TenderLines.Add(new()
             {
                 TransactionId = order.Id,
-                AuthorizedAmount= 629.48M,
+                AuthorizedAmount = 629.48M,
                 TenderDate = DateTime.Now,
                 CardTypeId = "Visa",
                 MaskedCardNumber = "************1111",
-                ChannelId= client.ChannelId,
-                Currency="USD",
-                TenderTypeId="3",
-                LineNumber= 1,
+                ChannelId = client.ChannelId,
+                Currency = "USD",
+                TenderTypeId = "3",
+                LineNumber = 1,
                 IsPreProcessed = true,
                 IsVoidable = true,
-                TenderLineId ="1",
-                ExchangeRate=0.00M,
-                CompanyCurrencyExchangeRate=0.00M,
+                TenderLineId = "1",
+                ExchangeRate = 0.00M,
+                CompanyCurrencyExchangeRate = 0.00M,
                 ProcessingTypeValue = (int)PaymentProcessingType.Deferred,
                 StatusValue = (int)TenderLineStatus.NotProcessed,
                 TransactionStatusValue = (int)TransactionStatus.Normal,
                 //Without compression
                 Authorization = "<![CDATA[" + authToken + "]]>",
-                CardToken = "<![CDATA[" + authToken + "]]>"
+                CardToken = "<![CDATA[" + cardToken + "]]>"
             });
-            return await Task.Run(() => order);
+            return await Task.FromResult(order);
         }
     }
 }

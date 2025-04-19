@@ -38,7 +38,7 @@ namespace SampleConsoleApp.Common
         /// </summary>
         public async Task InitializeContext()
         {
-            ChannelIdentity channelIdentity=await this.ResolveOperatingUnitNumber();
+            ChannelIdentity channelIdentity = await this.ResolveOperatingUnitNumber();
             if (string.IsNullOrWhiteSpace(channelIdentity.OperatingUnitNumber))
             {
                 // No online store. 
@@ -53,7 +53,7 @@ namespace SampleConsoleApp.Common
             factory.Context.SetOperatingUnitNumber(channelIdentity.OperatingUnitNumber);
             factory.Context.SetChannelId("\"" + this.channelId + "\"");
             this.Logger.Info($"> Welcome to {channelIdentity.Name} (oun={channelIdentity.OperatingUnitNumber}, channel={channelIdentity.RecordId}, company={channelIdentity.DataAreaId})");
-            await Task.Run(() => { });
+            await Task.CompletedTask;
         }
 
         /// <summary>
@@ -191,7 +191,7 @@ namespace SampleConsoleApp.Common
             var channelConfiguration = orgUnitManager.GetOrgUnitConfiguration().Result;
 
             string cardToken = System.IO.File.ReadAllText("CardToken.xml");
-            await Task.Run(() => { });
+            await Task.CompletedTask;
 
             //Tokenized card
             CartTenderLine tenderLine = new()
@@ -384,11 +384,11 @@ namespace SampleConsoleApp.Common
 
                 logger.Log(LogStatus.Info, $"> Order found: {order.Id}");
 
-                
+
             }
             catch (Exception ex)
             {
-                logger.Log(LogStatus.Error,ex.Message);
+                logger.Log(LogStatus.Error, ex.Message);
             }
             return order;
         }
