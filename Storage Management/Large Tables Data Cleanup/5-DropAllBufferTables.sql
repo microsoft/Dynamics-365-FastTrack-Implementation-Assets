@@ -1,3 +1,7 @@
+/*
+DO NOT RUN THIS SCRIPT UNLESS ALL YOUR TABLES HAVE BEEN CLEANED UP SUCCESSFULY
+CHECK THE RESULT LOGS select * from DBCLEANUPRESULTSLOG
+*/
 -- Declare a cursor to iterate through tables containing 'cleanupbuffer'
 DECLARE @TableName NVARCHAR(100)
 DECLARE TableCursor CURSOR FOR
