@@ -14,9 +14,6 @@ Before you can run the sample, the following criteria must be met:
 2. The data must be configured for e-commerce scenarios. If in doubt, use demo data.
 3. Make the project as startup project
 
-To begin, please put in the endpoint to the Commerce APIs in Program.cs.
-After you compile the project, please run HeadlessCommerceEngineSample.exe from a command prompt.
-
 ## Suggested demo script
 
 To start, try the following scenario (assuming demo data is configured):
