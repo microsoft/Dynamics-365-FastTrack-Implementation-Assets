@@ -1,10 +1,10 @@
 # Overview
 
-This is a sample project showing how to use the headless commerce engine for online scenarios.
+This is a sample project showing how to use the headless commerce engine for order ingestion.
 
 # What is covered?
 
-The example walks through a very simple search and purchase flow.
+The example walks through a very simple transaction upload flow.
 
 ## Prerequisites
 
