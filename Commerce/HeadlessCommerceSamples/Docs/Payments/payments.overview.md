@@ -18,7 +18,7 @@ This article is written with the assumption that you are using the standard Micr
 
 Dynamics 365 Commerce is assumed to be the payment system of record. It will be responsible for re-authorizing, capturing, and refunding payments based on the order lifecycle. (If your third-party marketing platform is the system of origin and system of record for payments, then there is no point in integrating payments into Dynamics 365.) Below is sample flow for payments (and orders).
 
-![Payment and order flow](../../resources/PaymentFlow.png)
+![Payment and order flow](../../Resources/PaymentFlow.png)
 
 We will share what payment properties are essential for successfully reauthorizing and capturing payments through the Adyen payment connector. If you are using a third-party payment connector, you will need to work with your ISV to understand what properties ar required for them to process payments successfully.
 
