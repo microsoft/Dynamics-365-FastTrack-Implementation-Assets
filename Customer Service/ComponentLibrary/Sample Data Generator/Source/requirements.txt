@@ -1,0 +1,5 @@
+pytz==2024.1
+names==0.3.0
+requests>=2.31.0
+streamlit==1.32.0
+faker>=22.6.0
