@@ -21,7 +21,7 @@ The **Storage management Data Cleanup** include two main SQL scripts:
 
 2. **Transaction-Less Copy SQL Script**: This script performs transaction-less copy operations in the AXDB database, ensuring efficient data management without the overhead of transactions.
    
-**Note** (This script is meant for LCS Tier 2 sandboxes and Cloud hosted environment and **not** for UDE. Instead for UDE please [follow this learn article](https://learn.microsoft.com/en-us/power-platform/admin/unified-experience/tutorial-perform-transactionless-copy?tabs=PPAC) 
+**Note** Transaction-Less Copy SQL Script is meant for LCS Tier 2 sandboxes and Cloud hosted environment and **not** for UDE. Instead for UDE please [follow this learn article](https://learn.microsoft.com/en-us/power-platform/admin/unified-experience/tutorial-perform-transactionless-copy?tabs=PPAC) 
 
 ## Prerequisites
 
