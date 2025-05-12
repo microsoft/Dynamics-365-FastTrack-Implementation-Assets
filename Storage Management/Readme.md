@@ -26,6 +26,10 @@ Before using this script, ensure you have the following:
 
 - Access to the Dynamics 365 F&O AXDB database.
 - Appropriate permissions to execute SQL scripts.
+  
+**Note** If you want to cleanup data in AXDB after performing a database refresh through LCS, you can obtain SQL JIT access via LCS, connect to the Azure SQL database using SSMS, and then run one of the scripts
+- Use the GitHub script to truncate all transactional tables in AXDB using “Transaction Less Copy SQL Script”.
+- Use the GitHub script to trim transactional tables in AXDB for a more selective data reduction using "Large Tables Data Cleanup" as described in usage section
 
 ## Usage
 To use the script, follow these steps:
