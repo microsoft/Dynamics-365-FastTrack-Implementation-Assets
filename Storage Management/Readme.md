@@ -1,6 +1,6 @@
-# Storage Management Data Cleanup
+# Storage Management Data Cleanup 
 
-This repository contains SQL scripts designed to manage and optimize storage consumption in the AXDB database of Dynamics 365 F&O. The scripts help clean up large tables from closed years or perform transaction-less copy operations based on the target sandbox usage use cases.
+This repository contains SQL scripts designed to manage and optimize storage consumption in the AXDB database of Dynamics 365 F&O. The scripts help clean up large tables  perform transaction-less copy operations based on the target sandbox usage use cases (This is primarily meant to be used with LCS Tier 2 + environments but can apply to any F&O environment allowing access to SQL AXDB database).
 
 ## Table of Contents
 
