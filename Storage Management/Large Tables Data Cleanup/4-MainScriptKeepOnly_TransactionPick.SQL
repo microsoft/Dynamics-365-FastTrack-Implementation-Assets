@@ -116,7 +116,8 @@ BEGIN
                 -- Failed to acquire the semaphore
                 PRINT 'Failed to acquire semaphore'
             END
-
+			IF @@TRANCOUNT > 0
+				COMMIT TRANSACTION
         END TRY
         BEGIN CATCH
             PRINT ('Error while processing Table ' + @TableName)
@@ -125,7 +126,8 @@ BEGIN
             BEGIN
                 EXEC sp_releaseapplock @Resource = @TableName, @LockOwner = 'Session'
             END
-            COMMIT TRANSACTION
+			IF @@TRANCOUNT > 0
+				COMMIT TRANSACTION
         END CATCH
         
         SET @SQL = 'FETCH NEXT FROM Cursor' + CONVERT(NVARCHAR, @@SPID) + ' INTO @TableName, @TotalSpace'
