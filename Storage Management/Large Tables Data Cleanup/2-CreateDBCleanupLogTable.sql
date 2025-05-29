@@ -19,7 +19,7 @@ BEGIN
         
         -- Check if all required fields are present in the table
         IF dbo.ColumnExists(@table_name, 'TableName', 'NVARCHAR', 1000) = 0 SET @missing_fields = @missing_fields + 1
-        IF dbo.ColumnExists(@table_name, 'LegalEntity', 'NVARCHAR', 1000) = 0 SET @missing_fields = @missing_fields + 1
+        IF dbo.ColumnExists(@table_name, 'LegalEntity', 'NVARCHAR', 4000) = 0 SET @missing_fields = @missing_fields + 1
         IF dbo.ColumnExists(@table_name, 'KeepFromDate', 'NVARCHAR', 120) = 0 SET @missing_fields = @missing_fields + 1
         IF dbo.ColumnExists(@table_name, 'NbRecordsDeleted', 'INT', NULL) = 0 SET @missing_fields = @missing_fields + 1
         IF dbo.ColumnExists(@table_name, 'NbRecordsSaved', 'INT', NULL) = 0 SET @missing_fields = @missing_fields + 1
