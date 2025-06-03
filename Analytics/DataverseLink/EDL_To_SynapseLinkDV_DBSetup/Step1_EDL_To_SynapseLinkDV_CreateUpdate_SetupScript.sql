@@ -11,6 +11,7 @@
 -- June 19, 2024 - 2nd update - support for enum translation including BYOD enums
 -- June 20, 2024 - Don't need to translate enums
 -- July 08, 2024 - Fixes to support BYOD enums
+-- Feb 12, 2025 - Removing dependencies from conversionresults folders in StoredProcedure source_GetNewDataToCopy to identify changes in delta lake 
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'dvtosql')
 BEGIN
     EXEC('CREATE SCHEMA dvtosql')
@@ -667,59 +668,60 @@ execute sp_executesql @ddl_fno_derived_tables;
 
 GO
 
-CREATE or ALTER PROC dvtosql.source_GetNewDataToCopy
+/****** Object:  StoredProcedure [dvtosql].[source_GetNewDataToCopy]    Script Date: 2/12/2025 8:35:12 AM ******/
+CREATE OR ALTER   PROC [dvtosql].[source_GetNewDataToCopy]
 (
-	@controltable nvarchar(max), 
-	@sourcetableschema nvarchar(10),
-	@environment nvarchar(1000), 
-	@incrementalCSV int =1, 
-	@externaldatasource nvarchar(1000) = '', 
-	@lastdatetimemarker datetime2 = '1900-01-01' 
+      @controltable nvarchar(max),
+      @sourcetableschema nvarchar(10),
+      @environment nvarchar(1000),
+      @incrementalCSV int =1,
+      @externaldatasource nvarchar(1000) = '',
+      @lastdatetimemarker datetime2 = '1900-01-01'
 )
 AS
 
 drop table if exists #controltable;
 CREATE TABLE #controltable
-	(
-		[tableschema] [varchar](20) null,
-		[tablename] [varchar](255) null,
-		[datetime_markercolumn] varchar(100),
-		[bigint_markercolumn] varchar(100),
-		[environment] varchar(1000),
-		[lastdatetimemarker] nvarchar(100) ,
-		lastcopystatus int,
-		lastbigintmarker bigint,
-		[active] int,
-		[incremental] int,
-		[selectcolumns] nvarchar(max) null,
-		[datatypes] nvarchar(max) null,
-		[columnnames] nvarchar(max) null
-	);
+      (
+            [tableschema] [varchar](20) null,
+            [tablename] [varchar](255) null,
+            [datetime_markercolumn] varchar(100),
+            [bigint_markercolumn] varchar(100),
+            [environment] varchar(1000),
+            [lastdatetimemarker] nvarchar(100) ,
+            lastcopystatus int,
+            lastbigintmarker bigint,
+            [active] int,
+            [incremental] int,
+            [selectcolumns] nvarchar(max) null,
+            [datatypes] nvarchar(max) null,
+            [columnnames] nvarchar(max) null
+      );
 
 insert into #controltable (tableschema, tablename,datetime_markercolumn,bigint_markercolumn, environment, lastdatetimemarker, lastcopystatus, lastbigintmarker, active, incremental, selectcolumns, datatypes, columnnames)
 select tableschema, tablename, datetime_markercolumn,bigint_markercolumn, environment, lastdatetimemarker, lastcopystatus, lastbigintmarker, active, incremental, selectcolumns, datatypes, columnnames  from openjson(@controltable)
-	with (tableschema nvarchar(100), tablename nvarchar(200), datetime_markercolumn varchar(100),bigint_markercolumn varchar(100), lastdatetimemarker nvarchar(100), active int, incremental int, environment nvarchar(100) ,lastcopystatus int,lastbigintmarker bigint, 
-	columnnames nvarchar(max), selectcolumns nvarchar(max), datatypes nvarchar(max) )
+      with (tableschema nvarchar(100), tablename nvarchar(200), datetime_markercolumn varchar(100),bigint_markercolumn varchar(100), lastdatetimemarker nvarchar(100), active int, incremental int, environment nvarchar(100) ,lastcopystatus int,lastbigintmarker bigint,
+      columnnames nvarchar(max), selectcolumns nvarchar(max), datatypes nvarchar(max) )
 
-select 
-	@lastdatetimemarker= max(lastdatetimemarker) 
-from #controltable 
-where 
-	[active] = 1 and
-	lastcopystatus != 1	and 
-	lastdatetimemarker != '1900-01-01T00:00:00';
+select
+      @lastdatetimemarker= max(lastdatetimemarker)
+from #controltable
+where
+      [active] = 1 and
+      lastcopystatus != 1     and
+      lastdatetimemarker != '1900-01-01T00:00:00';
 
 set  @lastdatetimemarker = isnull(@lastdatetimemarker, '1900-01-01T00:00:00')
 print(@lastdatetimemarker);
 
 declare @newtables nvarchar(max);
-select 
-	@newtables= isnull(string_agg(convert(nvarchar(max), tablename), ','),'')
-from #controltable 
-where 
-	[active] = 1 and
-	lastcopystatus != 1
-	and (lastdatetimemarker = '1900-01-01T00:00:00' or incremental =0);
+select
+      @newtables= isnull(string_agg(convert(nvarchar(max), tablename), ','),'')
+from #controltable
+where
+      [active] = 1 and
+      lastcopystatus != 1
+      and (lastdatetimemarker = '1900-01-01T00:00:00' or incremental =0);
 
 declare @tablelist_inNewFolders nvarchar(max);
 declare @minfoldername nvarchar(100) = '';
@@ -731,84 +733,84 @@ declare @whereClause nvarchar(200) = ' where {datetime_markercolumn} between ''{
 set @SelectTableData  = 'SELECT * from {tableschema}.{tablename}';
 
 IF (@incrementalCSV = 1)
-	BEGIN;
-		
-		declare @ParmDefinition NVARCHAR(500);
-		declare @newfolders nvarchar(max); 
+      BEGIN;
+            
+            declare @ParmDefinition NVARCHAR(500);
+            declare @newfolders nvarchar(max);
 
-		-- get newFolders and max modeljson by listing out model.json files in each timestamp folders */model.json
-		-- @lastFolderMarker helps  elliminate folders and find new folders created after this folder
-		SET @ParmDefinition = N'@minfoldername nvarchar(max) OUTPUT, @maxfoldername nvarchar(100) OUTPUT, @tablelist_inNewFolders nvarchar(max) OUTPUT';
+            -- get newFolders and max modeljson by listing out model.json files in each timestamp folders */model.json
+            -- @lastFolderMarker helps  elliminate folders and find new folders created after this folder
+            SET @ParmDefinition = N'@minfoldername nvarchar(max) OUTPUT, @maxfoldername nvarchar(100) OUTPUT, @tablelist_inNewFolders nvarchar(max) OUTPUT';
 
-		declare @getNewFolders nvarchar(max) = 
-		'SELECT     
-		@minfoldername = isNull(min(minfolder),format(GETUTCDATE(),''yyyy-MM-ddTHH.mm.ssZ'')),
-		@maxfoldername = isNull(max(maxfolderPath),format(GETUTCDATE(),''yyyy-MM-ddTHH.mm.ssZ'')),  
-		@tablelist_inNewFolders = isnull(string_agg(convert(nvarchar(max), x.tablename),'',''),'''')
-		from 
-		(
-			select 
-			tablename,
-			min(r.filepath(1)) as minfolder,
-			max(r.filepath(1)) as maxfolderPath
-			FROM
-				OPENROWSET(
-					BULK ''*/model.json'',
-					DATA_SOURCE = ''{externaldatasource}'',
-					FORMAT = ''CSV'',
-					FIELDQUOTE = ''0x0b'',
-					FIELDTERMINATOR =''0x0b'',
-					ROWTERMINATOR = ''0x0b''
-				)
-				WITH 
-				(
-					jsonContent varchar(MAX)
-				) AS r
-				cross apply openjson(jsonContent) with (entities nvarchar(max) as JSON)
-				cross apply openjson (entities) with([tablename] NVARCHAR(200) ''$.name'', [partitions] NVARCHAR(MAX) ''$.partitions'' as JSON ) t
-				where r.filepath(1) >''{lastFolderMarker}'' and [partitions] != ''[]''
-				group by tablename
-			) x';
+            declare @getNewFolders nvarchar(max) =
+            'SELECT    
+            @minfoldername = isNull(min(minfolder),format(GETUTCDATE(),''yyyy-MM-ddTHH.mm.ssZ'')),
+            @maxfoldername = isNull(max(maxfolderPath),format(GETUTCDATE(),''yyyy-MM-ddTHH.mm.ssZ'')),  
+            @tablelist_inNewFolders = isnull(string_agg(convert(nvarchar(max), x.tablename),'',''),'''')
+            from
+            (
+                  select
+                  tablename,
+                  min(r.filepath(1)) as minfolder,
+                  max(r.filepath(1)) as maxfolderPath
+                  FROM
+                        OPENROWSET(
+                              BULK ''*/model.json'',
+                              DATA_SOURCE = ''{externaldatasource}'',
+                              FORMAT = ''CSV'',
+                              FIELDQUOTE = ''0x0b'',
+                              FIELDTERMINATOR =''0x0b'',
+                              ROWTERMINATOR = ''0x0b''
+                        )
+                        WITH
+                        (
+                              jsonContent varchar(MAX)
+                        ) AS r
+                        cross apply openjson(jsonContent) with (entities nvarchar(max) as JSON)
+                        cross apply openjson (entities) with([tablename] NVARCHAR(200) ''$.name'', [partitions] NVARCHAR(MAX) ''$.partitions'' as JSON ) t
+                        where r.filepath(1) >''{lastFolderMarker}'' and [partitions] != ''[]''
+                        group by tablename
+                  ) x';
 
-		set @getNewFolders = replace(replace (@getNewFolders, '{externaldatasource}',@externaldatasource), '{lastFolderMarker}', FORMAT(@lastdatetimemarker, 'yyyy-MM-ddTHH.mm.ssZ'));
+            set @getNewFolders = replace(replace (@getNewFolders, '{externaldatasource}',@externaldatasource), '{lastFolderMarker}', FORMAT(@lastdatetimemarker, 'yyyy-MM-ddTHH.mm.ssZ'));
 
-		print(@getNewFolders)
+            print(@getNewFolders)
 
-		execute sp_executesql @getNewFolders, @ParmDefinition, @tablelist_inNewFolders=@tablelist_inNewFolders OUTPUT, @maxfoldername=@maxfoldername OUTPUT, @minfoldername=@minfoldername OUTPUT;
+            execute sp_executesql @getNewFolders, @ParmDefinition, @tablelist_inNewFolders=@tablelist_inNewFolders OUTPUT, @maxfoldername=@maxfoldername OUTPUT, @minfoldername=@minfoldername OUTPUT;
 
-		set @tablelist_inNewFolders = @tablelist_inNewFolders + ',' +  @newtables
-		
-		print ('Folder to process:' + @minfoldername + '...' + @maxfoldername)
-		print('Tables in new folders:' + @tablelist_inNewFolders)
-		print ('New marker value:' + @maxfoldername);
+            set @tablelist_inNewFolders = @tablelist_inNewFolders + ',' +  @newtables
+            
+            print ('Folder to process:' + @minfoldername + '...' + @maxfoldername)
+            print('Tables in new folders:' + @tablelist_inNewFolders)
+            print ('New marker value:' + @maxfoldername);
 
-		set @newdatetimemarker =  convert(datetime2, replace(@maxfoldername, '.', ':'));
-		
-		select 
-		tableschema,
-		tablename,
-		lastdatetimemarker,
-		@newdatetimemarker as newdatetimemarker ,
-		replace(replace(replace(replace(replace(replace(replace(convert(nvarchar(max),@SelectTableData  + (case when incremental =1 then @whereClause else '' end)), 
-		'{tableschema}', @sourcetableschema),
-		'{tablename}', tablename),
-		'{lastdatetimemarker}', lastdatetimemarker),
-		'{newdatetimemarker}', @newdatetimemarker),
-		'{lastbigintmarker}', lastbigintmarker),
-		'{datetime_markercolumn}', datetime_markercolumn),
-		'{bigint_markercolumn}', bigint_markercolumn)
-		 as selectquery,
-		 datatypes
-	from #controltable
-	where 
-		tablename in (select value from string_split(@tablelist_inNewFolders, ',')) and 
-		[active] = 1 and 
-		lastcopystatus != 1
-	END;
-	ELSE
-	BEGIN;
-		print('--delta tables - get newdatetimemarker---')
-		declare @tablenewdatetimemarker nvarchar(max);
+            set @newdatetimemarker =  convert(datetime2, replace(@maxfoldername, '.', ':'));
+            
+            select
+            tableschema,
+            tablename,
+            lastdatetimemarker,
+            @newdatetimemarker as newdatetimemarker ,
+            replace(replace(replace(replace(replace(replace(replace(convert(nvarchar(max),@SelectTableData  + (case when incremental =1 then @whereClause else '' end)),
+            '{tableschema}', @sourcetableschema),
+            '{tablename}', tablename),
+            '{lastdatetimemarker}', lastdatetimemarker),
+            '{newdatetimemarker}', @newdatetimemarker),
+            '{lastbigintmarker}', lastbigintmarker),
+            '{datetime_markercolumn}', datetime_markercolumn),
+            '{bigint_markercolumn}', bigint_markercolumn)
+             as selectquery,
+             datatypes
+      from #controltable
+      where
+            tablename in (select value from string_split(@tablelist_inNewFolders, ',')) and
+            [active] = 1 and
+            lastcopystatus != 1
+      END;
+      ELSE
+      BEGIN;
+            print('--delta tables - get newdatetimemarker---')
+            declare @tablenewdatetimemarker nvarchar(max);
 
                   -- if the database is synapse link created lakehouse db - get the location from the first datasource
                   declare @deltastoragelocation varchar(4000);
@@ -818,50 +820,45 @@ IF (@incrementalCSV = 1)
                   -- if the database is created by the pipeline then take the location from external ds created by script
                   if (@deltastoragelocation is null)
                   begin
-					select top 1 @deltastoragelocation = [location] 
-					from sys.external_data_sources
+                              select top 1 @deltastoragelocation = [location]
+                              from sys.external_data_sources
                         where name = @externaldatasource
-					
-					-- added to support when the storage location does not end in '/'
-					if (RIGHT(@deltastoragelocation, 1) != '/')
-						set @deltastoragelocation = @deltastoragelocation + '/deltalake/'  
-					else
-					set @deltastoragelocation = @deltastoragelocation + 'deltalake/'
-			    end
+                              
+                              -- added to support when the storage location does not end in '/'
+                              if (RIGHT(@deltastoragelocation, 1) != '/')
+                                    set @deltastoragelocation = @deltastoragelocation + '/deltalake/'  
+                              else
+                              set @deltastoragelocation = @deltastoragelocation + 'deltalake/'
+                      end
 
 
                   declare @tableschema varchar(20)= (select top 1 tableschema from #controltable where incremental = 1 and [active] = 1);
 
-                  declare @newtableconversion nvarchar(max) = 'SELECT distinct ''{tableschema}'' as tableschema, replace(TableName, ''_partitioned'', '''') as TableName, ''{newdatetimemarker}'' as newdatetimemarker
-                  FROM  OPENROWSET
-                        ( BULK ''{deltastoragelocation}conversionresults/*.info'',
-                        FORMAT = ''CSV'',
-                        FIELDQUOTE = ''0x0b'',
-                        FIELDTERMINATOR =''0x0b'',
-                        ROWTERMINATOR = ''0x0b''
-                  )
-                  WITH
-                  (
-                        jsonContent varchar(MAX)
-                  ) AS r
-                  cross apply openjson (jsonContent) with (JobType int, QueueTime datetime2,  TableNames nvarchar(max) ''$.TableNames'' as json)
-                  cross apply openjson(TableNames) with (TableName nvarchar(200) ''$'' )
-                  where queuetime > ''{lastdatetimemarker}''';
+                  declare @newtableconversion nvarchar(max) = '
+                              declare @lastdatetimemarker varchar(100) = ''{lastdatetimemarker}''
+                        select tableschema, tablename, max(newdatetimemarker) as newdatetimemarker
+                        from (
+                        select distinct ''{tableschema}'' as tableschema,
+                        convert(VARCHAR(100), replace(r.filepath(1), ''_partitioned'', '''')) AS tablename
+                        ,convert(BIGINT, r.filepath(2)) AS commit_version
+                        ,operation
+                        ,DATEADD(MILLISECOND, [timestamp] % 1000, DATEADD(SECOND, [timestamp] / 1000, ''1970-01-01'')) AS newdatetimemarker
+                        FROM OPENROWSET(BULK ''{deltastoragelocation}*/_delta_log/*.json'', FORMAT = ''CSV'', FIELDQUOTE = ''0x0b'', FIELDTERMINATOR = ''0x0b'',
+                        ROWTERMINATOR = ''0x0b'') WITH (jsonContent VARCHAR(MAX)) AS r
+                        CROSS APPLY openjson(jsonContent) WITH (commitInfo NVARCHAR(max) AS JSON)
+                        CROSS APPLY openjson(commitInfo) WITH ([timestamp] BIGINT,operation VARCHAR(10))
+                        where DATEADD(MILLISECOND, [timestamp] % 1000, DATEADD(SECOND, [timestamp] / 1000, ''1970-01-01'')) > CAST(@lastdatetimemarker AS DATETIME2)
+                        and (@lastdatetimemarker = ''1900-01-01 00:00:00.0000000'' OR operation in (''WRITE'', ''MERGE''))
 
-                  set @tablenewdatetimemarker = replace(replace(replace(REPLACE(@newtableconversion, '{tableschema}', @tableschema), '{newdatetimemarker}', @newdatetimemarker), '{lastdatetimemarker}', @lastdatetimemarker), '{deltastoragelocation}', @deltastoragelocation);
+                        ) deltalog
+                        group by tableschema, tablename
+
+                        ';
+
+                  set @tablenewdatetimemarker = replace(replace(REPLACE(@newtableconversion, '{tableschema}', @tableschema), '{lastdatetimemarker}', @lastdatetimemarker), '{deltastoragelocation}', @deltastoragelocation);
 
                   print(@tablenewdatetimemarker)
             
-            --          select @tablenewdatetimemarker= string_agg(convert(nvarchar(max),tablenewdatetimemarker), ' union ')
-            --          from (
-            --          select
-            --                'select ''' + tableschema +  ''' as tableschema, ''' + tablename +  ''' as tablename, max(' + datetime_markercolumn + ') as newdatetimemarker from ' + @sourcetableschema + '.' + tablename as tablenewdatetimemarker
-            --          from #controltable
-            --          where incremental = 1 and
-            --          [active] = 1 and
-            --          lastcopystatus != 1
-            --          )x
-            --    end
 
             drop table if exists #newcontroltable;
             CREATE TABLE #newcontroltable
@@ -872,9 +869,15 @@ IF (@incrementalCSV = 1)
                   )
             insert into #newcontroltable
             execute sp_executesql @tablenewdatetimemarker
-
-            insert into #newcontroltable ([tableschema], [tablename], [newdatetimemarker] )
-            select @tableschema,   value, @newdatetimemarker  from string_split(@newtables, ',')  
+  
+              insert into #newcontroltable ([tableschema], [tablename], [newdatetimemarker] )
+            select @tableschema,   value, @newdatetimemarker  from string_split(@newtables, ',') as s
+                  WHERE NOT EXISTS (
+                        SELECT 1
+                        FROM #newcontroltable nc
+                        WHERE nc.tablename = s.value
+                        AND nc.tableschema = @tableschema
+                  );
 
             select
             distinct
@@ -900,9 +903,8 @@ IF (@incrementalCSV = 1)
             lastcopystatus != 1
 
       END
-
-
 GO
+
 
 
 CREATE or ALTER PROC dvtosql.target_GetSetSQLMetadata
@@ -1139,6 +1141,9 @@ BEGIN;
 	AND NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N''[{schema}].[{tablename}]'') AND type in (N''U'')) 
 	BEGIN
 
+	--remove in this context soft deletion to avoid duplicate conflicts with RecId Index
+	DELETE FROM {schema}._new_{tablename} Where IsDelete = 1;
+		
 	print(''--_new_{tablename} exists and {tablename} does not exists ...rename the table --'')
 	exec sp_rename ''{schema}._new_{tablename}'', ''{tablename}''
  
@@ -1205,8 +1210,7 @@ BEGIN;
 	INNER JOIN {schema}._new_{tablename} AS source ON target.id = source.id and source.isdelete = 1;
 	
 	SELECT @deleteCount = @@ROWCOUNT;
-
-
+		
 	--Now remove data from the source to avoid update during the merge function
 	DELETE FROM {schema}._new_{tablename} Where IsDelete = 1;
 

@@ -1,0 +1,15 @@
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <SequenceBuild Include="Client\ReportingWebResources.csproj" />
+    <SequenceBuild Include="Solution\ReportingSolution.cdsproj" />
+  </ItemGroup>
+  <Target Name="Clean">
+    <MSBuild Projects="@(SequenceBuild)" BuildInParallel="True" Targets="Clean" />
+  </Target>
+  <Target Name="Restore">
+    <MSBuild Projects="@(SequenceBuild)" BuildInParallel="True" Targets="Restore" />
+  </Target>
+  <Target Name="Build">
+    <MSBuild Projects="@(SequenceBuild)" />
+  </Target>
+</Project>

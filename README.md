@@ -27,11 +27,12 @@ Outline the file contents of the repository. It helps users navigate the codebas
 
 | File/folder                            | Description                                |
 |----------------------------------------|--------------------------------------------|
-| [`Finance`](Finance)                   | Dymamics 365 Finance guides                |
-| [`Commerce`](Commerce)                 | Dymamics 365 Commerce guides               |
-| [`Analytics`](Analytics)               | Dymamics 365 Analytics guides              |
+| [`Finance`](Finance)                   | Dynamics 365 Finance guides                |
+| [`Commerce`](Commerce)                 | Dynamics 365 Commerce guides               |
+| [`Analytics`](Analytics)               | Dynamics 365 Analytics guides              |
 | [`SQL Maintenance`](SQL%20Maintenance) | Indexes & statistics maintenance script    |
-| [`Dual-write`](Dual-write)             | Dymamics 365 Dual-write guides             |
+| [`Storage Management`](Storage%20Management) | Data cleanup scripts    |
+| [`Dual-write`](Dual-write)             | Dynamics 365 Dual-write guides             |
 | [`SCM`](SCM)      		                 | Tools for SCM and WHS solutions            |
 | [`ScheduleAPI`](ScheduleAPI)	         | Project Operations - Schedule API example  |
 | [`PO-DataMigration`](PO-DataMigration) | Project Operations - ADF data migration    |
@@ -39,6 +40,8 @@ Outline the file contents of the repository. It helps users navigate the codebas
 | [`Integration`](Integration)           | Dynamics 365 integration samples           |
 | [`Monitoring and Telemetry`](MonitoringandTelemetry)           | Monitoring Dynamics 365 using App Insights           |
 | [`Customer Service`](Customer%20Service) | Dynamics 365 Customer Service samples & guides |
+| [`Field Service`](Field%20Service) | Dynamics 365 Field Service samples & guides |
+| [`BatchTracing`](BatchTracing)         | Tool for capturing D365 traces from batch  |
 | [`.gitignore`](.gitignore)             | Define what to ignore at commit time.      |
 | `CHANGELOG.md`                         | List of changes to the sample.             |
 | [`CONTRIBUTING.md`](#contributing)     | Guidelines for contributing to the sample. |
@@ -79,6 +82,11 @@ Outline the file contents of the repository. It helps users navigate the codebas
 
 ### Customer Service
 - [Solution Component Validator](/Customer%20Service/ALM) Sample to monitor components in solutions based on Horizontal Solution Segmentation approach.
+
+### Field Service
+- [Schedule Board Settings Management PCF Control](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Field%20Service/Component%20Library/URS/ScheduleBoardSettingsManagement) A PCF control created to help manage Schedule Board Settings records, including viewing details about each attribute, copying boards, deleting boards, disabling/enabling boards, and opening the board record form.
+- [Schedule Board Settings Management PCF Control (Virtual)](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Field%20Service/Component%20Library/URS/ScheduleBoardSettingsManagement_Virtual) A variant of the Schedule Board Settings Management PCF control built using the virtual PCF control framework for faster load times and bundle.js size reduction.
+- [Azure DevOps Sample Pipelines](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Field%20Service/ALM/Azure%20DevOps%20Sample%20Pipelines) Azure DevOps export and import sample pipelines for Dataverse (not Field Service-specific) to help you easily implement healthy ALM practices and move away from manual solution deployment processes.
 
 ## Contributing
 

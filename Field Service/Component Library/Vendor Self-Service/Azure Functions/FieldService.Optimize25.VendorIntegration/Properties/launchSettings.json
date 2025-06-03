@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "FieldService.Optimize25.VendorIntegration": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7247",
+      "launchBrowser": false
+    }
+  }
+}

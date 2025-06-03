@@ -1,0 +1,167 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true
+    },
+    "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaFeatures": {
+            "jsx": true
+        },
+        "ecmaVersion": 12,
+        "sourceType": "module"
+    },
+    "plugins": [
+        "@typescript-eslint",
+        "@stylistic/ts",
+        "import"
+    ],
+    "ignorePatterns": ["bundle.js","*.d.ts"],
+    "rules": {
+        "camelcase": "off",
+        "curly": ["warn"],
+        "brace-style": "warn",
+        "eol-last": ["warn"],
+        "guard-for-in": "warn",
+        "no-labels": ["warn", { "allowLoop": true, "allowSwitch": true }],
+        "max-lines-per-function": ["warn", { "max": 1000 }],
+        "max-len": [
+            "warn",
+            { "code": 240, "ignoreUrls": true, "ignoreStrings": true }
+        ],
+        "@typescript-eslint/member-ordering": ["warn", { "default": ["field", "constructor", "method"] }],
+        "@typescript-eslint/no-explicit-any": "warn",
+        "@typescript-eslint/consistent-type-assertions": "warn",
+        "no-caller": "warn",
+        "no-console": "error",
+        "no-multiple-empty-lines": ["error", { "max": 1 }],
+        "no-new-wrappers": "warn",
+        "no-debugger": "warn",
+        "no-eval": "error", // security risk
+        "no-template-curly-in-string": "warn",
+        "no-shadow": "warn",
+        "dot-notation": "warn",
+        "no-warning-comments": ["warn", { "terms": ["BUG", "HACK", "FIXME", "LATER", "LATER2", "TODO"], "location": "anywhere" }],
+        "no-trailing-spaces": "error",
+        "object-curly-newline": ["warn", { "multiline": true }],
+        "sort-imports": [
+            "warn",
+            {
+              "ignoreDeclarationSort": true,
+              "ignoreCase": true
+            }
+          ],
+        "import/order": [
+        "warn",
+        {
+            "groups": [
+            "builtin",
+            "external",
+            "internal",
+            "parent",
+            "sibling",
+            "object",
+            "type"
+            ],
+            "pathGroups": [
+            {
+                "pattern": "{react,react-dom}",
+                "group": "builtin",
+                "position": "before"
+            }
+            ],
+            "pathGroupsExcludedImportTypes": [],
+            "newlines-between": "always",
+            "alphabetize": {
+            "order": "asc",
+            "caseInsensitive": true
+            }
+        }
+        ],
+        "prefer-template": "warn",
+        "jsx-quotes": ["error", "prefer-double"],
+        "quotes": ["error", "double", { "avoidEscape": true }],
+        "radix": "warn",
+        "semi": "error",
+        "default-case": "warn",
+        "eqeqeq": "warn",
+        "@typescript-eslint/typedef": ["warn", { "parameter": true, "propertyDeclaration": true }],
+        "@stylistic/ts/type-annotation-spacing": [
+            "warn",
+            { "before": false, "after": true, "overrides": { "arrow": { "before": true, "after": true } } }
+        ],
+        "id-denylist": ["warn", "any", "Number", "number", "String", "string", "Boolean", "boolean", "Undefined", "undefined"],
+        "@typescript-eslint/naming-convention": [
+            "warn",
+            {
+                "selector": "enumMember",
+                "format": ["camelCase", "PascalCase", "UPPER_CASE"]
+            }
+        ],
+        "no-constant-condition": "warn",
+        "no-control-regex": "warn",
+        "no-empty-character-class": "warn",
+        "no-ex-assign": "warn",
+        "no-extra-boolean-cast": "warn",
+        "no-extra-semi": "warn",
+        "no-inner-declarations": "warn",
+        "no-invalid-regexp": "warn",
+        "no-irregular-whitespace": "warn",
+        "no-regex-spaces": "warn",
+        "no-sparse-arrays": "warn",
+        "valid-jsdoc": "off",
+        "valid-typeof": "warn",
+        "comma-dangle": ["error", "only-multiline"],
+        "template-curly-spacing": "warn",
+
+        //Below rules set to prevent errors
+        "no-unused-vars": "off",
+        "@typescript-eslint/no-unused-vars": [
+            "warn",
+            {
+              "varsIgnorePattern": "^_",
+              "argsIgnorePattern": "^_"
+            }
+          ],
+        "prefer-const": "warn",
+        "no-var": "warn",
+        "@typescript-eslint/prefer-namespace-keyword": "warn",
+        "@typescript-eslint/no-empty-interface": "warn",
+        "@typescript-eslint/triple-slash-reference": "warn",
+        "@typescript-eslint/ban-ts-comment": "warn",
+        "no-useless-escape": "warn",
+        "no-empty": "warn",
+        "@typescript-eslint/no-this-alias": "warn",
+        "@typescript-eslint/no-empty-function": "warn",
+        "no-undef": "warn",
+        "@typescript-eslint/no-restricted-types": "warn",
+        "@typescript-eslint/no-empty-object-type": "warn",
+        "@typescript-eslint/no-unsafe-function-type": "warn",
+        "@typescript-eslint/no-wrapper-object-types": "warn",
+        "no-redeclare": "warn",
+        "no-prototype-builtins": "warn",
+        "@typescript-eslint/no-namespace": "warn",
+        "@typescript-eslint/no-inferrable-types": "warn",
+        "@typescript-eslint/no-array-constructor": "warn",
+        "no-mixed-spaces-and-tabs": "error",
+        "@typescript-eslint/adjacent-overload-signatures": "warn",
+        "spaced-comment": "off" //this rule would autofix triple slash imports which breaks things
+        // "spaced-comment": [1, "always"],
+    },
+    "overrides": [
+        {
+            "files": ["*.js"],
+            "rules": {
+                "@typescript-eslint/no-var-requires": "off"
+            }
+        },
+        // Typescript is already checking for types, so we can disable no-undef for typescript files
+        {
+            "files": ["*.ts", "*.tsx", "*.d.ts"],
+            "rules": {
+                "no-undef": "off"
+            }
+        }
+    ]
+}

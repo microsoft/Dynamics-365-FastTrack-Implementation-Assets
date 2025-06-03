@@ -1,0 +1,510 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedcommondataserviceforapps_7547d"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "CommerceClientSecretD365Commerce (new_CommerceClientSecretD365Commerce)": {
+          "defaultValue": "",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_CommerceClientSecretD365Commerce"
+          }
+        },
+        "CommerceClientIdD365Commerce (new_CommerceClientIdD365Commerce)": {
+          "defaultValue": "",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_CommerceClientIdD365Commerce"
+          }
+        },
+        "AuthorityD365Commerce (new_AuthorityD365Commerce)": {
+          "defaultValue": "https://login.microsoftonline.com/",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_AuthorityD365Commerce"
+          }
+        },
+        "AudienceD365Commerce (new_AudienceD365Commerce)": {
+          "defaultValue": "",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_AudienceD365Commerce"
+          }
+        },
+        "TenantIdD365Commerce (new_TenantIdD365Commerce)": {
+          "defaultValue": "",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_TenantIdD365Commerce"
+          }
+        },
+        "CSUUrlD365Commerce (new_CSUUrlD365Commerce)": {
+          "defaultValue": "",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_CSUUrlD365Commerce"
+          }
+        },
+        "OperatingUnitNumber (new_OperatingUnitNumber)": {
+          "defaultValue": "",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_OperatingUnitNumber"
+          }
+        }
+      },
+      "triggers": {
+        "Recurrence": {
+          "recurrence": {
+            "frequency": "Minute",
+            "interval": 1,
+            "timeZone": "UTC",
+            "startTime": "2024-07-26T08:00:00Z"
+          },
+          "metadata": {
+            "operationMetadataId": "68a263a5-7862-4158-a427-05204dfeefeb"
+          },
+          "type": "Recurrence"
+        }
+      },
+      "actions": {
+        "CommerceEvents": {
+          "runAfter": {
+            "Starttime": ["Succeeded"]
+          },
+          "metadata": {
+            "operationMetadataId": "f37d07f1-1e2a-4539-9baa-23c5a74ba402"
+          },
+          "type": "Http",
+          "inputs": {
+            "method": "POST",
+            "uri": "@{parameters('CSUUrlD365Commerce (new_CSUUrlD365Commerce)')}Commerce/CommerceEventsController/Search?$top=250&$count=true&api-version=7.3",
+            "headers": {
+              "OUN": "@parameters('OperatingUnitNumber (new_OperatingUnitNumber)')"
+            },
+            "body": {
+              "commerceEventSearchCriteria": {
+                "EventType": "Checkout",
+                "EventDateTimeFrom": "@{variables('Starttime')}Z",
+                "EventDateTimeTo": "@{variables('Endtime')}Z"
+              }
+            },
+            "authentication": {
+              "type": "ActiveDirectoryOAuth",
+              "authority": "@parameters('AuthorityD365Commerce (new_AuthorityD365Commerce)')",
+              "tenant": "@parameters('TenantIdD365Commerce (new_TenantIdD365Commerce)')",
+              "audience": "@parameters('AudienceD365Commerce (new_AudienceD365Commerce)')",
+              "clientId": "@parameters('CommerceClientIdD365Commerce (new_CommerceClientIdD365Commerce)')",
+              "secret": "@parameters('CommerceClientSecretD365Commerce (new_CommerceClientSecretD365Commerce)')"
+            }
+          }
+        },
+        "Compose_CommerceEvents": {
+          "runAfter": {
+            "CommerceEvents": ["Succeeded"]
+          },
+          "metadata": {
+            "operationMetadataId": "ecf15f02-ba23-4afd-af05-fec3831437e9"
+          },
+          "type": "Compose",
+          "inputs": "@body('CommerceEvents')"
+        },
+        "Parse_CommerceEvents": {
+          "runAfter": {
+            "Compose_CommerceEvents": ["Succeeded"]
+          },
+          "metadata": {
+            "operationMetadataId": "4a5b484f-db18-4963-a2f3-f6de3d2dd655"
+          },
+          "type": "ParseJson",
+          "inputs": {
+            "content": "@outputs('Compose_CommerceEvents')",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "@@odata.context": {
+                  "type": "string"
+                },
+                "@@odata.count": {
+                  "type": "integer"
+                },
+                "value": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "EventTransactionId": {
+                        "type": "string"
+                      },
+                      "EventDateTime": {
+                        "type": "string"
+                      },
+                      "EventType": {
+                        "type": "string"
+                      },
+                      "EventDataAreaId": {
+                        "type": "string"
+                      },
+                      "EventData": {
+                        "type": "string"
+                      },
+                      "EventChannelId": {
+                        "type": "integer"
+                      },
+                      "EventTerminalId": {
+                        "type": "string"
+                      },
+                      "EventStaffId": {
+                        "type": "string"
+                      },
+                      "EventCustomerId": {
+                        "type": "string"
+                      },
+                      "ExtensionProperties": {
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "EventTransactionId",
+                      "EventDateTime",
+                      "EventType",
+                      "EventDataAreaId",
+                      "EventData",
+                      "EventChannelId",
+                      "EventTerminalId",
+                      "EventStaffId",
+                      "EventCustomerId",
+                      "ExtensionProperties"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "Apply_to_Commerce_Event": {
+          "foreach": "@variables('Events')",
+          "actions": {
+            "Compose_Current_Commerce_Event": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "13aa9286-3192-4f09-bef4-921d8783b172"
+              },
+              "type": "Compose",
+              "inputs": "@items('Apply_to_Commerce_Event')"
+            },
+            "Parse_Current_Commerce_Event": {
+              "runAfter": {
+                "Compose_Current_Commerce_Event": ["Succeeded"]
+              },
+              "metadata": {
+                "operationMetadataId": "e45a7489-dfcc-4989-a5b4-ff68c961a7bd"
+              },
+              "type": "ParseJson",
+              "inputs": {
+                "content": "@outputs('Compose_Current_Commerce_Event')",
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "EventTransactionId": {
+                      "type": "string"
+                    },
+                    "EventDateTime": {
+                      "type": "string"
+                    },
+                    "EventType": {
+                      "type": "string"
+                    },
+                    "EventDataAreaId": {
+                      "type": "string"
+                    },
+                    "EventData": {
+                      "type": "string"
+                    },
+                    "EventChannelId": {
+                      "type": "integer"
+                    },
+                    "EventTerminalId": {
+                      "type": "string"
+                    },
+                    "EventStaffId": {
+                      "type": "string"
+                    },
+                    "EventCustomerId": {
+                      "type": "string"
+                    },
+                    "ExtensionProperties": {
+                      "type": "array"
+                    }
+                  }
+                }
+              }
+            },
+            "OperatingUnit": {
+              "runAfter": {
+                "Parse_Current_Commerce_Event": ["Succeeded"]
+              },
+              "metadata": {
+                "operationMetadataId": "c76f47fe-49c5-4a10-910d-16af3f103254"
+              },
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{parameters('CSUUrlD365Commerce (new_CSUUrlD365Commerce)')}Commerce/GetOperatingUnitNumber(channelid=@{body('Parse_Current_Commerce_Event')?['EventChannelId']})?api-version=7.3",
+                "headers": {
+                  "OUN": "128"
+                }
+              }
+            },
+            "Compose_Operating_Unit": {
+              "runAfter": {
+                "OperatingUnit": ["Succeeded"]
+              },
+              "metadata": {
+                "operationMetadataId": "dfbbe2c5-b6b8-4834-962b-ab7e81e8d459"
+              },
+              "type": "Compose",
+              "inputs": "@body('OperatingUnit')"
+            },
+            "Parse_Operating_Unit": {
+              "runAfter": {
+                "Compose_Operating_Unit": ["Succeeded"]
+              },
+              "metadata": {
+                "operationMetadataId": "e3c7422f-9233-4583-93b9-6162d01e56cd"
+              },
+              "type": "ParseJson",
+              "inputs": {
+                "content": "@outputs('Compose_Operating_Unit')",
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "@@odata.context": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "Get_Salesorder_details": {
+              "runAfter": {
+                "Parse_Operating_Unit": ["Succeeded"]
+              },
+              "metadata": {
+                "operationMetadataId": "7cd8349d-e719-48c6-9a35-d1981eaf3ce5"
+              },
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{parameters('CSUUrlD365Commerce (new_CSUUrlD365Commerce)')}Commerce/SalesOrders/GetSalesOrderDetailsByTransactionId(transactionId=@p1,searchLocationValue=1)?@p1=%27@{body('Parse_Current_Commerce_Event')?['EventTransactionId']}%27&api-version=7.3",
+                "headers": {
+                  "OUN": "@body('Parse_Operating_Unit')?['value']"
+                },
+                "authentication": {
+                  "type": "ActiveDirectoryOAuth",
+                  "authority": "@parameters('AuthorityD365Commerce (new_AuthorityD365Commerce)')",
+                  "tenant": "@parameters('TenantIdD365Commerce (new_TenantIdD365Commerce)')",
+                  "audience": "@parameters('AudienceD365Commerce (new_AudienceD365Commerce)')",
+                  "clientId": "@parameters('CommerceClientIdD365Commerce (new_CommerceClientIdD365Commerce)')",
+                  "secret": "@parameters('CommerceClientSecretD365Commerce (new_CommerceClientSecretD365Commerce)')"
+                }
+              }
+            },
+            "Perform_an_unbound_action": {
+              "runAfter": {
+                "Compose": ["Succeeded"]
+              },
+              "metadata": {
+                "operationMetadataId": "1e5e9074-b9df-4a4a-a81f-7284038feb0e"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "PerformUnboundAction",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "actionName": "SA_Checkout",
+                  "item/checkoutparm": "@outputs('Compose')"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Compose": {
+              "runAfter": {
+                "Get_Salesorder_details": ["Succeeded"]
+              },
+              "metadata": {
+                "operationMetadataId": "b4fde3bc-813d-4475-a60d-9f38303fc6cd"
+              },
+              "type": "Compose",
+              "inputs": "@body('Get_Salesorder_details')"
+            }
+          },
+          "runAfter": {
+            "Initialize_Events_Array": ["Succeeded"]
+          },
+          "metadata": {
+            "operationMetadataId": "1ea8bd94-3b77-4ab3-b419-d8d4d65c9fc9"
+          },
+          "type": "Foreach",
+          "runtimeConfiguration": {
+            "concurrency": {
+              "repetitions": 20
+            }
+          }
+        },
+        "Initialize_Events_Array": {
+          "runAfter": {
+            "Parse_CommerceEvents": ["Succeeded"]
+          },
+          "metadata": {
+            "operationMetadataId": "4b6b834d-1231-49c4-b63a-8cdcf6f692b4"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Events",
+                "type": "array",
+                "value": "@body('Parse_CommerceEvents')?['value']"
+              }
+            ]
+          }
+        },
+        "Endtime": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "7d2b843e-751c-4c36-8253-986d41f8359d"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Endtime",
+                "type": "string",
+                "value": "@{formatDateTime(utcNow(),'yyyy-MM-ddTHH:mm:ss')}"
+              }
+            ]
+          }
+        },
+        "Starttime": {
+          "runAfter": {
+            "Parse_last_sync": ["Succeeded"]
+          },
+          "metadata": {
+            "operationMetadataId": "c56015ac-008c-4239-9f59-6ca9231e60e3"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Starttime",
+                "type": "string",
+                "value": "@{formatDateTime(body('Parse_last_sync')?['value'],'yyyy-MM-ddTHH:mm:ss')}"
+              }
+            ]
+          }
+        },
+        "Get_last_sync_datetime_request": {
+          "runAfter": {
+            "Endtime": ["Succeeded"]
+          },
+          "metadata": {
+            "operationMetadataId": "3086e1de-638d-47e8-a597-020c4e99b068"
+          },
+          "type": "Http",
+          "inputs": {
+            "method": "POST",
+            "uri": "@{parameters('CSUUrlD365Commerce (new_CSUUrlD365Commerce)')}Commerce/GetLastSyncDatetimeUTC",
+            "headers": {
+              "OUN": "@parameters('OperatingUnitNumber (new_OperatingUnitNumber)')"
+            },
+            "body": {
+              "appName": "TestApp"
+            }
+          }
+        },
+        "Compose_last_sync": {
+          "runAfter": {
+            "Get_last_sync_datetime_request": ["Succeeded"]
+          },
+          "metadata": {
+            "operationMetadataId": "188834ed-b01e-420c-ade1-4b416349586a"
+          },
+          "type": "Compose",
+          "inputs": "@body('Get_last_sync_datetime_request')"
+        },
+        "Parse_last_sync": {
+          "runAfter": {
+            "Compose_last_sync": ["Succeeded"]
+          },
+          "metadata": {
+            "operationMetadataId": "1780adfe-7c94-4d7b-9893-4689c1bfd4a1"
+          },
+          "type": "ParseJson",
+          "inputs": {
+            "content": "@outputs('Compose_last_sync')",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "@@odata.context": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "Set_last_sync_datetime_request": {
+          "runAfter": {
+            "Apply_to_Commerce_Event": ["Succeeded"]
+          },
+          "metadata": {
+            "operationMetadataId": "51e2b99c-d0ce-4e78-aa39-1a5df3d40b03"
+          },
+          "type": "Http",
+          "inputs": {
+            "method": "POST",
+            "uri": "@{parameters('CSUUrlD365Commerce (new_CSUUrlD365Commerce)')}Commerce/SetLastSyncDatetime",
+            "headers": {
+              "OUN": "@parameters('OperatingUnitNumber (new_OperatingUnitNumber)')"
+            },
+            "body": {
+              "lastSyncDatetime": "@{variables('Endtime')}Z",
+              "appName": "TestApp"
+            }
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

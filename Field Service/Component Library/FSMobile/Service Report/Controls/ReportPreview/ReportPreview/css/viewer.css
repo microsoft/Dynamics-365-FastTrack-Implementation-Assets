@@ -1,0 +1,70 @@
+/**
+* This css file is used to control how the container of the report looks.
+* Styling defined here does NOT affect the final pdf that is generated.
+*/
+
+.FSControls\.ReportPreview .wrap {
+  -webkit-transform-origin: 0 0;
+  transform-origin: 0 0;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.zoom {
+  margin: 20px 20px 20px 20px;
+}
+.FSControls\.ReportPreview {
+  overflow-x: hidden;
+  padding: 0px !important;
+  margin: 0px !important;
+  height: 847px;
+}
+.FSControls\.ReportPreview .container {
+  background: rgba(255, 255, 255, 1);
+  opacity: 1;
+  position: relative;
+  top: 0px;
+  left: 0px;
+  overflow: hidden;
+}
+
+.FSControls\.ReportPreview .spinnerOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 99999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: inherit;
+}
+
+.FSControls\.ReportPreview .spinnerOverlay .ms-Spinner {
+  position: initial;
+  margin-left: 0;
+  margin-right: 0;
+  transform: none;
+}
+
+.FSControls\.ReportPreview .spinnerOverlay .ms-Spinner-circle {
+  width: 36px;
+  height: 36px;
+  border-width: 4px;
+  width: 52px;
+  height: 52px;
+  border-width: 7px;
+  border-color: #FFFFFF #5D5D5D #5D5D5D;
+}
+
+@media screen and (max-width:600px) {
+  .FSControls\.ReportPreview .wrap{
+    width: 166%;
+    transform: scale(0.6);
+    -webkit-transform: scale(0.6);
+  }
+  .FSControls\.ReportPreview {
+    height: 540px;
+  }
+}

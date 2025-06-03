@@ -1,0 +1,12 @@
+<customapirequestparameter uniquename="msdynmkt_receiptemail">
+  <description default="msdynmkt_receiptemail">
+    <label description="msdynmkt_receiptemail" languagecode="1033" />
+  </description>
+  <displayname default="ReceiptEmail">
+    <label description="ReceiptEmail" languagecode="1033" />
+  </displayname>
+  <iscustomizable>0</iscustomizable>
+  <isoptional>0</isoptional>
+  <name>msdynmkt_receiptemail</name>
+  <type>10</type>
+</customapirequestparameter>

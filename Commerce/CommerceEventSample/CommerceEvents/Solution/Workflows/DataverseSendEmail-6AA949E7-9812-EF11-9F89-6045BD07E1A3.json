@@ -1,0 +1,2025 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sendgrid": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsendgrid_c678a"
+        },
+        "api": {
+          "name": "shared_sendgrid"
+        }
+      },
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedcommondataserviceforapps_7547d"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "When_an_action_is_performed": {
+          "metadata": {
+            "operationMetadataId": "994a0eb7-54c3-4291-841e-82d145e85810"
+          },
+          "type": "OpenApiConnectionWebhook",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "BusinessEventsTrigger",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "catalog": "SA_Sales",
+              "category": "SA_Sales_Transaction",
+              "subscriptionRequest/entityname": "none",
+              "subscriptionRequest/sdkmessagename": "SA_Checkout"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Parse_JSON": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "4777b7b6-f6cc-4e60-8146-88a131e26895"
+          },
+          "type": "ParseJson",
+          "inputs": {
+            "content": "@triggerOutputs()?['body/InputParameters/checkoutparm']",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "@@odata.context": {
+                  "type": "string"
+                },
+                "DocumentStatusValue": {
+                  "type": "integer"
+                },
+                "RecordId": {
+                  "type": "integer"
+                },
+                "StatusValue": {
+                  "type": "integer"
+                },
+                "McrOrderStopped": {
+                  "type": "boolean"
+                },
+                "PaymentStatusValue": {
+                  "type": "integer"
+                },
+                "DetailedOrderStatusValue": {
+                  "type": "integer"
+                },
+                "IsRequiredAmountPaid": {
+                  "type": "boolean"
+                },
+                "IsDiscountFullyCalculated": {
+                  "type": "boolean"
+                },
+                "IgnoreDiscountCalculation": {
+                  "type": "boolean"
+                },
+                "AmountDue": {
+                  "type": "integer"
+                },
+                "AmountPaid": {
+                  "type": "number"
+                },
+                "CustomerOrderRemainingBalance": {
+                  "type": "integer"
+                },
+                "AvailableDepositAmount": {
+                  "type": "integer"
+                },
+                "BeginDateTime": {
+                  "type": "string"
+                },
+                "CreatedDateTime": {
+                  "type": "string"
+                },
+                "BusinessDate": {
+                  "type": "string"
+                },
+                "CalculatedDepositAmount": {
+                  "type": "integer"
+                },
+                "ChannelId": {
+                  "type": "integer"
+                },
+                "ChannelReferenceId": {
+                  "type": "string"
+                },
+                "ChargeAmount": {
+                  "type": "number"
+                },
+                "Comment": {
+                  "type": "string"
+                },
+                "InvoiceComment": {
+                  "type": "string"
+                },
+                "CurrencyCode": {
+                  "type": "string"
+                },
+                "CustomerId": {
+                  "type": "string"
+                },
+                "CustomerOrderModeValue": {
+                  "type": "integer"
+                },
+                "CustomerOrderTypeValue": {
+                  "type": "integer"
+                },
+                "DeliveryMode": {
+                  "type": "string"
+                },
+                "DiscountAmount": {
+                  "type": "integer"
+                },
+                "DiscountAmountWithoutTax": {
+                  "type": "integer"
+                },
+                "NetPrice": {
+                  "type": "integer"
+                },
+                "DiscountCodes": {
+                  "type": "array"
+                },
+                "EntryStatusValue": {
+                  "type": "integer"
+                },
+                "GrossAmount": {
+                  "type": "number"
+                },
+                "HasLoyaltyPayment": {
+                  "type": "boolean"
+                },
+                "Id": {
+                  "type": "string"
+                },
+                "InternalTransactionId": {
+                  "type": "string"
+                },
+                "IncomeExpenseTotalAmount": {
+                  "type": "integer"
+                },
+                "InventoryLocationId": {
+                  "type": "string"
+                },
+                "IsCreatedOffline": {
+                  "type": "boolean"
+                },
+                "IsReturnByReceipt": {
+                  "type": "boolean"
+                },
+                "IsSuspended": {
+                  "type": "boolean"
+                },
+                "IsTaxIncludedInPrice": {
+                  "type": "boolean"
+                },
+                "IsTaxExemptedForPriceInclusive": {
+                  "type": "boolean"
+                },
+                "LineDiscount": {
+                  "type": "integer"
+                },
+                "LineDiscountCalculationTypeValue": {
+                  "type": "integer"
+                },
+                "LoyaltyCardId": {
+                  "type": "string"
+                },
+                "LoyaltyDiscountAmount": {
+                  "type": "integer"
+                },
+                "ModifiedDateTime": {
+                  "type": "string"
+                },
+                "Name": {
+                  "type": "string"
+                },
+                "NetAmount": {
+                  "type": "number"
+                },
+                "NetAmountWithoutTax": {
+                  "type": "number"
+                },
+                "NetAmountWithNoTax": {
+                  "type": "integer"
+                },
+                "NetAmountWithTax": {
+                  "type": "integer"
+                },
+                "NumberOfItems": {
+                  "type": "integer"
+                },
+                "PeriodicDiscountAmount": {
+                  "type": "integer"
+                },
+                "TenderDiscountAmount": {
+                  "type": "integer"
+                },
+                "PrepaymentAmountAppliedOnPickup": {
+                  "type": "integer"
+                },
+                "PrepaymentAmountInvoiced": {
+                  "type": "integer"
+                },
+                "PrepaymentAmountPaid": {
+                  "type": "integer"
+                },
+                "PrepaymentRoundingDifference": {
+                  "type": "integer"
+                },
+                "ReceiptEmail": {
+                  "type": "string"
+                },
+                "ReceiptId": {
+                  "type": "string"
+                },
+                "RequestedDeliveryDate": {
+                  "type": "string"
+                },
+                "RequiredDepositAmount": {
+                  "type": "integer"
+                },
+                "RequiredDepositWithoutCarryoutAmount": {
+                  "type": "integer"
+                },
+                "ReturnTransactionHasLoyaltyPayment": {
+                  "type": "boolean"
+                },
+                "SalesId": {
+                  "type": "string"
+                },
+                "SalesPaymentDifference": {
+                  "type": "number"
+                },
+                "ShiftId": {
+                  "type": "integer"
+                },
+                "ShiftTerminalId": {
+                  "type": "string"
+                },
+                "StaffId": {
+                  "type": "string"
+                },
+                "StatementCode": {
+                  "type": "string"
+                },
+                "StoreId": {
+                  "type": "string"
+                },
+                "SubtotalAmount": {
+                  "type": "number"
+                },
+                "SubtotalAmountWithoutTax": {
+                  "type": "number"
+                },
+                "SubtotalSalesAmount": {
+                  "type": "number"
+                },
+                "TaxAmount": {
+                  "type": "number"
+                },
+                "TaxAmountExclusive": {
+                  "type": "number"
+                },
+                "TaxAmountInclusive": {
+                  "type": "integer"
+                },
+                "TaxOnCancellationCharge": {
+                  "type": "integer"
+                },
+                "TaxOnShippingCharge": {
+                  "type": "number"
+                },
+                "TaxOnNonShippingCharges": {
+                  "type": "integer"
+                },
+                "TerminalId": {
+                  "type": "string"
+                },
+                "TotalAmount": {
+                  "type": "number"
+                },
+                "TotalSalesAmount": {
+                  "type": "integer"
+                },
+                "TotalReturnAmount": {
+                  "type": "integer"
+                },
+                "TotalCarryoutSalesAmount": {
+                  "type": "integer"
+                },
+                "TotalCustomerOrderSalesAmount": {
+                  "type": "integer"
+                },
+                "TotalDiscount": {
+                  "type": "integer"
+                },
+                "TotalManualDiscountAmount": {
+                  "type": "integer"
+                },
+                "TotalManualDiscountPercentage": {
+                  "type": "integer"
+                },
+                "TransactionTypeValue": {
+                  "type": "integer"
+                },
+                "TaxCalculationTypeValue": {
+                  "type": "integer"
+                },
+                "SalesInvoiceAmount": {
+                  "type": "integer"
+                },
+                "GiftCardActiveFrom": {
+                  "type": "string"
+                },
+                "GiftCardBalance": {
+                  "type": "integer"
+                },
+                "GiftCardExpireDate": {
+                  "type": "string"
+                },
+                "GiftCardHistoryDetails": {
+                  "type": "string"
+                },
+                "GiftCardIssueAmount": {
+                  "type": "integer"
+                },
+                "GiftCardIdMasked": {
+                  "type": "string"
+                },
+                "CommissionSalesGroup": {
+                  "type": "string"
+                },
+                "IsCommissionSalesGroupOverriddenByCustomer": {
+                  "type": "boolean"
+                },
+                "CommissionSalesGroupSetByCashier": {
+                  "type": "string"
+                },
+                "HasTaxCalculationTriggered": {
+                  "type": "boolean"
+                },
+                "HasChargeCalculationTriggered": {
+                  "type": "boolean"
+                },
+                "ShippingChargeAmount": {
+                  "type": "number"
+                },
+                "OtherChargeAmount": {
+                  "type": "integer"
+                },
+                "PeriodicDiscountsCalculateScopeValue": {
+                  "type": "integer"
+                },
+                "CustomerName": {
+                  "type": "string"
+                },
+                "OriginalOrderTransactionId": {
+                  "type": "string"
+                },
+                "CustomerRequisition": {
+                  "type": "string"
+                },
+                "LanguageId": {
+                  "type": "string"
+                },
+                "SalesAgreementRecordId": {
+                  "type": "integer"
+                },
+                "TransactionDate": {
+                  "type": "string"
+                },
+                "TransactionTime": {
+                  "type": "integer"
+                },
+                "Shipments": {
+                  "type": "array"
+                },
+                "AffiliationLoyaltyTierLines": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "AffiliationId": {
+                        "type": "integer"
+                      },
+                      "LoyaltyTierId": {
+                        "type": "integer"
+                      },
+                      "AffiliationTypeValue": {
+                        "type": "integer"
+                      },
+                      "TransactionId": {
+                        "type": "string"
+                      },
+                      "ChannelId": {
+                        "type": "integer"
+                      },
+                      "TerminalId": {
+                        "type": "string"
+                      },
+                      "ReceiptId": {
+                        "type": "string"
+                      },
+                      "StaffId": {
+                        "type": "string"
+                      },
+                      "ReasonCodeLines": {
+                        "type": "array"
+                      },
+                      "ExtensionProperties": {
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "AffiliationId",
+                      "LoyaltyTierId",
+                      "AffiliationTypeValue",
+                      "TransactionId",
+                      "ChannelId",
+                      "TerminalId",
+                      "ReceiptId",
+                      "StaffId",
+                      "ReasonCodeLines",
+                      "ExtensionProperties"
+                    ]
+                  }
+                },
+                "AttributeValues": {
+                  "type": "array"
+                },
+                "ChargeLines": {
+                  "type": "array"
+                },
+                "Coupons": {
+                  "type": "array"
+                },
+                "ContactInformationCollection": {
+                  "type": "array"
+                },
+                "CustomerAccountDepositLines": {
+                  "type": "array"
+                },
+                "IncomeExpenseLines": {
+                  "type": "array"
+                },
+                "LoyaltyRewardPointLines": {
+                  "type": "array"
+                },
+                "ReasonCodeLines": {
+                  "type": "array"
+                },
+                "SalesLines": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "StaffId": {
+                        "type": "string"
+                      },
+                      "LineId": {
+                        "type": "string"
+                      },
+                      "OriginLineId": {
+                        "type": "string"
+                      },
+                      "TaxOverrideCode": {
+                        "type": "string"
+                      },
+                      "IsPriceKeyedIn": {
+                        "type": "boolean"
+                      },
+                      "IsTaxOverideCodeTaxExempt": {
+                        "type": "boolean"
+                      },
+                      "ProductId": {
+                        "type": "integer"
+                      },
+                      "Barcode": {
+                        "type": "string"
+                      },
+                      "BarcodeEmbeddedPrice": {
+                        "type": "integer"
+                      },
+                      "PriceInBarcode": {
+                        "type": "boolean"
+                      },
+                      "EntryMethodTypeValue": {
+                        "type": "integer"
+                      },
+                      "MasterProductId": {
+                        "type": "integer"
+                      },
+                      "ListingId": {
+                        "type": "integer"
+                      },
+                      "IsPriceOverridden": {
+                        "type": "boolean"
+                      },
+                      "OriginalPrice": {
+                        "type": "number"
+                      },
+                      "TotalAmount": {
+                        "type": "number"
+                      },
+                      "NetAmountWithoutTax": {
+                        "type": "integer"
+                      },
+                      "DiscountAmount": {
+                        "type": "integer"
+                      },
+                      "DiscountAmountWithoutTax": {
+                        "type": "integer"
+                      },
+                      "NetPrice": {
+                        "type": "number"
+                      },
+                      "TotalDiscount": {
+                        "type": "integer"
+                      },
+                      "TotalPercentageDiscount": {
+                        "type": "integer"
+                      },
+                      "LineDiscount": {
+                        "type": "integer"
+                      },
+                      "PeriodicDiscount": {
+                        "type": "integer"
+                      },
+                      "LineManualDiscountPercentage": {
+                        "type": "integer"
+                      },
+                      "LineManualDiscountAmount": {
+                        "type": "integer"
+                      },
+                      "DeliveryMode": {
+                        "type": "string"
+                      },
+                      "Comment": {
+                        "type": "string"
+                      },
+                      "RequestedDeliveryDate": {
+                        "type": "string"
+                      },
+                      "InventoryLocationId": {
+                        "type": "string"
+                      },
+                      "ItemType": {
+                        "type": "integer"
+                      },
+                      "ReservationId": {
+                        "type": "string"
+                      },
+                      "LineNumber": {
+                        "type": "integer"
+                      },
+                      "ReturnQuantity": {
+                        "type": "integer"
+                      },
+                      "StatusValue": {
+                        "type": "integer"
+                      },
+                      "SalesStatusValue": {
+                        "type": "integer"
+                      },
+                      "ProductSourceValue": {
+                        "type": "integer"
+                      },
+                      "IsGiftCardLine": {
+                        "type": "boolean"
+                      },
+                      "GiftCardId": {
+                        "type": "string"
+                      },
+                      "GiftCardCurrencyCode": {
+                        "type": "string"
+                      },
+                      "GiftCardOperationValue": {
+                        "type": "integer"
+                      },
+                      "GiftCardTypeValue": {
+                        "type": "integer"
+                      },
+                      "IsInvoiceLine": {
+                        "type": "boolean"
+                      },
+                      "InvoiceId": {
+                        "type": "string"
+                      },
+                      "InvoiceAmount": {
+                        "type": "integer"
+                      },
+                      "IsInvoiceSettled": {
+                        "type": "boolean"
+                      },
+                      "InvoiceTypeValue": {
+                        "type": "integer"
+                      },
+                      "IsVoided": {
+                        "type": "boolean"
+                      },
+                      "IsPriceLocked": {
+                        "type": "boolean"
+                      },
+                      "BasePrice": {
+                        "type": "integer"
+                      },
+                      "AgreementPrice": {
+                        "type": "integer"
+                      },
+                      "AdjustedPrice": {
+                        "type": "integer"
+                      },
+                      "IsWarrantyLine": {
+                        "type": "boolean"
+                      },
+                      "WarrantableLineNumber": {
+                        "type": "integer"
+                      },
+                      "ReturnTransactionId": {
+                        "type": "string"
+                      },
+                      "ReturnLineNumber": {
+                        "type": "integer"
+                      },
+                      "ReturnInventTransId": {
+                        "type": "string"
+                      },
+                      "ReturnStore": {
+                        "type": "string"
+                      },
+                      "ReturnTerminalId": {
+                        "type": "string"
+                      },
+                      "ReturnChannelId": {
+                        "type": "integer"
+                      },
+                      "FulfillmentStoreId": {
+                        "type": "string"
+                      },
+                      "SalesDate": {
+                        "type": "string"
+                      },
+                      "QuantityCanceled": {
+                        "type": "integer"
+                      },
+                      "IsSavedDiscount": {
+                        "type": "boolean"
+                      },
+                      "RecordId": {
+                        "type": "integer"
+                      },
+                      "SerialNumber": {
+                        "type": "string"
+                      },
+                      "BatchId": {
+                        "type": "string"
+                      },
+                      "UnitOfMeasureSymbol": {
+                        "type": "string"
+                      },
+                      "CatalogId": {
+                        "type": "integer"
+                      },
+                      "ElectronicDeliveryEmailAddress": {
+                        "type": "string"
+                      },
+                      "ElectronicDeliveryEmailContent": {
+                        "type": "string"
+                      },
+                      "LoyaltyDiscountAmount": {
+                        "type": "integer"
+                      },
+                      "LoyaltyPercentageDiscount": {
+                        "type": "integer"
+                      },
+                      "TenderDiscountAmount": {
+                        "type": "integer"
+                      },
+                      "TenderDiscountPercentage": {
+                        "type": "integer"
+                      },
+                      "GiftCardBalance": {
+                        "type": "integer"
+                      },
+                      "IsCustomerAccountDeposit": {
+                        "type": "boolean"
+                      },
+                      "Blocked": {
+                        "type": "boolean"
+                      },
+                      "Found": {
+                        "type": "boolean"
+                      },
+                      "DateToActivateItem": {
+                        "type": "string"
+                      },
+                      "LinePercentageDiscount": {
+                        "type": "integer"
+                      },
+                      "PeriodicPercentageDiscount": {
+                        "type": "integer"
+                      },
+                      "QuantityDiscounted": {
+                        "type": "integer"
+                      },
+                      "UnitQuantity": {
+                        "type": "integer"
+                      },
+                      "LineMultilineDiscOnItem": {
+                        "type": "string"
+                      },
+                      "RelatedDiscountedLineIds": {
+                        "type": "array"
+                      },
+                      "LineMultilineDiscOnItemValue": {
+                        "type": "integer"
+                      },
+                      "WasChanged": {
+                        "type": "boolean"
+                      },
+                      "IsLoyaltyDiscountApplied": {
+                        "type": "boolean"
+                      },
+                      "CommissionSalesGroup": {
+                        "type": "string"
+                      },
+                      "IsCommissionSalesGroupOverriddenByCustomer": {
+                        "type": "boolean"
+                      },
+                      "CommissionSalesGroupSetByCashier": {
+                        "type": "string"
+                      },
+                      "FulfillmentStatusValue": {
+                        "type": "integer"
+                      },
+                      "DetailedLineStatusValue": {
+                        "type": "integer"
+                      },
+                      "SalesAgreementPrice": {
+                        "type": "integer"
+                      },
+                      "SalesAgreementLineRecordId": {
+                        "type": "integer"
+                      },
+                      "IsSalesAgreementSkipped": {
+                        "type": "boolean"
+                      },
+                      "ItemId": {
+                        "type": "string"
+                      },
+                      "Quantity": {
+                        "type": "integer"
+                      },
+                      "Price": {
+                        "type": "number"
+                      },
+                      "ItemTaxGroupId": {
+                        "type": "string"
+                      },
+                      "SalesTaxGroupId": {
+                        "type": "string"
+                      },
+                      "TaxAmount": {
+                        "type": "number"
+                      },
+                      "SalesOrderUnitOfMeasure": {
+                        "type": "string"
+                      },
+                      "NetAmount": {
+                        "type": "number"
+                      },
+                      "NetAmountPerUnit": {
+                        "type": "integer"
+                      },
+                      "GrossAmount": {
+                        "type": "number"
+                      },
+                      "TaxAmountExemptInclusive": {
+                        "type": "integer"
+                      },
+                      "TaxAmountInclusive": {
+                        "type": "integer"
+                      },
+                      "TaxAmountExclusive": {
+                        "type": "number"
+                      },
+                      "NetAmountWithAllInclusiveTax": {
+                        "type": "number"
+                      },
+                      "BeginDateTime": {
+                        "type": "string"
+                      },
+                      "EndDateTime": {
+                        "type": "string"
+                      },
+                      "TaxRatePercent": {
+                        "type": "integer"
+                      },
+                      "IsReturnByReceipt": {
+                        "type": "boolean"
+                      },
+                      "ReturnLineTaxAmount": {
+                        "type": "integer"
+                      },
+                      "TaxExemptPriceInclusiveReductionAmount": {
+                        "type": "integer"
+                      },
+                      "TaxExemptPriceInclusiveOriginalPrice": {
+                        "type": "number"
+                      },
+                      "ShippingAddress": {
+                        "type": "object",
+                        "properties": {
+                          "Name": {
+                            "type": "string"
+                          },
+                          "Id": {
+                            "type": "string"
+                          },
+                          "FullAddress": {
+                            "type": "string"
+                          },
+                          "RecordId": {
+                            "type": "integer"
+                          },
+                          "Street": {
+                            "type": "string"
+                          },
+                          "StreetNumber": {
+                            "type": "string"
+                          },
+                          "County": {
+                            "type": "string"
+                          },
+                          "CountyName": {
+                            "type": "string"
+                          },
+                          "City": {
+                            "type": "string"
+                          },
+                          "DistrictName": {
+                            "type": "string"
+                          },
+                          "State": {
+                            "type": "string"
+                          },
+                          "StateName": {
+                            "type": "string"
+                          },
+                          "ZipCode": {
+                            "type": "string"
+                          },
+                          "ThreeLetterISORegionName": {
+                            "type": "string"
+                          },
+                          "Phone": {
+                            "type": "string"
+                          },
+                          "PhoneRecordId": {
+                            "type": "integer"
+                          },
+                          "PhoneExt": {
+                            "type": "string"
+                          },
+                          "Email": {
+                            "type": "string"
+                          },
+                          "EmailContent": {
+                            "type": "string"
+                          },
+                          "EmailRecordId": {
+                            "type": "integer"
+                          },
+                          "Url": {
+                            "type": "string"
+                          },
+                          "UrlRecordId": {
+                            "type": "integer"
+                          },
+                          "TwoLetterISORegionName": {
+                            "type": "string"
+                          },
+                          "Deactivate": {
+                            "type": "boolean"
+                          },
+                          "AttentionTo": {
+                            "type": "string"
+                          },
+                          "BuildingCompliment": {
+                            "type": "string"
+                          },
+                          "Postbox": {
+                            "type": "string"
+                          },
+                          "TaxGroup": {
+                            "type": "string"
+                          },
+                          "AddressTypeValue": {
+                            "type": "integer"
+                          },
+                          "IsPrimary": {
+                            "type": "boolean"
+                          },
+                          "IsPrivate": {
+                            "type": "boolean"
+                          },
+                          "IsAsyncAddress": {
+                            "type": "boolean"
+                          },
+                          "DirectoryPartyTableRecordId": {
+                            "type": "integer"
+                          },
+                          "DirectoryPartyLocationRecordId": {
+                            "type": "integer"
+                          },
+                          "DirectoryPartyLocationRoleRecordId": {
+                            "type": "integer"
+                          },
+                          "LogisticsLocationId": {
+                            "type": "string"
+                          },
+                          "LogisticsLocationRecordId": {
+                            "type": "integer"
+                          },
+                          "LogisticsLocationExtRecordId": {
+                            "type": "integer"
+                          },
+                          "LogisticsLocationRoleRecordId": {
+                            "type": "integer"
+                          },
+                          "PhoneLogisticsLocationRecordId": {
+                            "type": "integer"
+                          },
+                          "PhoneLogisticsLocationId": {
+                            "type": "string"
+                          },
+                          "EmailLogisticsLocationRecordId": {
+                            "type": "integer"
+                          },
+                          "EmailLogisticsLocationId": {
+                            "type": "string"
+                          },
+                          "UrlLogisticsLocationRecordId": {
+                            "type": "integer"
+                          },
+                          "UrlLogisticsLocationId": {
+                            "type": "string"
+                          },
+                          "ExpireRecordId": {
+                            "type": "integer"
+                          },
+                          "SortOrder": {
+                            "type": "integer"
+                          },
+                          "RoleCount": {
+                            "type": "integer"
+                          },
+                          "DataAreaId": {
+                            "type": "string"
+                          },
+                          "ExtensionProperties": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "Key": {
+                                  "type": "string"
+                                },
+                                "Value": {
+                                  "type": "object",
+                                  "properties": {
+                                    "StringValue": {
+                                      "type": "string"
+                                    }
+                                  }
+                                }
+                              },
+                              "required": [
+                                "Key",
+                                "Value"
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      "ChargeLines": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "ChargeLineId": {
+                              "type": "string"
+                            },
+                            "ChargeCode": {
+                              "type": "string"
+                            },
+                            "ModuleTypeValue": {
+                              "type": "integer"
+                            },
+                            "IsHeaderChargeProrated": {
+                              "type": "boolean"
+                            },
+                            "ChargeTypeValue": {
+                              "type": "integer"
+                            },
+                            "ChargeMethodValue": {
+                              "type": "integer"
+                            },
+                            "CalculatedAmount": {
+                              "type": "number"
+                            },
+                            "Value": {
+                              "type": "number"
+                            },
+                            "Description": {
+                              "type": "string"
+                            },
+                            "TransactionId": {
+                              "type": "string"
+                            },
+                            "MarkupAutoLineRecordId": {
+                              "type": "integer"
+                            },
+                            "MarkupAutoTableRecId": {
+                              "type": "integer"
+                            },
+                            "SaleLineNumber": {
+                              "type": "integer"
+                            },
+                            "FromAmount": {
+                              "type": "integer"
+                            },
+                            "ToAmount": {
+                              "type": "integer"
+                            },
+                            "Keep": {
+                              "type": "integer"
+                            },
+                            "AmountRefunded": {
+                              "type": "integer"
+                            },
+                            "IsRefundable": {
+                              "type": "boolean"
+                            },
+                            "IsShipping": {
+                              "type": "boolean"
+                            },
+                            "IsOverridden": {
+                              "type": "boolean"
+                            },
+                            "IsInvoiced": {
+                              "type": "boolean"
+                            },
+                            "CalculatedProratedAmount": {
+                              "type": "integer"
+                            },
+                            "Quantity": {
+                              "type": "integer"
+                            },
+                            "Price": {
+                              "type": "integer"
+                            },
+                            "ItemTaxGroupId": {
+                              "type": "string"
+                            },
+                            "SalesTaxGroupId": {
+                              "type": "string"
+                            },
+                            "TaxAmount": {
+                              "type": "number"
+                            },
+                            "NetAmount": {
+                              "type": "integer"
+                            },
+                            "NetAmountPerUnit": {
+                              "type": "integer"
+                            },
+                            "GrossAmount": {
+                              "type": "integer"
+                            },
+                            "TaxAmountExemptInclusive": {
+                              "type": "integer"
+                            },
+                            "TaxAmountInclusive": {
+                              "type": "integer"
+                            },
+                            "TaxAmountExclusive": {
+                              "type": "number"
+                            },
+                            "NetAmountWithAllInclusiveTax": {
+                              "type": "integer"
+                            },
+                            "BeginDateTime": {
+                              "type": "string"
+                            },
+                            "EndDateTime": {
+                              "type": "string"
+                            },
+                            "TaxRatePercent": {
+                              "type": "integer"
+                            },
+                            "IsReturnByReceipt": {
+                              "type": "boolean"
+                            },
+                            "ReturnLineTaxAmount": {
+                              "type": "integer"
+                            },
+                            "TaxExemptPriceInclusiveReductionAmount": {
+                              "type": "integer"
+                            },
+                            "TaxExemptPriceInclusiveOriginalPrice": {
+                              "type": "integer"
+                            },
+                            "ChargeLineOverrides": {
+                              "type": "array"
+                            },
+                            "ReasonCodeLines": {
+                              "type": "array"
+                            },
+                            "TaxLines": {
+                              "type": "array"
+                            },
+                            "TaxMeasures": {
+                              "type": "array"
+                            },
+                            "ReturnTaxLines": {
+                              "type": "array"
+                            },
+                            "ExtensionProperties": {
+                              "type": "array"
+                            }
+                          },
+                          "required": [
+                            "ChargeLineId",
+                            "ChargeCode",
+                            "ModuleTypeValue",
+                            "IsHeaderChargeProrated",
+                            "ChargeTypeValue",
+                            "ChargeMethodValue",
+                            "CalculatedAmount",
+                            "Value",
+                            "Description",
+                            "TransactionId",
+                            "MarkupAutoLineRecordId",
+                            "MarkupAutoTableRecId",
+                            "SaleLineNumber",
+                            "FromAmount",
+                            "ToAmount",
+                            "Keep",
+                            "AmountRefunded",
+                            "IsRefundable",
+                            "IsShipping",
+                            "IsOverridden",
+                            "IsInvoiced",
+                            "CalculatedProratedAmount",
+                            "Quantity",
+                            "Price",
+                            "ItemTaxGroupId",
+                            "SalesTaxGroupId",
+                            "TaxAmount",
+                            "NetAmount",
+                            "NetAmountPerUnit",
+                            "GrossAmount",
+                            "TaxAmountExemptInclusive",
+                            "TaxAmountInclusive",
+                            "TaxAmountExclusive",
+                            "NetAmountWithAllInclusiveTax",
+                            "BeginDateTime",
+                            "EndDateTime",
+                            "TaxRatePercent",
+                            "IsReturnByReceipt",
+                            "ReturnLineTaxAmount",
+                            "TaxExemptPriceInclusiveReductionAmount",
+                            "TaxExemptPriceInclusiveOriginalPrice",
+                            "ChargeLineOverrides",
+                            "ReasonCodeLines",
+                            "TaxLines",
+                            "TaxMeasures",
+                            "ReturnTaxLines",
+                            "ExtensionProperties"
+                          ]
+                        }
+                      },
+                      "UnitOfMeasureConversion": {
+                        "type": "object",
+                        "properties": {
+                          "IsBackward": {
+                            "type": "boolean"
+                          },
+                          "RecordId": {
+                            "type": "integer"
+                          },
+                          "ProductRecordId": {
+                            "type": "integer"
+                          },
+                          "Factor": {
+                            "type": "integer"
+                          },
+                          "Numerator": {
+                            "type": "integer"
+                          },
+                          "Denominator": {
+                            "type": "integer"
+                          },
+                          "InnerOffset": {
+                            "type": "integer"
+                          },
+                          "OuterOffset": {
+                            "type": "integer"
+                          },
+                          "ExtensionProperties": {
+                            "type": "array"
+                          }
+                        }
+                      },
+                      "DiscountLines": {
+                        "type": "array"
+                      },
+                      "PriceLines": {
+                        "type": "array"
+                      },
+                      "AttainablePriceLines": {
+                        "type": "array"
+                      },
+                      "PeriodicDiscountPossibilities": {
+                        "type": "array"
+                      },
+                      "ReasonCodeLines": {
+                        "type": "array"
+                      },
+                      "AttributeValues": {
+                        "type": "array"
+                      },
+                      "ThirdPartyGiftCardInfo": {
+                        "type": "object",
+                        "properties": {
+                          "Amount": {
+                            "type": "integer"
+                          },
+                          "Authorization": {
+                            "type": "string"
+                          },
+                          "ExtensionProperties": {
+                            "type": "array"
+                          }
+                        }
+                      },
+                      "LoyaltyRewardPointLines": {
+                        "type": "array"
+                      },
+                      "ReturnLoyaltyRewardPointLines": {
+                        "type": "array"
+                      },
+                      "TaxLines": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "TaxGroup": {
+                              "type": "string"
+                            },
+                            "Percentage": {
+                              "type": "integer"
+                            },
+                            "IsExempt": {
+                              "type": "boolean"
+                            },
+                            "TaxBasis": {
+                              "type": "number"
+                            },
+                            "IsIncludedInPrice": {
+                              "type": "boolean"
+                            },
+                            "SaleLineNumber": {
+                              "type": "integer"
+                            },
+                            "StoreId": {
+                              "type": "string"
+                            },
+                            "TerminalId": {
+                              "type": "string"
+                            },
+                            "TransactionId": {
+                              "type": "string"
+                            },
+                            "TaxCode": {
+                              "type": "string"
+                            },
+                            "Amount": {
+                              "type": "number"
+                            },
+                            "AmountRefunded": {
+                              "type": "integer"
+                            },
+                            "IsTaxGroupRounding": {
+                              "type": "boolean"
+                            },
+                            "ExtensionProperties": {
+                              "type": "array"
+                            }
+                          },
+                          "required": [
+                            "TaxGroup",
+                            "Percentage",
+                            "IsExempt",
+                            "TaxBasis",
+                            "IsIncludedInPrice",
+                            "SaleLineNumber",
+                            "StoreId",
+                            "TerminalId",
+                            "TransactionId",
+                            "TaxCode",
+                            "Amount",
+                            "AmountRefunded",
+                            "IsTaxGroupRounding",
+                            "ExtensionProperties"
+                          ]
+                        }
+                      },
+                      "TaxMeasures": {
+                        "type": "array"
+                      },
+                      "ReturnTaxLines": {
+                        "type": "array"
+                      },
+                      "ExtensionProperties": {
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "StaffId",
+                      "LineId",
+                      "OriginLineId",
+                      "TaxOverrideCode",
+                      "IsPriceKeyedIn",
+                      "IsTaxOverideCodeTaxExempt",
+                      "ProductId",
+                      "Barcode",
+                      "BarcodeEmbeddedPrice",
+                      "PriceInBarcode",
+                      "EntryMethodTypeValue",
+                      "MasterProductId",
+                      "ListingId",
+                      "IsPriceOverridden",
+                      "OriginalPrice",
+                      "TotalAmount",
+                      "NetAmountWithoutTax",
+                      "DiscountAmount",
+                      "DiscountAmountWithoutTax",
+                      "NetPrice",
+                      "TotalDiscount",
+                      "TotalPercentageDiscount",
+                      "LineDiscount",
+                      "PeriodicDiscount",
+                      "LineManualDiscountPercentage",
+                      "LineManualDiscountAmount",
+                      "DeliveryMode",
+                      "Comment",
+                      "RequestedDeliveryDate",
+                      "InventoryLocationId",
+                      "ItemType",
+                      "ReservationId",
+                      "LineNumber",
+                      "ReturnQuantity",
+                      "StatusValue",
+                      "SalesStatusValue",
+                      "ProductSourceValue",
+                      "IsGiftCardLine",
+                      "GiftCardId",
+                      "GiftCardCurrencyCode",
+                      "GiftCardOperationValue",
+                      "GiftCardTypeValue",
+                      "IsInvoiceLine",
+                      "InvoiceId",
+                      "InvoiceAmount",
+                      "IsInvoiceSettled",
+                      "InvoiceTypeValue",
+                      "IsVoided",
+                      "IsPriceLocked",
+                      "BasePrice",
+                      "AgreementPrice",
+                      "AdjustedPrice",
+                      "IsWarrantyLine",
+                      "WarrantableLineNumber",
+                      "ReturnTransactionId",
+                      "ReturnLineNumber",
+                      "ReturnInventTransId",
+                      "ReturnStore",
+                      "ReturnTerminalId",
+                      "ReturnChannelId",
+                      "FulfillmentStoreId",
+                      "SalesDate",
+                      "QuantityCanceled",
+                      "IsSavedDiscount",
+                      "RecordId",
+                      "SerialNumber",
+                      "BatchId",
+                      "UnitOfMeasureSymbol",
+                      "CatalogId",
+                      "ElectronicDeliveryEmailAddress",
+                      "ElectronicDeliveryEmailContent",
+                      "LoyaltyDiscountAmount",
+                      "LoyaltyPercentageDiscount",
+                      "TenderDiscountAmount",
+                      "TenderDiscountPercentage",
+                      "GiftCardBalance",
+                      "IsCustomerAccountDeposit",
+                      "Blocked",
+                      "Found",
+                      "DateToActivateItem",
+                      "LinePercentageDiscount",
+                      "PeriodicPercentageDiscount",
+                      "QuantityDiscounted",
+                      "UnitQuantity",
+                      "LineMultilineDiscOnItem",
+                      "RelatedDiscountedLineIds",
+                      "LineMultilineDiscOnItemValue",
+                      "WasChanged",
+                      "IsLoyaltyDiscountApplied",
+                      "CommissionSalesGroup",
+                      "IsCommissionSalesGroupOverriddenByCustomer",
+                      "CommissionSalesGroupSetByCashier",
+                      "FulfillmentStatusValue",
+                      "DetailedLineStatusValue",
+                      "SalesAgreementPrice",
+                      "SalesAgreementLineRecordId",
+                      "IsSalesAgreementSkipped",
+                      "ItemId",
+                      "Quantity",
+                      "Price",
+                      "ItemTaxGroupId",
+                      "SalesTaxGroupId",
+                      "TaxAmount",
+                      "SalesOrderUnitOfMeasure",
+                      "NetAmount",
+                      "NetAmountPerUnit",
+                      "GrossAmount",
+                      "TaxAmountExemptInclusive",
+                      "TaxAmountInclusive",
+                      "TaxAmountExclusive",
+                      "NetAmountWithAllInclusiveTax",
+                      "BeginDateTime",
+                      "EndDateTime",
+                      "TaxRatePercent",
+                      "IsReturnByReceipt",
+                      "ReturnLineTaxAmount",
+                      "TaxExemptPriceInclusiveReductionAmount",
+                      "TaxExemptPriceInclusiveOriginalPrice",
+                      "ShippingAddress",
+                      "ChargeLines",
+                      "UnitOfMeasureConversion",
+                      "DiscountLines",
+                      "PriceLines",
+                      "AttainablePriceLines",
+                      "PeriodicDiscountPossibilities",
+                      "ReasonCodeLines",
+                      "AttributeValues",
+                      "ThirdPartyGiftCardInfo",
+                      "LoyaltyRewardPointLines",
+                      "ReturnLoyaltyRewardPointLines",
+                      "TaxLines",
+                      "TaxMeasures",
+                      "ReturnTaxLines",
+                      "ExtensionProperties"
+                    ]
+                  }
+                },
+                "ShippingAddress": {
+                  "type": "object",
+                  "properties": {
+                    "Name": {
+                      "type": "string"
+                    },
+                    "Id": {
+                      "type": "string"
+                    },
+                    "FullAddress": {
+                      "type": "string"
+                    },
+                    "RecordId": {
+                      "type": "integer"
+                    },
+                    "Street": {
+                      "type": "string"
+                    },
+                    "StreetNumber": {
+                      "type": "string"
+                    },
+                    "County": {
+                      "type": "string"
+                    },
+                    "CountyName": {
+                      "type": "string"
+                    },
+                    "City": {
+                      "type": "string"
+                    },
+                    "DistrictName": {
+                      "type": "string"
+                    },
+                    "State": {
+                      "type": "string"
+                    },
+                    "StateName": {
+                      "type": "string"
+                    },
+                    "ZipCode": {
+                      "type": "string"
+                    },
+                    "ThreeLetterISORegionName": {
+                      "type": "string"
+                    },
+                    "Phone": {
+                      "type": "string"
+                    },
+                    "PhoneRecordId": {
+                      "type": "integer"
+                    },
+                    "PhoneExt": {
+                      "type": "string"
+                    },
+                    "Email": {
+                      "type": "string"
+                    },
+                    "EmailContent": {
+                      "type": "string"
+                    },
+                    "EmailRecordId": {
+                      "type": "integer"
+                    },
+                    "Url": {
+                      "type": "string"
+                    },
+                    "UrlRecordId": {
+                      "type": "integer"
+                    },
+                    "TwoLetterISORegionName": {
+                      "type": "string"
+                    },
+                    "Deactivate": {
+                      "type": "boolean"
+                    },
+                    "AttentionTo": {
+                      "type": "string"
+                    },
+                    "BuildingCompliment": {
+                      "type": "string"
+                    },
+                    "Postbox": {
+                      "type": "string"
+                    },
+                    "TaxGroup": {
+                      "type": "string"
+                    },
+                    "AddressTypeValue": {
+                      "type": "integer"
+                    },
+                    "IsPrimary": {
+                      "type": "boolean"
+                    },
+                    "IsPrivate": {
+                      "type": "boolean"
+                    },
+                    "IsAsyncAddress": {
+                      "type": "boolean"
+                    },
+                    "DirectoryPartyTableRecordId": {
+                      "type": "integer"
+                    },
+                    "DirectoryPartyLocationRecordId": {
+                      "type": "integer"
+                    },
+                    "DirectoryPartyLocationRoleRecordId": {
+                      "type": "integer"
+                    },
+                    "LogisticsLocationId": {
+                      "type": "string"
+                    },
+                    "LogisticsLocationRecordId": {
+                      "type": "integer"
+                    },
+                    "LogisticsLocationExtRecordId": {
+                      "type": "integer"
+                    },
+                    "LogisticsLocationRoleRecordId": {
+                      "type": "integer"
+                    },
+                    "PhoneLogisticsLocationRecordId": {
+                      "type": "integer"
+                    },
+                    "PhoneLogisticsLocationId": {
+                      "type": "string"
+                    },
+                    "EmailLogisticsLocationRecordId": {
+                      "type": "integer"
+                    },
+                    "EmailLogisticsLocationId": {
+                      "type": "string"
+                    },
+                    "UrlLogisticsLocationRecordId": {
+                      "type": "integer"
+                    },
+                    "UrlLogisticsLocationId": {
+                      "type": "string"
+                    },
+                    "ExpireRecordId": {
+                      "type": "integer"
+                    },
+                    "SortOrder": {
+                      "type": "integer"
+                    },
+                    "RoleCount": {
+                      "type": "integer"
+                    },
+                    "DataAreaId": {
+                      "type": "string"
+                    },
+                    "ExtensionProperties": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "Key": {
+                            "type": "string"
+                          },
+                          "Value": {
+                            "type": "object",
+                            "properties": {
+                              "StringValue": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "required": [
+                          "Key",
+                          "Value"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "TaxLines": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "TaxGroup": {
+                        "type": "string"
+                      },
+                      "Percentage": {
+                        "type": "integer"
+                      },
+                      "IsExempt": {
+                        "type": "boolean"
+                      },
+                      "TaxBasis": {
+                        "type": "number"
+                      },
+                      "IsIncludedInPrice": {
+                        "type": "boolean"
+                      },
+                      "SaleLineNumber": {
+                        "type": "integer"
+                      },
+                      "StoreId": {
+                        "type": "string"
+                      },
+                      "TransactionId": {
+                        "type": "string"
+                      },
+                      "TaxCode": {
+                        "type": "string"
+                      },
+                      "Amount": {
+                        "type": "number"
+                      },
+                      "AmountRefunded": {
+                        "type": "integer"
+                      },
+                      "IsTaxGroupRounding": {
+                        "type": "boolean"
+                      },
+                      "ExtensionProperties": {
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "TaxGroup",
+                      "Percentage",
+                      "IsExempt",
+                      "TaxBasis",
+                      "IsIncludedInPrice",
+                      "SaleLineNumber",
+                      "StoreId",
+                      "TransactionId",
+                      "TaxCode",
+                      "Amount",
+                      "AmountRefunded",
+                      "IsTaxGroupRounding",
+                      "ExtensionProperties"
+                    ]
+                  }
+                },
+                "TenderLines": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "StoreId": {
+                        "type": "string"
+                      },
+                      "TerminalId": {
+                        "type": "string"
+                      },
+                      "TransactionId": {
+                        "type": "string"
+                      },
+                      "InternalTransactionId": {
+                        "type": "string"
+                      },
+                      "RefundableAmount": {
+                        "type": "integer"
+                      },
+                      "CaptureToken": {
+                        "type": "string"
+                      },
+                      "CardToken": {
+                        "type": "string"
+                      },
+                      "Authorization": {
+                        "type": "string"
+                      },
+                      "TransactionStatusValue": {
+                        "type": "integer"
+                      },
+                      "IncomeExpenseAccountTypeValue": {
+                        "type": "integer"
+                      },
+                      "MaskedCardNumber": {
+                        "type": "string"
+                      },
+                      "TenderDate": {
+                        "type": "string"
+                      },
+                      "IsPreProcessed": {
+                        "type": "boolean"
+                      },
+                      "IsDeposit": {
+                        "type": "boolean"
+                      },
+                      "IsCustomerAccountFloorLimitUsed": {
+                        "type": "boolean"
+                      },
+                      "IsIncrementalCaptureEnabled": {
+                        "type": "boolean"
+                      },
+                      "IsReauthorizationEnabled": {
+                        "type": "boolean"
+                      },
+                      "IncrementalOffsetAmount": {
+                        "type": "integer"
+                      },
+                      "ChannelId": {
+                        "type": "integer"
+                      },
+                      "IsLinkedRefund": {
+                        "type": "boolean"
+                      },
+                      "LinkedPaymentStore": {
+                        "type": "string"
+                      },
+                      "LinkedPaymentTerminalId": {
+                        "type": "string"
+                      },
+                      "LinkedPaymentTransactionId": {
+                        "type": "string"
+                      },
+                      "LinkedPaymentLineNumber": {
+                        "type": "integer"
+                      },
+                      "LinkedPaymentCurrency": {
+                        "type": "string"
+                      },
+                      "RoundingDifference": {
+                        "type": "integer"
+                      },
+                      "RemainingLinkedRefundAmount": {
+                        "type": "integer"
+                      },
+                      "TenderLineId": {
+                        "type": "string"
+                      },
+                      "Amount": {
+                        "type": "number"
+                      },
+                      "CashBackAmount": {
+                        "type": "integer"
+                      },
+                      "AmountInTenderedCurrency": {
+                        "type": "number"
+                      },
+                      "AmountInCompanyCurrency": {
+                        "type": "number"
+                      },
+                      "Currency": {
+                        "type": "string"
+                      },
+                      "ExchangeRate": {
+                        "type": "integer"
+                      },
+                      "CompanyCurrencyExchangeRate": {
+                        "type": "integer"
+                      },
+                      "TenderTypeId": {
+                        "type": "string"
+                      },
+                      "LineNumber": {
+                        "type": "integer"
+                      },
+                      "GiftCardId": {
+                        "type": "string"
+                      },
+                      "CreditMemoId": {
+                        "type": "string"
+                      },
+                      "CustomerId": {
+                        "type": "string"
+                      },
+                      "LoyaltyCardId": {
+                        "type": "string"
+                      },
+                      "CardTypeId": {
+                        "type": "string"
+                      },
+                      "IsChangeLine": {
+                        "type": "boolean"
+                      },
+                      "IsHistorical": {
+                        "type": "boolean"
+                      },
+                      "IsVoidable": {
+                        "type": "boolean"
+                      },
+                      "StatusValue": {
+                        "type": "integer"
+                      },
+                      "VoidStatusValue": {
+                        "type": "integer"
+                      },
+                      "AuthorizedAmount": {
+                        "type": "integer"
+                      },
+                      "PaymentRefRecId": {
+                        "type": "integer"
+                      },
+                      "CardPaymentAccountId": {
+                        "type": "string"
+                      },
+                      "ProcessingTypeValue": {
+                        "type": "integer"
+                      },
+                      "CardProcessorStatusValue": {
+                        "type": "integer"
+                      },
+                      "LinkedPaymentRefRecId": {
+                        "type": "integer"
+                      },
+                      "ReasonCodeLines": {
+                        "type": "array"
+                      },
+                      "ExtensionProperties": {
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "StoreId",
+                      "TerminalId",
+                      "TransactionId",
+                      "InternalTransactionId",
+                      "RefundableAmount",
+                      "CaptureToken",
+                      "CardToken",
+                      "Authorization",
+                      "TransactionStatusValue",
+                      "IncomeExpenseAccountTypeValue",
+                      "MaskedCardNumber",
+                      "TenderDate",
+                      "IsPreProcessed",
+                      "IsDeposit",
+                      "IsCustomerAccountFloorLimitUsed",
+                      "IsIncrementalCaptureEnabled",
+                      "IsReauthorizationEnabled",
+                      "IncrementalOffsetAmount",
+                      "ChannelId",
+                      "IsLinkedRefund",
+                      "LinkedPaymentStore",
+                      "LinkedPaymentTerminalId",
+                      "LinkedPaymentTransactionId",
+                      "LinkedPaymentLineNumber",
+                      "LinkedPaymentCurrency",
+                      "RoundingDifference",
+                      "RemainingLinkedRefundAmount",
+                      "TenderLineId",
+                      "Amount",
+                      "CashBackAmount",
+                      "AmountInTenderedCurrency",
+                      "AmountInCompanyCurrency",
+                      "Currency",
+                      "ExchangeRate",
+                      "CompanyCurrencyExchangeRate",
+                      "TenderTypeId",
+                      "LineNumber",
+                      "GiftCardId",
+                      "CreditMemoId",
+                      "CustomerId",
+                      "LoyaltyCardId",
+                      "CardTypeId",
+                      "IsChangeLine",
+                      "IsHistorical",
+                      "IsVoidable",
+                      "StatusValue",
+                      "VoidStatusValue",
+                      "AuthorizedAmount",
+                      "PaymentRefRecId",
+                      "CardPaymentAccountId",
+                      "ProcessingTypeValue",
+                      "CardProcessorStatusValue",
+                      "LinkedPaymentRefRecId",
+                      "ReasonCodeLines",
+                      "ExtensionProperties"
+                    ]
+                  }
+                },
+                "RefundableTenderLines": {
+                  "type": "array"
+                },
+                "Notes": {
+                  "type": "array"
+                },
+                "FiscalTransactions": {
+                  "type": "array"
+                },
+                "ExtensionProperties": {
+                  "type": "array"
+                }
+              }
+            }
+          }
+        },
+        "Send_email_(V4)": {
+          "runAfter": {
+            "Parse_JSON": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "3586e8df-f07c-4111-8424-a39c9b038256"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sendgrid",
+              "operationId": "SendEmailV4",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sendgrid"
+            },
+            "parameters": {
+              "request/from": "noreply@sacommercelabs.com",
+              "request/to": "ssundar@microsoft.com",
+              "request/subject": "Contoso order confirmed",
+              "request/text": "<p><span style=\"font-size: 14px\"><strong>Dear </strong></span><span style=\"font-size: 14px\"></span><span style=\"font-size: 14px\">@{body('Parse_JSON')?['Name']}</span><span style=\"font-size: 14px\"><br>\n<br>\nThank you for placing the order.<br>\n<br>\nAmount paid is </span><span style=\"font-size: 14px\">@{body('Parse_JSON')?['AmountPaid']}</span><span style=\"font-size: 14px\"><br>\n<br>\nYour customer id is </span><span style=\"font-size: 14px\">@{body('Parse_JSON')?['CustomerId']}</span><span style=\"font-size: 14px\">.<br>\n<br>\nA receipt has been send to your email </span><span style=\"font-size: 14px\">@{body('Parse_JSON')?['ReceiptEmail']}</span><span style=\"font-size: 14px\">.<br>\n <br>\n</span><span style=\"font-size: 14px\"><strong>Contoso team</strong></span><span style=\"font-size: 14px\"><br>\n</span><br>\n</p>"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "outputs": {}
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

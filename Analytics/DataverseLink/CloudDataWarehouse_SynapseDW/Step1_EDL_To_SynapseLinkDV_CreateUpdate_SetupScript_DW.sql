@@ -234,10 +234,6 @@ AS
         FROM {schema}._new_{tablename} t
         INNER JOIN #TempDuplicates{tablename} tmp ON t.Id = tmp.Id and t.versionnumber = tmp.versionnumber and t.SinkCreatedOn = tmp.SinkCreatedOn;
 
-        DELETE t
-        FROM {schema}._new_{tablename} t
-		where t.IsDelete = 1;
-
         drop table  #TempDuplicates{tablename};
 
         END'

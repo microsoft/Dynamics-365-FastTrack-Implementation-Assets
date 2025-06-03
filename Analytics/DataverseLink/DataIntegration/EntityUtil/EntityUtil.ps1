@@ -30,6 +30,7 @@ $targetConnectionString = "Server=$($targetServerName);Database=$($targetDatabas
 
 # Database schema we are using
 $dbSchema = $config.dbSchema
+$dbSchemaTarget = $config.dbSchemaTarget
 
 # Create SQL connection
 $targetConnection = New-Object System.Data.SqlClient.SqlConnection($targetConnectionString)
@@ -80,7 +81,17 @@ else
     $TargetEndpointType = "SQL"
 }
 
-   
+# using dbTargetSchema has not been validated within Azure SQL, so throwing error
+# neither has this be tested in a serverless database, so if required please also test and validate
+# it has only been tested in the serverless lake replica database and Fabric
+if (($TargetEndpointType -eq "SQL") -and 
+    (($dbSchemaTarget -ne "") -and ($dbSchemaTarget -ne "dbo")))
+{
+    Write-Host "Creating views in Azure SQL has not been tested." -ForegroundColor Red
+    Write-Host "If you would like to use this capability, please test and modify the script accordingly." -ForegroundColor Red
+    return;
+}
+
 # Open the SQL connection
 $targetConnection.Open()
 
@@ -175,6 +186,12 @@ foreach ($dependency in $dependencyArray)
             $ddl = $ddl.Replace("CREATE VIEW", "CREATE OR ALTER VIEW");
         }
         
+        # check to see if the customer would like to create the VIEWS in a different schema and update accordingly
+        if ($dbSchemaTarget -ne "")
+        {
+            $ddl = $ddl.Replace("[DBO]", "[$($dbSchemaTarget.ToUpper())]");
+        }
+
         $ddl = $ddl.Replace("[dbo].GetValidFromInContextInfo()", "GETUTCDATE()");
         $ddl = $ddl.Replace("[dbo].GetValidToInContextInfo()", "GETUTCDATE()");
         $ddl = $ddl.Replace("dbo.GetValidFromInContextInfo()", "GETUTCDATE()");
@@ -201,32 +218,56 @@ foreach ($dependency in $dependencyArray)
         }
 
 
-        if ($TargetEndpointType -eq "MS_Fabric")
+
+        if (($TargetEndpointType -eq "MS_Fabric") -or 
+            ($TargetEndpointType -eq "Synapse_Serverless"))
         {
+            # 21 Aug 2024
+            # changing to support creating views in a new schema, 
+            # so removing the _view component and replacing with dbSchemaTarget
+            # this will also need to run on serverless as well as Fabric
+            if ($dbSchemaTarget -ne "")
+            {
+                $tableList = $config.inheritedTablesToBeCreated -split ','
+           
+                # Loop through the values
+                foreach ($table in $tableList) 
+                {
+                   if ($ddl -like "* $table *")
+                   {
+                       # $ddl = $ddl -replace $table, ("$table" + "_view")
+                       $ddl = $ddl.Replace("[DBO].$table", "[$($dbSchemaTarget.ToLower())].$table");
+                   }
+                }
+            }
             
+
             # if this is being run on Fabric, it is assumed that you are creating inherited tables,
             # thus including the replace statement to ensure views are created correctly
             # Read the list of inherited tables to be created Split the comma-separated values
-            $tableList = $config.inheritedTablesToBeCreated -split ','
-            $ddl = $ddl.ToLower();
+            # $tableList = $config.inheritedTablesToBeCreated -split ','
+            # $ddl = $ddl.ToLower();
             # Loop through the values
-            foreach ($table in $tableList) 
-            {
-                if ($ddl -like "* $table *")
-                {
-                    $ddl = $ddl -replace $table, ("$table" + "_view")
-                }
-            }
+            # foreach ($table in $tableList) 
+            # {
+            #    if ($ddl -like "* $table *")
+            #    {
+            #        $ddl = $ddl -replace $table, ("$table" + "_view")
+            #    }
+            # }
 
-            # There are some case sensitive statements that need to be updated for Fabric
-            # Filter the JSON array 
-            $replaceFabricSyntaxArray = $replaceFabricSyntaxtArray | Where-Object { $_.ViewName -eq $entityName }
+            if ($TargetEndpointType -eq "MS_Fabric")
+            { 
+                # There are some case sensitive statements that need to be updated for Fabric
+                # Filter the JSON array 
+                $ddl = $ddl.ToLower();
+                $replaceFabricSyntaxArray = $replaceFabricSyntaxtArray | Where-Object { $_.ViewName -eq $entityName }
         
-            foreach ($replaceFabricSyntax in $replaceFabricSyntaxArray) 
-            {
-              #  Write-host "$entityName Replacing the syntax";
-               $ddl = $ddl.Replace($replaceFabricSyntax.Key,$replaceFabricSyntax.Value)
-           
+                foreach ($replaceFabricSyntax in $replaceFabricSyntaxArray) 
+                {
+                    #  Write-host "$entityName Replacing the syntax";
+                    $ddl = $ddl.Replace($replaceFabricSyntax.Key,$replaceFabricSyntax.Value)
+                }
             }
             
         }

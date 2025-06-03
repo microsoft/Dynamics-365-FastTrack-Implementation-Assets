@@ -1,0 +1,71 @@
+trigger: none
+
+jobs:
+- deployment: Source
+  displayName: Dataverse DevOps Export from Source
+  pool:
+    name: Azure Pipelines
+    vmImage: windows-latest
+  environment: Source
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - checkout: self
+        - task: PowerPlatformToolInstaller@2
+          displayName: Install PAC CLI to Host
+          inputs:
+            DefaultVersion: true
+        - task: PowerPlatformPublishCustomizations@2
+          displayName: Publish All Customizations
+          inputs:
+            authenticationType: 'PowerPlatformSPN'
+            PowerPlatformSPN: 'Dataverse source environment'
+            AsyncOperation: true
+            MaxAsyncWaitTime: '60'
+        - task: PowerPlatformSetSolutionVersion@2
+          displayName: Update Solution Build Version
+          inputs:
+            authenticationType: 'PowerPlatformSPN'
+            PowerPlatformSPN: 'Dataverse source environment'
+            SolutionName: 'YourSolutionUniqueName'
+            SolutionVersionNumber: '$(Build.BuildNumber)'
+        - task: PowerPlatformExportSolution@2
+          displayName: Export Unmanaged Solution
+          inputs:
+            authenticationType: 'PowerPlatformSPN'
+            PowerPlatformSPN: 'Dataverse source environment'
+            SolutionName: 'YourSolutionUniqueName'
+            SolutionOutputFile: '$(Build.ArtifactStagingDirectory)\YourSolutionUniqueName.zip'
+            Managed: false
+            AsyncOperation: true
+            MaxAsyncWaitTime: '60'
+        - task: PowerPlatformExportSolution@2
+          displayName: Export Managed Solution
+          inputs:
+            authenticationType: 'PowerPlatformSPN'
+            PowerPlatformSPN: 'Dataverse source environment'
+            SolutionName: 'YourSolutionUniqueName'
+            SolutionOutputFile: '$(Build.ArtifactStagingDirectory)\YourSolutionUniqueName_managed.zip'
+            Managed: true
+            AsyncOperation: true
+            MaxAsyncWaitTime: '60'
+        - task: PowerPlatformUnpackSolution@2
+          displayName: Unpack Solution
+          inputs:
+            SolutionInputFile: '$(Build.ArtifactStagingDirectory)\YourSolutionUniqueName.zip'
+            SolutionTargetFolder: '$(Build.SourcesDirectory)\YourSolutionUniqueName'
+            SolutionType: 'Both'
+        - task: PowerShell@2
+          displayName: Commit Change to GitHub Repo
+          inputs:
+            targetType: 'inline'
+            script: |
+              Add-Content "$HOME\.git-credentials" "https://$(GitHubPAT):x-oauth-basic@github.com"
+              git config --global user.email "youruser@domain.com"
+              git config --global user.name "youruser"
+              git config --global --add url."git@github.com:".insteadOf "https://github.com/"
+              git checkout -B main
+              git add --all
+              git commit -m "code commit"
+              git push https://$(GitHubPAT)@github.com/YourGitHubOrgName/YourGitHubRepoName.git

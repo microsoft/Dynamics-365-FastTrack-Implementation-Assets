@@ -1,0 +1,12 @@
+<customapirequestparameter uniquename="msdynmkt_signaluserauthid">
+  <description default="msdynmkt_signaluserauthid">
+    <label description="msdynmkt_signaluserauthid" languagecode="1033" />
+  </description>
+  <displayname default="CDP-A Signal User Auth Id">
+    <label description="CDP-A Signal User Auth Id" languagecode="1033" />
+  </displayname>
+  <iscustomizable>0</iscustomizable>
+  <isoptional>0</isoptional>
+  <name>msdynmkt_signaluserauthid</name>
+  <type>10</type>
+</customapirequestparameter>

@@ -1,0 +1,12 @@
+<customapirequestparameter uniquename="msdynmkt_salesid">
+  <description default="msdynmkt_salesid">
+    <label description="msdynmkt_salesid" languagecode="1033" />
+  </description>
+  <displayname default="SalesId">
+    <label description="SalesId" languagecode="1033" />
+  </displayname>
+  <iscustomizable>0</iscustomizable>
+  <isoptional>0</isoptional>
+  <name>msdynmkt_salesid</name>
+  <type>10</type>
+</customapirequestparameter>

@@ -1,0 +1,12 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/CommerceEventSample/FileContentIndex
+/.vs
+CommerceEventSample.generated.sln
+CommerceRuntime/obj/CommerceRuntime.csproj.nuget.dgspec.json
+CommerceRuntime/obj/CommerceRuntime.csproj.nuget.g.props
+CommerceRuntime/obj/CommerceRuntime.csproj.nuget.g.targets
+CommerceRuntime/obj/project.assets.json
+CommerceRuntime/obj/project.nuget.cache

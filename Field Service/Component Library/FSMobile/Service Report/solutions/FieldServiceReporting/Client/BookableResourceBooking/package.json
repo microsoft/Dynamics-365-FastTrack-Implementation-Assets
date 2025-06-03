@@ -1,0 +1,8 @@
+{
+    "name": "report-webresource",
+    "version": "1.0.0",
+    "description": "Reporting Web Resource",
+    "devDependencies": {
+        "@types/xrm": "^9.0.82"
+    }
+}  

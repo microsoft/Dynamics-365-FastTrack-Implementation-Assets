@@ -1,0 +1,12 @@
+<customapirequestparameter uniquename="msdynmkt_signalingestiontimestamp">
+  <description default="msdynmkt_signalingestiontimestamp">
+    <label description="msdynmkt_signalingestiontimestamp" languagecode="1033" />
+  </description>
+  <displayname default="CDP-A Signal Ingestion Timestamp">
+    <label description="CDP-A Signal Ingestion Timestamp" languagecode="1033" />
+  </displayname>
+  <iscustomizable>0</iscustomizable>
+  <isoptional>0</isoptional>
+  <name>msdynmkt_signalingestiontimestamp</name>
+  <type>1</type>
+</customapirequestparameter>

@@ -1,0 +1,12 @@
+<customapirequestparameter uniquename="msdynmkt_currencycode">
+  <description default="msdynmkt_currencycode">
+    <label description="msdynmkt_currencycode" languagecode="1033" />
+  </description>
+  <displayname default="CurrencyCode">
+    <label description="CurrencyCode" languagecode="1033" />
+  </displayname>
+  <iscustomizable>0</iscustomizable>
+  <isoptional>0</isoptional>
+  <name>msdynmkt_currencycode</name>
+  <type>10</type>
+</customapirequestparameter>

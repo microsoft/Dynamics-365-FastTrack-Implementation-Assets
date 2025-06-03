@@ -1,0 +1,12 @@
+<customapirequestparameter uniquename="msdynmkt_createddatetime">
+  <description default="msdynmkt_createddatetime">
+    <label description="msdynmkt_createddatetime" languagecode="1033" />
+  </description>
+  <displayname default="CreatedDateTime">
+    <label description="CreatedDateTime" languagecode="1033" />
+  </displayname>
+  <iscustomizable>0</iscustomizable>
+  <isoptional>0</isoptional>
+  <name>msdynmkt_createddatetime</name>
+  <type>10</type>
+</customapirequestparameter>
