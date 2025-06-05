@@ -63,7 +63,11 @@ BEGIN
 	DECLARE @minRecId BIGINT = 0
 	DECLARE @maxRecId BIGINT = 0
 
+	Declare @partitionId bigint = 0
+
 	Print('checkpoint 1')
+
+	select top 1 @partitionId = PARTITION from USERINFO
 
 	    -- Check for CreatedDateTime and ModifiedDateTime fields
     SELECT @DateField = CleanupColumn FROM FTDateTimeColumnMappingPerTable WHERE TABLE_NAME = @Table
@@ -161,17 +165,23 @@ BEGIN
     -- Set the run timestamp to current date and time
     SET @StartTime = GETDATE()
 
-	SET @SQL ='SELECT @minRecId = min(RecId) FROM '+@Table+' WHERE ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+	SET @SQL ='SELECT @minRecId = min(RecId) FROM '+@Table+' WHERE Partition = '+ CONVERT(NVARCHAR, @partitionId) + ' AND DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
 	EXEC sp_executesql @SQL, N'@minRecId BIGINT OUTPUT', @minRecId OUTPUT
 
+	Print('checkpoint 8')
 
     -- Count records to be deleted in simulation mode
-    SET @SQL = 'SELECT @DeletedRecords = COUNT(*) FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' < ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+    SET @SQL = 'SELECT @DeletedRecords = COUNT(*) FROM ' + @Table + ' WHERE Partition = '+ CONVERT(NVARCHAR, @partitionId) + ' AND  DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' < ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
     EXEC sp_executesql @SQL, N'@DeletedRecords INT OUTPUT', @DeletedRecords OUTPUT
 
+	Print('checkpoint 9')
+
 		    -- Count records to be deleted in simulation mode
-    SET @SQL = 'SELECT @SavedRecords = COUNT(*) FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+    SET @SQL = 'SELECT @SavedRecords = COUNT(*) FROM ' + @Table + ' WHERE Partition = '+ CONVERT(NVARCHAR, @partitionId) + ' AND DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
     EXEC sp_executesql @SQL, N'@SavedRecords INT OUTPUT', @SavedRecords OUTPUT
+	
+	Print('checkpoint 10')
+
 
 	Print @SQL
 	Print 'nbRecord to save : ' + CONVERT(NVARCHAR,@SavedRecords)
@@ -218,12 +228,12 @@ BEGIN
 				BEGIN TRANSACTION
 				IF @maxRecId = 0
 				Begin
-					SET @SQL = 'SELECT TOP '+Convert(NVARCHAR,@BatchSize)+ ' ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND RecId >= ' + CONvert(NVARCHAR,@minRecId) 
+					SET @SQL = 'SELECT TOP '+Convert(NVARCHAR,@BatchSize)+ ' ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE Partition = '+ CONVERT(NVARCHAR, @partitionId) + ' AND  DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND RecId >= ' + CONvert(NVARCHAR,@minRecId) 
 					SET @SQL =@SQL + ' ORDER BY RecId desc'
 				End
 				ELSE
 				BEGIN
-					SET @SQL = 'SELECT TOP '+Convert(NVARCHAR,@BatchSize)+ ' ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND RecId >= ' + CONvert(NVARCHAR,@minRecId) + ' AND RecId < ' + CONvert(NVARCHAR,@maxRecId)
+					SET @SQL = 'SELECT TOP '+Convert(NVARCHAR,@BatchSize)+ ' ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE Partition = '+ CONVERT(NVARCHAR, @partitionId) + ' AND  DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND RecId >= ' + CONvert(NVARCHAR,@minRecId) + ' AND RecId < ' + CONvert(NVARCHAR,@maxRecId)
 					SET @SQL =@SQL + ' ORDER BY RecId desc'
 				END
 				EXEC sp_executesql @SQL 
@@ -350,12 +360,12 @@ BEGIN
 				BEGIN TRANSACTION
 				IF @maxRecId = 0
 				Begin
-					SET @SQL = 'SELECT TOP '+Convert(NVARCHAR,@BatchSize)+ ' ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND RecId >= ' + CONvert(NVARCHAR,@minRecId) 
+					SET @SQL = 'SELECT TOP '+Convert(NVARCHAR,@BatchSize)+ ' ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE Partition = '+ CONVERT(NVARCHAR, @partitionId) + ' AND  DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND RecId >= ' + CONvert(NVARCHAR,@minRecId) 
 					SET @SQL =@SQL + ' ORDER BY RecId desc'
 				End
 				ELSE
 				BEGIN
-					SET @SQL = 'SELECT TOP '+Convert(NVARCHAR,@BatchSize)+ ' ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND RecId >= ' + CONvert(NVARCHAR,@minRecId) + ' AND RecId < ' + CONvert(NVARCHAR,@maxRecId)
+					SET @SQL = 'SELECT TOP '+Convert(NVARCHAR,@BatchSize)+ ' ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE Partition = '+ CONVERT(NVARCHAR, @partitionId) + ' AND  DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND RecId >= ' + CONvert(NVARCHAR,@minRecId) + ' AND RecId < ' + CONvert(NVARCHAR,@maxRecId)
 					SET @SQL =@SQL + ' ORDER BY RecId desc'
 				END
 				EXEC sp_executesql @SQL 
@@ -366,7 +376,8 @@ BEGIN
 				SET @CurrentRow = @CurrentRow + @BatchSize;
 				SET @nbBatchExecution = @nbBatchExecution +1
 				COMMIT TRANSACTION
-				Update DBCleanupResultsLog
+
+        Update DBCleanupResultsLog
 				set Step = @step, CurrentLoopIndex = @nbBatchExecution
 				where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
 
