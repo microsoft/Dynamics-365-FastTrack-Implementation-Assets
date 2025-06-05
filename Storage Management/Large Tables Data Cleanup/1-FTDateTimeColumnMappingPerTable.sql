@@ -1,17 +1,48 @@
 -- Create or Alter view FTDateTimeColumnMappingPerTable
 CREATE OR ALTER VIEW FTDateTimeColumnMappingPerTable AS 
 
--- 1) Identify tables that have CREATEDDATETIME as the chosen cleanup column
+-- 1) Identify tables that have ACCOUNTINGDATE
+SELECT 
+    FIC.Table_Name,
+    'AccountingDate' AS CleanupColumn,
+    'Preferred: AccountingDate indicates when record was originally created.' AS Reason
+FROM FTInformationcolums FIC
+WHERE FIC.COLUMN_NAME = 'AccountingDate'
+
+UNION
+
+-- 2) Identify tables that do NOT have ACCOUNTINGDATE but  have TRANSDATE
+SELECT 
+    FIC.Table_Name,
+    'TransDate' AS CleanupColumn,
+    'Preferred: TranDate if AccountingDate does not exist.' AS Reason
+FROM FTInformationcolums FIC
+WHERE FIC.COLUMN_NAME = 'TransDate'
+    AND FIC.TABLE_NAME NOT IN (
+        SELECT TABLE_NAME 
+        FROM FTInformationcolums 
+        WHERE COLUMN_NAME IN ('AccountingDate')
+    )
+
+UNION
+
+-- 3) Identify tables that have CREATEDDATETIME as the chosen cleanup column
 SELECT 
     FIC.TABLE_NAME,
     'CreatedDateTime' AS CleanupColumn,
     'Preferred: CreatedDateTime indicates when record was originally created.' AS Reason
 FROM FTInformationcolums FIC
 WHERE FIC.COLUMN_NAME = 'CreatedDateTime'
+    AND FIC.TABLE_NAME NOT IN (
+        SELECT TABLE_NAME 
+        FROM FTInformationcolums 
+        WHERE COLUMN_NAME IN ('AccountingDate','TransDate')
+    )
+
 
 UNION
 
--- 2) Identify tables that do NOT have CREATEDDATETIME but do have MODIFIEDDATETIME
+-- 4) Identify tables that do NOT have CREATEDDATETIME but do have MODIFIEDDATETIME
 SELECT 
     FIC.Table_Name,
     'ModifiedDateTime' AS CleanupColumn,
@@ -21,37 +52,7 @@ WHERE FIC.Column_Name = 'ModifiedDateTime'
     AND FIC.Table_Name NOT IN (
         SELECT FTIC.Table_Name 
         FROM FTInformationcolums FTIC
-        WHERE FTIC.Column_Name = 'CreatedDateTime'
-    )
-
-UNION
-
--- 3) Identify tables that do NOT have CREATEDDATETIME or MODIFIEDDATETIME but do have ACCOUNTINGDATE
-SELECT 
-    FIC.Table_Name,
-    'AccountingDate' AS CleanupColumn,
-    'Fallback: AccountingDate is used if neither CreatedDateTime nor ModifiedDateTime exist.' AS Reason
-FROM FTInformationcolums FIC
-WHERE FIC.COLUMN_NAME = 'AccountingDate'
-    AND FIC.TABLE_NAME NOT IN (
-        SELECT TABLE_NAME 
-        FROM FTInformationcolums 
-        WHERE COLUMN_NAME IN ('CreatedDateTime', 'ModifiedDateTime')
-    )
-
-UNION
-
--- 4) Identify tables that do NOT have CREATEDDATETIME, MODIFIEDDATETIME, or ACCOUNTINGDATE but do have TRANSDATE
-SELECT 
-    FIC.Table_Name,
-    'TransDate' AS CleanupColumn,
-    'Fallback: TransDate is used if neither CreatedDateTime, ModifiedDateTime, nor AccountingDate exist.' AS Reason
-FROM FTInformationcolums FIC
-WHERE FIC.COLUMN_NAME = 'TransDate'
-    AND FIC.TABLE_NAME NOT IN (
-        SELECT TABLE_NAME 
-        FROM FTInformationcolums 
-        WHERE COLUMN_NAME IN ('CreatedDateTime', 'ModifiedDateTime', 'AccountingDate')
+        WHERE COLUMN_NAME IN ('AccountingDate','TransDate','CreatedDateTime')
     )
 
 UNION
