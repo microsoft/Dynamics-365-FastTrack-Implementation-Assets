@@ -1,3 +1,11 @@
+/****** Object:  StoredProcedure [dbo].[KeepOnlyRecordsSp]    Script Date: 6/4/2025 1:42:24 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
 /*
 Description:
 This script is designed to archive records from specified tables in a database. It creates a stored procedure that takes table name, legal entity, date, and simulation mode as parameters. The stored procedure performs the following steps:
@@ -24,7 +32,7 @@ The script performs the following steps:
 3. Performs the archiving operations based on the provided parameters.
 */
 -- Create the stored procedure with specified parameters
-CREATE OR ALTER PROCEDURE KeepOnlyRecordsSp
+CREATE OR ALTER PROCEDURE [dbo].[KeepOnlyRecordsSp]
     @Table NVARCHAR(Max),
     @LE NVARCHAR(Max),
     @KeepFromDate DATE,
@@ -53,6 +61,9 @@ BEGIN
 	DECLARE @nbBatchExecution INT = 1
 	DECLARE @step INT = 0 
 	DECLARE @minRecId BIGINT = 0
+	DECLARE @maxRecId BIGINT = 0
+
+	Print('checkpoint 1')
 
 	    -- Check for CreatedDateTime and ModifiedDateTime fields
     SELECT @DateField = CleanupColumn FROM FTDateTimeColumnMappingPerTable WHERE TABLE_NAME = @Table
@@ -73,6 +84,8 @@ BEGIN
         RETURN
     END
 
+	Print('checkpoint 2')
+
 	IF @Resume = 1
 	BEGIN
 		SELECT TOP 1 @RunTimestamp = StartTime, @STep = Step, @nbBatchExecution = CurrentLoopIndex
@@ -91,10 +104,11 @@ BEGIN
 				INSERT INTO DBCleanupResultsLog (TableName, LegalEntity, KeepFromDate, StartTime,Step, CurrentLoopIndex)
 				VALUES (@Table, @LE, CONVERT(NVARCHAR, @KeepFromDate, 120), @RunTimestamp, @step, @nbBatchExecution)
 			END
+		Print('checkpoint 3')
+
 	END
 	ELSE 
 	BEGIN
-			
 		if exists(SELECT TOP 1 @RunTimestamp 
 			FROM DBCleanupResultsLog
 			WHERE EndTime IS NULL
@@ -109,9 +123,12 @@ BEGIN
 			-- Insert a marker line to be able to resume
 		INSERT INTO DBCleanupResultsLog (TableName, LegalEntity, KeepFromDate, StartTime,Step, CurrentLoopIndex)
 		VALUES (@Table, @LE, CONVERT(NVARCHAR, @KeepFromDate, 120), @RunTimestamp, @step, @nbBatchExecution)
+		Print('checkpoint 4')
 
 	END
 
+	Print('checkpoint 5')
+	
 	BEGIN TRANSACTION
 
     -- Get column list excluding timestamp columns
@@ -121,6 +138,8 @@ BEGIN
         WHERE TABLE_NAME = @Table AND DATA_TYPE NOT IN ('timestamp') AND TABLE_SCHEMA = 'DBO'
         FOR XML PATH(''), TYPE
     ).value('.', 'NVARCHAR(MAX)'), 1, 2, '')
+	
+	Print('checkpoint 6')
 
     -- Check if CDC is enabled and disable it if necessary
     SELECT @CDCState = is_tracked_by_cdc
@@ -133,12 +152,18 @@ BEGIN
                 EXEC sp_executesql @SQL
     END
 
+	Print('checkpoint 7')
+
     -- Disable Change Data Capture or Change Tracking if enabled
     SET @SQL = 'IF EXISTS (SELECT * FROM sys.change_tracking_tables WHERE object_id = OBJECT_ID(''' + @Table + ''')) ALTER TABLE ' + @Table + ' DISABLE CHANGE_TRACKING'
     EXEC sp_executesql @SQL
 
     -- Set the run timestamp to current date and time
     SET @StartTime = GETDATE()
+
+	SET @SQL ='SELECT @minRecId = min(RecId) FROM '+@Table+' WHERE ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+	EXEC sp_executesql @SQL, N'@minRecId BIGINT OUTPUT', @minRecId OUTPUT
+
 
     -- Count records to be deleted in simulation mode
     SET @SQL = 'SELECT @DeletedRecords = COUNT(*) FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' < ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
@@ -165,8 +190,6 @@ BEGIN
 
 	COMMIT TRANSACTION
 
-	SET @SQL ='SELECT @minRecId = min(RecId) FROM '+@Table+' WHERE ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
-	EXEC sp_executesql @SQL, N'@minRecId BIGINT OUTPUT', @minRecId OUTPUT
 	-- Simulation mode: Estimate duration of select, truncate, and insert statements and count records
 	IF @Simulation = 1
     BEGIN
@@ -193,15 +216,29 @@ BEGIN
 					EXEC sp_executesql @SQL
 				END
 				BEGIN TRANSACTION
-				SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND RecId >= ' + CONvert(NVARCHAR,@minRecId) 
-				SET @SQL =@SQL + ' ORDER BY RecId desc OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
+				IF @maxRecId = 0
+				Begin
+					SET @SQL = 'SELECT TOP '+Convert(NVARCHAR,@BatchSize)+ ' ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND RecId >= ' + CONvert(NVARCHAR,@minRecId) 
+					SET @SQL =@SQL + ' ORDER BY RecId desc'
+				End
+				ELSE
+				BEGIN
+					SET @SQL = 'SELECT TOP '+Convert(NVARCHAR,@BatchSize)+ ' ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND RecId >= ' + CONvert(NVARCHAR,@minRecId) + ' AND RecId < ' + CONvert(NVARCHAR,@maxRecId)
+					SET @SQL =@SQL + ' ORDER BY RecId desc'
+				END
 				EXEC sp_executesql @SQL 
+
+				SET @SQL ='SELECT @maxRecId = min(RecId) FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+				EXEC sp_executesql @SQL, N'@maxRecId BIGINT OUTPUT', @maxRecId OUTPUT
+				
 				SET @CurrentRow = @CurrentRow + @BatchSize;
 				SET @nbBatchExecution = @nbBatchExecution +1
 				COMMIT TRANSACTION
+				
 				Update DBCleanupResultsLog
 				set Step = @step, CurrentLoopIndex = @nbBatchExecution
 				where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
+
 
 			END
 			SET @Interimend = GETDATE()
@@ -278,7 +315,6 @@ BEGIN
 					set Step = @step, CurrentLoopIndex = @nbBatchExecution
 					where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
 
-
 			END
 		END
 
@@ -305,22 +341,34 @@ BEGIN
 			END
 			WHILE @CurrentRow < @SavedRecords
 			BEGIN
-					-- Drop temporary table if it exists in tempdb
-					IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
-					BEGIN
-						SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
-						EXEC sp_executesql @SQL
-					END
-					BEGIN TRANSACTION
-					SET @SQL = 'SELECT ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND RecId >= ' + CONvert(NVARCHAR,@minRecId) 
-					SET @SQL =@SQL + ' ORDER BY RecId desc OFFSET '+CONvert(NVARCHAR,@CurrentRow)+' ROWS FETCH NEXT '+CONvert(NVARCHAR,@BatchSize)+' ROWS ONLY;'
-					EXEC sp_executesql @SQL 
- 					SET @CurrentRow = @CurrentRow + @BatchSize;
-					SET @nbBatchExecution = @nbBatchExecution +1
-					COMMIT TRANSACTION
-					Update DBCleanupResultsLog
-					set Step = @step, CurrentLoopIndex = @nbBatchExecution
-					where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
+				-- Drop temporary table if it exists in tempdb
+				IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
+				BEGIN
+					SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+					EXEC sp_executesql @SQL
+				END
+				BEGIN TRANSACTION
+				IF @maxRecId = 0
+				Begin
+					SET @SQL = 'SELECT TOP '+Convert(NVARCHAR,@BatchSize)+ ' ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND RecId >= ' + CONvert(NVARCHAR,@minRecId) 
+					SET @SQL =@SQL + ' ORDER BY RecId desc'
+				End
+				ELSE
+				BEGIN
+					SET @SQL = 'SELECT TOP '+Convert(NVARCHAR,@BatchSize)+ ' ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND RecId >= ' + CONvert(NVARCHAR,@minRecId) + ' AND RecId < ' + CONvert(NVARCHAR,@maxRecId)
+					SET @SQL =@SQL + ' ORDER BY RecId desc'
+				END
+				EXEC sp_executesql @SQL 
+
+				SET @SQL ='SELECT @maxRecId = min(RecId) FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+				EXEC sp_executesql @SQL, N'@maxRecId BIGINT OUTPUT', @maxRecId OUTPUT
+				
+				SET @CurrentRow = @CurrentRow + @BatchSize;
+				SET @nbBatchExecution = @nbBatchExecution +1
+				COMMIT TRANSACTION
+				Update DBCleanupResultsLog
+				set Step = @step, CurrentLoopIndex = @nbBatchExecution
+				where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
 
 			END
 			SET @Interimend = GETDATE()
@@ -417,3 +465,6 @@ BEGIN
     SET @SQL = 'IF EXISTS (SELECT * FROM sys.change_tracking_tables WHERE object_id = OBJECT_ID(''' + @Table + ''')) ALTER TABLE ' + @Table + ' ENABLE CHANGE_TRACKING'
     EXEC sp_executesql @SQL
 END
+GO
+
+
