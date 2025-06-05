@@ -1,9 +1,10 @@
 import streamlit as st
 import json
-from conversation_transcript_generator import transcript_annotation, batch_create_liveworkitems, batch_create_transcripts, batch_create_annotations, batch_close_liveworkitems, load_config as load_transcript_config
+from conversation_transcript_generator import transcript_annotation, batch_create_liveworkitems, batch_create_transcripts, batch_create_annotations, batch_close_liveworkitems, load_config as load_transcript_config, batch_create_sessions, batch_create_session_participants, SessionParticipantData, get_timestamp
 from case_generator import CaseGenerator, load_config as load_case_config
 import concurrent.futures
 import os
+import requests
 
 # Configuration
 st.set_page_config(
@@ -16,6 +17,8 @@ st.set_page_config(
 # Initialize session state for stop button
 if 'processing_stopped' not in st.session_state:
     st.session_state.processing_stopped = False
+if 'use_multiple_contacts' not in st.session_state:
+    st.session_state.use_multiple_contacts = False
 
 # Initialize case generator config
 try:
@@ -107,7 +110,19 @@ with st.sidebar:
         value=default_randomize_days, 
         help="Set the number of past days within which the 'createdon' date of records should be randomized. 0 means use the current time."
     )
-    customer_id = st.text_input("Customer ID (Contact)", case_config.get("customer_id", ""), help="Enter the Contact ID for the Dynamics 365 Customer Service environment you want to use as the Customer lookup field for Cases and Conversations. The Contact ID can be found in the URL of the Contact you want to use.")
+    
+    st.session_state.use_multiple_contacts = st.checkbox(
+        "Use Multiple Random Contacts (up to 10 most recently modified)",
+        value=st.session_state.get("use_multiple_contacts", False),
+        help="If checked, the app will fetch up to 10 most recently modified contacts from D365 and distribute records among them, disabling the Customer ID field below."
+    )
+    
+    customer_id_from_input = st.text_input(
+        "Customer ID (Contact)", 
+        case_config.get("customer_id", ""), 
+        help="Enter the Contact ID for the Dynamics 365 Customer Service environment you want to use as the Customer lookup field for Cases and Conversations. The Contact ID can be found in the URL of the Contact you want to use. Used if 'Use Multiple Random Contacts' is unchecked.",
+        disabled=st.session_state.use_multiple_contacts
+    )
 
     # Transcript Generator Settings
     st.subheader("Conversation/Transcript Generator")
@@ -140,7 +155,7 @@ with st.sidebar:
         if "case_generator" in existing_config:
             existing_config["case_generator"]["server_url"] = server_url
             existing_config["case_generator"]["cookie"] = cookie
-            existing_config["case_generator"]["customer_id"] = customer_id
+            existing_config["case_generator"]["customer_id"] = customer_id_from_input
             existing_config["case_generator"]["batch_size"] = case_batch_size
             existing_config["case_generator"]["total_records"] = total_cases
             existing_config["case_generator"]["randomize_days"] = randomize_days
@@ -148,7 +163,7 @@ with st.sidebar:
             existing_config["case_generator"] = {
                 "server_url": server_url,
                 "cookie": cookie,
-                "customer_id": customer_id,
+                "customer_id": customer_id_from_input,
                 "batch_size": case_batch_size,
                 "total_records": total_cases,
                 "randomize_days": randomize_days
@@ -158,7 +173,7 @@ with st.sidebar:
         if "conversation_transcript_generator" in existing_config:
             existing_config["conversation_transcript_generator"]["server_url"] = server_url
             existing_config["conversation_transcript_generator"]["cookie"] = cookie
-            existing_config["conversation_transcript_generator"]["customer_id"] = customer_id
+            existing_config["conversation_transcript_generator"]["customer_id"] = customer_id_from_input
             existing_config["conversation_transcript_generator"]["workstream_id"] = workstreamid
             existing_config["conversation_transcript_generator"]["queue_id"] = queueid
             existing_config["conversation_transcript_generator"]["batch_size"] = transcript_batch_size
@@ -167,7 +182,7 @@ with st.sidebar:
             existing_config["conversation_transcript_generator"] = {
                 "server_url": server_url,
                 "cookie": cookie,
-                "customer_id": customer_id,
+                "customer_id": customer_id_from_input,
                 "workstream_id": workstreamid,
                 "queue_id": queueid,
                 "batch_size": transcript_batch_size,
@@ -192,6 +207,53 @@ This tool helps you generate customer service data in Dynamics 365 Customer Serv
 
 # Create tabs for different functionalities
 transcript_tab, case_tab = st.tabs(["Conversation Generator", "Case Generator"])
+
+# Helper function to fetch contact IDs
+def fetch_d365_contact_ids(server_url, cookie, count=10):
+    """Fetch up to 'count' most recently modified contact IDs from D365"""
+    try:
+        # OData query to get contact IDs, ordered by most recently modified first
+        url = f"{server_url}/api/data/v9.0/contacts?$select=contactid&$orderby=modifiedon desc&$top={count}"
+        response = requests.get(url, headers={'Cookie': cookie, 'Accept': 'application/json'})
+        
+        if response.status_code == 200:
+            data = response.json()
+            contact_ids = [contact['contactid'] for contact in data.get('value', [])]
+            return contact_ids
+        else:
+            st.error(f"Failed to fetch contacts: HTTP {response.status_code}")
+            return []
+    except Exception as e:
+        st.error(f"Error fetching contacts: {str(e)}")
+        return []
+
+def get_current_user_details(server_url: str, cookie: str):
+    """Get current user ID and fullname using WhoAmI request"""
+    try:
+        response = requests.get(
+            f"{server_url}/api/data/v9.0/WhoAmI",
+            headers={'Cookie': cookie, 'Accept': 'application/json'}
+        )
+        if response.status_code == 200:
+            whoami_data = response.json()
+            user_id = whoami_data.get('UserId')
+            
+            if user_id:
+                # Fetch user details to get fullname
+                user_response = requests.get(
+                    f"{server_url}/api/data/v9.0/systemusers({user_id})?$select=fullname",
+                    headers={'Cookie': cookie, 'Accept': 'application/json'}
+                )
+                if user_response.status_code == 200:
+                    user_data = user_response.json()
+                    fullname = user_data.get('fullname', 'Unknown User')
+                    return user_id, fullname
+                    
+        print(f"[{get_timestamp()}] Failed to get current user details: {response.status_code}")
+        return None, None
+    except Exception as e:
+        print(f"[{get_timestamp()}] Error in WhoAmI request: {str(e)}")
+        return None, None
 
 # Function to handle stop button click
 def stop_processing():
@@ -220,6 +282,25 @@ with transcript_tab:
             st.session_state.processing_stopped = False
             
         if process_button:
+            actual_customer_ids_to_use = []
+            customer_id_source_is_multiple = False
+
+            if st.session_state.use_multiple_contacts:
+                st.write("Attempting to fetch multiple contacts from D365...")
+                fetched_contact_ids = fetch_d365_contact_ids(server_url, cookie)
+                if fetched_contact_ids:
+                    actual_customer_ids_to_use = fetched_contact_ids
+                    customer_id_source_is_multiple = True
+                    st.info(f"Using {len(actual_customer_ids_to_use)} contacts fetched from D365: {', '.join(actual_customer_ids_to_use)}")
+                else:
+                    st.error("Failed to fetch contacts or no contacts found. Please uncheck 'Use Multiple Random Contacts' and provide a Customer ID, or ensure contacts exist in D365.")
+                    st.stop()
+            else:
+                if not customer_id_from_input:
+                    st.error("Customer ID is not provided. Please enter a Customer ID in the sidebar or select 'Use Multiple Random Contacts'.")
+                    st.stop()
+                actual_customer_ids_to_use = [customer_id_from_input]
+
             with st.spinner("Processing transcripts..."):
                 progress_bar = st.progress(0)
                 status_text = st.empty()
@@ -298,17 +379,104 @@ with transcript_tab:
                                 annotation_content = transcript_annotation(transcript)
                                 annotation_contents.append(annotation_content)
                             
+                            # Determine customer_ids for this API call batch
+                            customer_ids_for_api_call = []
+                            if customer_id_source_is_multiple and actual_customer_ids_to_use:
+                                for i in range(current_batch_size):
+                                    # 'count' is the starting index of the current_batch within the file
+                                    # 'i' is the index within the current_batch
+                                    item_absolute_index_in_file = count + i
+                                    customer_id_for_item = actual_customer_ids_to_use[
+                                        item_absolute_index_in_file % len(actual_customer_ids_to_use)
+                                    ]
+                                    customer_ids_for_api_call.append(customer_id_for_item)
+                            elif actual_customer_ids_to_use: # Single customer_id_from_input was provided
+                                customer_ids_for_api_call = [actual_customer_ids_to_use[0]] * current_batch_size
+                            else:
+                                # This case should ideally be prevented by earlier checks that stop processing
+                                # if no customer_id is available (neither multiple nor single).
+                                st.error("Critical error: No customer ID available for transcript processing. Stopping.")
+                                st.session_state.processing_stopped = True # Stop further processing
+                                break # Break from the while loop for the current file
+                            
+                            if st.session_state.processing_stopped: # Check again if the above error path was taken
+                                break
+
                             # Create liveworkitems
-                            liveworkitem_ids = batch_create_liveworkitems(server_url, cookie, queueid, workstreamid, customer_id, current_batch_size, randomize_days)
+                            liveworkitem_details = batch_create_liveworkitems( # Returns list of (id, createdon_date_str)
+                                server_url, cookie, queueid, workstreamid, 
+                                customer_ids_for_api_call, 
+                                current_batch_size,        
+                                randomize_days
+                            )
                             
+                            if not liveworkitem_details:
+                                st.error(f"Failed to create live work items for a batch in {uploaded_file.name}. Stopping processing for this file.")
+                                # Potentially log more details if the batch function provides them
+                                break # Stop processing current file
+
+                            liveworkitem_ids = [detail[0] for detail in liveworkitem_details]
+                            liveworkitem_createdon_dates = [detail[1] for detail in liveworkitem_details]
+                            # liveworkitem_subjects = [detail[2] for detail in liveworkitem_details] # Subjects are now available if needed elsewhere
+
                             # Create transcripts
-                            transcript_ids = batch_create_transcripts(server_url, cookie, liveworkitem_ids, current_batch_size, randomize_days)
+                            # batch_create_transcripts expects a list of (id, createdon_date, subject) tuples
+                            transcript_ids = batch_create_transcripts(server_url, cookie, liveworkitem_details, current_batch_size, randomize_days)
                             
-                            # Create annotations
-                            annotation_ids = batch_create_annotations(server_url, cookie, transcript_ids, annotation_contents, current_batch_size, randomize_days)
+                            if len(transcript_ids) != len(liveworkitem_ids):
+                                st.warning(f"Mismatch in created live work items ({len(liveworkitem_ids)}) and transcripts ({len(transcript_ids)}) for a batch in {uploaded_file.name}.")
+                                # Decide on recovery or stopping. For now, continue if some transcripts were made.
                             
+                            if not transcript_ids:
+                                st.error(f"Failed to create transcripts for a batch in {uploaded_file.name} (associated LWIs: {', '.join(liveworkitem_ids)}). Skipping annotations and sessions for this batch.")
+                                # Continue to next batch or stop file processing if critical
+                            else:
+                                # Create sessions
+                                if liveworkitem_details: # Ensure we have details to create sessions
+                                    session_details_list = batch_create_sessions(
+                                        server_url, cookie,
+                                        liveworkitem_details, # Pass list of (id, createdon_date, subject) tuples
+                                        current_batch_size,
+                                        randomize_days
+                                    )
+                                    if len(session_details_list) != len(liveworkitem_ids):
+                                        st.warning(f"Mismatch in created live work items ({len(liveworkitem_ids)}) and sessions ({len(session_details_list)}) for a batch in {uploaded_file.name}.")
+                                    
+                                    # Create session participants
+                                    if session_details_list:
+                                        # Get current user details for session participants
+                                        current_user_id, current_user_fullname = get_current_user_details(server_url, cookie)
+                                        if current_user_id and current_user_fullname:
+                                            print(f"[{get_timestamp()}] Creating session participants for user {current_user_fullname} ({current_user_id})")
+                                            participant_data_for_batch = [
+                                                SessionParticipantData(
+                                                    session_activity_id=sess_id, 
+                                                    session_created_on=sess_createdon, 
+                                                    agent_id=current_user_id, 
+                                                    agent_fullname=current_user_fullname,
+                                                    randomize_days=randomize_days 
+                                                ) for sess_id, sess_createdon in session_details_list if sess_id and sess_createdon
+                                            ]
+                                            if participant_data_for_batch:
+                                                participant_ids = batch_create_session_participants(server_url, cookie, participant_data_for_batch, len(participant_data_for_batch))
+                                                print(f"[{get_timestamp()}] Created {len(participant_ids)} session participants")
+                                            else:
+                                                print(f"[{get_timestamp()}] No valid session details to create participants for.")
+                                        else:
+                                            print(f"[{get_timestamp()}] Could not get current user details for session participants creation.")
+                                    else:
+                                        print(f"[{get_timestamp()}] No sessions were created, skipping session participants creation.")
+
+                                # Create annotations
+                                # Pass liveworkitem_createdon_dates to batch_create_annotations
+                                annotation_ids = batch_create_annotations(server_url, cookie, transcript_ids, annotation_contents, liveworkitem_createdon_dates, current_batch_size, randomize_days)
+                                if len(annotation_ids) != len(transcript_ids):
+                                     st.warning(f"Mismatch in created transcripts ({len(transcript_ids)}) and annotations ({len(annotation_ids)}) for a batch in {uploaded_file.name}.")
+
+
                             # Close liveworkitems
-                            batch_close_liveworkitems(server_url, cookie, liveworkitem_ids, current_batch_size)
+                            if liveworkitem_ids: # Only close if LWIs were created
+                                batch_close_liveworkitems(server_url, cookie, liveworkitem_ids, current_batch_size)
                             
                             count += current_batch_size
                             progress = (idx + (count / total_records)) / total_files
@@ -366,9 +534,24 @@ with case_tab:
         st.session_state.processing_stopped = False
     
     if generate_button:
-        if not customer_id:
-            st.error("Please provide a Customer ID in the sidebar configuration.")
-            st.stop()
+        actual_customer_ids_to_use = []
+        customer_id_source_is_multiple = False
+
+        if st.session_state.use_multiple_contacts:
+            st.write("Attempting to fetch multiple contacts from D365...")
+            fetched_contact_ids = fetch_d365_contact_ids(server_url, cookie)
+            if fetched_contact_ids:
+                actual_customer_ids_to_use = fetched_contact_ids
+                customer_id_source_is_multiple = True
+                st.info(f"Using {len(actual_customer_ids_to_use)} contacts fetched from D365: {', '.join(actual_customer_ids_to_use)}")
+            else:
+                st.error("Failed to fetch contacts or no contacts found. Please uncheck 'Use Multiple Random Contacts' and provide a Customer ID, or ensure contacts exist in D365.")
+                st.stop()
+        else:
+            if not customer_id_from_input:
+                st.error("Customer ID is not provided. Please enter a Customer ID in the sidebar or select 'Use Multiple Random Contacts'.")
+                st.stop()
+            actual_customer_ids_to_use = [customer_id_from_input]
             
         with st.spinner("Generating cases..."):
             progress_bar = st.progress(0)
@@ -406,7 +589,15 @@ with case_tab:
                     
                     with concurrent.futures.ThreadPoolExecutor(max_workers=current_batch_size) as executor:
                         futures = []
-                        for _ in range(current_batch_size):
+                        for item_in_batch_idx in range(current_batch_size):
+                            customer_id_for_this_case = ""
+                            if customer_id_source_is_multiple:
+                                # Use overall_case_idx for cycling through customer IDs
+                                overall_case_idx = i + item_in_batch_idx 
+                                customer_id_for_this_case = actual_customer_ids_to_use[overall_case_idx % len(actual_customer_ids_to_use)]
+                            else:
+                                customer_id_for_this_case = actual_customer_ids_to_use[0]
+
                             if data_source == "Use Predefined Cases" and predefined_cases:
                                 case_data = predefined_cases['cases'][case_index % len(predefined_cases['cases'])]
                                 title = case_data['title']
@@ -423,7 +614,7 @@ with case_tab:
                                 subject_id, 
                                 server_url, 
                                 cookie, 
-                                customer_id,
+                                customer_id_for_this_case,
                                 randomize_days
                             ))
                         
@@ -432,11 +623,13 @@ with case_tab:
                             if case_id:
                                 created_case_details.append((case_id, case_createdon)) # Store tuple
                             
-                            # Update progress based on count of successfully created cases
-                            progress = (i + len(created_case_details) % current_batch_size) / total_cases
+                            # Update progress based on count of successfully processed futures in this batch
+                            # This progress logic might need adjustment to reflect overall progress more accurately.
+                            # For now, using length of created_case_details relative to total_cases.
+                            progress = len(created_case_details) / total_cases
                             progress_bar.progress(progress)
                     
-                    status_text.text(f"Generated {len(created_case_details)} cases")
+                    status_text.text(f"Generated {len(created_case_details)} of {total_cases} cases")
                 
                 # If we have cases to close and haven't been asked to stop, close them
                 if created_case_details and not st.session_state.processing_stopped:

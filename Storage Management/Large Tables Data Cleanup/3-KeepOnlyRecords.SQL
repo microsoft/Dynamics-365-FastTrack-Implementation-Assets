@@ -32,7 +32,7 @@ The script performs the following steps:
 3. Performs the archiving operations based on the provided parameters.
 */
 -- Create the stored procedure with specified parameters
-ALTER PROCEDURE [dbo].[KeepOnlyRecordsSp]
+CREATE OR ALTER PROCEDURE [dbo].[KeepOnlyRecordsSp]
     @Table NVARCHAR(Max),
     @LE NVARCHAR(Max),
     @KeepFromDate DATE,
@@ -376,8 +376,8 @@ BEGIN
 				SET @CurrentRow = @CurrentRow + @BatchSize;
 				SET @nbBatchExecution = @nbBatchExecution +1
 				COMMIT TRANSACTION
-				
-				Update DBCleanupResultsLog
+
+        Update DBCleanupResultsLog
 				set Step = @step, CurrentLoopIndex = @nbBatchExecution
 				where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
 
