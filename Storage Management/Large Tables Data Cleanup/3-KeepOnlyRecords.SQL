@@ -128,15 +128,17 @@ BEGIN
 			AND LegalEntity = @LE
 			AND KeepFromDate = @KeepFromDate
 			ORDER BY StartTime DESC
+		
+		PRINT 'runtime ' + CONVERT(NVARCHAR, @RunTimestamp, 120) + ' step ' + CONVERT(NVARCHAR, @STep) + ' currentloopindex ' + CONVERT(NVARCHAR, @nbBatchExecution)
 
-			IF @RunTimestamp IS NULL
-			BEGIN
-				SET @RunTimestamp = GETDATE()
-				SET @Step = 0
-				SET @nbBatchExecution = 1
-				INSERT INTO DBCleanupResultsLog (TableName, LegalEntity, KeepFromDate, StartTime,Step, CurrentLoopIndex)
-				VALUES (@Table, @LE, CONVERT(NVARCHAR, @KeepFromDate, 120), @RunTimestamp, @step, @nbBatchExecution)
-			END
+		IF @RunTimestamp IS NULL
+		BEGIN
+			SET @RunTimestamp = GETDATE()
+			SET @Step = 0
+			SET @nbBatchExecution = 1
+			INSERT INTO DBCleanupResultsLog (TableName, LegalEntity, KeepFromDate, StartTime,Step, CurrentLoopIndex)
+			VALUES (@Table, @LE, @KeepFromDate, @RunTimestamp, @step, @nbBatchExecution)
+		END
 		Print('checkpoint 3')
 
 	END
@@ -155,7 +157,7 @@ BEGIN
 		SET @RunTimestamp = GETDATE()
 			-- Insert a marker line to be able to resume
 		INSERT INTO DBCleanupResultsLog (TableName, LegalEntity, KeepFromDate, StartTime,Step, CurrentLoopIndex)
-		VALUES (@Table, @LE, CONVERT(NVARCHAR, @KeepFromDate, 120), @RunTimestamp, @step, @nbBatchExecution)
+		VALUES (@Table, @LE, @KeepFromDate, @RunTimestamp, @step, @nbBatchExecution)
 		Print('checkpoint 4')
 
 	END
@@ -554,7 +556,7 @@ BEGIN
 		where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
 
     -- Select results from log table for verification in simulation mode 
-    SELECT * FROM DBCleanupResultsLog WHERE TableName=@Table AND LegalEntity=@LE AND KeepFromDate=CONVERT(NVARCHAR, @KeepFromDate, 120)
+    SELECT * FROM DBCleanupResultsLog WHERE TableName=@Table AND LegalEntity=@LE AND KeepFromDate=@KeepFromDate
 
 
     -- Re-enable Change Data Capture or Change Tracking if previously enabled
