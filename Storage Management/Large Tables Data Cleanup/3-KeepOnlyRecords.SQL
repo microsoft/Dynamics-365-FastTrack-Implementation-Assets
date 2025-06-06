@@ -57,14 +57,43 @@ BEGIN
 	DECLARE @BufferTABLEName NVARCHAR(MAX)
 	DECLARE @BufferTableDropPrefix NVARCHAR(10) = ''
 	DECLARE @Interimstart DATETIME
-    DECLARE @Interimend DATETIME 
+    	DECLARE @Interimend DATETIME 
 	DECLARE @nbBatchExecution INT = 1
 	DECLARE @step INT = 0 
 	DECLARE @minRecId BIGINT = 0
 	DECLARE @maxRecId BIGINT = 0
-
 	Declare @partitionId bigint = 0
 
+
+		-- Check if the table has an index with RecId as the first and only column
+	IF NOT EXISTS (
+		SELECT 1
+		FROM sys.indexes i
+		JOIN sys.index_columns ic ON i.object_id = ic.object_id AND i.index_id = ic.index_id
+		JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
+		WHERE i.object_id = OBJECT_ID(@Table)
+		  AND c.name = 'RecId'
+		  AND ic.key_ordinal = 1
+		  AND NOT EXISTS (
+			  SELECT 1
+			  FROM sys.index_columns ic2
+			  WHERE ic2.object_id = i.object_id
+				AND ic2.index_id = i.index_id
+				AND ic2.key_ordinal > 1
+		  )
+	)
+	BEGIN
+		DECLARE @IndexName NVARCHAR(128) = @Table + '_RecId_IDX'
+		SET @SQL = 
+			'CREATE NONCLUSTERED INDEX [' + @IndexName + '] ON [' + @Table + '] ([RecId])'
+		EXEC sp_executesql @SQL
+		PRINT 'Index created: ' + @IndexName
+	END
+	ELSE
+	BEGIN
+		PRINT 'Index with RecId as the only key column already exists on ' + @Table
+	END
+	
 	Print('checkpoint 1')
 
 	select top 1 @partitionId = PARTITION from USERINFO
@@ -166,19 +195,22 @@ BEGIN
     SET @StartTime = GETDATE()
 
 	SET @SQL ='SELECT @minRecId = min(RecId) FROM '+@Table+' WHERE Partition = '+ CONVERT(NVARCHAR, @partitionId) + ' AND DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
+	Print @SQL
 	EXEC sp_executesql @SQL, N'@minRecId BIGINT OUTPUT', @minRecId OUTPUT
 
 	Print('checkpoint 8')
 
     -- Count records to be deleted in simulation mode
     SET @SQL = 'SELECT @DeletedRecords = COUNT(*) FROM ' + @Table + ' WHERE Partition = '+ CONVERT(NVARCHAR, @partitionId) + ' AND  DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' < ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
-    EXEC sp_executesql @SQL, N'@DeletedRecords INT OUTPUT', @DeletedRecords OUTPUT
+    Print @SQL
+	EXEC sp_executesql @SQL, N'@DeletedRecords INT OUTPUT', @DeletedRecords OUTPUT
 
 	Print('checkpoint 9')
 
 		    -- Count records to be deleted in simulation mode
     SET @SQL = 'SELECT @SavedRecords = COUNT(*) FROM ' + @Table + ' WHERE Partition = '+ CONVERT(NVARCHAR, @partitionId) + ' AND DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
-    EXEC sp_executesql @SQL, N'@SavedRecords INT OUTPUT', @SavedRecords OUTPUT
+    Print @SQL
+	EXEC sp_executesql @SQL, N'@SavedRecords INT OUTPUT', @SavedRecords OUTPUT
 	
 	Print('checkpoint 10')
 
@@ -219,36 +251,65 @@ BEGIN
 			END
 			WHILE @CurrentRow < @SavedRecords
 			BEGIN
-				-- Drop temporary table if it exists in tempdb
-				IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
+				
+				IF OBJECT_ID(@BufferTableDropPrefix + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)) IS NOT NULL
 				BEGIN
-					SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+					SET @SQL = 'DROP TABLE ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
 					EXEC sp_executesql @SQL
 				END
+ 
 				BEGIN TRANSACTION
+ 
 				IF @maxRecId = 0
-				Begin
-					SET @SQL = 'SELECT TOP '+Convert(NVARCHAR,@BatchSize)+ ' ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE Partition = '+ CONVERT(NVARCHAR, @partitionId) + ' AND  DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND RecId >= ' + CONvert(NVARCHAR,@minRecId) 
-					SET @SQL =@SQL + ' ORDER BY RecId desc'
-				End
+				BEGIN
+					SET @SQL = 'SELECT TOP ' + CONVERT(NVARCHAR, @BatchSize) + ' ' + @ColumnList +
+							   ' INTO ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
+							   ' FROM ' + @Table +
+							   ' WHERE RecId >= ' + CONVERT(NVARCHAR, @minRecId) +
+							   ' ORDER BY RecId DESC'
+				END
 				ELSE
 				BEGIN
-					SET @SQL = 'SELECT TOP '+Convert(NVARCHAR,@BatchSize)+ ' ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE Partition = '+ CONVERT(NVARCHAR, @partitionId) + ' AND  DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND RecId >= ' + CONvert(NVARCHAR,@minRecId) + ' AND RecId < ' + CONvert(NVARCHAR,@maxRecId)
-					SET @SQL =@SQL + ' ORDER BY RecId desc'
+					SET @SQL = 'SELECT TOP ' + CONVERT(NVARCHAR, @BatchSize) + ' ' + @ColumnList +
+							   ' INTO ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
+							   ' FROM ' + @Table +
+							   ' WHERE RecId >= ' + CONVERT(NVARCHAR, @minRecId) +
+							   ' AND RecId < ' + CONVERT(NVARCHAR, @maxRecId) +
+							   ' ORDER BY RecId DESC'
 				END
-				EXEC sp_executesql @SQL 
-
-				SET @SQL ='SELECT @maxRecId = min(RecId) FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+				PRINT @SQL
+				EXEC sp_executesql @SQL
+ 
+				-- Create index on DataAreaID
+				SET @SQL = 'CREATE NONCLUSTERED INDEX IX_' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
+						   '_DataAreaID ON ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) + ' (DataAreaID)'
+				PRINT @SQL
+				EXEC sp_executesql @SQL
+ 
+				BEGIN TRY
+					-- Delete rows where DataAreaID is not in the list
+					SET @SQL = 'DELETE FROM ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
+							   ' WHERE DataAreaID NOT IN (SELECT value FROM STRING_SPLIT(''' + @LE + ''', '',''))'
+					PRINT @SQL
+					EXEC sp_executesql @SQL
+				END TRY
+				BEGIN CATCH
+					Print 'missing delete permissions'
+				END CATCH
+ 
+				-- Update maxRecId
+				SET @SQL = 'SELECT @maxRecId = MIN(RecId) FROM ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
+				PRINT @SQL
 				EXEC sp_executesql @SQL, N'@maxRecId BIGINT OUTPUT', @maxRecId OUTPUT
-				
-				SET @CurrentRow = @CurrentRow + @BatchSize;
-				SET @nbBatchExecution = @nbBatchExecution +1
+ 
+				SET @CurrentRow = @CurrentRow + @BatchSize
+				SET @nbBatchExecution = @nbBatchExecution + 1
+ 
 				COMMIT TRANSACTION
-				
-				Update DBCleanupResultsLog
-				set Step = @step, CurrentLoopIndex = @nbBatchExecution
-				where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
-
+ 
+				UPDATE DBCleanupResultsLog
+				SET Step = @step, CurrentLoopIndex = @nbBatchExecution
+				WHERE TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate AND StartTime = @RunTimestamp
 
 			END
 			SET @Interimend = GETDATE()
@@ -293,7 +354,7 @@ BEGIN
 			SET @Interimstart = GETDATE()
 			WHILE @CurrentRow < @SavedRecords
 			BEGIN
-										-- Drop temporary table if it exists in tempdb
+										
 					IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+'simulation') IS NOT NULL
 					BEGIN
 						SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+'simulation'
@@ -351,35 +412,65 @@ BEGIN
 			END
 			WHILE @CurrentRow < @SavedRecords
 			BEGIN
-				-- Drop temporary table if it exists in tempdb
-				IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
+				IF OBJECT_ID(@BufferTableDropPrefix + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)) IS NOT NULL
 				BEGIN
-					SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+					SET @SQL = 'DROP TABLE ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
 					EXEC sp_executesql @SQL
 				END
+ 
 				BEGIN TRANSACTION
+ 
 				IF @maxRecId = 0
-				Begin
-					SET @SQL = 'SELECT TOP '+Convert(NVARCHAR,@BatchSize)+ ' ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE Partition = '+ CONVERT(NVARCHAR, @partitionId) + ' AND  DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND RecId >= ' + CONvert(NVARCHAR,@minRecId) 
-					SET @SQL =@SQL + ' ORDER BY RecId desc'
-				End
+				BEGIN
+					SET @SQL = 'SELECT TOP ' + CONVERT(NVARCHAR, @BatchSize) + ' ' + @ColumnList +
+							   ' INTO ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
+							   ' FROM ' + @Table +
+							   ' WHERE RecId >= ' + CONVERT(NVARCHAR, @minRecId) +
+							   ' ORDER BY RecId DESC'
+				END
 				ELSE
 				BEGIN
-					SET @SQL = 'SELECT TOP '+Convert(NVARCHAR,@BatchSize)+ ' ' + @ColumnList + ' INTO '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+' FROM ' + @Table + ' WHERE Partition = '+ CONVERT(NVARCHAR, @partitionId) + ' AND  DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND RecId >= ' + CONvert(NVARCHAR,@minRecId) + ' AND RecId < ' + CONvert(NVARCHAR,@maxRecId)
-					SET @SQL =@SQL + ' ORDER BY RecId desc'
+					SET @SQL = 'SELECT TOP ' + CONVERT(NVARCHAR, @BatchSize) + ' ' + @ColumnList +
+							   ' INTO ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
+							   ' FROM ' + @Table +
+							   ' WHERE RecId >= ' + CONVERT(NVARCHAR, @minRecId) +
+							   ' AND RecId < ' + CONVERT(NVARCHAR, @maxRecId) +
+							   ' ORDER BY RecId DESC'
 				END
-				EXEC sp_executesql @SQL 
-
-				SET @SQL ='SELECT @maxRecId = min(RecId) FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+				PRINT @SQL
+				EXEC sp_executesql @SQL
+ 
+				-- Create index on DataAreaID
+				SET @SQL = 'CREATE NONCLUSTERED INDEX IX_' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
+						   '_DataAreaID ON ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) + ' (DataAreaID)'
+				PRINT @SQL
+				EXEC sp_executesql @SQL
+ 
+				BEGIN TRY
+					-- Delete rows where DataAreaID is not in the list
+					SET @SQL = 'DELETE FROM ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
+							   ' WHERE DataAreaID NOT IN (SELECT value FROM STRING_SPLIT(''' + @LE + ''', '',''))'
+					PRINT @SQL
+					EXEC sp_executesql @SQL
+				END TRY
+				BEGIN CATCH
+					Print 'missing delete permissions'
+				END CATCH
+ 
+				-- Update maxRecId
+				SET @SQL = 'SELECT @maxRecId = MIN(RecId) FROM ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
+				PRINT @SQL
 				EXEC sp_executesql @SQL, N'@maxRecId BIGINT OUTPUT', @maxRecId OUTPUT
-				
-				SET @CurrentRow = @CurrentRow + @BatchSize;
-				SET @nbBatchExecution = @nbBatchExecution +1
+ 
+				SET @CurrentRow = @CurrentRow + @BatchSize
+				SET @nbBatchExecution = @nbBatchExecution + 1
+ 
 				COMMIT TRANSACTION
+ 
+				UPDATE DBCleanupResultsLog
+				SET Step = @step, CurrentLoopIndex = @nbBatchExecution
+				WHERE TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate AND StartTime = @RunTimestamp
 
-        Update DBCleanupResultsLog
-				set Step = @step, CurrentLoopIndex = @nbBatchExecution
-				where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
 
 			END
 			SET @Interimend = GETDATE()
