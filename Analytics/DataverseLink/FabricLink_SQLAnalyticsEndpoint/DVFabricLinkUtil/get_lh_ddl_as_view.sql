@@ -1,3 +1,18 @@
+ /*DECLARE 
+            @source_database_name VARCHAR(200) = '{lakehouse_name}',
+            @source_table_schema NVARCHAR(10) = '{params["source_schema"]}',
+            @target_table_schema NVARCHAR(10) = '{params["target_schema"]}',
+            @TablesToInclude_FnOOnly INT = {params["only_fno_tables"]},
+            @TablesToIncluce NVARCHAR(MAX) = '{params["tables_to_include"]}',
+            @TablesToExcluce NVARCHAR(MAX) = '{params["tables_to_exclude"]}',
+            @filter_deleted_rows INT = {params["filter_deleted_rows"]},
+            @join_derived_tables INT = {params["join_derived_tables"]},
+            @change_column_collation INT = {params["change_collation"]},
+            @translate_enums INT = {params["translate_enums"]},
+            @schema_map VARCHAR(MAX) = '{params["schema_map"]}',
+            @tableinheritance NVARCHAR(MAX) = LOWER('{params["derived_table_map"]}');*/
+
+ 
   -- Initialize variables
   DECLARE @ddl_statement              NVARCHAR(MAX),
           @CreateViewDDL              NVARCHAR(MAX), 
@@ -22,9 +37,9 @@
   -- Prepare temp table for table/view data
   DROP TABLE IF EXISTS #sqltadata;
   CREATE TABLE #sqltadata (
-      viewname       NVARCHAR(200),
-      tablename      NVARCHAR(200),
-      selectcolumns  NVARCHAR(MAX),
+      viewname       VARCHAR(200) collate Latin1_General_100_BIN2_UTF8,
+      tablename      VARCHAR(200) collate Latin1_General_100_BIN2_UTF8,
+      selectcolumns  VARCHAR(MAX) collate Latin1_General_100_BIN2_UTF8,
       isDeleteColumn INT,
       isFnOTable     INT
   );
@@ -44,7 +59,7 @@
               ELSE QUOTENAME(y.TABLE_NAME) + '.' + QUOTENAME(y.COLUMN_NAME) 
           END
           + CASE 
-              WHEN @change_column_collation = 1 AND COLLATION_NAME IS NOT NULL AND z.datatype != 'uniqueidentifier'
+              WHEN @change_column_collation = 1 AND COLLATION_NAME IS NOT NULL AND isnull(z.datatype,'') != 'uniqueidentifier'
                   THEN ' COLLATE Latin1_General_100_CI_AS_KS_WS_SC_UTF8'
               ELSE ''
           END 
@@ -81,58 +96,65 @@
   GROUP BY y.TABLE_NAME
   HAVING (@TablesToInclude_FnOOnly = 0 OR (@TablesToInclude_FnOOnly = 1 AND MAX(CASE WHEN y.COLUMN_NAME = 'recid' THEN 1 ELSE 0 END) = 1));
 
+    -- Check if any tables were found
+    IF NOT EXISTS (SELECT 1 FROM #sqltadata)
+    BEGIN
+        PRINT 'No tables found to process. Exiting.';
+        RETURN;
+    END
+
+declare @selectedtables varchar(max) = (select STRING_AGG(tablename, ',') from #sqltadata);
+
   -- Handle enum translation
-  DROP TABLE IF EXISTS #enumtranslation;
-  CREATE TABLE #enumtranslation (
-      tablename       NVARCHAR(200),
-      enumtranslation NVARCHAR(MAX) DEFAULT('')
-  );
+ drop table if exists #enumtranslationdist;
+-- Create a temporary table to hold enum translations
+CREATE TABLE #enumtranslationdist (
+    tablename VARCHAR(200) collate Latin1_General_100_BIN2_UTF8,
+    enumtranslation VARCHAR(MAX) collate Latin1_General_100_BIN2_UTF8
+)  WITH (DISTRIBUTION=ROUND_ROBIN);
 
   IF (@translate_enums > 0)
   BEGIN
-      DECLARE @enumtranslation_optionset NVARCHAR(MAX);
+        INSERT INTO #enumtranslationdist (tablename, enumtranslation)
+        SELECT 
+            tablename, 
+            STRING_AGG(CONVERT(NVARCHAR(MAX), enumtranslation), ',') AS enumtranslation
+        FROM (
+            SELECT 
+                EntityName AS tablename,
+                OptionSetName AS columnname,
+                'CASE [' + EntityName + '].[' + OptionSetName + ']' +
+                    STRING_AGG(CONVERT(NVARCHAR(MAX), 
+                        ' WHEN ' + CONVERT(NVARCHAR(10), [Option]) + ' THEN ''' + 
+                        CASE  
+                            WHEN @translate_enums = 1 THEN ExternalValue 
+                            WHEN @translate_enums = 2 THEN ISNULL(REPLACE(LocalizedLabel, '''', ''''''), '')
+                        END + ''' '
+                    ), '') +
+                ' END AS ' + OptionSetName + '_$label' AS enumtranslation
+            FROM GlobalOptionsetMetadata
+            WHERE LocalizedLabelLanguageCode = 1033
+            and EntityName collate Latin1_General_100_BIN2_UTF8 in (select value from STRING_SPLIT(@selectedtables, ','))
+            AND OptionSetName NOT IN ('sysdatastatecode')
+            GROUP BY EntityName, OptionSetName, GlobalOptionSetName
+        ) x
+        GROUP BY tablename;
+    
+    -- convert #enumtranslationdist tablename and enumtranslation to a single json string for use in view DDL
+    declare @enumtranslation_json nvarchar(max) = '';
+    IF NOT EXISTS (SELECT 1 FROM #enumtranslationdist)
+        SET @enumtranslation_json = '{}';  -- No enum translations found
 
-      SELECT @enumtranslation_optionset = STRING_AGG(
-          CONVERT(NVARCHAR(MAX),
-              '{{"tablename":"' + tablename + '","enumtranslation":' + enumstringcolumns + '}}'
-          ), ';')
-      FROM (
-          SELECT tablename, STRING_AGG(CONVERT(NVARCHAR(MAX), enumtranslation), ',') AS enumstringcolumns
-          FROM (
-              SELECT 
-                  tablename,
-                  columnname,
-                  'CASE [' + tablename + '].[' + columnname + ']' +
-                  STRING_AGG(CONVERT(NVARCHAR(MAX), 
-                      ' WHEN ' + CONVERT(NVARCHAR(10), enumid) + ' THEN ''' + enumvalue + ''' '), '') +
-                  ' END AS ' + columnname + '_$label' AS enumtranslation
-              FROM (
-                  SELECT 
-                      EntityName AS tablename,
-                      OptionSetName AS columnname,
-                      GlobalOptionSetName AS enum,
-                      [Option] AS enumid,
-                      CASE  
-                          WHEN @translate_enums = 1 THEN ExternalValue 
-                          WHEN @translate_enums = 2 THEN ISNULL(REPLACE(LocalizedLabel, '''', ''''''), '')
-                      END AS enumvalue
-                  FROM GlobalOptionsetMetadata
-                  WHERE LocalizedLabelLanguageCode = 1033
-                    AND OptionSetName NOT IN ('sysdatastatecode')
-              ) x
-              GROUP BY tablename, columnname, enum
-          ) y
-          GROUP BY tablename
-      ) optionsetmetadata;
+    ELSE   
+      SELECT @enumtranslation_json = 
+    '[' + STRING_AGG(
+        Convert(nvarchar(max),CONCAT(
+            '{"tablename":"', tablename,
+            '","enumtranslation":"', ','+ REPLACE(enumtranslation, '"', '\"'),
+            '"}'
+        )), 
+    ',') + ']' FROM  #enumtranslationdist;
 
-      INSERT INTO #enumtranslation
-      SELECT tablename, enumtranslation
-      FROM STRING_SPLIT(@enumtranslation_optionset, ';')
-      CROSS APPLY OPENJSON(value)
-      WITH (
-          tablename NVARCHAR(100),
-          enumtranslation NVARCHAR(MAX)
-      );
   END
 
   -- Build DDL for views
@@ -155,8 +177,10 @@
           '$source_table_schema$', @source_table_schema),
           '''', '''''') + ''' END TRY BEGIN CATCH PRINT ERROR_PROCEDURE() + '':'' + ERROR_MESSAGE() END CATCH' AS viewDDL
       FROM #sqltadata c
-      LEFT JOIN #enumtranslation e ON c.tablename = e.tablename
+      LEFT JOIN OPENJSON(@enumtranslation_json) WITH (tablename VARCHAR(100),enumtranslation VARCHAR(max)) e 
+      ON c.tablename COLLATE DATABASE_DEFAULT = e.tablename COLLATE DATABASE_DEFAULT
   ) x;
+
 
   -- Handle derived table view overrides
   IF (@join_derived_tables = 1)
@@ -231,7 +255,7 @@
                   '$source_table_schema$', @source_table_schema),
                   '''', '''''') + ''' END TRY BEGIN CATCH PRINT ERROR_PROCEDURE() + '':'' + ERROR_MESSAGE() END CATCH' AS viewDDL
           FROM #sqltadata c
-          LEFT JOIN #enumtranslation e ON lower(c.tablename) = lower(e.tablename)
+          LEFT JOIN OPENJSON(@enumtranslation_json) WITH (tablename VARCHAR(100),enumtranslation VARCHAR(max)) e ON lower(c.tablename) COLLATE DATABASE_DEFAULT = lower(e.tablename) COLLATE DATABASE_DEFAULT
           INNER JOIN table_hierarchy h ON lower(c.tablename) = lower(h.parenttable)
       ) x;
 
