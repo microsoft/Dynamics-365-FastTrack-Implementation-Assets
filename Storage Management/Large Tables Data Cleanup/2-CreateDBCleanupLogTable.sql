@@ -41,7 +41,7 @@ BEGIN
     BEGIN
         CREATE TABLE DBCleanupResultsLog(
             TableName NVARCHAR(1000),
-            LegalEntity NVARCHAR(1000),
+            LegalEntity NVARCHAR(4000),
             KeepFromDate NVARCHAR(120),
             NbRecordsDeleted INT,
             NbRecordsSaved INT,
