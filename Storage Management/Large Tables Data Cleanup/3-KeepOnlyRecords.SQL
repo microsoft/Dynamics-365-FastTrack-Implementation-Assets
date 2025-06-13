@@ -63,6 +63,19 @@ BEGIN
 	DECLARE @minRecId BIGINT = 0
 	DECLARE @maxRecId BIGINT = 0
 	Declare @partitionId bigint = 0
+	Declare @SourceTableName NVARCHAR(MAX)
+	Declare @TargetTableName NVARCHAR(MAX)
+
+
+			-- Step 1: Identify DataAreaIDs in Datatarea that are NOT in the @LE list and are not 'dat'
+		IF OBJECT_ID('tempdb..#SandboxTrimMissingLEs') IS NOT NULL DROP TABLE #SandboxTrimMissingLEs;
+		SELECT ID
+		INTO #SandboxTrimMissingLEs
+		FROM DATAAREA
+		WHERE ID NOT IN (
+			SELECT TRIM(value) FROM STRING_SPLIT(@LE, ',')
+		)
+		AND ID <> 'dat';
 
 
 		-- Check if the table has an index with RecId as the first and only column
@@ -286,13 +299,32 @@ BEGIN
 				PRINT @SQL
 				EXEC sp_executesql @SQL
  
+				-- remove LE specific data
 				BEGIN TRY
-					-- Delete rows where DataAreaID is not in the list
-					SET @SQL = 'DELETE FROM ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
-							   ' WHERE DataAreaID NOT IN (SELECT value FROM STRING_SPLIT(''' + @LE + ''', '',''))'
-					PRINT @SQL
-					EXEC sp_executesql @SQL
-				END TRY
+ 
+					-- Step 2: If missing LEs exist, rebuild buffer table
+					IF EXISTS (SELECT 1 FROM #SandboxTrimMissingLEs)
+					BEGIN
+						PRINT 'Missing DataAreaIDs found. Rebuilding buffer table...';
+ 
+						-- Create new buffer table with only valid LE data
+						set @SQL = 'SELECT * INTO ' +@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+'sle'+ ' FROM '+@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+ 
+						' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''));'
+
+						PRINT @SQL
+						EXEC sp_executesql @SQL
+ 
+						-- Drop old buffer table
+						SET @SQL = 'DROP TABLE ' + QUOTENAME(@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution));
+						EXEC sp_executesql @SQL;
+						
+						set @SourceTableName = @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+'sle'
+						set @TargetTableName = @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
+						
+						-- Rename new table
+						EXEC sp_rename @SourceTableName, @TargetTableName ;
+					END
+				END TRY 
 				BEGIN CATCH
 					Print 'missing delete permissions'
 				END CATCH
@@ -446,17 +478,36 @@ BEGIN
 				PRINT @SQL
 				EXEC sp_executesql @SQL
  
+				-- remove LE specific data
 				BEGIN TRY
-					-- Delete rows where DataAreaID is not in the list
-					SET @SQL = 'DELETE FROM ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
-							   ' WHERE DataAreaID NOT IN (SELECT value FROM STRING_SPLIT(''' + @LE + ''', '',''))'
-					PRINT @SQL
-					EXEC sp_executesql @SQL
-				END TRY
+ 
+					-- Step 2: If missing LEs exist, rebuild buffer table
+					IF EXISTS (SELECT 1 FROM #SandboxTrimMissingLEs)
+					BEGIN
+						PRINT 'Missing DataAreaIDs found. Rebuilding buffer table...';
+ 
+						-- Create new buffer table with only valid LE data
+						set @SQL = 'SELECT * INTO ' +@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+'sle'+ ' FROM '+@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+ 
+						' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''));'
+
+						PRINT @SQL
+						EXEC sp_executesql @SQL
+ 
+						-- Drop old buffer table
+						SET @SQL = 'DROP TABLE ' + QUOTENAME(@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution));
+						EXEC sp_executesql @SQL;
+						
+						set @SourceTableName = @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+'sle'
+						set @TargetTableName = @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
+						
+						-- Rename new table
+						EXEC sp_rename @SourceTableName, @TargetTableName ;
+					END
+				END TRY 
 				BEGIN CATCH
 					Print 'missing delete permissions'
 				END CATCH
- 
+				
 				-- Update maxRecId
 				SET @SQL = 'SELECT @maxRecId = MIN(RecId) FROM ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
 				PRINT @SQL
