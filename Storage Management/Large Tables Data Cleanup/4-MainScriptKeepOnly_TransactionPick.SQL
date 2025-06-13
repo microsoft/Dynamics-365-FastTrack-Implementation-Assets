@@ -56,7 +56,7 @@ BEGIN
         (
         SELECT 
             t.name AS TableName,
-            SUM(p.rows) AS RowCounts,
+            SUM(p.rows) / count(a.container_id)  AS RowCounts,
             SUM(a.total_pages) * 8 AS TotalSpace,
             sdf.TABLEID AS TableId
         FROM
