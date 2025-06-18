@@ -37,9 +37,9 @@ CREATE OR ALTER PROCEDURE [dbo].[KeepOnlyRecordsSp]
     @LE NVARCHAR(Max),
     @KeepFromDate DATE,
     @Simulation BIT = 1,
-    @Threshold INT = 2000000,
     @BatchSize INT = 5000000, 
-    @Resume BIT = 0
+    @Resume BIT = 0,
+	@Rowcount INT = 0
 AS
 BEGIN
 
@@ -49,20 +49,35 @@ BEGIN
     DECLARE @StartTime DATETIME
     DECLARE @EndTime DATETIME 
     DECLARE @Duration INT
-    DECLARE @DeletedRecords INT
-	DECLARE @SavedRecords INT
+    DECLARE @DeletedRecords INT =0
+	DECLARE @SavedRecords INT =0
+	DECLARE @SavedRecordsLoop INT =0
+	DECLARE @TotalRecords INT 
     DECLARE @ColumnList NVARCHAR(MAX)
     DECLARE @RunTimestamp DATETIME
-	DECLARE @CurrentRow INT = 0;
+	DECLARE @CurrentDate DATETIME = GETDATE()
 	DECLARE @BufferTABLEName NVARCHAR(MAX)
 	DECLARE @BufferTableDropPrefix NVARCHAR(10) = ''
 	DECLARE @Interimstart DATETIME
-    	DECLARE @Interimend DATETIME 
+    DECLARE @Interimend DATETIME 
 	DECLARE @nbBatchExecution INT = 1
 	DECLARE @step INT = 0 
 	DECLARE @minRecId BIGINT = 0
 	DECLARE @maxRecId BIGINT = 0
 	Declare @partitionId bigint = 0
+	Declare @SourceTableName NVARCHAR(MAX)
+	Declare @TargetTableName NVARCHAR(MAX)
+
+
+			-- Step 1: Identify DataAreaIDs in Datatarea that are NOT in the @LE list and are not 'dat'
+		IF OBJECT_ID('tempdb..#SandboxTrimMissingLEs') IS NOT NULL DROP TABLE #SandboxTrimMissingLEs;
+		SELECT ID
+		INTO #SandboxTrimMissingLEs
+		FROM DATAAREA
+		WHERE ID NOT IN (
+			SELECT TRIM(value) FROM STRING_SPLIT(@LE, ',')
+		)
+		AND ID <> 'dat';
 
 
 		-- Check if the table has an index with RecId as the first and only column
@@ -194,40 +209,11 @@ BEGIN
     -- Set the run timestamp to current date and time
     SET @StartTime = GETDATE()
 
-	SET @SQL ='SELECT @minRecId = min(RecId) FROM '+@Table+' WHERE Partition = '+ CONVERT(NVARCHAR, @partitionId) + ' AND DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
-	Print @SQL
-	EXEC sp_executesql @SQL, N'@minRecId BIGINT OUTPUT', @minRecId OUTPUT
-
-	Print('checkpoint 8')
-
-    -- Count records to be deleted in simulation mode
-    SET @SQL = 'SELECT @DeletedRecords = COUNT(*) FROM ' + @Table + ' WHERE Partition = '+ CONVERT(NVARCHAR, @partitionId) + ' AND  DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' < ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
-    Print @SQL
-	EXEC sp_executesql @SQL, N'@DeletedRecords INT OUTPUT', @DeletedRecords OUTPUT
-
-	Print('checkpoint 9')
-
-		    -- Count records to be deleted in simulation mode
-    SET @SQL = 'SELECT @SavedRecords = COUNT(*) FROM ' + @Table + ' WHERE Partition = '+ CONVERT(NVARCHAR, @partitionId) + ' AND DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''))'+' AND ' + @DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
-    Print @SQL
-	EXEC sp_executesql @SQL, N'@SavedRecords INT OUTPUT', @SavedRecords OUTPUT
-	
-	Print('checkpoint 10')
 
 
 	Print @SQL
-	Print 'nbRecord to save : ' + CONVERT(NVARCHAR,@SavedRecords)
--- too risky to use unpersisted tables when transient errors or SQL azure governance stops the process, impossible to resume other than with PITR
---	IF (@SavedRecords > @Threshold)
---		BEGIN
-			set @BufferTABLEName = @Table+'cleanupbuffer'
-			set @BufferTableDropPrefix = ''
---		END
---	ELSE
---		BEGIN
---			set @BufferTABLEName = '##TempTableCleanuDB
---			set @BufferTableDropPrefix = 'tempdb..'
---		END
+	set @BufferTABLEName = @Table+'cleanupbuffer'
+	set @BufferTableDropPrefix = ''
 	print 'BufferTable : '+@BufferTABLEName
 
 	COMMIT TRANSACTION
@@ -245,27 +231,36 @@ BEGIN
 				SET @step =  1
 				SET @nbBatchExecution = 1
 			END
-			ELSE
-			BEGIN 
-				SET @CurrentRow = (@nbBatchExecution-1)*@BatchSize
-			END
-			WHILE @CurrentRow < @SavedRecords
+			WHILE @CurrentDate >= @KeepFromDate
 			BEGIN
 				
-				IF OBJECT_ID(@BufferTableDropPrefix + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)) IS NOT NULL
+				IF (@maxRecId = 0 and @nbBatchExecution > 1 )
+				BEGIN
+					set @nbBatchExecution =  @nbBatchExecution - 1
+					if(OBJECT_ID(@BufferTableDropPrefix + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)) IS NOT NULL)
+					BEGIN
+						SET @SQL = 'SELECT @maxRecId = MIN(RecId), @CurrentDate = Min('+@DateField+') FROM ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
+						PRINT @SQL
+						EXEC sp_executesql @SQL, N'@maxRecId BIGINT OUTPUT, @CurrentDate DATETIME OUTPUT', @maxRecId OUTPUT, @CurrentDate OUTPUT
+						set @nbBatchExecution =  @nbBatchExecution + 1
+					END
+				END
+
+				
+				IF (OBJECT_ID(@BufferTableDropPrefix + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)) IS NOT NULL)
 				BEGIN
 					SET @SQL = 'DROP TABLE ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
 					EXEC sp_executesql @SQL
 				END
  
 				BEGIN TRANSACTION
- 
+				
 				IF @maxRecId = 0
 				BEGIN
 					SET @SQL = 'SELECT TOP ' + CONVERT(NVARCHAR, @BatchSize) + ' ' + @ColumnList +
 							   ' INTO ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
 							   ' FROM ' + @Table +
-							   ' WHERE RecId >= ' + CONVERT(NVARCHAR, @minRecId) +
+--							   ' WHERE RecId >= ' + CONVERT(NVARCHAR, @minRecId) +
 							   ' ORDER BY RecId DESC'
 				END
 				ELSE
@@ -273,8 +268,9 @@ BEGIN
 					SET @SQL = 'SELECT TOP ' + CONVERT(NVARCHAR, @BatchSize) + ' ' + @ColumnList +
 							   ' INTO ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
 							   ' FROM ' + @Table +
-							   ' WHERE RecId >= ' + CONVERT(NVARCHAR, @minRecId) +
-							   ' AND RecId < ' + CONVERT(NVARCHAR, @maxRecId) +
+--							   ' WHERE RecId >= ' + CONVERT(NVARCHAR, @minRecId) +
+--							   ' AND RecId < ' + CONVERT(NVARCHAR, @maxRecId) +
+							   ' WHERE RecId < ' + CONVERT(NVARCHAR, @maxRecId) +
 							   ' ORDER BY RecId DESC'
 				END
 				PRINT @SQL
@@ -282,27 +278,54 @@ BEGIN
  
 				-- Create index on DataAreaID
 				SET @SQL = 'CREATE NONCLUSTERED INDEX IX_' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
-						   '_DataAreaID ON ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) + ' (DataAreaID)'
+						   '_DataAreaID ON ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) + ' (DataAreaID,'+@DateField+')'
 				PRINT @SQL
 				EXEC sp_executesql @SQL
  
+				-- remove LE specific data
 				BEGIN TRY
-					-- Delete rows where DataAreaID is not in the list
-					SET @SQL = 'DELETE FROM ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
-							   ' WHERE DataAreaID NOT IN (SELECT value FROM STRING_SPLIT(''' + @LE + ''', '',''))'
-					PRINT @SQL
-					EXEC sp_executesql @SQL
-				END TRY
+ 
+					-- Step 2: If missing LEs exist, rebuild buffer table
+					IF EXISTS (SELECT 1 FROM #SandboxTrimMissingLEs)
+					BEGIN
+						PRINT 'Missing DataAreaIDs found. Rebuilding buffer table...';
+ 
+						-- Create new buffer table with only valid LE data
+						set @SQL = 'SELECT * INTO ' +@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+'sle'+ ' FROM '+@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+ 
+						' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''));'
+
+						PRINT @SQL
+						EXEC sp_executesql @SQL
+ 
+						-- Drop old buffer table
+						SET @SQL = 'DROP TABLE ' + QUOTENAME(@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution));
+						EXEC sp_executesql @SQL;
+						
+						set @SourceTableName = @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+'sle'
+						set @TargetTableName = @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
+						
+						-- Rename new table
+						EXEC sp_rename @SourceTableName, @TargetTableName ;
+					END
+				END TRY 
 				BEGIN CATCH
-					Print 'missing delete permissions'
+					Print 'Failed to remove unselected legal entities data'
 				END CATCH
  
 				-- Update maxRecId
-				SET @SQL = 'SELECT @maxRecId = MIN(RecId) FROM ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
+				SET @SQL = 'SELECT @maxRecId = MIN(RecId), @CurrentDate = Min('+@DateField+') FROM ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
 				PRINT @SQL
-				EXEC sp_executesql @SQL, N'@maxRecId BIGINT OUTPUT', @maxRecId OUTPUT
+				EXEC sp_executesql @SQL, N'@maxRecId BIGINT OUTPUT, @CurrentDate DATETIME OUTPUT', @maxRecId OUTPUT, @CurrentDate OUTPUT
  
-				SET @CurrentRow = @CurrentRow + @BatchSize
+				PRINT CONVERT(NVARCHAR(max),@maxRecId) + CONVERT(NVARCHAR(max),@CurrentDate)
+
+				if (@maxRecId is Null or @maxRecId = 0 )
+				begin
+					SET @SQL = 'DROP TABLE ' + QUOTENAME(@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution));
+					EXEC sp_executesql @SQL; 
+					break;
+				end
+
 				SET @nbBatchExecution = @nbBatchExecution + 1
  
 				COMMIT TRANSACTION
@@ -321,13 +344,6 @@ BEGIN
 	--##Step2 Begin
 			SET @step =  2
 			SET @Interimstart = GETDATE()
-			-- Estimate duration of truncate statement in simulation mode
-/* simulation of truncate is useless and the rolback is what is driving crazy IO 
-			BEGIN TRANSACTION
-			SET @SQL = 'TRUNCATE TABLE ' + @Table
-			EXEC sp_executesql @SQL
-			ROLLBACK TRANSACTION
-*/
 			SET @Interimend = GETDATE()
 			SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
 		
@@ -344,15 +360,12 @@ BEGIN
 			BEGIN
 				-- Estimate duration of insert statement in simulation mode
 				SET @step =  3
-				SET @CurrentRow = 0
 				SET @nbBatchExecution = 1
 			END 
-			ELSE
-			BEGIN 
-				SET @CurrentRow = (@nbBatchExecution-1)*@BatchSize
-			END
+
 			SET @Interimstart = GETDATE()
-			WHILE @CurrentRow < @SavedRecords
+			SET @CurrentDate = GETDATE()
+			WHILE @CurrentDate >= @KeepFromDate
 			BEGIN
 										
 					IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+'simulation') IS NOT NULL
@@ -362,11 +375,22 @@ BEGIN
 					END
 
 					BEGIN TRANSACTION
-					SET @SQL = 'SELECT * INTO '+  @BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+'simulation' +' FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+					SET @SQL = 'SELECT * INTO '+  @BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+'simulation' +' FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+
+					' where '+@DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
 					print @SQL
 					EXEC sp_executesql @SQL 
 					COMMIT TRANSACTION
 
+					SET @SQL = 'SELECT @maxRecId = MIN(RecId), @CurrentDate = Min('+@DateField+') FROM ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
+					PRINT @SQL
+					EXEC sp_executesql @SQL, N'@maxRecId BIGINT OUTPUT, @CurrentDate DATETIME OUTPUT', @maxRecId OUTPUT, @CurrentDate OUTPUT
+					
+					-- Count records to be deleted in simulation mode
+					SET @SQL = 'SELECT @SavedRecordsLoop = COUNT(*) FROM ' + @BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+'simulation' 
+					Print @SQL
+					EXEC sp_executesql @SQL, N'@SavedRecordsLoop INT OUTPUT', @SavedRecordsLoop OUTPUT
+					set @SavedRecords = @SavedRecords + @SavedRecordsLoop
+					
 					-- Drop temporary table if it exists in tempdb
 					IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
 					BEGIN
@@ -379,7 +403,6 @@ BEGIN
 						EXEC sp_executesql @SQL
 					END
 
-					SET @CurrentRow = @CurrentRow + @BatchSize;
 					SET @nbBatchExecution = @nbBatchExecution +1
 
 					Update DBCleanupResultsLog
@@ -406,26 +429,37 @@ BEGIN
 				SET @step =  1
 				SET @nbBatchExecution = 1
 			END
-			ELSE
-			BEGIN 
-				SET @CurrentRow = (@nbBatchExecution-1)*@BatchSize
-			END
-			WHILE @CurrentRow < @SavedRecords
+			WHILE @CurrentDate >= @KeepFromDate
 			BEGIN
-				IF OBJECT_ID(@BufferTableDropPrefix + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)) IS NOT NULL
+				
+				IF (@maxRecId = 0 and @nbBatchExecution > 1 )
+				BEGIN
+					set @nbBatchExecution =  @nbBatchExecution - 1
+					if(OBJECT_ID(@BufferTableDropPrefix + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)) IS NOT NULL)
+					BEGIN
+						SET @SQL = 'SELECT @maxRecId = MIN(RecId), @CurrentDate = Min('+@DateField+') FROM ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
+						PRINT @SQL
+						EXEC sp_executesql @SQL, N'@maxRecId BIGINT OUTPUT, @CurrentDate DATETIME OUTPUT', @maxRecId OUTPUT, @CurrentDate OUTPUT
+						set @nbBatchExecution =  @nbBatchExecution + 1
+					END
+				END
+
+				
+				IF (OBJECT_ID(@BufferTableDropPrefix + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)) IS NOT NULL)
 				BEGIN
 					SET @SQL = 'DROP TABLE ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
 					EXEC sp_executesql @SQL
 				END
+
  
 				BEGIN TRANSACTION
- 
+				
 				IF @maxRecId = 0
 				BEGIN
 					SET @SQL = 'SELECT TOP ' + CONVERT(NVARCHAR, @BatchSize) + ' ' + @ColumnList +
 							   ' INTO ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
 							   ' FROM ' + @Table +
-							   ' WHERE RecId >= ' + CONVERT(NVARCHAR, @minRecId) +
+--							   ' WHERE RecId >= ' + CONVERT(NVARCHAR, @minRecId) +
 							   ' ORDER BY RecId DESC'
 				END
 				ELSE
@@ -433,8 +467,9 @@ BEGIN
 					SET @SQL = 'SELECT TOP ' + CONVERT(NVARCHAR, @BatchSize) + ' ' + @ColumnList +
 							   ' INTO ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
 							   ' FROM ' + @Table +
-							   ' WHERE RecId >= ' + CONVERT(NVARCHAR, @minRecId) +
-							   ' AND RecId < ' + CONVERT(NVARCHAR, @maxRecId) +
+--							   ' WHERE RecId >= ' + CONVERT(NVARCHAR, @minRecId) +
+--							   ' AND RecId < ' + CONVERT(NVARCHAR, @maxRecId) +
+							   ' WHERE RecId < ' + CONVERT(NVARCHAR, @maxRecId) +
 							   ' ORDER BY RecId DESC'
 				END
 				PRINT @SQL
@@ -442,27 +477,54 @@ BEGIN
  
 				-- Create index on DataAreaID
 				SET @SQL = 'CREATE NONCLUSTERED INDEX IX_' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
-						   '_DataAreaID ON ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) + ' (DataAreaID)'
+						   '_DataAreaID ON ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) + ' (DataAreaID,'+@DateField+')'
 				PRINT @SQL
 				EXEC sp_executesql @SQL
  
+				-- remove LE specific data
 				BEGIN TRY
-					-- Delete rows where DataAreaID is not in the list
-					SET @SQL = 'DELETE FROM ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
-							   ' WHERE DataAreaID NOT IN (SELECT value FROM STRING_SPLIT(''' + @LE + ''', '',''))'
-					PRINT @SQL
-					EXEC sp_executesql @SQL
-				END TRY
+ 
+					-- Step 2: If missing LEs exist, rebuild buffer table
+					IF EXISTS (SELECT 1 FROM #SandboxTrimMissingLEs)
+					BEGIN
+						PRINT 'Missing DataAreaIDs found. Rebuilding buffer table...';
+ 
+						-- Create new buffer table with only valid LE data
+						set @SQL = 'SELECT * INTO ' +@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+'sle'+ ' FROM '+@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+ 
+						' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''));'
+
+						PRINT @SQL
+						EXEC sp_executesql @SQL
+ 
+						-- Drop old buffer table
+						SET @SQL = 'DROP TABLE ' + QUOTENAME(@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution));
+						EXEC sp_executesql @SQL;
+						
+						set @SourceTableName = @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+'sle'
+						set @TargetTableName = @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
+						
+						-- Rename new table
+						EXEC sp_rename @SourceTableName, @TargetTableName ;
+					END
+				END TRY 
 				BEGIN CATCH
-					Print 'missing delete permissions'
+					Print 'Failed to remove unselected legal entities data'
 				END CATCH
  
 				-- Update maxRecId
-				SET @SQL = 'SELECT @maxRecId = MIN(RecId) FROM ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
+				SET @SQL = 'SELECT @maxRecId = MIN(RecId), @CurrentDate = Min('+@DateField+') FROM ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
 				PRINT @SQL
-				EXEC sp_executesql @SQL, N'@maxRecId BIGINT OUTPUT', @maxRecId OUTPUT
+				EXEC sp_executesql @SQL, N'@maxRecId BIGINT OUTPUT, @CurrentDate DATETIME OUTPUT', @maxRecId OUTPUT, @CurrentDate OUTPUT
  
-				SET @CurrentRow = @CurrentRow + @BatchSize
+				PRINT CONVERT(NVARCHAR(max),@maxRecId) + CONVERT(NVARCHAR(max),@CurrentDate)
+
+				if (@maxRecId is Null or @maxRecId = 0 )
+				begin
+					SET @SQL = 'DROP TABLE ' + QUOTENAME(@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution));
+					EXEC sp_executesql @SQL; 
+					break;
+				end
+
 				SET @nbBatchExecution = @nbBatchExecution + 1
  
 				COMMIT TRANSACTION
@@ -470,7 +532,6 @@ BEGIN
 				UPDATE DBCleanupResultsLog
 				SET Step = @step, CurrentLoopIndex = @nbBatchExecution
 				WHERE TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate AND StartTime = @RunTimestamp
-
 
 			END
 			SET @Interimend = GETDATE()
@@ -503,29 +564,29 @@ BEGIN
 			BEGIN
 				-- Estimate duration of insert statement in simulation mode
 				SET @step =  3
-				SET @CurrentRow = 0
 				SET @nbBatchExecution = 1
 			END 
-			ELSE
-			BEGIN 
-				SET @CurrentRow = (@nbBatchExecution-1)*@BatchSize
-			END
 			SET @Interimstart = GETDATE()
-			WHILE @CurrentRow < @SavedRecords
+			SET @CurrentDate = GETDATE()
+			WHILE @CurrentDate >= @KeepFromDate
 			BEGIN
 					BEGIN TRANSACTION
-					SET @SQL = 'INSERT INTO ' + @Table + ' (' + @ColumnList + ') SELECT ' + @ColumnList + ' FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
+					SET @SQL = 'INSERT INTO ' + @Table + ' (' + @ColumnList + ') SELECT ' + @ColumnList + ' FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+
+					' where '+@DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
 					print @SQL
 					EXEC sp_executesql @SQL 
 					COMMIT TRANSACTION
 
-				-- Drop temporary table if it exists in tempdb
+					SET @SQL = 'SELECT @maxRecId = MIN(RecId), @CurrentDate = Min('+@DateField+') FROM ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
+					PRINT @SQL
+					EXEC sp_executesql @SQL, N'@maxRecId BIGINT OUTPUT, @CurrentDate DATETIME OUTPUT', @maxRecId OUTPUT, @CurrentDate OUTPUT
+
+					-- Drop temporary table if it exists in tempdb
 					IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NOT NULL
 					BEGIN
 						SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)
 						EXEC sp_executesql @SQL
 					END
-					SET @CurrentRow = @CurrentRow + @BatchSize;
 					SET @nbBatchExecution = @nbBatchExecution +1
 
 					Update DBCleanupResultsLog
@@ -534,19 +595,30 @@ BEGIN
 
 
 			END
+			-- Count records to be deleted in simulation mode
+			SET @SQL = 'SELECT @SavedRecords = COUNT(*) FROM ' + @Table
+			Print @SQL
+			EXEC sp_executesql @SQL, N'@SavedRecords INT OUTPUT', @SavedRecords OUTPUT
+
 		END
 
 		SET @Interimend = GETDATE()
 		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
-		Print 'Copy Back data duraiton in ms ' + convert(NVARCHAR,@Duration)
+		Print 'Copy Back data duration in ms ' + convert(NVARCHAR,@Duration)
 		
     END
 
-
+	print('Checkpoint 10')
 
     SET @EndTime = GETDATE()
         -- Calculate duration of operations in simulation mode
     SET @Duration = DATEDIFF(MILLISECOND, @StartTime, @EndTime)
+	
+	print ('Row counts' + convert(NVARCHAR,@Rowcount))
+	print ('saved records' + convert(NVARCHAR,@SavedRecords))
+	set @DeletedRecords = @Rowcount - @SavedRecords
+	print ('deleted records' + convert(NVARCHAR,@DeletedRecords))
+
 
 
 	Update DBCleanupResultsLog
@@ -555,7 +627,6 @@ BEGIN
 
     -- Select results from log table for verification in simulation mode 
     SELECT * FROM DBCleanupResultsLog WHERE TableName=@Table AND LegalEntity=@LE AND KeepFromDate=CONVERT(NVARCHAR, @KeepFromDate, 120)
-
 
     -- Re-enable Change Data Capture or Change Tracking if previously enabled
     IF @CDCState = 1
@@ -568,5 +639,3 @@ BEGIN
     EXEC sp_executesql @SQL
 END
 GO
-
-
