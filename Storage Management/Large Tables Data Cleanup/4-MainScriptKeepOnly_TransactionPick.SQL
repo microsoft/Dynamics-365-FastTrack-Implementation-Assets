@@ -23,7 +23,6 @@ DECLARE @MaxArchivingDate DATE = '2023-07-01' -- Replace with your max archiving
 DECLARE @Simulation BIT = 1 -- Set to 1 for simulation mode, 0 for actual deletion
 DECLARE @LE NVARCHAR(Max) = 'MS,445I,BRMF,CNMF,DAT,DEMF,FRRT,FRSI,GBPM,GBSI,GLCO,GLMF,GLRT,GLSI,INMF,ITCO,JPMF,MXMF,MYMF,RUMF,RURT,SAMF,THMF,THPM,us01,USMF,USP2,USPI,USPM,USRT,USSI'
 DECLARE @TOPXTables INT = 10
-DECLARE @Threshold INT = 500000
 DECLARE @BatchSize INT = 500000
 DECLARE @Resume BIT = 1
 
@@ -105,7 +104,7 @@ BEGIN
                 -- The semaphore was acquired successfully
                 PRINT 'Semaphore acquired'
 
-                EXEC KeepOnlyRecordsSp @TableName, @LE, @MaxArchivingDate, @Simulation, @Threshold, @BatchSize, @Resume
+                EXEC KeepOnlyRecordsSp @TableName, @LE, @MaxArchivingDate, @Simulation, @BatchSize, @Resume
 
                 -- Release the semaphore
                 EXEC sp_releaseapplock @Resource = @TableName, @LockOwner = 'Session'
