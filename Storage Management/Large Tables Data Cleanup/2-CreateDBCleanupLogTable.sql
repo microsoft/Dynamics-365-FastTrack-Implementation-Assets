@@ -21,9 +21,9 @@ BEGIN
         IF dbo.ColumnExists(@table_name, 'TableName', 'NVARCHAR', 1000) = 0 SET @missing_fields = @missing_fields + 1
         IF dbo.ColumnExists(@table_name, 'LegalEntity', 'NVARCHAR', 4000) = 0 SET @missing_fields = @missing_fields + 1
         IF dbo.ColumnExists(@table_name, 'KeepFromDate', 'NVARCHAR', 120) = 0 SET @missing_fields = @missing_fields + 1
-        IF dbo.ColumnExists(@table_name, 'NbRecordsDeleted', 'INT', NULL) = 0 SET @missing_fields = @missing_fields + 1
-        IF dbo.ColumnExists(@table_name, 'NbRecordsSaved', 'INT', NULL) = 0 SET @missing_fields = @missing_fields + 1
-        IF dbo.ColumnExists(@table_name, 'EstimatedDuration', 'INT', NULL) = 0 SET @missing_fields = @missing_fields + 1
+        IF dbo.ColumnExists(@table_name, 'NbRecordsDeleted', 'BIGINT', NULL) = 0 SET @missing_fields = @missing_fields + 1
+        IF dbo.ColumnExists(@table_name, 'NbRecordsSaved', 'BIGINT', NULL) = 0 SET @missing_fields = @missing_fields + 1
+        IF dbo.ColumnExists(@table_name, 'EstimatedDuration', 'BIGINT', NULL) = 0 SET @missing_fields = @missing_fields + 1
         IF dbo.ColumnExists(@table_name, 'StartTime', 'DATETIME', NULL) = 0 SET @missing_fields = @missing_fields + 1
         IF dbo.ColumnExists(@table_name, 'EndTime', 'DATETIME', NULL) = 0 SET @missing_fields = @missing_fields + 1
         IF dbo.ColumnExists(@table_name, 'Step', 'INT', NULL) = 0 SET @missing_fields = @missing_fields + 1
@@ -43,9 +43,9 @@ BEGIN
             TableName NVARCHAR(1000),
             LegalEntity NVARCHAR(4000),
             KeepFromDate NVARCHAR(120),
-            NbRecordsDeleted INT,
-            NbRecordsSaved INT,
-            EstimatedDuration INT,
+            NbRecordsDeleted BIGINT,
+            NbRecordsSaved BIGINT,
+            EstimatedDuration BIGINT,
             StartTime DATETIME,
             EndTime DATETIME,
             Step INT,
