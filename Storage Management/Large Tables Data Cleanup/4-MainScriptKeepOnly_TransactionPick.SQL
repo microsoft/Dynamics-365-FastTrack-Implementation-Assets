@@ -24,6 +24,7 @@ DECLARE @LE NVARCHAR(Max) = 'MS,445I,BRMF,CNMF,DAT,DEMF,FRRT,FRSI,GBPM,GBSI,GLCO
 DECLARE @TOPXTables INT = 100
 DECLARE @BatchSize INT = 500000
 DECLARE @Resume BIT = 1
+DECLARE @IncludeTablesWithoutDataarea BIT = 1
  
 DECLARE @TableName NVARCHAR(255)
 DECLARE @TotalSpace BIGINT
@@ -102,7 +103,7 @@ BEGIN
                 -- The semaphore was acquired successfully
                 PRINT 'Semaphore acquired'
 				
-                EXEC KeepOnlyRecordsSp @TableName, @LE, @MaxArchivingDate, @Simulation, @BatchSize, @Resume, @RowCounts
+                EXEC KeepOnlyRecordsSp @TableName, @LE, @MaxArchivingDate, @Simulation, @BatchSize, @Resume, @RowCounts, @IncludeTablesWithoutDataarea
 				PRINT 'Keeponlyrecords sp execution complete for table '+@TableName
                 -- Release the semaphore
                 EXEC sp_releaseapplock @Resource = @TableName, @LockOwner = 'Session'
