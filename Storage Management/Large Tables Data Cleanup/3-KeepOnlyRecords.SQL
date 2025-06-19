@@ -1,11 +1,3 @@
-/****** Object:  StoredProcedure [dbo].[KeepOnlyRecordsSp]    Script Date: 6/4/2025 1:42:24 PM ******/
-SET ANSI_NULLS ON
-GO
-
-SET QUOTED_IDENTIFIER ON
-GO
-
-
 /*
 Description:
 This script is designed to archive records from specified tables in a database. It creates a stored procedure that takes table name, legal entity, date, and simulation mode as parameters. The stored procedure performs the following steps:
@@ -39,7 +31,8 @@ CREATE OR ALTER PROCEDURE [dbo].[KeepOnlyRecordsSp]
     @Simulation BIT = 1,
     @BatchSize INT = 5000000, 
     @Resume BIT = 0,
-	@Rowcount INT = 0
+	@RowCount BIGINT = 0,
+	@IncludeTablesWithoutDataarea BIT = 1
 AS
 BEGIN
 
@@ -67,17 +60,9 @@ BEGIN
 	Declare @partitionId bigint = 0
 	Declare @SourceTableName NVARCHAR(MAX)
 	Declare @TargetTableName NVARCHAR(MAX)
+	Declare @TableHasDataareaIdField BIT = 0 
 
 
-			-- Step 1: Identify DataAreaIDs in Datatarea that are NOT in the @LE list and are not 'dat'
-		IF OBJECT_ID('tempdb..#SandboxTrimMissingLEs') IS NOT NULL DROP TABLE #SandboxTrimMissingLEs;
-		SELECT ID
-		INTO #SandboxTrimMissingLEs
-		FROM DATAAREA
-		WHERE ID NOT IN (
-			SELECT TRIM(value) FROM STRING_SPLIT(@LE, ',')
-		)
-		AND ID <> 'dat';
 
 
 		-- Check if the table has an index with RecId as the first and only column
@@ -125,12 +110,30 @@ BEGIN
     IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @Table AND (COLUMN_NAME = 'DataAreaId'))
     BEGIN
         PRINT 'DataAreaId exists in ' + @Table
+		set @TableHasDataareaIdField = 1
     END
     ELSE
     BEGIN
         PRINT 'Warning: Table ' + @Table + ' does not have DataAreaId'
-        RETURN
+		if (@IncludeTablesWithoutDataarea = 0)
+		BEGIN
+			RETURN
+		END
     END
+
+	IF (@TableHasDataareaIdField = 1)
+	BEGIN
+		-- Step 1: Identify DataAreaIDs in Datatarea that are NOT in the @LE list and are not 'dat'
+		IF OBJECT_ID('tempdb..#SandboxTrimMissingLEs') IS NOT NULL DROP TABLE #SandboxTrimMissingLEs;
+		SELECT ID
+		INTO #SandboxTrimMissingLEs
+		FROM DATAAREA
+		WHERE ID NOT IN (
+			SELECT TRIM(value) FROM STRING_SPLIT(@LE, ',')
+		)
+		AND ID <> 'dat';
+	END
+
 
 	Print('checkpoint 2')
 
@@ -218,6 +221,8 @@ BEGIN
 
 	COMMIT TRANSACTION
 
+	Print CONVERT(NVARCHAR(MAX),@@TRANCOUNT)
+
 	-- Simulation mode: Estimate duration of select, truncate, and insert statements and count records
 	IF @Simulation = 1
     BEGIN
@@ -253,8 +258,6 @@ BEGIN
 					EXEC sp_executesql @SQL
 				END
  
-				BEGIN TRANSACTION
-				
 				IF @maxRecId = 0
 				BEGIN
 					SET @SQL = 'SELECT TOP ' + CONVERT(NVARCHAR, @BatchSize) + ' ' + @ColumnList +
@@ -277,41 +280,46 @@ BEGIN
 				EXEC sp_executesql @SQL
  
 				-- Create index on DataAreaID
-				SET @SQL = 'CREATE NONCLUSTERED INDEX IX_' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
-						   '_DataAreaID ON ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) + ' (DataAreaID,'+@DateField+')'
-				PRINT @SQL
-				EXEC sp_executesql @SQL
+				if (@TableHasDataareaIdField = 1)
+				BEGIN
+					SET @SQL = 'CREATE NONCLUSTERED INDEX IX_' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
+							   '_DataAreaID ON ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) + ' (DataAreaID,'+@DateField+')'
+					PRINT @SQL
+					EXEC sp_executesql @SQL
+				END 
  
-				-- remove LE specific data
-				BEGIN TRY
+				IF (@TableHasDataareaIdField = 1)
+				BEGIN
+					-- remove LE specific data
+					BEGIN TRY
  
-					-- Step 2: If missing LEs exist, rebuild buffer table
-					IF EXISTS (SELECT 1 FROM #SandboxTrimMissingLEs)
-					BEGIN
-						PRINT 'Missing DataAreaIDs found. Rebuilding buffer table...';
+						-- Step 2: If missing LEs exist, rebuild buffer table
+						IF EXISTS (SELECT 1 FROM #SandboxTrimMissingLEs)
+						BEGIN
+							PRINT 'Missing DataAreaIDs found. Rebuilding buffer table...';
  
-						-- Create new buffer table with only valid LE data
-						set @SQL = 'SELECT * INTO ' +@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+'sle'+ ' FROM '+@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+ 
-						' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''));'
+							-- Create new buffer table with only valid LE data
+							set @SQL = 'SELECT * INTO ' +@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+'sle'+ ' FROM '+@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+ 
+							' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''));'
 
-						PRINT @SQL
-						EXEC sp_executesql @SQL
+							PRINT @SQL
+							EXEC sp_executesql @SQL
  
-						-- Drop old buffer table
-						SET @SQL = 'DROP TABLE ' + QUOTENAME(@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution));
-						EXEC sp_executesql @SQL;
+							-- Drop old buffer table
+							SET @SQL = 'DROP TABLE ' + QUOTENAME(@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution));
+							EXEC sp_executesql @SQL;
 						
-						set @SourceTableName = @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+'sle'
-						set @TargetTableName = @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
+							set @SourceTableName = @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+'sle'
+							set @TargetTableName = @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
 						
-						-- Rename new table
-						EXEC sp_rename @SourceTableName, @TargetTableName ;
-					END
-				END TRY 
-				BEGIN CATCH
-					Print 'Failed to remove unselected legal entities data'
-				END CATCH
- 
+							-- Rename new table
+							EXEC sp_rename @SourceTableName, @TargetTableName ;
+						END
+					END TRY 
+					BEGIN CATCH
+						Print 'Failed to remove unselected legal entities data'
+					END CATCH
+				END
 				-- Update maxRecId
 				SET @SQL = 'SELECT @maxRecId = MIN(RecId), @CurrentDate = Min('+@DateField+') FROM ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
 				PRINT @SQL
@@ -328,7 +336,6 @@ BEGIN
 
 				SET @nbBatchExecution = @nbBatchExecution + 1
  
-				COMMIT TRANSACTION
  
 				UPDATE DBCleanupResultsLog
 				SET Step = @step, CurrentLoopIndex = @nbBatchExecution
@@ -372,6 +379,11 @@ BEGIN
 					BEGIN
 						SET @SQL = 'DROP TABLE '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+'simulation'
 						EXEC sp_executesql @SQL
+					END
+
+					IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NULL
+					BEGIN
+						Break;
 					END
 
 					BEGIN TRANSACTION
@@ -450,10 +462,7 @@ BEGIN
 					SET @SQL = 'DROP TABLE ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
 					EXEC sp_executesql @SQL
 				END
-
  
-				BEGIN TRANSACTION
-				
 				IF @maxRecId = 0
 				BEGIN
 					SET @SQL = 'SELECT TOP ' + CONVERT(NVARCHAR, @BatchSize) + ' ' + @ColumnList +
@@ -476,41 +485,46 @@ BEGIN
 				EXEC sp_executesql @SQL
  
 				-- Create index on DataAreaID
-				SET @SQL = 'CREATE NONCLUSTERED INDEX IX_' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
-						   '_DataAreaID ON ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) + ' (DataAreaID,'+@DateField+')'
-				PRINT @SQL
-				EXEC sp_executesql @SQL
+				if (@TableHasDataareaIdField = 1)
+				BEGIN
+					SET @SQL = 'CREATE NONCLUSTERED INDEX IX_' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
+							   '_DataAreaID ON ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) + ' (DataAreaID,'+@DateField+')'
+					PRINT @SQL
+					EXEC sp_executesql @SQL
+				END 
  
-				-- remove LE specific data
-				BEGIN TRY
+				IF (@TableHasDataareaIdField = 1)
+				BEGIN
+					-- remove LE specific data
+					BEGIN TRY
  
-					-- Step 2: If missing LEs exist, rebuild buffer table
-					IF EXISTS (SELECT 1 FROM #SandboxTrimMissingLEs)
-					BEGIN
-						PRINT 'Missing DataAreaIDs found. Rebuilding buffer table...';
+						-- Step 2: If missing LEs exist, rebuild buffer table
+						IF EXISTS (SELECT 1 FROM #SandboxTrimMissingLEs)
+						BEGIN
+							PRINT 'Missing DataAreaIDs found. Rebuilding buffer table...';
  
-						-- Create new buffer table with only valid LE data
-						set @SQL = 'SELECT * INTO ' +@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+'sle'+ ' FROM '+@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+ 
-						' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''));'
+							-- Create new buffer table with only valid LE data
+							set @SQL = 'SELECT * INTO ' +@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+'sle'+ ' FROM '+@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+ 
+							' WHERE DataAreaID IN (SELECT value FROM STRING_SPLIT('''+@LE+''', '',''));'
 
-						PRINT @SQL
-						EXEC sp_executesql @SQL
+							PRINT @SQL
+							EXEC sp_executesql @SQL
  
-						-- Drop old buffer table
-						SET @SQL = 'DROP TABLE ' + QUOTENAME(@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution));
-						EXEC sp_executesql @SQL;
+							-- Drop old buffer table
+							SET @SQL = 'DROP TABLE ' + QUOTENAME(@BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution));
+							EXEC sp_executesql @SQL;
 						
-						set @SourceTableName = @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+'sle'
-						set @TargetTableName = @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
+							set @SourceTableName = @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)+'sle'
+							set @TargetTableName = @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
 						
-						-- Rename new table
-						EXEC sp_rename @SourceTableName, @TargetTableName ;
-					END
-				END TRY 
-				BEGIN CATCH
-					Print 'Failed to remove unselected legal entities data'
-				END CATCH
- 
+							-- Rename new table
+							EXEC sp_rename @SourceTableName, @TargetTableName ;
+						END
+					END TRY 
+					BEGIN CATCH
+						Print 'Failed to remove unselected legal entities data'
+					END CATCH
+				END
 				-- Update maxRecId
 				SET @SQL = 'SELECT @maxRecId = MIN(RecId), @CurrentDate = Min('+@DateField+') FROM ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
 				PRINT @SQL
@@ -527,7 +541,6 @@ BEGIN
 
 				SET @nbBatchExecution = @nbBatchExecution + 1
  
-				COMMIT TRANSACTION
  
 				UPDATE DBCleanupResultsLog
 				SET Step = @step, CurrentLoopIndex = @nbBatchExecution
@@ -537,6 +550,7 @@ BEGIN
 			SET @Interimend = GETDATE()
 			SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
 			Print 'copy from main table duraion in ms ' + convert(NVARCHAR,@Duration)
+		Print CONVERT(NVARCHAR(MAX),@@TRANCOUNT)
 		END
 		IF @step = 1 or @step = 2 
 		BEGIN
@@ -570,6 +584,13 @@ BEGIN
 			SET @CurrentDate = GETDATE()
 			WHILE @CurrentDate >= @KeepFromDate
 			BEGIN
+					
+					IF OBJECT_ID(@BufferTableDropPrefix+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)) IS NULL
+					BEGIN
+						Break;
+					END
+
+
 					BEGIN TRANSACTION
 					SET @SQL = 'INSERT INTO ' + @Table + ' (' + @ColumnList + ') SELECT ' + @ColumnList + ' FROM '+@BufferTABLEName+Convert(NVARCHAR,@nbBatchExecution)+
 					' where '+@DateField + ' >= ''' + CONVERT(NVARCHAR, @KeepFromDate, 120) + ''''
@@ -614,9 +635,9 @@ BEGIN
         -- Calculate duration of operations in simulation mode
     SET @Duration = DATEDIFF(MILLISECOND, @StartTime, @EndTime)
 	
-	print ('Row counts' + convert(NVARCHAR,@Rowcount))
+	print ('Row counts' + convert(NVARCHAR,@RowCount))
 	print ('saved records' + convert(NVARCHAR,@SavedRecords))
-	set @DeletedRecords = @Rowcount - @SavedRecords
+	set @DeletedRecords = @RowCount - @SavedRecords
 	print ('deleted records' + convert(NVARCHAR,@DeletedRecords))
 
 
@@ -632,10 +653,16 @@ BEGIN
     IF @CDCState = 1
     BEGIN
 		SET @SQL = 'EXEC sys.sp_cdc_enable_table @source_schema = N''dbo'', @source_name = N''' + @Table + ''', @role_name = NULL'
-        EXEC sp_executesql @SQL
+        Print @SQL
+		EXEC sp_executesql @SQL
     END
+	BEGIN TRANSACTION
+		SET @SQL = 'IF EXISTS (SELECT * FROM sys.change_tracking_tables WHERE object_id = OBJECT_ID(''' + @Table + ''')) ALTER TABLE ' + @Table + ' ENABLE CHANGE_TRACKING'
+		Print @SQL
+		EXEC sp_executesql @SQL
+	COMMIT TRANSACTION
+	Print 'Sp execution complete'
+	IF @@TRANCOUNT > 0
+		COMMIT TRANSACTION
 
-    SET @SQL = 'IF EXISTS (SELECT * FROM sys.change_tracking_tables WHERE object_id = OBJECT_ID(''' + @Table + ''')) ALTER TABLE ' + @Table + ' ENABLE CHANGE_TRACKING'
-    EXEC sp_executesql @SQL
 END
-GO
