@@ -57,6 +57,7 @@ WHERE FIC.Column_Name = 'ModifiedDateTime'
 
 UNION
 
+/*    
 -- 5) Identify tables with none of the above columns, choosing the “best alternative”
 --    (this part requires domain knowledge—below uses an example heuristic)
 SELECT
@@ -73,3 +74,4 @@ WHERE FIC.TABLE_NAME NOT IN (
     -- If you have a way to identify date-like columns (e.g. data type checks), filter them:
     -- AND (FIC.DataType IN ('datetime', 'date'))
 GROUP BY FIC.TABLE_NAME;
+*/
