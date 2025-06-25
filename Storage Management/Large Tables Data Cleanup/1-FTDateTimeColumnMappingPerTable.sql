@@ -54,7 +54,7 @@ WHERE FIC.Column_Name = 'ModifiedDateTime'
         FROM FTInformationcolums FTIC
         WHERE COLUMN_NAME IN ('AccountingDate','TransDate','CreatedDateTime')
     )
-
+/*
 UNION
 
 -- 5) Identify tables with none of the above columns, choosing the “best alternative”
@@ -73,3 +73,6 @@ WHERE FIC.TABLE_NAME NOT IN (
     -- If you have a way to identify date-like columns (e.g. data type checks), filter them:
     -- AND (FIC.DataType IN ('datetime', 'date'))
 GROUP BY FIC.TABLE_NAME;
+
+*/
+
