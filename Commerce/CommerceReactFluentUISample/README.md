@@ -50,8 +50,8 @@ CommerceReactFluentUISample/
 │   ├── ReactComponents/         # React UI components
 │   │   ├── Counter.tsx              # Example stateful React component
 │   │   └── RenderCounter.tsx        # Component renderer / integration helper
-│   └── ViewExtensions/          # Custom UI extensions for Store Commerce app
-│       └── ReactExtensions/         # React-based extension controls
+├── ViewExtensions/          # Custom UI extensions for Store Commerce app
+│   └── ReactExtensions/         # React-based extension controls
 │           ├── SampleReactPanel.html    # HTML container for React control
 │           └── SampleReactPanel.ts      # Extension integration TypeScript file
 ```
