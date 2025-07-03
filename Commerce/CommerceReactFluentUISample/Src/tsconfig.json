@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "umd",
+    "moduleResolution": "node",
+    "jsx": "react",
+    "esModuleInterop": true,
+    "strict": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationDir": "../TypesReact"
+  },
+  "include": ["ReactComponents", "index.ts"],
+  "exclude": ["node_modules"]
+}

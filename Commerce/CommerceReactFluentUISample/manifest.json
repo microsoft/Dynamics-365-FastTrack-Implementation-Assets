@@ -1,0 +1,47 @@
+﻿{
+  "$schema": "./devDependencies/schemas/manifestSchema.json",
+  "name": "Contoso.Pos.ReactExtensions.Sample",
+  "publisher": "Contoso",
+  "version": "1.0.0",
+  "minimumPosVersion": "9.29.0.0",
+  "description": "An extension package that makes use of a Retail Server extension. Also works off-line.",
+  "dependencies": [
+    {
+      "alias": "knockout",
+      "format": "amd",
+      "modulePath": "Libraries/knockout"
+    },
+    {
+      "alias": "reactcomponents",
+      "format": "amd",
+      "modulePath": "DistReact/reactcomponents"
+    }
+  ],
+  "components": {
+    "resources": {
+      "supportedUICultures": ["en-US"],
+      "fallbackUICulture": "en-US",
+      "culturesDirectoryPath": "Resources/Strings",
+      "stringResourcesFileName": "resources.resjson"
+    },
+    "extend": {
+      "views": {
+        "CustomerDetailsView": {
+          "controlsConfig": {
+            "customControls": [
+              {
+                "controlName": "sampleReactPanel",
+                "htmlPath": "ViewExtensions/ReactExtensions/SampleReactPanel.html",
+                "modulePath": "ViewExtensions/ReactExtensions/SampleReactPanel"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "create": {
+      "templatedDialogs": [],
+      "views": []
+    }
+  }
+}
