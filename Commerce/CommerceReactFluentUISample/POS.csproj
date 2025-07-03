@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\CustomizationPackage.props" />
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Dynamics.Commerce.Sdk.Pos"
+      Version="$(CommerceSdkPackagesVersion)" />
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.0.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="Src\**\*" />
+    <Compile Remove="Src\**\*" />
+    <None Remove="Src\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ExcludedFromBuild Include="Src\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CommerceRuntime\CommerceRuntime.csproj"
+      ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" />
+  </ItemGroup>
+
+  <Target Name="DownloadKnockoutFromCDN" BeforeTargets="AssignTargetPaths">
+    <PropertyGroup>
+      <KnockoutCDNUrl>https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.1/knockout-latest.js</KnockoutCDNUrl>
+      <KnockoutLocalPath>Libraries\knockout.js</KnockoutLocalPath>
+    </PropertyGroup>
+    <Exec
+      Command="powershell -Command &quot;Invoke-WebRequest -Uri '$(KnockoutCDNUrl)' -OutFile '$(KnockoutLocalPath)'&quot;" />
+    <ItemGroup>
+      <Content Include="$(KnockoutLocalPath)" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <Content Include="DistReact\**\*.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="Build">
+    <Exec Command="npm install" WorkingDirectory="Src" />
+    <Exec Command="npx webpack - -config webpack.config.js" WorkingDirectory="Src" />
+  </Target>
+</Project>

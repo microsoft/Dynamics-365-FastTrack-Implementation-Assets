@@ -1,0 +1,14 @@
+{
+  "extends": "./devDependencies/pos-tsconfig-base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "removeComments": true,
+    "paths": {
+      "libraries": ["Libraries/knockout"],
+      "reactcomponents": ["DistReact/reactcomponents"]
+    }
+  },
+  "exclude": ["Src"]
+}
