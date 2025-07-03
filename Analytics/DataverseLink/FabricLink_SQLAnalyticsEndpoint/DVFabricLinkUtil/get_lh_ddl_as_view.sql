@@ -220,7 +220,7 @@ CREATE TABLE #enumtranslationdist (
                               maxLength INT
                           )
                       ) z ON C.TABLE_NAME = LOWER(z.tablename) AND C.COLUMN_NAME = LOWER(z.columnname)
-                      WHERE TABLE_SCHEMA = @target_table_schema
+                      WHERE TABLE_SCHEMA = @source_table_schema
                         AND TABLE_NAME = childtable
                         AND COLUMN_NAME NOT IN (
                             SELECT value 
@@ -235,7 +235,7 @@ CREATE TABLE #enumtranslationdist (
                 )
                 cross apply openjson(childtables) with (childtable nvarchar(200))
 			    where 
-                childtable in (select distinct TABLE_NAME from INFORMATION_SCHEMA.COLUMNS C where TABLE_SCHEMA = @target_table_schema and lower(C.TABLE_NAME)  = lower(childtable))
+                childtable in (select distinct TABLE_NAME from INFORMATION_SCHEMA.COLUMNS C where TABLE_SCHEMA = @source_table_schema and lower(C.TABLE_NAME)  = lower(childtable))
                 and   lower(childtable) in (select distinct lower(tablename) FROM #sqltadata)
           ) x
           GROUP BY parenttable
