@@ -3,7 +3,7 @@
 # 🧩 Use Case
 Streamlining and automating the intake of *sales orders* received as email attachments for seamless integration into Microsoft Dynamics 365.
 # 🛠️ Approach
-The solution will lead with our **first-party agent Document Processor for document extraction, and content validation**. Once the content is validated, we will use a **second agent to create the order and order lines into Dynamics 365 Finance and Operations.**
+The solution will lead with the built-in agent **Document Processor** for document extraction and content validation. Once the content is validated, we use a second agent to create the order and order lines into Dynamics 365.
 
 **Step 1: Document Processor Agent**
 - Monitors Exchange mailbox (personal or shared)
