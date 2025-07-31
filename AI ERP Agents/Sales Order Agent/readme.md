@@ -47,7 +47,7 @@ When configuring the Document Processor Agent, to achieve a more deterministic J
 ![docProcessorValidationCustomAdvanced](images/docProcessorValidationCustomAdvanced.png)
 
 ## 🤖 Sales Order Processor Agent
-**Sales Order Processor Agent** is an agent template to help support **an end-to-end document processing flow into downstream apps such as Dynamics 365 Finance and Operations**. The agent includes sales order input validations for customer name and product codes, creation of a sales order header and related lines, as well as acknowledgement emails.
+**Sales Order Processor Agent** is an agent template to help support an end-to-end document processing flow into downstream apps such as Dynamics 365 Finance or Supply Chain Management. The agent includes sales order input validations for customer name and product codes, creation of a sales order header and related lines, as well as acknowledgement emails.
 ### Components
 - **Instructions** – the agent uses generative AI with the next instructions:
 ![salesOrderAgentInstructions1](images/salesOrderAgentInstructions1.png)
