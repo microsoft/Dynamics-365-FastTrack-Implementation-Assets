@@ -77,7 +77,7 @@ When instantiating the sales order agent template, consider the following to mak
 - As you are testing the end-to-end flow initially you may choose to send the acknowledgement emails initially to an internal reviewer and then forward the email to the initiating customer.
 
 ## ✅ Prerequisites
- - Connected Dataverse and finance and operations environment
+ - Connected environments with  Dataverse and finance and operations apps.
  - Dataverse virtual tables enabled: Released products V2 (mserp). For more details please see https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/power-platform/enable-virtual-entities.
  - Document Processor Agent installed and configured. For more details please see https://learn.microsoft.com/en-us/microsoft-copilot-studio/template-managed-document-processor.
  - System Administrator role for document processor agent installation and sales order agent template personalization.
