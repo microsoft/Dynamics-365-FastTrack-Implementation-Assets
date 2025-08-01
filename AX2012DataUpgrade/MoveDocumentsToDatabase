@@ -1,28 +1,3 @@
-Note: This source code is freeware and is provided on an "as is" basis without warranties of any kind, 
-whether express or implied, including without limitation warranties that the code is free of defect, 
-fit for a particular purpose or non-infringing.  The entire risk as to the quality and performance of 
-the code is with the end user.
-
-
-Below is the contents for an XPO containing the following objects:
-Project (Private): D365UpgradeMigrateAttachments
-Class: D365UpgradeMigrateAttachments
-Enum: AttachmentProcessed
-Table (USR Layer Only): DocuRef - New fields added: AttachmentProcessed & LockedFileCount
-
-Notes: 
-There are 5 steps in this process - all are called from the main() method in the class.
-Step 1. The class renames the DocuType records for types that are configured for a file share.
-Step 2. Existing DocuRef records are updated, as necessary, to reference the new DocuType created in step 1
-Step 3. New DocuType records are created based on the ones renamed in step 1, but with the storage location set to database.
-Step 4. The main file migration step, this will migrate the file share attachments to the database, new DocuRef and DocuValues records created.
-   If Step 4 fails, you can rerun that again, just comment out in the main method steps 1 through 3. Somtimes filelocks will prevent the file from being migrated to the database.
-Step 5. This will clean up the original attachment records, but only if all the records were sucessfully migrated in step 4.
-   Warning: If not all the attachments were migrated, then this step will not clean up the old records, and will result in duplicates in D365 after the upgrade.
-   
-   
-Copy contents below into Notepad, and save the file as "PrivateProject_D365UpgradeMigrateAttachments.xpo". Import and compile and sync, run class -  D365UpgradeMigrateAttachments  
-
 Exportfile for AOT version 1.0 or later
 Formatversion: 1
 
@@ -325,6 +300,7 @@ Formatversion: 1
         #        where docuRef.AttachmentProcessed == AttachmentProcessed::Unprocessed
         #        join  docuType
         #            where docuRef.TypeId == DocuType.TypeId
+        #            && DocuType.TypeId like '*_O'
         #            && docuType.FilePlace == DocuFilePlace::Archive
         #            && docuType.dataAreaId == docuRef.ActualCompanyId
         #    {
