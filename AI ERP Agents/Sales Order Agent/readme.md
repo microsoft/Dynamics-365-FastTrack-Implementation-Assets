@@ -1,8 +1,19 @@
 # Sales Order Processor Agent
+# Table of contents
+1. [Use Case](#usecase)
+2. [Approach](#approach)
+3. [Business Process Flow](#businessprocessflow)
+4. [Document Processor Agent](#documentprocessoragent)
+5. [Sales Order Processor Agent](#salesorderprocessoragent)
+6. [Considerations](#considerations)
+7. [Prerequisites](#prerequisites)
 
-# 🧩 Use Case
+
+<a id="usecase"></a>
+# 🧩 Use Case 
 Streamlining and automating the intake of *sales orders* received as email attachments for seamless integration into Microsoft Dynamics 365.
-# 🛠️ Approach
+<a id="approach"></a>
+# 🛠️ Approach 
 The solution will lead with the built-in agent **Document Processor** for document extraction and content validation. Once the content is validated, we use a second agent to create the order and order lines into Dynamics 365.
 
 **Step 1: Document Processor Agent**
@@ -35,17 +46,27 @@ The solution will lead with the built-in agent **Document Processor** for docume
 ![emailOrderSuccess](images/emailOrderSuccess.png)
 ![emailInvalidCustomer](images/emailInvalidCustomer.png)
 
+<a id="businessprocessflow"></a>
 ## ⏳ Business Process Flow
 ![businessProcessFlow](images/businessProcessFlow.png)
 
-
+<a id="documentprocessoragent"></a>
 ## 📄 Document Processor Agent
 **Document Processor Agent** is a robust managed agent, packaged solution for end-to-end document processing including **extraction, validation and human monitoring**. It does not require training custom models, instead a relevant sample document can be uploaded, and the maker can configure the attributes that should be extracted and if any validation rules to be applied. For more details please see: https://learn.microsoft.com/en-us/microsoft-copilot-studio/template-managed-document-processor.
 ### Configuration Wizard
-When configuring the Document Processor Agent, to achieve a more deterministic JSON schema that you can leverage in the Sales Order agent to parse the data for the downstream systems, it is recommended to update the Document Processor extraction rules and include a similar prompt: 
+When configuring the Document Processor Agent, to achieve a more deterministic JSON schema that you can leverage in the Sales Order agent to parse the data for the downstream systems, it is recommended to add to the Document Processor extraction rules a similar prompt: 
+
 ![docProcessorValidationRulesCustom](images/docProcessorValidationRulesCustom.png)
+
 ![docProcessorValidationCustomAdvanced](images/docProcessorValidationCustomAdvanced.png)
 
+ Please note that the downstream agent flows have a dependency on these column names: **deliveryCustomername, productcode, productqty, productuom**. 
+
+For your referencce, this is a prompt that can be **added** to the Document Processor out of the box instructions:
+>If the template is a purchase order look for a delivery customer (FROM) and a supplier (TO). For the delivery customer include columns with names  delivery customer Name, delivery customer email, delivery customer phone number, delivery customer address, delivery  customer number. If the information extracted does not contain values for these columns, you can add the columns with an empty value.
+Look for the main table with a list of items and append to items array extracted data columns for product code, product name, product description, product uom, product qty, product price, product line total using these columns names. If the information extracted does not contain values for these columns, you can add the columns with an empty value.
+
+<a id="salesorderprocessoragent"></a>
 ## 🤖 Sales Order Processor Agent
 **Sales Order Processor Agent** is an agent template to help support an end-to-end document processing flow into downstream apps such as Dynamics 365 Finance or Supply Chain Management. The agent includes sales order input validations for customer name and product codes, creation of a sales order header and related lines, as well as acknowledgement emails.
 ### Components
@@ -68,16 +89,19 @@ When configuring the Document Processor Agent, to achieve a more deterministic J
   - **Create Sales Order Items** – agent flow which receives as input the processed data JSON, sales order number and a mailbox to communicate once creation is completed. It will iterate through the items array and create the sales order lines for the product code, quantity, and unit of measure provided.
   - **Send an email (V2)** – connector action which sends email with input as per agent instructions.
 
-## Considerations for configuration
+<a id="considerations"></a>
+## ✅ Considerations for configuration
 When instantiating the sales order agent template, consider the following to make the agent work for your specific needs and data:
- - Update the agent instructions to email the relevant mailbox – review agent instructions and the Create Sales Order Lines agent flow input parameter.
- - Company Code – the agent flows receiving this input parameter use a test value ‘usmf’. You may want to update this in the input parameters of all the agent flows within the agent in Copilot Studio.
- - Customer - Sales order processor validates customer name and product codes. Consider if this is necessary for your organization, and update as needed e.g. you may have done this validation in the Document Processor validation rules, or instead of identifying the customer by name, identifying customer by email if its provided – for this change, ensure to update: the document processor extraction prompt, sales order agent instructions, and the Get Customer Number agent flow filter criteria accordingly.
-- Product details – The sales order processor is using product code, quantity, and unit of measure for order line-item creation.
-- As you are testing the end-to-end flow initially you may choose to send the acknowledgement emails initially to an internal reviewer and then forward the email to the initiating customer.
+ - **Update the agent instructions to email the relevant mailbox** – review agent instructions and the Create Sales Order Lines agent flow input parameter.
+ - **Company Code** – the agent flows receiving this input parameter use a test value ‘usmf’. You may want to update this in the input parameters of all the agent flows within the agent in Copilot Studio.
+ - **Customer** - Sales order processor validates customer name. The agent flows validating product codes rely on the json containg columns **deliveryCustomername**. Consider if this is necessary for your organization, and update as needed e.g. you may have done this validation in the Document Processor validation rules, or instead of identifying the customer by name, identifying customer by email if its provided – for this change, ensure to update: the document processor extraction prompt, sales order agent instructions, and the Get Customer Number agent flow filter criteria accordingly.
+- **Products** – Sales order processor validates the product codes, and if found, it proceeds to create the lines using product code, quantity, and unit of measure. The agent flows validating product codes rely on the json containg columns **productcode, productqty, productuom**. If you capture different columns with your prompt, you may need to review the agent flow that validate and create sales order lines.
+- **Acknowledgement email** - As you are testing the end-to-end flow initially you may choose to send the acknowledgement emails initially to an internal reviewer and then forward the email to the customer.
 
+<a id="prerequisites"></a>
 ## ✅ Prerequisites
  - Connected environments with  Dataverse and finance and operations apps.
  - Dataverse virtual tables enabled: Released products V2 (mserp). For more details please see https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/power-platform/enable-virtual-entities.
- - Document Processor Agent installed and configured. For more details please see https://learn.microsoft.com/en-us/microsoft-copilot-studio/template-managed-document-processor.
- - System Administrator role for document processor agent installation and sales order agent template personalization.
+ - Document Processor agent installed and configured. For setup details please use this document. For more details please see https://learn.microsoft.com/en-us/microsoft-copilot-studio/template-managed-document-processor.
+ - Sales Order Processor agent installed and configured. For setup details please use this document.
+ - System Administrator role for document processor agent installation and agents configuration.
