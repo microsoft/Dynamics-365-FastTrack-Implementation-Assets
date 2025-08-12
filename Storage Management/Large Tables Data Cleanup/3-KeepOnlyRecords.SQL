@@ -29,7 +29,7 @@ CREATE OR ALTER PROCEDURE [dbo].[KeepOnlyRecordsSp]
     @LE NVARCHAR(Max),
     @KeepFromDate DATE,
     @Simulation BIT = 1,
-    @BatchSize INT = 5000000, 
+    @BatchSize BIGINT = 5000000, 
     @Resume BIT = 0,
 	@RowCount BIGINT = 0,
 	@IncludeTablesWithoutDataarea BIT = 1
@@ -547,3 +547,4 @@ BEGIN
 		COMMIT TRANSACTION
 
 END
+
