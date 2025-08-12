@@ -26,7 +26,7 @@ DECLARE @MaxThruputInGB BIGINT = 100 --Lower if you get an sql throttling errors
 DECLARE @Resume BIT = 1
 DECLARE @IncludeTablesWithoutDataarea BIT = 1
  
-DECLARE @BatchSize INT 
+DECLARE @BatchSize BIGINT 
 DECLARE @TableName NVARCHAR(255)
 DECLARE @TotalSpace BIGINT
 DECLARE @RowCounts BIGINT
@@ -91,7 +91,7 @@ BEGIN
         OPEN Cursor' + CONVERT(NVARCHAR, @@SPID) + '
         FETCH NEXT FROM Cursor' + CONVERT(NVARCHAR, @@SPID) + ' INTO @TableName, @TotalSpace, @RowCounts, @RowSize, @BatchSize ';
  
-    EXEC sp_executesql @SQL, N'@TableName NVARCHAR(255) OUTPUT, @TotalSpace BIGINT OUTPUT, @RowCounts BIGINT OUTPUT, @RowSize BIGINT OUTPUT, @BatchSize INT OUTPUT', @TableName OUTPUT, @TotalSpace OUTPUT, @RowCounts OUTPUT,@RowSize OUTPUT, @BatchSize OUTPUT
+    EXEC sp_executesql @SQL, N'@TableName NVARCHAR(255) OUTPUT, @TotalSpace BIGINT OUTPUT, @RowCounts BIGINT OUTPUT, @RowSize BIGINT OUTPUT, @BatchSize BIGINT OUTPUT', @TableName OUTPUT, @TotalSpace OUTPUT, @RowCounts OUTPUT,@RowSize OUTPUT, @BatchSize OUTPUT
  
     WHILE @@FETCH_STATUS = 0
     BEGIN
@@ -130,7 +130,7 @@ BEGIN
 				COMMIT TRANSACTION
         END CATCH
         SET @SQL = 'FETCH NEXT FROM Cursor' + CONVERT(NVARCHAR, @@SPID) + ' INTO @TableName, @TotalSpace, @RowCounts, @RowSize, @BatchSize'
-        EXEC sp_executesql @SQL, N'@TableName NVARCHAR(255) OUTPUT, @TotalSpace BIGINT OUTPUT, @RowCounts BIGINT OUTPUT, @RowSize BIGINT OUTPUT, @BatchSize INT OUTPUT', @TableName OUTPUT, @TotalSpace OUTPUT, @RowCounts OUTPUT,@RowSize OUTPUT, @BatchSize OUTPUT
+        EXEC sp_executesql @SQL, N'@TableName NVARCHAR(255) OUTPUT, @TotalSpace BIGINT OUTPUT, @RowCounts BIGINT OUTPUT, @RowSize BIGINT OUTPUT, @BatchSize BIGINT OUTPUT', @TableName OUTPUT, @TotalSpace OUTPUT, @RowCounts OUTPUT,@RowSize OUTPUT, @BatchSize OUTPUT
     END
  
     SET @SQL = 'CLOSE Cursor' + CONVERT(NVARCHAR, @@SPID) + '
@@ -145,3 +145,4 @@ BEGIN
     SET @SQL = 'DROP TABLE ' + @tempTableListTableName
     EXEC sp_executesql @SQL
 END
+
