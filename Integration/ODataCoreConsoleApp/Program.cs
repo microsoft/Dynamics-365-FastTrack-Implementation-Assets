@@ -9,13 +9,13 @@
 		○ Right click on the project
 		○ Select Add --> Connected service
 		○ Select Odata
-            Use the metadata URI to generate the proxy (<YOUR ENVIROMENT>/data/$metadata) 
-        ○ 	○ (refet to https://github.com/OData/ODataConnectedService/issues/331 if generated class does not compile correctly);
-		○ TIP: igf gettig the erro at compile time Error CS8103 Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals. You can add an experimenta feture to the project
+        ○ Use the metadata URI to generate the proxy (<YOUR ENVIROMENT>/data/$metadata) 
+        ○ (refet to https://github.com/OData/ODataConnectedService/issues/331 if generated class does not compile correctly);
+    - TIP: igf gettig the erro at compile time Error CS8103 Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals. You can add an experimenta feture to the project
 			Opened my ProjectName.csproj.
 			Insert this line of code in the <PropertyGroup>:
             <Features>$(Features);experimental-data-section-string-literals</Features>
-        ○ Update the appsettings.json file with the correct values for your environment
+    - Update the appsettings.json file with the correct values for your environment
  * 
  */
 using System;
