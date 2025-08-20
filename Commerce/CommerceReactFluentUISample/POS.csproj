@@ -46,6 +46,6 @@
 
   <Target Name="PreBuild" BeforeTargets="Build">
     <Exec Command="npm install" WorkingDirectory="Src" />
-    <Exec Command="npx webpack - -config webpack.config.js" WorkingDirectory="Src" />
+    <Exec Command="npx webpack --config webpack.config.js" WorkingDirectory="Src" />
   </Target>
 </Project>
