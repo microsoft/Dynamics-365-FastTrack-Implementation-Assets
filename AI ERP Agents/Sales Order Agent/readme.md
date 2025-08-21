@@ -93,7 +93,7 @@ Features:
 
 - **Tools**: For implementing deterministic sales order specific validation rules, as well as sales order header and lines creation, several agent flows have been created:
 
-![salesOrderAgentTools](images/salesOrderV2Tools.png)
+![salesOrderAgentTools](images/SalesOrderV2Tools.png)
 
   - **Get Customer Number** – agent flow which returns the customer number if it’s found in finance and operations. It searches by name first, then email address.
   - **Validate Product Codes** – agent flow which checks if the product codes provided are valid. Returns the product codes which could not be found.
