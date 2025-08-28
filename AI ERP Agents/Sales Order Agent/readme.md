@@ -19,6 +19,7 @@ The solution will lead with the built-in agent **Document Processor** for docume
 <a id="prerequisites"></a>
 ## ✅ Prerequisites
  - Connected Dataverse environment with a Finance and operations environment. To confirm this, you can check in the Power Platform Admin Portal for a given environment that there is a correspoding Finance and Operations URL.
+ - The user who installs the Sales Order Create solution must be a licensed user in Dynamics 365 Finance and Operations.
  - Dataverse virtual tables enabled: Released products V2 (mserp), Customers V3 (mserp). For details on how to enable virtual tables in Dataverse with source Finance and Operations, please see https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/power-platform/enable-virtual-entities.
  - Document Processor agent installed and configured. For setup details please use this document. Dont forget to update the extraction prompt as indicated.
  - Sales Order agent solution imported and agent configured as indicated in the next section.
@@ -105,6 +106,7 @@ Features:
 ## ✅ Sales Order Agent configuration
 After importing the sales order agent solution, consider the following to make the agent work for your specific needs and data:
  - **Update the Tools inputs** – open the agent, and from the Tools tab open and review all the tools inputs: company code (by default usmf) and mailbox (test email address) must be updated.
+ - Please ensure that all flows associated with the Sales Order Agent are reviewed to verify the Company Code and Email Address validations.
 
   - **Update the Finance and Operation connection** – Open the agent flows for creating sales order header and creating sales order lines and update the Finance and Operations URL. After making the change, save and publish the 2 agent flows.
 
