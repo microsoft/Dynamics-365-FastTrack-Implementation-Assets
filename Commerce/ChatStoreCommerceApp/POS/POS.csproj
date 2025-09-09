@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\CustomizationPackage.props" />
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Dynamics.Commerce.Sdk.Pos"
+      Version="$(CommerceSdkPackagesVersion)" />
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.0.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="SrcReact\**\*" />
+    <Compile Remove="SrcReact\**\*" />
+    <None Remove="SrcReact\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ExcludedFromBuild Include="SrcReact\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CommerceRuntime\CommerceRuntime.csproj"
+      ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="DistReact\**\*.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="Build">
+    <Exec Command="npm install" WorkingDirectory="SrcReact" />
+    <Exec Command="npx tsc -p Src/tsconfig.json" WorkingDirectory="SrcReact" />
+    <Exec Command="npx webpack - -config webpack.config.js" WorkingDirectory="SrcReact" />
+  </Target>
+</Project>
