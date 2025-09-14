@@ -36,6 +36,7 @@ CREATE OR ALTER PROCEDURE [dbo].[RemoveOrphansOnTablesWithoutDateTime]
 AS
 BEGIN
 
+	DECLARE @NBRecordsEligible INT =0
 	DECLARE @SQL NVARCHAR(MAX)
     DECLARE @CDCState BIT
     DECLARE @StartTime DATETIME
@@ -166,11 +167,16 @@ BEGIN
 
 	Print('checkpoint 7')
 
+
+	BEGIN TRANSACTION
     -- Disable Change Data Capture or Change Tracking if enabled
     SET @SQL = 'IF EXISTS (SELECT * FROM sys.change_tracking_tables WHERE object_id = OBJECT_ID(''' + @Table + ''')) ALTER TABLE ' + @Table + ' DISABLE CHANGE_TRACKING'
-    EXEC sp_executesql @SQL
+    Print @SQL
+	EXEC sp_executesql @SQL
+	Print('CT disabled')
+	COMMIT TRANSACTION
 
-    -- Set the run timestamp to current date and time
+	-- Set the run timestamp to current date and time
     SET @StartTime = GETDATE()
 	   
 	Print @SQL
@@ -206,17 +212,42 @@ BEGIN
 					set @nbBatchExecution =  @nbBatchExecution + 1
 				END
 			END
-
+			print 'after @maxRecId = 0 and @nbBatchExecution > 1 '
 				
+			
 			IF (OBJECT_ID(@BufferTableDropPrefix + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)) IS NOT NULL)
 			BEGIN
 				SET @SQL = 'DROP TABLE ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
 				EXEC sp_executesql @SQL
 			END
- 
+			print 'after drop '
+
+									-- calculate batchsize
+--			SET @SQL = 'SELECT @maxRecId = MIN(RecId) FROM ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution)
+--			PRINT @SQL
+--			EXEC sp_executesql @SQL, N'@maxRecId BIGINT OUTPUT ', @maxRecId OUTPUT
+
+			
+
 			IF @maxRecId = 0
 			BEGIN
-				SET @SQL = 'SELECT TOP ' + CONVERT(NVARCHAR, @BatchSize) + ' ' + Replace(@ColumnList,'#SourceTable',@Table) +
+				SET @SQL = 'SELECT @NBRecordsEligible = count(*) FROM ' + @Table +
+							' ' + @JoinCondition + ' ' 
+			END
+			ELSE
+			BEGIN
+				SET @SQL = 'SELECT @NBRecordsEligible = count(*) FROM ' + @Table +
+							' ' + @JoinCondition + ' ' +
+							' WHERE '+@Table+'.RecId < ' + CONVERT(NVARCHAR, @maxRecId)
+			END
+			PRINT @SQL
+			EXEC sp_executesql @SQL, N'@NBRecordsEligible BIGINT OUTPUT ', @nbRecordsEligible OUTPUT
+
+			SELECT @NBRecordsEligible = LEAST(@NBRecordsEligible, @BatchSize) ;
+
+			IF @maxRecId = 0
+			BEGIN
+				SET @SQL = 'SELECT TOP ' + CONVERT(NVARCHAR, @NBRecordsEligible) + ' ' + Replace(@ColumnList,'#SourceTable',@Table) +
 							' INTO ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
 							' FROM ' + @Table +
 							' ' + @JoinCondition + ' ' +
@@ -224,12 +255,23 @@ BEGIN
 			END
 			ELSE
 			BEGIN
-				SET @SQL = 'SELECT TOP ' + CONVERT(NVARCHAR, @BatchSize) + ' ' + Replace(@ColumnList,'#SourceTable',@Table) +
-							' INTO ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
-							' FROM ' + @Table +
-							' ' + @JoinCondition + ' ' +
-							' WHERE '+@Table+'.RecId < ' + CONVERT(NVARCHAR, @maxRecId) +
-							' ORDER BY '+@Table+'.RecId DESC'
+				IF (@NBRecordsEligible = @BatchSize)
+				BEGIN
+					SET @SQL = 'SELECT TOP ' + CONVERT(NVARCHAR, @NBRecordsEligible) + ' ' + Replace(@ColumnList,'#SourceTable',@Table) +
+								' INTO ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
+								' FROM ' + @Table +
+								' ' + @JoinCondition + ' ' +
+								' WHERE '+@Table+'.RecId < ' + CONVERT(NVARCHAR, @maxRecId) +
+								' ORDER BY '+@Table+'.RecId DESC'
+				END
+				ELSE 
+				BEGIN
+						SET @SQL = 'SELECT TOP ' + CONVERT(NVARCHAR, @NBRecordsEligible) + ' ' + Replace(@ColumnList,'#SourceTable',@Table) +
+								' INTO ' + @BufferTABLEName + CONVERT(NVARCHAR, @nbBatchExecution) +
+								' FROM ' + @Table +
+								' ' + @JoinCondition + ' ' +
+								' WHERE '+@Table+'.RecId < ' + CONVERT(NVARCHAR, @maxRecId) 					
+				END
 			END
 			PRINT @SQL
 			EXEC sp_executesql @SQL
@@ -458,6 +500,7 @@ BEGIN
 		Print @SQL
 		EXEC sp_executesql @SQL
 	COMMIT TRANSACTION
+	
 	Print 'Sp execution complete'
 	IF @@TRANCOUNT > 0
 		COMMIT TRANSACTION
