@@ -24,10 +24,10 @@ DECLARE @OrphansJoinConditions NVARCHAR(MAX) = '
 DECLARE @SQL NVARCHAR(MAX) = ''
 DECLARE @LE NVARCHAR(Max)
 DECLARE @KeepFromdate DATE
-DECLARE @BatchSize INT = 500000
+DECLARE @BatchSize INT = 200000
 DECLARE @Resume BIT = 1
 DECLARE @RowCounts BIGINT
-DECLARE @Simulation BIT = 1 -- Set to 1 for simulation mode, 0 for actual deletion
+DECLARE @Simulation BIT = 0 -- Set to 1 for simulation mode, 0 for actual deletion
 
 -- Parse JSON and loop with cursor
 CREATE TABLE #JoinParts (
@@ -52,6 +52,8 @@ DECLARE @TableName NVARCHAR(100);
 DECLARE @JoinedTableName NVARCHAR(100);
 DECLARE @JoinCondition NVARCHAR(MAX);
 
+DECLARE @StartTime DATETIME2, @EndTime DATETIME2, @DurationSeconds INT;
+
 OPEN join_cursor;
 FETCH NEXT FROM join_cursor INTO @TableName, @JoinedTableName, @JoinCondition;
 
@@ -67,6 +69,39 @@ BEGIN
 
 	PRINT 'LE = ' + @LE;
 	PRINT 'KEEPFROMDATE = ' + CONVERT(NVARCHAR(MAX),@KeepFromDate);
+
+-- Check for CreatedDateTime and ModifiedDateTime fields
+	SET @SQL = '';
+	-- Disable all non clustered indexes and triggers
+	SELECT @SQL += 'ALTER INDEX [' + i.name + '] ON [' + s.name + '].[' + t.name + '] DISABLE;'
+	FROM sys.indexes i
+	JOIN sys.tables t ON i.object_id = t.object_id
+	JOIN sys.schemas s ON t.schema_id = s.schema_id
+	WHERE i.type = 2
+		AND i.is_unique = 0
+		AND i.is_disabled = 0
+		AND i.is_primary_key = 0
+		AND i.is_unique_constraint =0
+		AND t.name = @TableName;
+
+	print @SQL
+	EXEC sp_executesql @SQL;
+	
+	-- Disable all triggers
+	SET @SQL = '';
+
+	SELECT @SQL += 'DISABLE TRIGGER [' + tr.name + '] ON [' + s.name + '].[' + t.name + '];'
+	FROM sys.triggers tr
+	JOIN sys.tables t ON tr.parent_id = t.object_id
+	JOIN sys.schemas s ON t.schema_id = s.schema_id
+	WHERE
+		tr.is_disabled  = 0 AND
+		t.name = @TableName;
+	print @SQL
+	EXEC sp_executesql @SQL;
+
+	PRINT 'Duration for table ' + @TableName + ': ' + CAST(@DurationSeconds AS VARCHAR(10)) + ' seconds';
+
 
 	if (@KeepFromdate is not null)
 	BEGIN
@@ -113,4 +148,62 @@ END
 
 CLOSE join_cursor;
 DEALLOCATE join_cursor;
+
+
+DECLARE join_cursor_2 CURSOR FOR
+SELECT TableName, JoinedTableName, JoinCondition FROM #JoinParts;
+
+OPEN join_cursor_2;
+FETCH NEXT FROM join_cursor_2 INTO @TableName, @JoinedTableName, @JoinCondition;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+	Print 'rebuild index table '+ @TableName
+
+	-- Capture start time
+	SET @StartTime = SYSDATETIME();
+
+	SET @SQL = '';
+	-- Rebuild all non-clustered indexes
+	SELECT @SQL += 'ALTER INDEX [' + i.name + '] ON [' + s.name + '].[' + t.name + '] REBUILD WITH (MAXDOP = 16);'
+	FROM sys.indexes i
+	JOIN sys.tables t ON i.object_id = t.object_id
+	JOIN sys.schemas s ON t.schema_id = s.schema_id
+	WHERE i.type = 2
+		AND i.is_unique = 0
+		AND i.is_disabled = 1
+		AND i.is_primary_key = 0
+		AND i.is_unique_constraint =0
+		AND t.name = @TableName
+		AND i.name LIKE 'I_%';
+
+	PRINT 'Rebuilding indexes for table: ' + @TableName;
+	PRINT @SQL;
+	EXEC sp_executesql @SQL;
+
+	-- Enable all triggers
+	SET @SQL = '';
+	SELECT @SQL += 'ENABLE TRIGGER [' + tr.name + '] ON [' + s.name + '].[' + t.name + '];'
+	FROM sys.triggers tr
+	JOIN sys.tables t ON tr.parent_id = t.object_id
+	JOIN sys.schemas s ON t.schema_id = s.schema_id
+	WHERE
+		tr.is_disabled  = 1 AND
+		t.name = @TableName;
+
+
+	PRINT @SQL;
+	EXEC sp_executesql @SQL;
+
+	-- Capture end time and calculate duration
+	SET @EndTime = SYSDATETIME();
+	SET @DurationSeconds = DATEDIFF(SECOND, @StartTime, @EndTime);
+
+	PRINT 'Duration for table ' + @TableName + ': ' + CAST(@DurationSeconds AS VARCHAR(10)) + ' seconds';
+
+    FETCH NEXT FROM join_cursor_2 INTO @TableName, @JoinedTableName, @JoinCondition;
+END
+
+CLOSE join_cursor_2;
+DEALLOCATE join_cursor_2;
 DROP TABLE #JoinParts;
