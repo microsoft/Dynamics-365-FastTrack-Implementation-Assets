@@ -24,7 +24,7 @@ namespace Contoso.CommerceRuntime.Services
 
 
   /// <summary>
-  /// A service that handles AI agent requests related to adaptive card template.
+  /// A service that handles AI agent requests.
   /// This service implements the IRequestHandlerAsync interface to process requests asynchronously.
   /// </summary>
   public class AIAgentService : IRequestHandlerAsync

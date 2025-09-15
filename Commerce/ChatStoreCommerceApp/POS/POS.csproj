@@ -34,7 +34,6 @@
 
   <Target Name="PreBuild" BeforeTargets="Build">
     <Exec Command="npm install" WorkingDirectory="SrcReact" />
-    <Exec Command="npx tsc -p Src/tsconfig.json" WorkingDirectory="SrcReact" />
     <Exec Command="npx webpack - -config webpack.config.js" WorkingDirectory="SrcReact" />
   </Target>
 </Project>
