@@ -93,7 +93,7 @@ BEGIN
 	BEGIN
 		PRINT 'Index with RecId as the only key column already exists on ' + @Table
 	END
-	
+
 	Print('checkpoint 1')
 
 	select top 1 @partitionId = PARTITION from USERINFO
@@ -203,23 +203,25 @@ BEGIN
                 EXEC sp_executesql @SQL
     END
 
-	Print('checkpoint 7')
-
+	BEGIN TRANSACTION
     -- Disable Change Data Capture or Change Tracking if enabled
     SET @SQL = 'IF EXISTS (SELECT * FROM sys.change_tracking_tables WHERE object_id = OBJECT_ID(''' + @Table + ''')) ALTER TABLE ' + @Table + ' DISABLE CHANGE_TRACKING'
-    EXEC sp_executesql @SQL
+    Print @SQL
+	EXEC sp_executesql @SQL
+	Print('CT disabled')
+	COMMIT TRANSACTION
+
+	Print('checkpoint 7')
+	COMMIT TRANSACTION
 
     -- Set the run timestamp to current date and time
     SET @StartTime = GETDATE()
-
-
 
 	Print @SQL
 	set @BufferTABLEName = @Table+'cleanupbuffer'
 	set @BufferTableDropPrefix = ''
 	print 'BufferTable : '+@BufferTABLEName
 
-	COMMIT TRANSACTION
 
 	Print CONVERT(NVARCHAR(MAX),@@TRANCOUNT)
 
@@ -343,7 +345,7 @@ BEGIN
 		SET @Duration = DATEDIFF(MILLISECOND, @Interimstart, @Interimend)
 		Print 'copy from main table duraion in ms ' + convert(NVARCHAR,@Duration)
 	END
-
+	
 	-- Simulation mode: Estimate duration of select, truncate, and insert statements and count records
 	IF @Simulation = 1
     BEGIN
@@ -521,8 +523,6 @@ BEGIN
 	set @DeletedRecords = @RowCount - @SavedRecords
 	print ('deleted records' + convert(NVARCHAR,@DeletedRecords))
 
-
-
 	Update DBCleanupResultsLog
 		set Step = @step, CurrentLoopIndex = 0, NbRecordsDeleted = @DeletedRecords, NbRecordsSaved = @SavedRecords, EstimatedDuration = @Duration, EndTime = @EndTime
 		where TableName = @Table AND LegalEntity = @LE AND KeepFromDate = @KeepFromDate and StartTime = @RunTimestamp
@@ -542,6 +542,7 @@ BEGIN
 		Print @SQL
 		EXEC sp_executesql @SQL
 	COMMIT TRANSACTION
+
 	Print 'Sp execution complete'
 	IF @@TRANCOUNT > 0
 		COMMIT TRANSACTION
