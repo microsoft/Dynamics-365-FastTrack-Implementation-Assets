@@ -1,116 +1,179 @@
 # Batch Framework Telemetry Agent
 
+> AI-powered monitoring & diagnostics for D365 Finance & Supply Chain batch jobs, built with **Copilot Studio** and **Application Insights**.
+
+[![Made with Copilot Studio](https://img.shields.io/badge/Copilot%20Studio-Enabled-blue)](#) [![D365 FSCM](https://img.shields.io/badge/D365-F%26SCM-success)](#)
+
 ## 📚 Table of Contents
 - [Overview](#-overview)
-- [Key-Capabilities](#-key-capabilities)
+- [Key Capabilities](#-key-capabilities)
+- [Screenshots](#-screenshots)
 - [Architecture](#-architecture)
 - [Prerequisites](#-prerequisites)
-- [Step-1---Telemetry-Configuration](#-step-1---telemetry-configuration)
-- [Step-2---Agent-Deployment](#-step-2---agent-deployment)
-- [Step-3---Knowledge-Source-Integration](#-step-3---knowledge-source-integration)
+- [Install & Configure](#-install--configure)
+  - [1) Import Solution](#1-import-solution)
+  - [2) Verify Agent & Connections](#2-verify-agent--connections)
+  - [3) Knowledge Source (Optional)](#3-knowledge-source-optional)
 - [Usage](#-usage)
+- [Automation Ideas](#-automation-ideas)
+- [Troubleshooting](#-troubleshooting)
+- [FAQ](#-faq)
 - [Resources](#-resources)
 - [Contributors](#-contributors)
+- [Versioning & License](#-versioning--license)
+
+---
 
 ## 🧠 Overview
-
-The Batch Telemetry Agent is an AI-powered monitoring and diagnostic solution designed to optimize batch job execution within Dynamics 365 SCM & Finance. It leverages telemetry streamed into Azure Application Insights and integrates with **Copilot Studio** to provide actionable insights, alerts, and automation capabilities.
+The **Batch Telemetry Agent** optimizes batch job execution in Dynamics 365 by combining **Application Insights telemetry** with Copilot Studio. It answers natural-language questions, surfaces anomalies, and can guide or automate remediations.
 
 ## 🔧 Key Capabilities
+- **Telemetry collection** across job start/end, thread usage, throttling, queue sizes, failures, and Infolog errors.  
+- **Prompt-based analysis** (GPT-4o / GPT-5 ready) to query and interpret telemetry using KQL.  
+- **Anomaly detection** for throttling, long runtimes, and scheduling inefficiencies.  
+- **Self-healing hooks** to trigger safe recovery steps (e.g., rerun failed jobs).  
+- **Dashboards & reports** for priority distribution, throttling trends, exceptions, and history.
 
-- **Telemetry Collection**: Captures signals such as job start/end times, thread usage, throttling metrics, queue sizes, failures, and Infolog errors.
-- **Prompt-Based Analysis**: Uses GPT-4o and GPT-5 models to interpret telemetry data via natural language prompts.
-- **Anomaly Detection**: Applies Kusto (KQL) queries and AI models to detect performance degradation and scheduling inefficiencies.
-- **Self-Healing Options**: Supports guided or autonomous remediation actions like restarting failed jobs.
-- **Visualization & Reporting**: Offers dashboards for workload distribution, priority spread, throttling trends, and batch exceptions.
+---
+
+## 🖼️ Screenshots
+> Add these right up front so users immediately see what they’re getting.
+
+<div align="center">
+  <img src="./Images/Teams-Chat-Home.png" alt="Teams - Batch Telemetry Agent app home" width="900"><br/>
+  <sub>Teams app home with quick prompts</sub>
+</div>
+
+<div align="center">
+  <img src="./Images/m365-Home.png" alt="Copilot Studio Chat entry point" width="900"><br/>
+  <sub>Copilot Studio chat with quick prompts</sub>
+</div>
+
+<div align="center">
+  <img src="./Images/Studio-Overview-Topics.png" alt="Copilot Studio - Overview & Topics" width="900"><br/>
+  <sub>Copilot Studio Overview & Topics</sub>
+</div>
+
+<div align="center">
+  <img src="./Images/Studio-Overview-Instructions-Tools.png" alt="Agent instructions & tools" width="900"><br/>
+  <sub>Agent instructions and connected tools</sub>
+</div>
+
+<div align="center">
+  <img src="./Images/Studio-Overview-Details.png" alt="Agent details" width="900"><br/>
+  <sub>Agent details and orchestration model</sub>
+</div>
+
+---
 
 ## 🏗️ Architecture
-
 <p align="center">
-  <img src="./Images/Architecture.png" alt="Batch Framework Telemetry Agent Architecture" width="1500"/>
+  <img src="./Images/Architecture.png" alt="Batch Framework Telemetry Agent Architecture" width="1200"/>
 </p>
 
-- **Telemetry Flow**: Batch Telemetry events from D365 F&O are streamed to Application Insights.
-- **Agent Logic**: Queries telemetry periodically or on-demand, evaluates rules, and stores results in Dataverse.
-- **User Interaction**: Users engage via Copilot chat, M365 chat, or Teams channels.
-- **Remediation Execution**: Actions are triggered via MCP Server and verified through telemetry feedback loops.
+**Flow**
+1. D365 F&O emits batch telemetry → **Application Insights**.  
+2. The agent runs KQL via a tool connection to App Insights.  
+3. Users interact via **Teams / M365 Chat / Copilot Studio**.  
+4. Optional remediation is invoked and validated via telemetry feedback.
+
+---
 
 ## ✅ Prerequisites
+- **D365 F&SCM** 10.0.45 (7.0.7690.21 / PU69) or later  
+- **Application Insights** connected for batch telemetry  
+- Access to **Copilot Studio** and **Power Automate**  
+- **App Insights API Access** (Application ID + API Key) for query tool
 
-- Dynamics 365 Finance & Supply Chain version 10.0.45(7.0.7690.21 PU69 or later
-- Azure Application Insights configured for batch telemetry
-- Access to Copilot Studio and Power Automate
+---
 
-## 🛠️ Step 1 - Telemetry Configuration
+## 🚀 Install & Configure
 
-- Ensure batch telemetry is enabled in D365 F&O and connected to Application Insights  
-  [Monitoring Telemetry](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/monitoring-telemetry/)  
-  [Getting Started](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/monitoring-telemetry/monitoring-getting-started)
+### 1) Import Solution
+1. Clone or download this repository’s release **solution** file.  
+2. Go to **make.powerapps.com** → **Solutions** → **Import**.  
+   <div align="center"><img src="./Images/ImportSolution.png" width="700" alt="Import solution"></div>
+3. The wizard prompts to **create/sign in** to required connections.  
+4. Click **Import** and wait for completion.  
+   <div align="center"><img src="./Images/SolutionImporting.png" width="700" alt="Solution importing"></div>
+5. On success, you’ll see confirmation:  
+   <div align="center"><img src="./Images/SolutionImported.png" width="700" alt="Solution imported"></div>
+   <div align="center"><img src="./Images/SolutionImportedSuccessfully.png" width="700" alt="Solution imported successfully"></div>
+6. Open the solution and verify components:  
+   <div align="center"><img src="./Images/SolutionComponents.png" width="700" alt="Solution components"></div>
 
-## 🛠️ Step 2 - Agent Deployment
+### 2) Verify Agent & Connections
+1. Open **copilotstudio.preview.microsoft.com** and select the correct environment.  
+   You should see **“Batch Telemetry Agent.”**  
+   <div align="center"><img src="./Images/BatchAgent.png" width="700" alt="Agent visible in Copilot Studio"></div>
+2. In the test pane, choose **Manage connections**.  
+   <div align="center"><img src="./Images/ManageConnections.png" width="700" alt="Manage connections"></div>
+3. Ensure all are **Connected**; create missing ones if needed.  
+   <div align="center"><img src="./Images/CreateConnection.png" width="700" alt="Create connection"></div>
+4. For **Application Insights**, provide **Application (App) ID** and **API Key**.  
+   <div align="center"><img src="./Images/APIKey.png" width="700" alt="Application Insights API key"></div>
 
-### Import the agent Solution into maker portal.
-- clone the repository or just download the solution from the repository.
-- go to make.powerapps.com
-- click on Import solution 
-<div align=center><img src="./Images/ImportSolution.png" width="600" height="300"></div>
-- While importing, the wizard will ask you to sign in to the connections required for the Batch Agent to work.
-- Once you click 'Import', the solution will start importing. It will take a while to import and once done, you will see a banner indicating the importing is complete
-<div align=center><img src="./Images/SolutionImporting.png" width="600" height="300"></div>
+> **Note:** If your tenant/org enforces SSO/2FA, ensure your connections are authorized for the environment hosting the agent.
 
-- Once imported successfully, you will see a message like this:
-<div align=center><img src="./Images/SolutionImported.png" width="600" height="300"></div>
-<div align=center><img src="./Images/SolutionImportedSuccessfully.png" width="600" height="300"></div>
+### 3) Knowledge Source (Optional)
+- Add the **Microsoft Learn Docs MCP Server** (or other approved knowledge) to enrich answers to “how/why” questions about Batch Framework.
 
-- After successful import click on the imported solution and verify all the compoennts are installed
-<div align=center><img src="./Images/SolutionComponents.png" width="600" height="600"></div>
-
-
-### Agent Verification.
-- Once the solution is imported successfully, login to https://copilotstudio.preview.microsoft.com and ensure you are in the right environment. you should see the "Batch Agent"
-<div align=center><img src="./Images/BatchAgent.png" width="600" height="300"></div>
-
-- Go to Manage connections from the test pane
-<div align=center><img src="./Images/ManageConnections.png" width="600" height="300"></div>
-
-- Ensure that all the connections are showing as connected. if not, create connection. 
-<div align=center><img src="./Images/CreateConnection.png" width="600" height="300"></div>
-
-- For creating Application Insights connection you will need ApId and API Key for your application Insights instance. 
-<div align=center><img src="./Images/APIKey.png" width="600" height="300"></div>
-
-## 🛠️ Step 3 - Knowledge Source Integration
-
-- Connect Microsoft Learn Docs MCP Server for contextual guidance.
-
+---
 
 ## 🧪 Usage
 
-### 💬 Prompt Examples
+### Suggested Prompts (cards shown in UI)
+- “Show me last 1 hour **Priority distribution**.”  
+- “Were any of my batch jobs **throttled** recently?”  
+- “How many **threads** are currently available for batch jobs?”  
+- “Provide details about recent **batch job failures**.”  
+- “Show **CPU, Memory, and SQL DTU** metrics during batch throttling events.”  
+- “**Batch Execution History** for Batch Job Id `<ID>`.”
 
-- Show me last 1 hour Priority distribution
-- Were any of my batch jobs throttled recently?
-- How many threads are currently available for batch jobs?
-- Provide details about recent batch job failures.
-- Show CPU, Memory, and SQL DTU metrics during batch throttling events.
-- Batch Execution History for a Batch Job Id
+> Results are backed by KQL queries against your App Insights instance.
 
-### ⚙️ Further Automation Scenarios
-- Restart failed jobs based on error codes.
-- Notify admins via Teams when anomalies are detected.
+---
 
+## ⚙️ Automation Ideas
+- Auto-rerun failed jobs when the error code matches an approved policy.  
+- Post anomaly digests to a **Teams** channel daily.  
+- Trigger escalation if throttling breaches an agreed threshold.
 
+---
+
+## 🧩 Troubleshooting
+- **Agent not visible in Copilot Studio:** Confirm environment, security roles, and solution import status.  
+- **Query errors:** Verify App Insights **Application ID / API Key** and workspace mapping.  
+- **No telemetry returned:** Check D365 → App Insights connection and time range.  
+- **Connection shows “Not connected”:** Re-authenticate; some orgs require SSO **authorization per environment**.
+
+---
+
+## ❓ FAQ
+**Q: Does this change batch schedules?**  
+A: No—by default it is read-only. Optional flows can be enabled for safe actions.
+
+**Q: Can we swap models?**  
+A: Yes. The agent uses the environment’s default model (e.g., GPT-4o). You can change this in Copilot Studio.
+
+**Q: Multi-environment support?**  
+A: Yes. Create separate connections per environment and parameterize the workspace if needed.
+
+---
 
 ## 📎 Resources
+- 📦 [Batch Telemetry Dashboard Release](https://github.com/microsoft/Dynamics-365-FastTrack-FSCM-Telemetry-Samples/releases/tag/Batch-1.0.0.0)  
+- 📘 [Monitoring telemetry overview](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/monitoring-telemetry/)  
+- 🚀 [Monitoring: getting started](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/monitoring-telemetry/monitoring-getting-started)
 
-- [📦 Batch Telemetry Dashboard Release](https://github.com/microsoft/Dynamics-365-FastTrack-FSCM-Telemetry-Samples/releases/tag/Batch-1.0.0.0)
-- [📘 Application Insights Documentation](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/analytics/application-insights)
+---
 
 ## 👥 Contributors
-
-- Prashant Verma (AI Business Solutions)
+- Prashant Verma (AI Business Solutions)  
 - Hemanth Kumar
 
 ---
 
-📬 For questions or support, contact the AI Business Solutions team or refer to the internal documentation shared via Teams and email.
+## 🧾 Versioning & License
+- See **CHANGELOG.md** for release notes.  
+- License: MIT (or your org’s standard license).
