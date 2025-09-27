@@ -2,123 +2,118 @@
 # Table of contents
 1. [Use Case](#usecase)
 2. [Prerequisites](#prerequisites)
-3. [Step 1- Install and configure the Document Processor Agent](#documentprocessoragent)
-4. [Step 2- Install and configure the Sales Order Agent](#salesorderprocessoragent)
+3. [Sales Order Agent Components](#salesorderagent)
+4. [Install and configure the Sales Order Agent](#configuration)
+
 
 
 
 <a id="usecase"></a>
 # 🧩 Use Case 
-Streamlining and automating the intake of *sales orders* received as email attachments for seamless integration into Microsoft Dynamics 365.
-<a id="approach"></a>
+Sales Order Agent is an autonomous agent for processing sales orders received via email attachments, validating customer and product data, and creating orders in Dynamics 365 Finance and Operation system with minimal human intervention. 
 
-The solution will lead with the built-in agent **Document Processor** for document extraction and content validation. Once the content is validated, we will use a second agent to create the order and order lines into Dynamics 365.
+1. Email received with attachments in personal or shared mailbox: ![emailReceivedWithAttachment](images/emailReceivedWithAttachment.png)
 
-![businessProcessFlow](images/businessProcessFlow.png)
+2. Each attachment and the extracted data are persisted in Dataverse: ![stagingdocument](images/extractedata.png) 
+
+    ![stagingsalesorderheader](images/stagingsalesorderheader.png)
+    
+
+3. After validating the customer and products, the sales order gets created in Finance and Operations and a notification is also sent:
+![salesodererp](images/salesorder.png)
+
+   ![emailnotification](images/emailnotification.png)
+
+## Solution Capabilities
+- **Autonomous Email Processing**: Monitors mailbox for email attachments
+- **AI-Powered Document Parsing**: Extracts structured data from PDF/image attachments
+- **ERP Integration**: Validates customers/products and creates orders in ERP
+- **Exception Handling**: Routes items requiring manual review
+-	**Automated Notifications**: Sends processing status updates
+- **Supported File Types**: PDF documents, image files (JPG, PNG, etc.)
+
+![businessProcessFlow](images/ProcessFlow.png)
 
 <a id="prerequisites"></a>
-## ✅ Prerequisites
+# ✅ Prerequisites for installing the Sales Order Agent solution
  - Connected Dataverse environment with a Finance and operations environment. To confirm this, you can check in the Power Platform Admin Portal for a given environment that there is a correspoding Finance and Operations URL.
- - The user who installs the Sales Order Create solution must be a licensed user in Dynamics 365 Finance and Operations.
+ - The user who installs the Sales Order Agent solution must be a licensed user in Dynamics 365 Finance and Operations.
  - Dataverse virtual tables enabled: Released products V2 (mserp), Customers V3 (mserp). For details on how to enable virtual tables in Dataverse with source Finance and Operations, please see https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/power-platform/enable-virtual-entities.
- - Document Processor agent installed and configured. For setup details please use this document. Dont forget to update the extraction prompt as indicated.
  - Sales Order agent solution imported and agent configured as indicated in the next section.
- - System Administrator role for document processor agent installation and agents configuration.
+ - System Administrator role for solution import and agent configuration.
 
-<a id ="documentprocessoragent"></a>
-# 📄 Step 1: Install and configure Document Processor Agent
-**Document Processor Agent** is a robust managed agent, packaged solution for end-to-end document processing including **extraction, validation and human monitoring**. It does not require training custom models, instead a relevant sample document can be uploaded, and the maker can configure the attributes that should be extracted and if any validation rules to be applied. For more details please see: https://learn.microsoft.com/en-us/microsoft-copilot-studio/template-managed-document-processor. 
+<a id ="salesorderagent"></a>
+# 🤖 Sales Order Agent Components
+The agent orchestrates the entire sales order processing workflow, 
+invokes appropriate agent flows based on the staging record processing status, and handles error scenarios and routing.
+## Agent Instructions:
+![salesordeagentv2](images/salesorderagent.png)
 
-## Features:
-- Monitors Exchange mailbox (personal or shared)
+## Triggers:
+-	Dataverse trigger for processing status updated
+-	Office 365 triggers for new emails into personal and shared mailbox
 
-![emailReceivedWithAttachment](images/emailReceivedWithAttachment.png)
-
-- When email is received, the agent persists the attachment in the Data Processing Event table in Dataverse – for each attachment a new record is created. It also parses the attachments into JSON format in the Processed Data column.
-
-![dataProcessingTable](images/dataProcessingTable.png)
-
-- Validates content as per validation rules which are configurable
-
-![docProcessorValidationRules](images/docProcessorValidationRules.png)
-
-- You can also add more advanced rules to validate content grounded in Dataverse knowledge:
-
-![docProcessorAdvancedRules](images/docProcessorAdvancedRules.png)
-
-- When invalid content is found, the agent notified the configured reviewer and brings them into the loop for manual review. The canvas app Validation Station helps the reviewer identify invalid content, edit and make corrections, and manually approve a document.
-
-![docProcessorValidationStation](images/docProcessorValidationStation2.png)
+![salesOrderAgentInstructions1](images/agenttriggers.png)
 
 
-##  Installation
-Install the document processor agent as per guidance: https://learn.microsoft.com/en-us/microsoft-copilot-studio/template-managed-document-processor.
+## Agent flows: 
+For implementing deterministic sales order specific validation rules, as well as sales order header and lines creation, several agent flows have been created:
 
-## Configuration Wizard
-When configuring the Document Processor Agent, to achieve a more deterministic JSON schema that you can leverage in the Sales Order agent to parse the data for the downstream systems, it is recommended to add to the Document Processor extraction rules a similar prompt: 
+![salesOrderAgentTools](images/salesOrderAgentTools.png)
 
-![docProcessorValidationRulesCustom](images/docProcessorValidationRulesCustom.png)
+  - **Parse document** – agent flow which uses AI Builder custom prompt to extract data from email attachment in JSON format.
+  - **Validate customer** – agent flow which tries to uniquely identify customer in Finance and Operations using customer name or email.
+  - **Validate products** –  agent flow which tries to uniquely identify the products in Finance and Operations using product codes.
+  - **Create order** – agent flow which creates the sales orders in Finance and Operations.
+  - **Notify** – agent flow which sends emails when the sales orders are processed or need manual review.
+  - **LoadSalesOrderData** - flow which splits the extracted JSON into dedicated Dataverse tables.
+- **Update Processing Status to Valid** - flow which updates processing status.
 
-![docProcessorValidationCustomAdvanced](images/docProcessorValidationCustomAdvanced.png)
+## Dataverse tables
+![salesOrderAgentTools](images/DataverseApp.png)
+  - **Staging Document** – stores email attachments and extracted data. Key columns: 
+    - **Extracted Data** - result of extraction in JSON format
+    - **Input Document** - document received as email attachment
 
- Please note that the downstream agent flows have a dependency on these column names: **deliveryCustomername, productcode, productqty, productuom**. 
+  - **Staging Sales Order Header** – stores header level data, customer information. Key columns:
+    - **Processing Status** - The automatic successful status transition is New -> Valid -> Processed. For failures New -> Manual Review or New -> Valid -> Processing Failed.  For a manual review scenario, the user can input manually the correct ERP Customer Numbe and ERP Product Codes and set both flags to Valid. When bot Valid Customer and Valid Products are updated to Valid, the processing status is reset to Valid and the agent tries to create the order in Finance and Operations.
+    - **Valid Customer** - Automatically set by agent execution.  In case the customer  is not identified, the status is set to Manual Review and a notification is sent. A reviewer may do necessary corrections and set the flag Valid Customer to Valid.
+    - **Valid Products** - Automatically set by agent execution.
+    - **ERP Customer Number** - Automatically set during agent execution.
+    - **ERP Sales Order Number** - Automatically set by agent execution.
+    - **Customer Name** , **Customer Email** - Automatically set by agent execution. 
+    - **Try again to process failed lines** - Relevant for failed processing status in case of intermittent failures or after fixing data issues (e.g. products missing default site), the flag can be set to Yes to re-submit the failed lines.
+    - **Validation Message** - Automatically set by agent execution.
+    - **Company Code** - Automatically set by agent execution from environment variable value. For changing this behaviour and introduce multiple companies, you can extend the logic in the LoadSalesOrderData flow.
+ 
+    
+  - **Staging Sales Order Lines** –  stores line level data, product codes, product details.
+    - **Processing Status** - Automatic status transitions New - Valid - Processed. For failures New - Manual Review, New - Valid - Processing Failed.
+    - **Product Code**,**Product Description**,**Product Qty**,**Product UOM** - Automatically set by agent execution. 
+    - **ERP Product Code** - Automatically set by agent execution. In case the product is not identified, the status is set to Manual Review and a notification is sent. A reviewer may do necessary corrections and set the flag Valid Lines to Valid.
+    - **Validation Message** - Automatically set by agent execution. 
+ 
+ If you require to capture additional fields e.g. VAT Number you'd need to update the AI Builder data extraction prompt, the header and/or lines tables depending on where the data should be stored and the LoadSalesOrderData flow to load the data from extracted JSON into the relevant Dataverse table.
 
-For your referencce, this is a prompt that can be **added** to the Document Processor out of the box instructions:
->If the template is a purchase order look for a delivery customer (FROM) and a supplier (TO). For the delivery customer include columns with names delivery customer Name, delivery customer email, delivery customer phone number, delivery customer address, delivery  customer number. If the information extracted does not contain values for these columns, you can add the columns with an empty value.
+## AI Builder Prompt
+- **Extracts data from document** - prompt with input a file and JSON format output.
+![aibuilderprompt](images/aibuilderprompt.png)
 
->Look for the main table with a list of items and append to items array extracted data columns for product code, product name, product description, product uom, product qty, product price, product line total using these columns names. If the information extracted does not contain values for these columns, you can add the columns with an empty value.
+<a id="configuration"></a>
+# ✅ Sales Order Agent configuration
+Please consider the following to make the agent work for your specific needs and data:
+ - **Update the environment variables** - when importing the solution you should provide a mailbox to monitor for incoming sales orders attachments. You can choose a shared and/or personal mailbox. Ensure to provide email for reviewer mailbox and company code. 
+ ![solutionimportvariables](images/solutionimportvariables.png)
 
-<a id ="salesorderprocessoragent"></a>
-# 🤖 Step 2: Install and Configure the Sales Order Agent
-**Sales Order Agent** is an agent template to help support an end-to-end document processing flow into downstream apps such as Dynamics 365 Finance or Supply Chain Management. The agent includes validations for customer name and product codes, creation of a sales order header and related lines, as well as acknowledgement emails.
-This agent will be triggered when the Document Processor Agent has completed and the Processing Status value of a document extracted is Exported.
+  - **Update the Finance and Operation connection** – Open the agent flows SOA V3 - Create order in ERP and update the Finance and Operations URL in the creation action for the sales order header and sales order lines. After making the change, save and publish the agent flow.
+   ![flowerpheader](images/flowerpheader.png)
+    ![flowerpline](images/flowerpline.png)
 
-![dataProcessingExported](images/dataProcessingExported.png)
+ - **Customer validation** - Sales order agent validates customer name, and if not found, will search using the email address if available in the document. The agent flows validating the customer depends on the json extracted to contain the column **deliveryCustomerName**. Consider if this is necessary for your organization, and update as needed e.g. identifying customer by VAT Number if its provided – if you'd like to change the customer validation criteria, ensure to update the AI Builder extraction prompt to collect the required fields, LoadSalesOrderData flow and SOA V3 - Validate Customer agent flow.
 
-![salesordeagentv2](images/SalesOrderAgentV2.png)
+- **Products validation** – Sales order agent validates the product codes, and if found, when creating the sales order lines it will use the extracted product code, quantity, and unit of measure. The agent flows rely on the json extracted to contain columns **productcode, productqty, productuom**. Similarly with the customer extraction, if you need to capture different columns with your prompt, you will need to update the AI Builder extraction prompt and impacted flows: LoadSalesOrderData flow and SOA V3 - Validate Products agent flow.
 
-Features:
-- Implements validation rules for customer and product data.
-- If validation rules are not met, it emails a reviewer and stops execution.
-- If validation rules are met, it executes Sales Order Header and Lines creation.
-- Sends acknowledgement email when the sales order is processed successfully or validation rules are not met.
-
-## Components
-- **Instructions** – the agent uses generative AI with the next instructions:
-
-![salesOrderAgentInstructions1](images/SalesOrderAgentV2.png)
-
-- **Trigger** : Dataverse trigger for the agent to run when Document Processor completed successfully
-
-![salesOrderAgentTrigger](images/triggerSOV2.png)
-
-- **Tools**: For implementing deterministic sales order specific validation rules, as well as sales order header and lines creation, several agent flows have been created:
-
-![salesOrderAgentTools](images/SalesOrderV2Tools.png)
-
-  - **Get Customer Number** – agent flow which returns the customer number if it’s found in finance and operations. It searches by name first, then email address.
-  - **Validate Product Codes** – agent flow which checks if the product codes provided are valid. Returns the product codes which could not be found.
-  - **Create Sales Order Header** – agent flow which creates the sales order in finance and operations and returns the sales order number.
-  - **Create Sales Order Items** – agent flow which creates the sales order lines for the product code, quantity, and unit of measure provided.
-  - **Notification Order Creation** – agent flow which sends email with input as per agent instructions.
-
-
-## ✅ Sales Order Agent configuration
-After importing the sales order agent solution, consider the following to make the agent work for your specific needs and data:
- - **Update the Tools inputs** – open the agent, and from the Tools tab open and review all the tools inputs: company code (by default usmf) and mailbox (test email address) must be updated.
- - Please ensure that all flows associated with the Sales Order Agent are reviewed to verify the Company Code and Email Address validations.
-
-  - **Update the Finance and Operation connection** – Open the agent flows for creating sales order header and creating sales order lines and update the Finance and Operations URL. After making the change, save and publish the 2 agent flows.
-
- - **Customer validation** - Sales order processor validates customer name, and if not found, will search using the email address if available in the document. The agent flows validating the customer depends on the json extracted to contain the column **deliveryCustomername**. Consider if this is necessary for your organization, and update as needed e.g. identifying customer by VAT Number if its provided – if you'd like to change the customer validation criteria, ensure to update: the document processor extraction prompt to collect the required fields and the Get Customer Number agent flow filter criteria accordingly.
-
-- **Products validation** – Sales order processor validates the product codes, and if found, when creating the sales order lines it will use the extracted product code, quantity, and unit of measure. The agent flows rely on the json extracted to contain columns **productcode, productqty, productuom**. If you capture different columns with your prompt, you will need to review the two agent flows that validate and create sales order lines.
-
-- **Acknowledgement email** - As you are testing the end-to-end flow initially you may choose to send the acknowledgement emails initially to an internal reviewer and then forward the email to the customer.
-
-- **Test** - You can test the agent's autonomous mode by sending an email with an attachment to the mailbox monitored by Document Processor and ensuring the document is approved/validated. You can also test the agent in the Test Pane with a similar statement "Process document with id: 20cvfg-2ddd..." with the id being a Data Processing Event record with a valid json exported. 
-
-- **Sample document** - You can use the attached test pdf document for testing if you have the sample data available in your Finance and Operations environment. 
+- **Sample document** - You can use the attached test pdf document for testing if you have the sample data available in your Finance and Operations environment. Company Code should be usmf and the products 1000, A0001 should have  default order settings (Site and Warehouse) configured.
 
 
 
