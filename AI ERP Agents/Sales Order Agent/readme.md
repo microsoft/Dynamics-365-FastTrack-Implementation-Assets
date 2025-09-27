@@ -76,20 +76,21 @@ For implementing deterministic sales order specific validation rules, as well as
     - **Input Document** - document received as email attachment
 
   - **Staging Sales Order Header** – stores header level data, customer information. Key columns:
-    - **Processing Status** - The automatic successful status transition is New -> Valid -> Processed. For failures New -> Manual Review or New -> Valid -> Processing Failed.  For a manual review scenario, the user can input manually the correct ERP Customer Numbe and ERP Product Codes and set both flags to Valid. When bot Valid Customer and Valid Products are updated to Valid, the processing status is reset to Valid and the agent tries to create the order in Finance and Operations.
+    - **Processing Status** - The automatic successful status transition is New -> Valid -> Processed. For failures New -> Manual Review or New -> Valid -> Processing Failed. 
+      - For a manual review scenario, the user can input manually the correct ERP Customer Numbe and ERP Product Codes and set both flags to Valid. When bot Valid Customer and Valid Products are updated to Valid, the processing status is reset to Valid and the agent tries to create the order in Finance and Operations.
     - **Valid Customer** - Automatically set by agent execution.  In case the customer  is not identified, the status is set to Manual Review and a notification is sent. A reviewer may do necessary corrections and set the flag Valid Customer to Valid.
     - **Valid Products** - Automatically set by agent execution.
     - **ERP Customer Number** - Automatically set during agent execution.
     - **ERP Sales Order Number** - Automatically set by agent execution.
     - **Customer Name** , **Customer Email** - Automatically set by agent execution. 
-    - **Try again to process failed lines** - Relevant for failed processing status in case of intermittent failures or after fixing data issues (e.g. products missing default site), the flag can be set to Yes to re-submit the failed lines.
+    - **Try again to process failed lines** - Relevent for partially created orders due to intermittent failures or after fixing data issues (e.g. products missing default site), the flag can be set to Yes to re-submit the failed lines.
     - **Validation Message** - Automatically set by agent execution.
     - **Company Code** - Automatically set by agent execution from environment variable value. For changing this behaviour and introduce multiple companies, you can extend the logic in the LoadSalesOrderData flow.
  
     
   - **Staging Sales Order Lines** –  stores line level data, product codes, product details.
-    - **Processing Status** - Automatic status transitions New - Valid - Processed. For failures New - Manual Review, New - Valid - Processing Failed.
-    - **Product Code**,**Product Description**,**Product Qty**,**Product UOM** - Automatically set by agent execution. 
+    - **Processing Status** - Automatic status transitions similar to the header status transitions.
+    - **Product Code**, **Product Description**, **Product Qty**, **Product uom'** - Automatically set by agent execution. 
     - **ERP Product Code** - Automatically set by agent execution. In case the product is not identified, the status is set to Manual Review and a notification is sent. A reviewer may do necessary corrections and set the flag Valid Lines to Valid.
     - **Validation Message** - Automatically set by agent execution. 
  
