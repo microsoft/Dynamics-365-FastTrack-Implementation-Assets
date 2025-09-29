@@ -38,7 +38,7 @@ Sales Order Agent is an autonomous agent for processing sales orders received vi
 # ✅ Prerequisites for installing the Sales Order Agent solution
  - Connected Dataverse environment with an environment with  finance and operations apps. To confirm this, you can check in the Power Platform Admin Portal for a given environment that there is a corresponding link to Dynamics 365.
  - The user who installs the Sales Order Agent solution must be a licensed user in Dynamics 365 Finance and Operations.
- - Dataverse virtual tables enabled: Released products V2 (mserp), Customers V3 (mserp). For details on how to enable virtual tables in Dataverse with source Finance and Operations, please see https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/power-platform/enable-virtual-entities.
+ - Dataverse virtual tables enabled: Released products V2 (mserp), Customers V3 (mserp). Learn more about how to enable virtual tables in Dataverse at https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/power-platform/enable-virtual-entities.
  - Sales Order agent solution imported and agent configured as indicated in the next section.
  - System Administrator role for solution import and agent configuration.
 
