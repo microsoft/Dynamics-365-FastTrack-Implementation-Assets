@@ -19,7 +19,7 @@ Sales Order Agent is an autonomous agent for processing sales orders received vi
     ![stagingsalesorderheader](images/stagingsalesorderheader.png)
     
 
-3. After validating the customer and products, the sales order gets created in Finance and Operations and a notification is also sent:
+3. After validating the customer and products, the sales order gets created in Dynamics 365 and a notification is also sent:
 ![salesodererp](images/salesorder.png)
 
    ![emailnotification](images/emailnotification.png)
