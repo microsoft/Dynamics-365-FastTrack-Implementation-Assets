@@ -10,7 +10,7 @@
 
 <a id="usecase"></a>
 # 🧩 Use Case 
-Sales Order Agent is an autonomous agent for processing sales orders received via email attachments, validating customer and product data, and creating orders in Dynamics 365 Finance and Operation system with minimal human intervention. 
+Sales Order Agent is an autonomous agent for processing sales orders received via email attachments, validating customer and product data, and creating orders in Dynamics 365 finance and operation apps with minimal human intervention. 
 
 1. Email received with attachments in personal or shared mailbox: ![emailReceivedWithAttachment](images/emailReceivedWithAttachment.png)
 
