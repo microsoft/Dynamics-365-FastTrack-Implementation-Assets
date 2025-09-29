@@ -100,7 +100,7 @@ The **Batch Telemetry Agent** optimizes batch job execution in Dynamics 365 by c
    <div align="center"><img src="./Images/SolutionImported.png" width="700" alt="Solution imported"></div>
    <div align="center"><img src="./Images/SolutionImportedSuccessfully.png" width="700" alt="Solution imported successfully"></div>
 6. Open the solution and verify components:  
-   <div align="center"><img src="./Images/SolutionComponents.png" width="700" alt="Solution components"></div>
+   <div align="center"><img src="./Images/SolutionComponents.png" width="300" alt="Solution components"></div>
 
 ### 2) Verify Agent & Connections
 1. Open **copilotstudio.preview.microsoft.com** and select the correct environment.  
@@ -171,9 +171,3 @@ A: Yes. Create separate connections per environment and parameterize the workspa
 ## 👥 Contributors
 - Prashant Verma (AI Business Solutions)  
 - Hemanth Kumar
-
----
-
-## 🧾 Versioning & License
-- See **CHANGELOG.md** for release notes.  
-- License: MIT (or your org’s standard license).
