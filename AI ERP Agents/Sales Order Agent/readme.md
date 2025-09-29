@@ -62,7 +62,7 @@ For implementing deterministic sales order specific validation rules, as well as
 ![salesOrderAgentTools](images/salesOrderAgentTools.png)
 
   - **Parse document** – agent flow which uses AI Builder custom prompt to extract data from email attachment in JSON format.
-  - **Validate customer** – agent flow which tries to uniquely identify customer in Finance and Operations using customer name or email.
+  - **Validate customer** – agent flow which tries to uniquely identify customer in Dynamics 365 using customer name or email.
   - **Validate products** –  agent flow which tries to uniquely identify the products in Finance and Operations using product codes.
   - **Create order** – agent flow which creates the sales orders in Finance and Operations.
   - **Notify** – agent flow which sends emails when the sales orders are processed or need manual review.
