@@ -20,7 +20,6 @@
 - [FAQ](#-faq)
 - [Resources](#-resources)
 - [Contributors](#-contributors)
-- [Versioning & License](#-versioning--license)
 
 ---
 
@@ -109,7 +108,7 @@ The **Batch Telemetry Agent** optimizes batch job execution in Dynamics 365 by c
 2. In the test pane, choose **Manage connections**.  
    <div align="center"><img src="./Images/ManageConnections.png" width="700" alt="Manage connections"></div>
 3. Ensure all are **Connected**; create missing ones if needed.  
-   <div align="center"><img src="./Images/CreateConnection.png" width="700" alt="Create connection"></div>
+   <div align="center"><img src="./Images/ConnectConnection.png" width="700" alt="Create connection"></div>
 4. For **Application Insights**, provide **Application (App) ID** and **API Key**.  
    <div align="center"><img src="./Images/APIKey.png" width="700" alt="Application Insights API key"></div>
 
