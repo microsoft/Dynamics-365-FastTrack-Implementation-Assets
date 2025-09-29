@@ -14,7 +14,7 @@ Sales Order Agent is an autonomous agent for processing sales orders received vi
 
 1. Email received with attachments in personal or shared mailbox: ![emailReceivedWithAttachment](images/emailReceivedWithAttachment.png)
 
-2. Each attachment and the extracted data are persisted in Dataverse: ![stagingdocument](images/extractedata.png) 
+2. Each attachment and the extracted data saves to Dataverse: ![stagingdocument](images/extractedata.png) 
 
     ![stagingsalesorderheader](images/stagingsalesorderheader.png)
     
