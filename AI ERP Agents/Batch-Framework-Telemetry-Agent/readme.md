@@ -171,9 +171,3 @@ A: Yes. Create separate connections per environment and parameterize the workspa
 ## 👥 Contributors
 - Prashant Verma (AI Business Solutions)  
 - Hemanth Kumar
-
----
-
-## 🧾 Versioning & License
-- See **CHANGELOG.md** for release notes.  
-- License: MIT (or your org’s standard license).
