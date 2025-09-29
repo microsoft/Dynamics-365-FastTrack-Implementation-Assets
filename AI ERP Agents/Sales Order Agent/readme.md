@@ -106,7 +106,7 @@ Please consider the following to make the agent work for your specific needs and
  - **Update the environment variables** - when importing the solution you should provide a mailbox to monitor for incoming sales orders attachments. You can choose a shared and/or personal mailbox. Ensure to provide email for reviewer mailbox and company code. 
  ![solutionimportvariables](images/solutionimportvariables.png)
 
-  - **Update the Finance and Operation connection** – Open the agent flows SOA V3 - Create order in ERP and update the Finance and Operations URL in the creation action for the sales order header and sales order lines. After making the change, save and publish the agent flow.
+  - **Update the Finance and Operation connection** – Open the agent flows SOA V3 - Create order in ERP and update the URL in the creation action for the sales order header and sales order lines. After making the change, save and publish the agent flow.
    ![flowerpheader](images/flowerpheader.png)
     ![flowerpline](images/flowerpline.png)
 
