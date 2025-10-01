@@ -1,6 +1,17 @@
-﻿// This example solution requires  NuGet packages System.Text.Json, Microsoft.Identity.Client,
+﻿/**
+ * SAMPLE CODE NOTICE
+ * 
+ * THIS SAMPLE CODE IS MADE AVAILABLE AS IS.  MICROSOFT MAKES NO WARRANTIES, WHETHER EXPRESS OR IMPLIED,
+ * OF FITNESS FOR A PARTICULAR PURPOSE, OF ACCURACY OR COMPLETENESS OF RESPONSES, OF RESULTS, OR CONDITIONS OF MERCHANTABILITY.
+ * THE ENTIRE RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS SAMPLE CODE REMAINS WITH THE USER.
+ * NO TECHNICAL SUPPORT IS PROVIDED.  YOU MAY NOT DISTRIBUTE THIS CODE UNLESS YOU HAVE A LICENSE AGREEMENT WITH MICROSOFT THAT ALLOWS YOU TO DO SO.
+ */
+// This example solution requires  NuGet packages System.Text.Json, Microsoft.Identity.Client,
 // Microsoft.Extensions.Configuration, Microsoft.Extensions.Configuration.Binder, Microsoft.Extensions.Configuration.Json
 
+using Azure.Security.KeyVault.Secrets;
+using Azure.Identity;
+using MessageProcessorConsoleApp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Identity.Client;
 using System;
@@ -21,13 +32,28 @@ namespace ODataCoreConsoleApp
     class Program
     {
         private const string Endpoint = "/api/services/SysMessageServices/SysMessageService/SendMessage";
-        private static async Task<string> GetAuthenticationHeader(AuthenticationConfig config)
+        private static async Task<string> GetAuthenticationHeader(AuthenticationConfiguration config)
         {
-            IConfidentialClientApplication app = ConfidentialClientApplicationBuilder.Create(config.ClientId)
-                    .WithClientSecret(config.ClientSecret)
+
+            var interactiveCredential = new InteractiveBrowserCredential(
+                new InteractiveBrowserCredentialOptions
+                {
+                    TenantId = config.AzureKeyVault.KeyVaultTenantId, 
+                    RedirectUri =  new Uri("http://localhost") 
+                });
+
+            var client = new SecretClient(new Uri(config.AzureKeyVault.VaultUri), interactiveCredential);
+            KeyVaultSecret secret = await client.GetSecretAsync(config.AzureKeyVault.AppIdentifier);
+            string clientSecret = secret.Value;
+
+
+            IConfidentialClientApplication app = ConfidentialClientApplicationBuilder.Create(config.AzureAd.ClientId)
+                    .WithClientSecret(clientSecret)
                     .WithAuthority(new Uri(config.Authority))
                     .Build();
-            string[] scopes = new string[] { $"{config.BaseUrl}/.default" };
+            string[] scopes = new string[] { $"{config.BaseUri}/.default" };
+            
+            
             AuthenticationResult result = await app.AcquireTokenForClient(scopes)
                 .ExecuteAsync();
             return result.CreateAuthorizationHeader();
@@ -42,7 +68,6 @@ namespace ODataCoreConsoleApp
             }
 
         }
-
 
         private static async Task MainAsync()
         {
@@ -75,12 +100,12 @@ namespace ODataCoreConsoleApp
             {
                 //Authenticate with Entra ID
                 Console.WriteLine("Authenticating with EntraId...");
-                AuthenticationConfig config = AuthenticationConfig.ReadFromJsonFile("appsettings.json");
+                AuthenticationConfiguration config = AuthenticationConfiguration.ReadFromJsonFile("appsettings.json");
                 string bearerToken = await GetAuthenticationHeader(config);
                 bearerToken = bearerToken.Split(' ')[1];
 
 
-                string fullUrl = $"{config.BaseUrl.TrimEnd('/')}{Endpoint}";
+                string fullUrl = $"{config.BaseUri.TrimEnd('/')}{Endpoint}";
                 Console.WriteLine(fullUrl);
 
                 //Prepare oreders and send them to the Message Procesor endpoint
