@@ -3,12 +3,12 @@ Description:
 This script is designed to cleanup records from specified tables in a database. It uses a cursor to loop through the table names ordered by size (Data + Index) and calls a stored procedure to archive records based on the provided parameters.
  
 Parameters:
-- @Tables: List of tables to be archived (comma separated)
-- @MaxArchivingDate: Maximum archiving date
+- @SkipTables: List of tables to be skipped (comma separated) -- Tables to exclude anyway BATCHHISTORY, BATCHJOB, BATCH, BATCHJOBHISTORY,Sysdatabaselog
+- @MaxArchivingDate: Date from which you want to keep data
 - @Simulation: Set to 1 for simulation mode, 0 for actual deletion
-- @LE: List of legal entities
-- @MaxThruputInMB: Size of each batch for processing records (default is 100 GB)
-- @Resume: Set to 1 to resume from previous run, 0 for fresh run (default is 1)
+- @LE: List of legal entities to keep
+- @MaxThruputInMB: Size of each batch for processing records (default is 512 MB)
+- @Resume: Set to 1 to resume from previous run, 0 for fresh run (default is 1) - use 0 only if you want to skip tables that have already been started
  
 The script performs the following steps:
 1. Prints the legal entities and date range.
@@ -274,4 +274,5 @@ BEGIN
 	SET @SQL = 'DROP TABLE ' + @tempTableListTableName
     EXEC sp_executesql @SQL
 END
+
 
