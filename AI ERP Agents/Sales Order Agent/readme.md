@@ -1,8 +1,8 @@
 # Sales Order Processor Agent
 # Table of contents
 1. [Use Case](#usecase)
-2. [Prerequisites](#prerequisites)
-3. [Sales Order Agent Components](#salesorderagent)
+2. [Sales Order Agent Components](#salesorderagent)
+3. [Prerequisites](#prerequisites)
 4. [Install and configure the Sales Order Agent](#configuration)
 5. [Limitations and constraints](#limitations)
 6. [Roadmap](#roadmap)
@@ -35,14 +35,7 @@ Sales Order Agent is an autonomous agent for processing sales orders received vi
 
 ![businessProcessFlow](images/ProcessFlow.png)
 
-<a id="prerequisites"></a>
-# ✅ Prerequisites for installing the Sales Order Agent solution
- - Connected Dataverse environment with an environment with  finance and operations apps. To confirm this, you can check in the Power Platform Admin Portal for a given environment that there is a corresponding link to Dynamics 365.
- - The user who installs the Sales Order Agent solution must be a licensed user in Dynamics 365.
- - Dataverse virtual tables enabled: Released products V2 (mserp), Customers V3 (mserp). Learn more about how to enable virtual tables in Dataverse at https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/power-platform/enable-virtual-entities.
- - Sales Order agent solution imported and agent configured as indicated in the next section.
- - System Administrator role for solution import and agent configuration.
- - Manual Reviewers should be assigned the Sales Order Agent Reviewer security role after the solution is imported.
+
 
 <a id ="salesorderagent"></a>
 # 🤖 Sales Order Agent Components
@@ -108,18 +101,31 @@ For implementing deterministic sales order specific validation rules, as well as
 - **Extracts data from document** - prompt with input a file or image and JSON format output.
 ![aibuilderprompt](images/aibuilderprompt.png)
 
+<a id="prerequisites"></a>
+# ✅ Prerequisites for installing the Sales Order Agent solution
+ - Connected Dataverse environment with an environment with  finance and operations apps. To confirm this, you can check in the Power Platform Admin Portal for a given environment that there is a corresponding link to Dynamics 365.
+ - The user who installs the Sales Order Agent solution must be a licensed user in Dynamics 365.
+ - Dataverse virtual tables enabled: Released products V2 (mserp), Customers V3 (mserp). Learn more about how to enable virtual tables in Dataverse at https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/power-platform/enable-virtual-entities.
+ - Sales Order agent solution imported and agent configured as indicated in the next section.
+ - System Administrator role for solution import and agent configuration.
+ - Manual Reviewers should be assigned the Sales Order Agent Reviewer security role after the solution is imported.
+
 <a id="configuration"></a>
 # ✅ Sales Order Agent configuration
-Please consider the following to make the agent work for your specific needs and data:
+Import the Sales Order Agent solution from the Solutions folder and please consider the following to make the agent work for your specific needs and data:
  - **Create the connections** for Power Automate flows access systems using the least privileged accounts or a service principal where possible.
  - **Update the environment variables** - when importing the solution you should provide a **mailbox to monitor** for incoming sales orders attachments. You can choose a shared and/or personal mailbox. Ensure to provide email address for the **reviewer mailbox** and the **company code**. 
  - By default only pdf attachments are processed. If you'd like to process images as well, set **ProcessImagesAttachments** variable to Yes. 
 
     ![solutionimportvariables](images/solutionimportvariables.png)
 
-  - **Update the Finance and Operation instance** – From Microsoft Copilot Studio https://copilotstudio.preview.microsoft.com/, open the agent flow **SOA V3 - Create order in ERP** and update the ERP URL in the create action for the sales order header and sales order lines. After making the change, save and publish the agent flow.
+  - **Update the Finance and Operation instance** – From **Microsoft Copilot Studio** https://copilotstudio.preview.microsoft.com/, open the agent flow **SOA V3 - Create order in ERP** in Designer and update the ERP URL in the create action for the sales order header and sales order lines. After making the change, save draft and then publish the agent flow.
    ![flowerpheader](images/flowerpheader.png)
     ![flowerpline](images/flowerpline.png)
+    ![floweerpheaderattach](images/flowerpheaderattachment.png)
+    ![floweerpheaderattachdetail](images/flowerpheaderattachmentdetail.png)
+    
+
 
  - **Customer validation** - Sales order agent validates customer name, and if not found, will search using the email address if available in the document. The agent flows validating the customer depends on the json extracted to contain the column **deliverycustomername**, **deliverycustomeremail**. Consider if this is necessary for your organization, and update as needed e.g. identifying customer by VAT Number if its provided – if you'd like to change the customer validation criteria, ensure to update the AI Builder extraction prompt to collect the required fields,create Dataverse column to store the VAT Number in the Staging Sales Order Header table, update the LoadSalesOrderData flow to populate the new column from the extracted JSON, and SOA V3 - Validate Customer agent flow to use the VAT Number for customer identification.
 
