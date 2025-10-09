@@ -1,0 +1,42 @@
+﻿{
+  "$schema": "./devDependencies/schemas/manifestSchema.json",
+  "name": "Chat.Sample",
+  "publisher": "Contoso",
+  "version": "1.0.0",
+  "minimumPosVersion": "9.29.0.0",
+  "description": "Chat sample for POS.",
+  "dependencies": [
+    {
+      "alias": "reactcomponents",
+      "format": "amd",
+      "modulePath": "DistReact/reactcomponents"
+    }
+  ],
+  "components": {
+    "resources": {
+      "supportedUICultures": ["en-US"],
+      "fallbackUICulture": "en-US",
+      "culturesDirectoryPath": "Resources/Strings",
+      "stringResourcesFileName": "resources.resjson"
+    },
+    "create": {
+      "operations": [
+        {
+          "operationId": "5000",
+          "operationRequestFactoryPath": "Operations/ChatOperationRequestFactory",
+          "operationRequestHandlerPath": "Operations/ChatOperationRequestHandler"
+        }
+      ],
+
+      "views": [
+        {
+          "title": "ChatView",
+          "pageName": "ChatView",
+          "phonePageName": "ChatView",
+          "viewDirectory": "Views/",
+          "viewControllerPath": "Views/ChatView"
+        }
+      ]
+    }
+  }
+}

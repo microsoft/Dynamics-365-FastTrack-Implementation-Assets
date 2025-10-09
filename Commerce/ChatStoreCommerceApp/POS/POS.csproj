@@ -12,31 +12,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Remove="Src\**\*" />
-    <Compile Remove="Src\**\*" />
-    <None Remove="Src\**\*" />
+    <Content Remove="SrcReact\**\*" />
+    <Compile Remove="SrcReact\**\*" />
+    <None Remove="SrcReact\**\*" />
   </ItemGroup>
 
   <ItemGroup>
-    <ExcludedFromBuild Include="Src\**\*" />
+    <ExcludedFromBuild Include="SrcReact\**\*" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CommerceRuntime\CommerceRuntime.csproj"
       ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" />
   </ItemGroup>
-
-  <Target Name="DownloadKnockoutFromCDN" BeforeTargets="AssignTargetPaths">
-    <PropertyGroup>
-      <KnockoutCDNUrl>https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.1/knockout-latest.js</KnockoutCDNUrl>
-      <KnockoutLocalPath>Libraries\knockout.js</KnockoutLocalPath>
-    </PropertyGroup>
-    <Exec
-      Command="powershell -Command &quot;Invoke-WebRequest -Uri '$(KnockoutCDNUrl)' -OutFile '$(KnockoutLocalPath)'&quot;" />
-    <ItemGroup>
-      <Content Include="$(KnockoutLocalPath)" />
-    </ItemGroup>
-  </Target>
 
   <ItemGroup>
     <Content Include="DistReact\**\*.js">
@@ -45,7 +33,7 @@
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="Build">
-    <Exec Command="npm install" WorkingDirectory="Src" />
-    <Exec Command="npx webpack --config webpack.config.js" WorkingDirectory="Src" />
+    <Exec Command="npm install" WorkingDirectory="SrcReact" />
+    <Exec Command="npx webpack --config webpack.config.js" WorkingDirectory="SrcReact" />
   </Target>
 </Project>

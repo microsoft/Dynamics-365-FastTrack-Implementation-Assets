@@ -1,7 +1,7 @@
 {
-  "name": "ReactComponents.Pos.Sample",
+  "name": "Chat.Pos.Sample",
   "version": "1.0.0",
-  "description": "This project contains React component samples for POS.",
+  "description": "This project contains sample chat for POS.",
   "scripts": {
     "prebuild": "npm install",
     "build": "webpack --config webpack.config.js",
@@ -15,9 +15,10 @@
     "@babel/preset-react": "^7.27.1",
     "@babel/preset-typescript": "^7.27.1",
     "@types/debug": "^4.1.12",
+    "@types/markdown-it": "^14.1.2",
     "@types/node": "^22.13.4",
-    "@types/react": "^19.1.6",
-    "@types/react-dom": "^19.1.6",
+    "@types/react": "^18.0.38",
+    "@types/react-dom": "^18.0.11",
     "babel-loader": "^10.0.0",
     "css-loader": "^7.1.2",
     "mini-css-extract-plugin": "^2.9.2",
@@ -30,7 +31,10 @@
   },
   "dependencies": {
     "@fluentui/react-components": "^9.64.1",
+    "dompurify": "^3.2.6",
+    "markdown-it": "^14.1.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "uuid": "^11.1.0"
   }
 }
