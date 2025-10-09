@@ -16,6 +16,21 @@ using Microsoft.Extensions.Configuration;
 
 namespace MessageProcessorConsoleApp
 {
+    /*
+       "BaseUri": "https://aladamuvirtualentity765eccb33923d24ddevaos.axcloud.dynamics.com",
+  "AzureKeyVault": {
+    "VaultUri": "https://aladamuvirtualentitykv.vault.azure.net/",
+    "AppIdentifier": "aladamuVirtualEntity",
+    "KeyVaultTenantId": "979fd422-22c4-4a36-bea6-1cf87b6502dd"
+  },
+  "AzureAd": {
+    "ClientId": "2fd29989-4f6b-4fbf-8e09-c86c703255bd",
+    "Authority": "https://login.microsoftonline.com/{0}",
+    "TenantId": "979fd422-22c4-4a36-bea6-1cf87b6502dd",
+    "Audience": "https://aladamuvirtualentity765eccb33923d24ddevaos.axcloud.dynamics.com"
+  }
+    */
+
     public class AuthenticationConfiguration
     {
         public string BaseUri { get; set; }
