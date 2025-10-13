@@ -104,5 +104,5 @@ Extend CustAccountStatementExt output menu-item and change the object to SACustA
  
 
 # Result:
-After this change, batch process doesn’t error out and able to print customer account statement effectively using parallel processing by creating tasks efficiently. You don’t need to break or submit multiple customer account statement batch jobs filtering by customer groups etc. 
+After this change, batch process doesn’t error out and is able to print customer account statement effectively using parallel processing by creating tasks efficiently. You don’t need to break or submit multiple customer account statement batch jobs filtering by customer groups etc. 
 
