@@ -21,7 +21,7 @@ Internal final class SACustAccountStatementExtController extends CustAccountStat
 	/// Maximum number of customers to be put in each bundle 
 	/// </param> 
 	/// <remarks> 
-	/// Bundles are split using the recIds of the primary DataSource. If there is a better way to /// split up bundles for a particular report this method should be overridden. 
+	/// Bundles are split using the recIds of the primary DataSource. If there is a better way to split up bundles for a particular report, this method should be overridden. 
 	/// </remarks> 
 
 protected void generateBundles(int _bundleSizeMax = #DefaultBundleSizeMax)
