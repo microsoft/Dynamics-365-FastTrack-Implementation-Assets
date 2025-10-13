@@ -33,7 +33,7 @@ Set recIds = new Set(Types::Int64);
 Set allRecIds = new Set(Types::Int64);
 int bundleCount = 1;
     // Create bundles
-	_bundleSizeMax = 50; **//change the bundle size or parameterize it to test and finetune based on your volume**
+	_bundleSizeMax = 50; **//change the bundle size or parameterize it to test and fine-tune based on your volume**
     while(qr.next())
     {
         recId = qr.getNo(1).RecId; // Use primary data source
