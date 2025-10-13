@@ -4,7 +4,7 @@ In Dynamics 365 Finance and Operations, we have out of the box capability to pri
 # Cause of the Issue:
 A customer account statement controller class utilizes an SRSPrintMgmtController framework, which processes statements by generating bundles and creating batch tasks for every 10 customer accounts. When you have large number of customer accounts, the system attempts to create a batch task for each group of 10 customers, resulting in millions of objects being held in memory, and sometimes it fails without any error. 
 This is a batch-retryable process; therefore, batch framework keeps retrying repeatedly—up to five retries—before ultimately failing. This leads to extended error resolution times. Batch job log doesn’t show any error or info.
-Sometime, you filter to run this report based on customer group etc. to manage the number of customers that becomes cumbersome for AR team.
+Sometimes, you filter to run this report based on customer group etc. to manage the number of customers that becomes cumbersome for AR team.
 
 # Explanation (technical):
  In SrsPrintMgmtController class > generateBundles() keeps creating batchHeader, saves into memory. From the code below, we should improve this to save batchHeader.save after creating the batchHeader instead of at the end as highlighted below and parameterize the bundle size. 
