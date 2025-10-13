@@ -1,5 +1,7 @@
 # Optimize customer account statement printing with Dynamics 365 finance and operations
-In Dynamics 365 Finance and Operations, we have out of the box capability to print or email (based on print management setup etc.) customer account statements. Many organizations experience inefficiencies when printing customer account statements if you have large number of customers. Single-threaded printing processes can take several hours to complete, while multi-threaded printing attempts frequently fail and result in errors if you enable ‘Use parallel processing’ as highlighted below.
+In Dynamics 365 Finance and Operations, we have out of the box capability to print or email (based on print management setup etc.) customer account statements. Many organizations experience inefficiencies when printing customer account statements if you have large number of customers. Single-threaded printing processes can take several hours to complete, while multi-threaded printing attempts frequently fail and result in errors if you enable ‘Use parallel processing’ as highlighted below:
+
+![customeraccount](Image/Picture1.png)
  
 # Cause of the Issue:
 A customer account statement controller class utilizes an SRSPrintMgmtController framework, which processes statements by generating bundles and creating batch tasks for every 10 customer accounts. When you have large number of customer accounts, the system attempts to create a batch task for each group of 10 customers, resulting in millions of objects being held in memory, and sometimes it fails without any error. 
@@ -7,7 +9,9 @@ This is a batch-retryable process; therefore, batch framework keeps retrying rep
 Sometimes, you filter to run this report based on customer group etc. to manage the number of customers that becomes cumbersome for AR team.
 
 # Explanation (technical):
- In SrsPrintMgmtController class > generateBundles() keeps creating batchHeader, saves into memory. From the code below, we should improve this to save batchHeader.save after creating the batchHeader instead of at the end as highlighted below and parameterize the bundle size. 
+ In SrsPrintMgmtController class > generateBundles() keeps creating batchHeader, saves into memory. From the code below, we should improve this to save batchHeader.save after creating the batchHeader instead of at the end as highlighted below and parameterize the bundle size:
+
+ ![code](Image/Picture2.png)
  
 # Code fix using extension:
 Create a new class e.g. SACustAccountStatementExtController by extending it with CustAccountStatementExtController, override generateBundles() to efficiently handle batchHeader creation.
@@ -100,7 +104,9 @@ protected static void startControllerOperation(SrsPrintMgmtFormLetterController 
 }
 }
 ```
-Extend CustAccountStatementExt output menu-item and change the object to SACustAccountStatementExtController class (new class name that you created in above step). 
+Extend CustAccountStatementExt output menu-item and change the object to SACustAccountStatementExtController class (new class name that you created in above step):
+
+ ![menuitem](Image/Picture3.png)
  
 
 # Result:
