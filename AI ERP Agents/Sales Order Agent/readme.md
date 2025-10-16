@@ -147,3 +147,5 @@ The Sales Order Agent has the next limitations and constraints:
 <a id="roadmap"></a>
 # 🤖 Sales Order Agent Roadmap
 For customers with larger documents where AI Builder custom GPT prompt is not feasible, we are planning to enhance the sales order agent document extraction with another method for document analysis using Azure AI services.
+
+👉 Want to explore how this can transform your document processing workflows? Fill out this form https://forms.office.com/r/BzUfaL89da to onboard into our Viva Engage community to connect with other users, share insights, and stay updated on the latest features.
