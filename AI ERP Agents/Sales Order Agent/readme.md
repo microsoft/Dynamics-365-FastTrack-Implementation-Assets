@@ -109,6 +109,9 @@ For implementing deterministic sales order specific validation rules, as well as
  - Sales Order agent solution imported and agent configured as indicated in the next section.
  - System Administrator role for solution import and agent configuration.
  - Manual Reviewers should be assigned the Sales Order Agent Reviewer security role after the solution is imported.
+ - During solution import, ensure to provide values for either **a personal mailbox or a shared mailbox to monitor, the mailbox folder to monitor, the company code (for the sample file you can use usmf) and a reviewer email address**. After solution import, the corresponding environment variables can be updated from the context of an unmanaged solution. 
+ 
+ **TIP**: If you require to monitor other folders than Inbox, please ensure there is a rule in place to route the emails automatically to the respective folder. For example, for a subfolder SalesOrder, you'd need to provide the value Inbox/SalesOrder for the folder to monitor.
 
 <a id="configuration"></a>
 # ✅ Sales Order Agent configuration
