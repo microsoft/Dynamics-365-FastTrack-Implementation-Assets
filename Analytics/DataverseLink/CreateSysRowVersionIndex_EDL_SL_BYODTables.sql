@@ -60,7 +60,7 @@ BEGIN
 					SET @SQLStmt = '
 					CREATE NONCLUSTERED INDEX AIF_I_' + CAST(@TableId as nvarchar) + 'SQLROWVERSIONIDX
 					ON ' + @SchemaName + '.' + @TableName + ' ([SYSROWVERSION] ASC)
-					WITH (MAXDOP = 8, ONLINE = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = ON)
+					WITH (MAXDOP = 8 , ONLINE = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = ON)
 					ON [PRIMARY]
 					';
 					EXEC sp_executesql @SQLStmt;
