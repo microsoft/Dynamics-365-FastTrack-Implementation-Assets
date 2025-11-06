@@ -5,16 +5,26 @@ The **User Onboarding Agent** is an autonomous solution that automates the proce
 
 It monitors incoming onboarding requests (such as HR emails or future ServiceNow tickets), extracts employee data, validates job duties, and provisions users automatically using **Power Automate flows** and **Teams Adaptive Card approvals**.  
 
+![Architecture Diagram](./images/SolutionDiagram.png)
+
 ### Typical Workflow  
-1. **Trigger** – HR sends an onboarding email containing new-hire details.  
-2. **Extraction** – The agent uses Azure OpenAI to parse the message, extracting name, title, department, and duties.  
-3. **Processing** – Data is sent to the main Power Automate flow `D365OnboardingAgentV3` for user creation.  
-4. **Approval** – Adaptive Cards are posted in Microsoft Teams for IT admins to review and approve.  
-5. **Provisioning** – Upon approval, the agent:
+1. **Trigger** – HR sends an onboarding email containing new-hire details.
+   ![Onboarding Email](./images/OnboardingEmail.png)
+3. **Extraction** – The agent uses Azure OpenAI to parse the message, extracting name, title, department, and duties.  
+4. **Processing** – Data is sent to the main Power Automate flow `D365OnboardingAgentV3` for user creation.  
+5. **Approval** – Adaptive Cards are posted in Microsoft Teams for IT admins to review and approve.  
+6. **Provisioning** – Upon approval, the agent:
    - Creates the user in Azure AD  
-   - Assigns Microsoft 365 and F&O licenses  
+   - Assigns Microsoft 365 and F&O licenses (Future Release)  
    - Suggests D365 roles based on job duties using AI  
    - Assigns approved roles and completes onboarding  
+
+   ![User Creation Request](./images/TeamsUserCreationOnboardingCard.png)
+   ![User Created in AAD](./images/TeamsUserCreationOnboardingCard_Success.png)
+   ![Finance and Operations Roles Suggestions](./images/TeamsRolesSuggestionCard.png)
+   ![User and Roles assignment success message](./images/TeamsRolesSuggestionCard_Success.png)
+   ![Verifications in Finance and Operations](./images/RolesAndUserAssignedInFNO.png)
+ 
 
 ---
 
@@ -110,6 +120,9 @@ After importing the solution, navigate to:
    - Send a sample email such as:  
      > “Please onboard John Smith, Finance Analyst, with duties related to reporting and reconciliation.”  
    - Verify Teams Adaptive Card delivery, approval, and Azure AD + F&O creation.  
+
+![Agent Configuration Screen in MCS](./images/AgentScreen1.png)
+![Agent Configuration Screen in MCS](./images/AgentScreen2.png)
 
 ---
 
