@@ -267,5 +267,4 @@ This step passes structured data to the Copilot Agent for further decision-makin
 
 ---
 
-## 📜 License  
-This project is provided under the **MIT License** and is intended for educational and extensibility guidance purposes.
+
