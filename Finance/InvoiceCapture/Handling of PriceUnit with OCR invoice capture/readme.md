@@ -9,15 +9,35 @@ Purchase order use "Price unit". There can be one of the two scenarios where-in 
   
 | Scenario | PO Qty | PO Unit price | PO Price unit | PO Net amount (Qty*unit price/price unit) | OCR Invoice Qty | OCR Unit price | OCR Invoice net amount | F&O pending vendor invoice Unit price | F&O pending vendor invoice Price unit | F&O pending vendor invoice Net amount |
 | :------- | :------: | -------: |  :------: | :------: | :------: |  :------: | :------: | :------: |  :------: |:------: |
-| Scenario 1 | 1500 | 20 | 10 | 3000 | 1500 | 2 | 3000 | 2 | 10 | <code style="color : red">300</code> *This is wrong |
+| Scenario 1 | 1653 | 20 | 10 | 3306 | 1653 | 2 | 3306 | 2 | 10 | <code style="color : red">300</code> *This is wrong |
 
+Purchase order with Price unit:
 ![PO1](Images/Pic1.png)
+
+Vendor invoice with actual unit price (after converting)
+![VI1](Images/Pic2.png)
+
+Pending vendor invoice through OCR Invoice capture
+![PVI1](Images/Pic3.png)
+
+OCR brings the invoice as pending vendor invoice. Finance and Operations logic defaults Price unit, OCR assumes unit price * qty = net amount, how-ever, Finance and Operations logic considers Price unit and therefore wrong net amount on invoice.
 
 * Scenario 2: Vendor sends same unit price e.g. 83.41 (as PO price unit), when OCR transfer pending vendor invoice into Finance and operations, that’s where it doesn’t bring unit price in pending vendor invoice. 
 
 | Scenario | PO Qty | PO Unit price | PO Price unit | PO Net amount (Qty*unit price/price unit) | OCR Invoice Qty | OCR Unit price | OCR Invoice net amount | F&O pending vendor invoice Unit price | F&O pending vendor invoice Price unit | F&O pending vendor invoice Net amount |
 | :------- | :------: | -------: |  :------: | :------: | :------: |  :------: | :------: | :------: |  :------: |:------: |
 | Scenario 2 | 10000 | 83.41 | 1000 | 830.41 | 10000 | 83.41 | 830.41 | <code style="color : red">0</code> *This is wrong | 1000 | 830.41 |
+
+Purchase order with Price unit:
+![PO2](Images/Pic4.png)
+
+Vendor invoice with actual unit price (after converting)
+![VI2](Images/Pic5.png)
+
+Pending vendor invoice through OCR Invoice capture
+![PVI2](Images/Pic6.png)
+
+OCR brings the invoice as pending vendor invoice. Finance and Operations logic defaults Price unit, OCR assumes unit price * qty <> net amount, and it doesn’t populate unit price.
 
 # Extension:
 This is known product gap with Dynamics 365 OCR Invoice capture solution. How-ever, this can be solved by placing small X++ extension in Finance and Operations. After looking at the code, we can use COC (chain of command) once OCR transfer invoice into F&O. 
