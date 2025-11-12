@@ -11,6 +11,8 @@ Purchase order use "Price unit". There can be one of the two scenarios where-in 
 | :------- | :------: | -------: |  :------: | :------: | :------: |  :------: | :------: | :------: |  :------: |:------: |
 | Scenario 1 | 1500 | 20 | 10 | 3000 | 1500 | 2 | 3000 | 2 | 10 | <code style="color : red">300</code> *This is wrong |
 
+![PO1](Images/Pic1.png)
+
 * Scenario 2: Vendor sends same unit price e.g. 83.41 (as PO price unit), when OCR transfer pending vendor invoice into Finance and operations, that’s where it doesn’t bring unit price in pending vendor invoice. 
 
 | Scenario | PO Qty | PO Unit price | PO Price unit | PO Net amount (Qty*unit price/price unit) | OCR Invoice Qty | OCR Unit price | OCR Invoice net amount | F&O pending vendor invoice Unit price | F&O pending vendor invoice Price unit | F&O pending vendor invoice Net amount |
