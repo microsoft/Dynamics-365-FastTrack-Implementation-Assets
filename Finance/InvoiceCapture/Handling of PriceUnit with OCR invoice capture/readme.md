@@ -26,7 +26,7 @@ OCR brings the invoice as pending vendor invoice. Finance and Operations logic d
 
 | Scenario | PO Qty | PO Unit price | PO Price unit | PO Net amount (Qty*unit price/price unit) | OCR Invoice Qty | OCR Unit price | OCR Invoice net amount | F&O pending vendor invoice Unit price | F&O pending vendor invoice Price unit | F&O pending vendor invoice Net amount |
 | :------- | :------: | -------: |  :------: | :------: | :------: |  :------: | :------: | :------: |  :------: |:------: |
-| Scenario 2 | 10000 | 83.41 | 1000 | 830.41 | 10000 | 83.41 | 830.41 | <code style="color : red">0</code> *This is wrong | 1000 | 830.41 |
+| Scenario 2 | 204225 | 83.41 | 1000 | 17034.41 | 204225 | 83.41 | 17034.41 | <code style="color : red">0</code> *This is wrong | 1000 | 17034.41 |
 
 Purchase order with Price unit:
 ![PO2](Images/Pic4.png)
