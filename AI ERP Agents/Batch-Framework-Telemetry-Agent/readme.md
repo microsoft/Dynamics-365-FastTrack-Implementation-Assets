@@ -94,8 +94,8 @@ The **Batch Telemetry Agent** optimizes batch job execution in Dynamics 365 by c
    <div align="center"><img src="./Images/ImportSolution_options.png" width="700" alt="Import solution"></div>
 3. The wizard prompts to **create/sign in** to required connections.
 <div align="center"><img src="./Images/EstablishConnections.png" width="700" alt="Import solution"></div>
+4. Next you will be asked to enter email list. This is the email to which the batch job analysis report will be sent if you run that prompt in the agent. Provide a valid email address here.
 4. Click **Import** and wait for completion.  
-   <div align="center"><img src="./Images/SolutionImporting.png" width="700" alt="Solution importing"></div>
 5. On success, you’ll see confirmation:  
    <div align="center"><img src="./Images/SolutionImported.png" width="700" alt="Solution imported"></div>
    <div align="center"><img src="./Images/SolutionImportedSuccessfully.png" width="700" alt="Solution imported successfully"></div>
