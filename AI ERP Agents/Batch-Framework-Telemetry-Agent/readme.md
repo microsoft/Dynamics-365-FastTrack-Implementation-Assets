@@ -94,14 +94,15 @@ The **Batch Telemetry Agent** optimizes batch job execution in Dynamics 365 by c
    <div align="center"><img src="./Images/ImportSolution_options.png" width="700" alt="Import solution"></div>
 3. The wizard prompts to **create/sign in** to required connections.
 <div align="center"><img src="./Images/EstablishConnections.png" width="700" alt="Import solution"></div>
-4. Click **Import** and wait for completion.  
-   <div align="center"><img src="./Images/SolutionImporting.png" width="700" alt="Solution importing"></div>
-5. On success, you’ll see confirmation:  
+4. After this you will be prompted to add email list. Provide a valid email id where you would like to receive Batch Execution analysis emails from the agent.
+<div align="center"><img src="./Images/EmailList.png" width="700" alt="Import solution"></div>
+5. Click **Import** and wait for completion. 
+6. On success, you’ll see confirmation:  
    <div align="center"><img src="./Images/SolutionImported.png" width="700" alt="Solution imported"></div>
    <div align="center"><img src="./Images/SolutionImportedSuccessfully.png" width="700" alt="Solution imported successfully"></div>
-6. Open the solution and verify components and environvent variables  
+7. Open the solution and verify components and environvent variables  
    <div align="center"><img src="./Images/SolutionComponents.png" width="700" alt="Solution components"></div>
-7. Then publish all customizations as indicated in the above image.
+8. Then publish all customizations as indicated in the above image.
 
 ### 2) Verify Agent & Connections
 1. Open **copilotstudio.preview.microsoft.com** and select the correct environment.  
