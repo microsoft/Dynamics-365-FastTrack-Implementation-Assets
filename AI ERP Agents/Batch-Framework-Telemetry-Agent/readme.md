@@ -81,7 +81,7 @@ The **Batch Telemetry Agent** optimizes batch job execution in Dynamics 365 by c
 ## ✅ Prerequisites
 - **D365 F&SCM** 10.0.45 (7.0.7690.21 / PU69) or later  
 - **Application Insights** connected for batch telemetry  
-- Access to **Copilot Studio** and **Power Automate**  
+- Access to **Copilot Studio**,  **Power Automate**  and **Outlook** (Outlook is used to send email updated after the analysis.)
 - **App Insights API Access** (Application ID + API Key) for query tool
 
 ---
@@ -89,17 +89,20 @@ The **Batch Telemetry Agent** optimizes batch job execution in Dynamics 365 by c
 ## 🚀 Install & Configure
 
 ### 1) Import Solution
-1. Clone or download this repository’s release **solution** file.  
-2. Go to **make.powerapps.com** → **Solutions** → **Import**.  
-   <div align="center"><img src="./Images/ImportSolution.png" width="700" alt="Import solution"></div>
-3. The wizard prompts to **create/sign in** to required connections.  
-4. Click **Import** and wait for completion.  
-   <div align="center"><img src="./Images/SolutionImporting.png" width="700" alt="Solution importing"></div>
-5. On success, you’ll see confirmation:  
+1. Download the zip file in this repository’s **solution** folder.  
+2. Import the solution: Go to **make.powerapps.com** → **Solutions** → **Import** or directly clicking on **Import Agent** from Copilot studio.
+   <div align="center"><img src="./Images/ImportSolution_options.png" width="700" alt="Import solution"></div>
+3. The wizard prompts to **create/sign in** to required connections.
+<div align="center"><img src="./Images/EstablishConnections.png" width="700" alt="Import solution"></div>
+4. After this you will be prompted to add email list. Provide a valid email id where you would like to receive Batch Execution analysis emails from the agent.
+<div align="center"><img src="./Images/EmailList.png" width="700" alt="Import solution"></div>
+5. Click **Import** and wait for completion. 
+6. On success, you’ll see confirmation:  
    <div align="center"><img src="./Images/SolutionImported.png" width="700" alt="Solution imported"></div>
    <div align="center"><img src="./Images/SolutionImportedSuccessfully.png" width="700" alt="Solution imported successfully"></div>
-6. Open the solution and verify components:  
-   <div align="center"><img src="./Images/SolutionComponents.png" width="300" alt="Solution components"></div>
+7. Open the solution and verify components and environvent variables  
+   <div align="center"><img src="./Images/SolutionComponents.png" width="700" alt="Solution components"></div>
+8. Then publish all customizations as indicated in the above image.
 
 ### 2) Verify Agent & Connections
 1. Open **copilotstudio.preview.microsoft.com** and select the correct environment.  
@@ -112,10 +115,27 @@ The **Batch Telemetry Agent** optimizes batch job execution in Dynamics 365 by c
 4. For **Application Insights**, provide **Application (App) ID** and **API Key**.  
    <div align="center"><img src="./Images/APIKey.png" width="700" alt="Application Insights API key"></div>
 
+### 3) Enable Code Interpreter and File processing
+Go to settings and enable the File processing and code intreperter features. The File upload feature enables you to upload data and gain insights and the code interpreter feature helps in generating code on the fly to visualize and analyze the data returned in your chats.
+<div align="center"><img src="./Images/CodeInterpreter.png" width="700" alt="Agent visible in Copilot Studio"></div>
+
+### 4) Enable Channels
+Go to **Channels** and enable Teams and Microsoft 365 channels.
+<div align="center"><img src="./Images/Channels.png" width="700" alt="Agent visible in Copilot Studio"></div>
+
+### 5) Republish After Changes 
+• If you modify any of the following, republish the agent (Do this any time you modify the agent): 
+o Topics 
+o Instructions 
+o Switch model to Chat GPT-5 
+o Add triggers 
+o Add MCP tools or connectors
+<div align="center"><img src="./Images/Republish.png" width="700" alt="Agent visible in Copilot Studio"></div>
+
+
 > **Note:** If your tenant/org enforces SSO/2FA, ensure your connections are authorized for the environment hosting the agent.
 
-### 3) Knowledge Source (Optional)
-- Add the **Microsoft Learn Docs MCP Server** (or other approved knowledge) to enrich answers to “how/why” questions about Batch Framework.
+
 
 ---
 
