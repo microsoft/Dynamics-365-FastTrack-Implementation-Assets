@@ -25,7 +25,7 @@ from azure.identity import ClientSecretCredential
 from msal import ConfidentialClientApplication
 
 #FnO environment - make sure app added to FnO as Entra App Id
-ENVIRONMENT_URL = "https://d365fabric.sandbox.operations.dynamics.com"
+ENVIRONMENT_URL = "https://<your fno environment>.sandbox.operations.dynamics.com"
 
 def get_access_token (scope):
    credential = ClientSecretCredential(tenant_id=TENANT_ID, client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
@@ -53,12 +53,12 @@ TABLE_LIST = '' #use empty string to get all tables in the lakehouse
 DEBUG = False
 
 #Lakehouse setting 
-WORK_SPACE = "076edb8c-21e6-457a-83d5-723b307be54a"
-LAKE_HOUSE = "abdad0f9-3bfb-42ae-af17-4efc2df4ad2a"
+WORK_SPACE = "<your workspace>"
+LAKE_HOUSE = "<your lakehouse>"
 
 # Azure SQL details
-server = "fabricazuresql.database.windows.net"
-database = "D365Fabric_CJ"
+server = "<your destination Azure SQL>.database.windows.net"
+database = "<your destination database>"
 
 # Service details
 SERVICE_GROUP = "AthenaFinanceOperationsTableAdapterGroup"
