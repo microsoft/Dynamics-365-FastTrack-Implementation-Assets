@@ -1,4 +1,4 @@
-There might be scenarios where you need to export data out Fabric, e.g. temporary feeding data to an existing data warehouse while you are migrating your reporting to Fabric. 
+There might be scenarios where you need to export data out of Fabric, e.g. temporary feeding data to an existing data warehouse while you are migrating your reporting to Fabric. 
 
 We advise to use CopyJob for these scenarios, see [https://learn.microsoft.com/en-us/fabric/data-factory/what-is-copy-job]  
 We do have Change data capture (CDC) enabled in the Microsoft OneLake which makes this solution suitable for large tables as well ([https://learn.microsoft.com/en-us/fabric/data-factory/cdc-copy-job])  
