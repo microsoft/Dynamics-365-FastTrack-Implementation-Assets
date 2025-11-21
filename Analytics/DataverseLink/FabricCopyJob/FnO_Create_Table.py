@@ -37,7 +37,7 @@ lake_token = get_access_token("https://api.fabric.microsoft.com/.default")
 sql_token = get_access_token("https://database.windows.net/.default")
 print(f"✅ tokens created")
 
-**Code cell 3 : Merge metadata from Lake with Finance and create Azure SQL tables
+**Code cell 3 : Merge metadata from Lake with Finance and create Azure SQL tables**
 
 # D365 F&O Metadata Extractor - Configuration
 import requests
@@ -235,7 +235,7 @@ def generate_fno_tables():
                sql_command = generate_sql_create_command (table["table_name"],sql_definition) 
                sql_commands.append(sql_command)
             except:
-               print (f"  ✗ Error: table creation {table_name} failed")
+               print (f"  ✗ Error: table creation {table['table_name']} failed")
                continue
       except:
          continue
