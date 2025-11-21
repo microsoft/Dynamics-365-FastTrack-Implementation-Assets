@@ -251,7 +251,7 @@ def create_fno_tables(sql_commands):
       except:
           print (f" ✗ Error: table creation {sql_command} failed")
           continue
-   cursor.close
+   cursor.close()
    conn.close()
    print("✅ SQL tables created")
    return 
