@@ -7,4 +7,4 @@ When using CopyJob for synchronizing data out of the lakehouse to an external de
 This will create all string fields of type nvarchar(MAX) in SQL. 
 As mitigation the FnO_CreateTable python script will read the field length from the Finance and operations environment and create a table on Azure SQL with correct field length.
 
-For more information please see ([Demo during Office Hours in the Viva Engage - Fabric / Synapse Link] (https://microsoft.sharepoint-df.com/:v:/r/teams/synapselinkfordynamics/Shared%20Documents/Apps/Viva%20Engage/OfficeHours_Meeting_Recordings/2025/2025-11-20_Python_Script_FnO_CreateTable.mp4?csf=1&web=1&e=49oFfl)
+For more information please see ([Demo during Office Hours in the Viva Engage - Fabric / Synapse Link](https://microsoft.sharepoint-df.com/:v:/r/teams/synapselinkfordynamics/Shared%20Documents/Apps/Viva%20Engage/OfficeHours_Meeting_Recordings/2025/2025-11-20_Python_Script_FnO_CreateTable.mp4?csf=1&web=1&e=49oFfl)
