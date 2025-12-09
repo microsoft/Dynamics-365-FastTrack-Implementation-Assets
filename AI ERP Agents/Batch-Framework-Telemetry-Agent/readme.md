@@ -36,7 +36,6 @@ The **Batch Telemetry Agent** optimizes batch job execution in Dynamics 365 by c
 ---
 
 ## 🖼️ Screenshots
-> Add these right up front so users immediately see what they’re getting.
 
 <div align="center">
   <img src="./Images/Teams-Chat-Home.png" alt="Teams - Batch Telemetry Agent app home" width="900"><br/>
@@ -135,7 +134,11 @@ o Add MCP tools or connectors
 
 > **Note:** If your tenant/org enforces SSO/2FA, ensure your connections are authorized for the environment hosting the agent.
 
-
+> Best Practices
+<div align="center">
+  <img src="./Images/BestPractices.png" alt="Teams - Batch Telemetry Agent app home" width="900"><br/>
+  <sub>Teams app home with quick prompts</sub>
+</div>
 
 ---
 
