@@ -3,9 +3,10 @@
 1. [Use Case](#usecase)
 2. [Sales Order Agent Components](#salesorderagent)
 3. [Prerequisites](#prerequisites)
-4. [Install and configure the Sales Order Agent](#configuration)
-5. [Limitations and constraints](#limitations)
-6. [Roadmap](#roadmap)
+4. [Dataverse Solution Import - Install and configure the Sales Order Agent](#configuration)
+5. [Install from Store - Install and configure the Sales Order Agent](#store)
+6. [Limitations and constraints](#limitations)
+7. [Roadmap](#roadmap)
 
 
 
@@ -110,11 +111,12 @@ For implementing deterministic sales order specific validation rules, as well as
  - System Administrator role for solution import and agent configuration.
  - Manual Reviewers should be assigned the Sales Order Agent Reviewer security role after the solution is imported.
  - During solution import, ensure to provide values for either **a personal mailbox or a shared mailbox to monitor, the mailbox folder to monitor, the company code (for the sample file you can use usmf) and a reviewer email address**. After solution import, the corresponding environment variables can be updated from the context of an unmanaged solution. 
+ - Please ensure that the environment where the agent is running either has Copilot Studio credits assigned, or there is a pay as you go billing plan in place. For more details, please see https://learn.microsoft.com/en-us/power-platform/admin/manage-copilot-studio-messages-capacity?tabs=new.
  
  **TIP**: If you require to monitor other folders than Inbox, please ensure there is a rule in place to route the emails automatically to the respective folder. For example, for a subfolder SalesOrder, you'd need to provide the value Inbox/SalesOrder for the folder to monitor.
 
 <a id="configuration"></a>
-# ✅ Sales Order Agent configuration
+# ✅ Sales Order Agent installation with Dataverse solution import
 Import the Sales Order Agent solution from the Solutions folder and please consider the following to make the agent work for your specific needs and data:
  - **Create the connections** for Power Automate flows access systems using the least privileged accounts or a service principal where possible.
  - **Update the environment variables** - when importing the solution you should provide a **mailbox to monitor** for incoming sales orders attachments. You can choose a shared and/or personal mailbox. Ensure to provide email address for the **reviewer mailbox** and the **company code**. 
@@ -122,13 +124,19 @@ Import the Sales Order Agent solution from the Solutions folder and please consi
 
     ![solutionimportvariables](images/solutionimportvariables.png)
 
-  - **Update the Finance and Operation instance** – From **Microsoft Copilot Studio** https://copilotstudio.preview.microsoft.com/, open the agent flow **SOA V3 - Create order in ERP** in Designer and update the ERP URL in the create action for the sales order header and sales order lines. After making the change, save draft and then publish the agent flow.
-   ![flowerpheader](images/flowerpheader.png)
-    ![flowerpline](images/flowerpline.png)
-    ![floweerpheaderattach](images/flowerpheaderattachment.png)
-    ![floweerpheaderattachdetail](images/flowerpheaderattachmentdetail.png)
+  - **Update the Finance and Operation instance** – This step is required for the flow to integrate with your ERP instance. Navigate to make.powerautomate.com, select the relevant environment and from the list of flows, open the flow SOA V3 – Create Order in ERP.
+  - Click on the flow and then Edit – this should open the flow in the Power Automate designer. If enabled, disable New Designer when making this change. 
+  ![addvariables11](images/updateerp_1.png)
+  - Open the condition if the ERP Sales Order was not created and edit the ERP instance for these 2 actions: Create Sales Order Header in ERP and Upload attachment
+  ![addvariables12](images/updateerp_2.png)
+  - Change the instance and wait for a few seconds for the change to be processed. Please double-check post-change that the input parameters have kept their values and that you are indeed using the classic designer.
+    ![addvariables13](images/updateerp_3.png)
+    ![addvariables14](images/updateerp_4.png)
     
-
+  - Open Apply to each- > Try to create sales order line and change the ERP instance for Create Sales Order Line action as well and wait for the ERP instance update to complete and to observe the input parameters keeping their values. 
+  ![addvariables15](images/updateerp_5.png)
+  - Save your flow changes.
+  - **TIP – If the flow is not editable, go back to the Flow main page, refresh it, then try to open again the Editor Page.**
 
  - **Customer validation** - Sales order agent validates customer name, and if not found, will search using the email address if available in the document. The agent flows validating the customer depends on the json extracted to contain the column **deliverycustomername**, **deliverycustomeremail**. Consider if this is necessary for your organization, and update as needed e.g. identifying customer by VAT Number if its provided – if you'd like to change the customer validation criteria, ensure to update the AI Builder extraction prompt to collect the required fields,create Dataverse column to store the VAT Number in the Staging Sales Order Header table, update the LoadSalesOrderData flow to populate the new column from the extracted JSON, and SOA V3 - Validate Customer agent flow to use the VAT Number for customer identification.
 
@@ -136,12 +144,81 @@ Import the Sales Order Agent solution from the Solutions folder and please consi
 
 - **Sample document** - You can use the attached test pdf document for testing if you have the sample data available in your Finance and Operations environment. Company Code should be usmf and the products 1000, A0001 should have  default order settings (Site and Warehouse) configured.
 
+
+<a id="store"></a>
+# ✅ Sales Order Agent installation via store
+After installing the solution containing the sales order agent and components in Dataverse, there are several post-installation and configuration steps necessary. If you face issues please dont hesitate to reach out by filling out this form https://forms.office.com/r/BzUfaL89da  :
+
+ - **1. Create an unmanaged solution** - once the package from the store is succesfully deployed you will see two managed solutions installed in your Dataverse environment. Please proceed to create a new **unmanaged** solution to store the components which need to be configured. For step by step guidance, please see https://learn.microsoft.com/en-us/power-apps/maker/data-platform/create-solution. 
+
+ - **2. Add environment variables to the unmanaged solution** - once you create your unmanaged solution, open it, and click Add Existing - > More - > Environment variable:
+ ![addvariables1](images/envvariables_1.png)
+ ![addvariables2](images/envvariables_2.png)
+
+ - **3. Update environment variables** -  Provide values for the **CompanyCode** (for sample data you can use usmf), **SharedMailboxToMonitor** and/or **PersonalEmailAddressToMonitor** and the corresponding **SharedMailboxFolderToMonitor**, **PersonalEmailMailboxFolderToMonitor**, **ReviewerEmailAddress**. You can choose if you'd like to monitor a shared and/or personal mailbox. By default only pdf attachments are processed. If you'd like to process images as well, set **ProcessImagesAttachments** variable to Yes. 
+
+ - **4. Update Connection References** - start by adding these 4 connection references to your unmanaged solution (Add existing -> More - > Connection references).
+  ![addvariables3](images/connectionreferences_1.png)
+    - Open each connection reference (Edit) and update its related connection by creating either a new connection or by using an existing connection if available. (we are in the process of documenting least privileges for each, for now you can choose a sys admin access)
+    -	For example when trying to create a new Fin & Ops (Dynamics 365) connection for the Fin & Ops connection reference, a new Connection page is opened, type to search for Dynamics 365 and select the create Action. Afterwards, in the unmanaged solution, associate the newly created connection with your Connection Reference. 
+    ![addvariables4](images/connectionreferences_2.png)
+    ![addvariables5](images/connectionreferences_3.png)
+    - **Repeat** this process for the **Fin & Ops, Dataverse, Copilot Studio and Office 365 connection references**.
+
+
+
+- **5. Enable flows** - as we didn’t have valid connection references previously, several flows are now disabled and need to be enabled – this can be achieved in multiple ways, an option is to open the managed solution imported when the package was installed from the store, the solution **Sales Order Agent Processing Template** and enable the flows:
+    - Open the Managed Solution Sales Order Agent Processing Template and turn the status to On for all of the flows with status Off by selecting the flow, then pressing Turn on button. Unfortunately, you can only enable one flow at a time. 
+    - Please note that if you didn’t provide values for shared mailbox address and folder to monitor via the respective environment variables, the flow “When a new email with attachment arrives in a shared mailbox (V2)” should remain disabled, otherwise the flow should be turned on as well.  Similarly, for the flow “When sales order email with attachment arrives” if you didn’t provide values for personal mailbox address and folder to monitor via the respective environment variables, the flow should be disabled.
+![addvariables6](images/cloudflows_1.png)
+  - After enabling the flows, we should see a status of On (except for the mailbox trigger flow depending on if you use shared and/or personal mailbox for monitoring)
+![addvariables7](images/cloudflows_2.png)
+
+- **6. Confirm product and customers Dataverse virtual tables are enabled** - follow instructions detailed at this page https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/power-platform/enable-virtual-entities. In order to open the Classic Advanced Find, you can also open the Power Platform Environment Settings app, click on Search in the toolbar then click on “Search for rows in a table using advanced filters”:
+  ![addvariables8](images/virtualtables_1.png)
+  - From the left corner, click on Switch to Classic
+  ![addvariables9](images/virtualtables_2.png)
+  - Look for Available Finance and Operations Entities and add in the criteria Name contains ReleasedProductV2Entity. Press Results, and open the record found, tick the Visible checkbox and save.
+    ![addvariables10](images/virtualtables_3.png)
+  - Repeat the process and change criteria for Name contains CustomerV3, press Results, open the record found, tick the Visible checkbox and save.
+
+
+**7. Update the Finance and Operation instance** – this step is required for the flow to integrate with your ERP instance. 
+  - Navigate to make.powerautomate.com, select the relevant environment and from the list of flows, open the flow SOA V3 – Create Order in ERP.
+  - Click on the flow and then Edit – this should open the flow in the Power Automate designer. If enabled, disable New Designer when making this change. 
+  ![addvariables11](images/updateerp_1.png)
+  - Open the condition if the ERP Sales Order was not created and edit the ERP instance for these 2 actions: Create Sales Order Header in ERP and Upload attachment
+  ![addvariables12](images/updateerp_2.png)
+  - Change the instance and wait for a few seconds for the change to be processed. Please double-check post-change that the input parameters have kept their values and that you are indeed using the classic designer.
+    ![addvariables13](images/updateerp_3.png)
+    ![addvariables14](images/updateerp_4.png)
+    
+  - Open Apply to each - > Try to create sales order line and change the ERP instance for Create Sales Order Line action as well and wait for the ERP instance update to complete and to observe the input parameters keeping their values. 
+  ![addvariables15](images/updateerp_5.png)
+  - Save your flow changes.
+  - **TIP – If the flow is not editable, go back to the Flow main page, refresh it, then try to open again the Editor Page.**
+
+**8. Publish the Sales Order Agent** - open copilotstudio.microsoft.com, select the environment, in the list of agents find SalesOrderAgent, open the agent and press Publish button
+ ![addvariables16](images/publishagent.png)
+
+**9.Billing setup** – the agent is going to consume Copilot Studio credits – depending on the complexity and size of the documents parsed it can consume around 30 to 80 credits (1 credit = 0.01$) per attachment processed. Please ensure that the environment where the agent is running either has Copilot Studio credits assigned, or there is a pay as you go billing plan in place. For more details, please see https://learn.microsoft.com/en-us/power-platform/admin/manage-copilot-studio-messages-capacity?tabs=new. 
+
+**10. Test the agent** - send an email with attachment to the configured mailbox address.
+
+**11.	Monitor the agent** using the Sales Order Agent App – in order to access the monitoring app, you can open make.powerapps.com, select the environment where you installed the Sales Order Agent solution, then select Apps from the left-side options, select Sales Order Agent App then Play button from the ribbon.
+ ![addvariables17](images/salesorderagentapp.png)
+
+ - **Optional - Update Customer validation** - Sales order agent validates customer name, and if not found, will search using the email address if available in the document. The agent flows validating the customer depends on the json extracted to contain the column **deliverycustomername**, **deliverycustomeremail**. Consider if this is necessary for your organization, and update as needed e.g. identifying customer by VAT Number if its provided – if you'd like to change the customer validation criteria, ensure to update the AI Builder extraction prompt to collect the required fields,create Dataverse column to store the VAT Number in the Staging Sales Order Header table, update the LoadSalesOrderData flow to populate the new column from the extracted JSON, and SOA V3 - Validate Customer agent flow to use the VAT Number for customer identification.
+
+- **Optional - Update Products validation** – Sales order agent validates the product codes, and if found, when creating the sales order lines it will use the extracted product code, quantity, and unit of measure. The agent flows depends on the json extracted to contain columns **productcode, productquantity, productunitofmeasure**. Similarly with the customer extraction, if you need to capture different columns with your prompt, you will need to update the AI Builder extraction prompt, create Dataverse columns in the Staging Sales Order Line table, and update LoadSalesOrderData flow and SOA V3 - Validate Products agent flow.
+
+- **Optional - Sample document** - You can use the attached test pdf document for testing if you have the sample data available in your Finance and Operations environment. Company Code should be usmf and the products 1000, A0001 should have  default order settings (Site and Warehouse) configured.
+
 <a id="limitations"></a>
 # 🧩 Limitations and constraints
 
-The Sales Order Agent has the next limitations and constraints:
 - The processing of email attachments, the extracted sales order data validations and processing are asyncronous operations. 
-- The agent is going to consume Copilot Studio credits.
+- The agent is going to consume Copilot Studio credits. Depending on the complexity and size of the documents parsed it can consume around 30 to 80 credits (1 credit = 0.01$) per attachment processed. 
 - The agent only processes the email attachments: pdf by default, and optionally also images (png,jpeg,jpg) (controlled with environment variable)
 - The agent uses AI Builder custom GPT prompts for document extraction. The GPT prompts support documents with less than 50 pages, for the full list of limitations please see https://learn.microsoft.com/en-us/ai-builder/add-inputs-prompt#limitations 
 - The agent uses Office 365 connectors for monitoring the mailboxes, please see the limitations https://learn.microsoft.com/en-us/connectors/office365/#limits 
