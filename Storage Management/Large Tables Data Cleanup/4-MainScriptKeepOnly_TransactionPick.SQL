@@ -113,34 +113,38 @@ BEGIN
 			SELECT @DateField = CleanupColumn FROM FTDateTimeColumnMappingPerTable WHERE TABLE_NAME = @TableName
 			IF @DateField != ''
 			BEGIN
-				SET @SQL = '';
-				-- Disable all non clustered indexes and triggers
-				SELECT @SQL += 'ALTER INDEX [' + i.name + '] ON [' + s.name + '].[' + t.name + '] DISABLE;'
-				FROM sys.indexes i
-				JOIN sys.tables t ON i.object_id = t.object_id
-				JOIN sys.schemas s ON t.schema_id = s.schema_id
-				WHERE i.type = 2
-					AND i.is_unique = 0
-					AND i.is_disabled = 0
-					AND i.is_primary_key = 0
-					AND i.is_unique_constraint =0
-					AND t.name = @TableName;
 
-				print @SQL
-				EXEC sp_executesql @SQL;
-	
-				-- Disable all triggers
-				SET @SQL = '';
-
-				SELECT @SQL += 'DISABLE TRIGGER [' + tr.name + '] ON [' + s.name + '].[' + t.name + '];'
-				FROM sys.triggers tr
-				JOIN sys.tables t ON tr.parent_id = t.object_id
-				JOIN sys.schemas s ON t.schema_id = s.schema_id
-				WHERE
-					tr.is_disabled  = 0 AND
-					t.name = @TableName;
-				print @SQL
-				EXEC sp_executesql @SQL;
+				IF @Simulation = 0
+				BEGIN
+				    SET @SQL = '';
+				    -- Disable all non clustered indexes and triggers
+				    SELECT @SQL += 'ALTER INDEX [' + i.name + '] ON [' + s.name + '].[' + t.name + '] DISABLE;'
+				    FROM sys.indexes i
+				    JOIN sys.tables t ON i.object_id = t.object_id
+				    JOIN sys.schemas s ON t.schema_id = s.schema_id
+				    WHERE i.type = 2
+				        AND i.is_unique = 0
+				        AND i.is_disabled = 0
+				        AND i.is_primary_key = 0
+				        AND i.is_unique_constraint =0
+				        AND t.name = @TableName;
+				
+				    print @SQL
+				    EXEC sp_executesql @SQL;
+				
+				    -- Disable all triggers
+				    SET @SQL = '';
+				
+				    SELECT @SQL += 'DISABLE TRIGGER [' + tr.name + '] ON [' + s.name + '].[' + t.name + '];'
+				    FROM sys.triggers tr
+				    JOIN sys.tables t ON tr.parent_id = t.object_id
+				    JOIN sys.schemas s ON t.schema_id = s.schema_id
+				    WHERE
+				        tr.is_disabled  = 0 AND
+				        t.name = @TableName;
+				    print @SQL
+				    EXEC sp_executesql @SQL;
+				END
 
 				-- Acquire a semaphore
 				EXEC @semaacquired = sp_getapplock @Resource = @TableName, @LockMode = 'Exclusive', @LockOwner = 'Session', @LockTimeout = 10000
@@ -216,47 +220,51 @@ BEGIN
 		IF @DateFieldRebuild != ''
 		BEGIN
 			Print 'rebuild index table '+ @TableName
-
+			
 			-- Capture start time
 			SET @StartTime = SYSDATETIME();
-
-			SET @SQL = '';
-			-- Rebuild all non-clustered indexes
-			SELECT @SQL += 'ALTER INDEX [' + i.name + '] ON [' + s.name + '].[' + t.name + '] REBUILD WITH (MAXDOP = 16);'
-			FROM sys.indexes i
-			JOIN sys.tables t ON i.object_id = t.object_id
-			JOIN sys.schemas s ON t.schema_id = s.schema_id
-			WHERE i.type = 2
-				AND i.is_unique = 0
-				AND i.is_disabled = 1
-				AND i.is_primary_key = 0
-				AND i.is_unique_constraint =0
-				AND t.name = @TableName
-				AND i.name LIKE 'I_%';
-
-			PRINT 'Rebuilding indexes for table: ' + @TableName;
-			PRINT @SQL;
-			EXEC sp_executesql @SQL;
-
-			-- Enable all triggers
-			SET @SQL = '';
-			SELECT @SQL += 'ENABLE TRIGGER [' + tr.name + '] ON [' + s.name + '].[' + t.name + '];'
-			FROM sys.triggers tr
-			JOIN sys.tables t ON tr.parent_id = t.object_id
-			JOIN sys.schemas s ON t.schema_id = s.schema_id
-			WHERE
-				tr.is_disabled  = 1 AND
-				t.name = @TableName;
-
-
-			PRINT @SQL;
-			EXEC sp_executesql @SQL;
-
+			
+			IF @Simulation = 0
+			BEGIN
+			    SET @SQL = '';
+			    -- Rebuild all non-clustered indexes
+			    SELECT @SQL += 'ALTER INDEX [' + i.name + '] ON [' + s.name + '].[' + t.name + '] REBUILD WITH (MAXDOP = 16);'
+			    FROM sys.indexes i
+			    JOIN sys.tables t ON i.object_id = t.object_id
+			    JOIN sys.schemas s ON t.schema_id = s.schema_id
+			    WHERE i.type = 2
+			        AND i.is_unique = 0
+			        AND i.is_disabled = 1
+			        AND i.is_primary_key = 0
+			        AND i.is_unique_constraint =0
+			        AND t.name = @TableName
+			        AND i.name LIKE 'I_%';
+			
+			    PRINT 'Rebuilding indexes for table: ' + @TableName;
+			    PRINT @SQL;
+			    EXEC sp_executesql @SQL;
+			
+			    -- Enable all triggers
+			    SET @SQL = '';
+			    SELECT @SQL += 'ENABLE TRIGGER [' + tr.name + '] ON [' + s.name + '].[' + t.name + '];'
+			    FROM sys.triggers tr
+			    JOIN sys.tables t ON tr.parent_id = t.object_id
+			    JOIN sys.schemas s ON t.schema_id = s.schema_id
+			    WHERE
+			        tr.is_disabled  = 1 AND
+			        t.name = @TableName;
+			
+			    PRINT @SQL;
+			    EXEC sp_executesql @SQL;
+			END
+			
 			-- Capture end time and calculate duration
 			SET @EndTime = SYSDATETIME();
 			SET @DurationSeconds = DATEDIFF(SECOND, @StartTime, @EndTime);
-
+			
 			PRINT 'Duration for table ' + @TableName + ': ' + CAST(@DurationSeconds AS VARCHAR(10)) + ' seconds';
+			
+			
 		END
 		-- Fetch next
 		SET @SQL = 'FETCH NEXT FROM Cursor' + CONVERT(NVARCHAR, @@SPID) + ' INTO @TableName, @TotalSpace, @RowCounts, @RowSize, @BatchSize';
@@ -274,4 +282,5 @@ BEGIN
 	SET @SQL = 'DROP TABLE ' + @tempTableListTableName
     EXEC sp_executesql @SQL
 END
+
 
