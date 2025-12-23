@@ -226,23 +226,26 @@ BEGIN
 			
 			IF @Simulation = 0
 			BEGIN
-			    SET @SQL = '';
-			    -- Rebuild all non-clustered indexes
-			    SELECT @SQL += 'ALTER INDEX [' + i.name + '] ON [' + s.name + '].[' + t.name + '] REBUILD WITH (MAXDOP = 16);'
-			    FROM sys.indexes i
-			    JOIN sys.tables t ON i.object_id = t.object_id
-			    JOIN sys.schemas s ON t.schema_id = s.schema_id
-			    WHERE i.type = 2
-			        AND i.is_unique = 0
-			        AND i.is_disabled = 1
-			        AND i.is_primary_key = 0
-			        AND i.is_unique_constraint =0
-			        AND t.name = @TableName
-			        AND i.name LIKE 'I_%';
+				
+				/* Call stored procedure to rebuild disabled nonclustered indexes
+				   - TargetDOP: 1 (to match previous MAXDOP = 1)
+				   - UseOnline: 1 (Azure SQL supports ONLINE)
+				   - UseLowPriorityWait: 1 (WAIT_AT_LOW_PRIORITY nested in ONLINE)
+				   - FilterTablesCsv: restrict to current table (no schema, no spaces)
+				   - SkipIndexesCsv: NULL (process all I_% indexes unless the proc filters)
+				   - Pauses and batch sizes: keep sensible defaults
+				*/
+				PRINT 'Rebuilding indexes for table: ' + @TableName;
 			
-			    PRINT 'Rebuilding indexes for table: ' + @TableName;
-			    PRINT @SQL;
-			    EXEC sp_executesql @SQL;
+				EXEC dbo.RebuildDisabledNonclusteredIndexes
+					 @TargetDOP             = 1,
+					 @UseOnline             = 1,
+					 @UseLowPriorityWait    = 1,
+					 @PauseBetweenItemsMs   = 2000,
+					 @PauseBetweenBatchesMs = 3000,
+					 @ItemsPerBatch         = 5,
+					 @FilterTablesCsv       = @TableName,  -- assumes dbo; no spaces; single table
+					 @SkipIndexesCsv        = NULL;        -- or provide CSV of names to skip
 			
 			    -- Enable all triggers
 			    SET @SQL = '';
@@ -282,5 +285,6 @@ BEGIN
 	SET @SQL = 'DROP TABLE ' + @tempTableListTableName
     EXEC sp_executesql @SQL
 END
+
 
 
