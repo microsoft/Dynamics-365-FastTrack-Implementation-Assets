@@ -29,6 +29,9 @@ DECLARE @Resume BIT = 1
 DECLARE @RowCounts BIGINT
 DECLARE @Simulation BIT = 0 -- Set to 1 for simulation mode, 0 for actual deletion
 
+IF OBJECT_ID('tempdb..#JoinParts') IS NOT NULL
+    DROP TABLE #JoinParts;
+
 -- Parse JSON and loop with cursor
 CREATE TABLE #JoinParts (
     TableName NVARCHAR(100),
@@ -206,4 +209,5 @@ END
 CLOSE join_cursor_2;
 DEALLOCATE join_cursor_2;
 DROP TABLE #JoinParts;
+
 
