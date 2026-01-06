@@ -311,3 +311,5 @@ __pycache__/
 /Analytics/EntityStoreTools/SchemaComparer/Properties/launchSettings.json
 /Analytics/CDMUtilSolution/CDMUtil_AzureFunctions/Properties/ServiceDependencies/SALABCDMUtil - Zip Deploy/profile.arm.json
 /Analytics/DataverseLink/CloudDataWarehouse_SynapseDW/ArchitecturePatterns
+.DS_Store
+**/.DS_Store
