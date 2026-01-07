@@ -1,0 +1,1376 @@
+{
+  "$schema": "https://dataexplorer.azure.com/static/d/schema/67/dashboard.json",
+  "id": "be16a65c-4f13-4b00-9d79-1caafe07f7c0",
+  "eTag": "cd5bc5c0-29b9-4f09-b46d-7f826adf60da",
+  "title": "All Dataverse",
+  "schema_version": 67,
+  "tiles": [
+    {
+      "id": "fef0a29b-3ea0-4e89-95ff-e86e531aeb73",
+      "title": "Success and Failure over last 30 days",
+      "visualType": "stackedcolumn",
+      "pageId": "eceaabc9-9dae-4ee2-b55f-f9cad42a8011",
+      "layout": { "x": 0, "y": 0, "width": 9, "height": 7 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "8cbae5ac-24c3-4ee4-91b9-ea6323fde590"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "legendLocation": "bottom",
+        "xColumnTitle": "",
+        "xColumn": null,
+        "yColumns": null,
+        "seriesColumns": null,
+        "xAxisScale": "linear",
+        "verticalLine": "",
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "f1c5b49f-05c9-4000-9ead-81cb35f4ea6f",
+      "title": "Success rate over 30 days",
+      "visualType": "line",
+      "pageId": "eceaabc9-9dae-4ee2-b55f-f9cad42a8011",
+      "layout": { "x": 0, "y": 7, "width": 9, "height": 7 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "5de36a85-4183-4d42-9a25-589e561c7acb"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "legendLocation": "bottom",
+        "xColumnTitle": "",
+        "xColumn": null,
+        "yColumns": ["SuccessRate"],
+        "seriesColumns": null,
+        "xAxisScale": "linear",
+        "verticalLine": "",
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "5d1309a3-d0f7-4115-9d5b-0f3e76206502",
+      "title": "Failure rate over 30 days",
+      "visualType": "line",
+      "pageId": "eceaabc9-9dae-4ee2-b55f-f9cad42a8011",
+      "layout": { "x": 9, "y": 7, "width": 9, "height": 7 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "d6e54e11-ab35-4550-8aed-5fa8e44a7746"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "legendLocation": "bottom",
+        "xColumnTitle": "",
+        "xColumn": null,
+        "yColumns": ["SuccessRate"],
+        "seriesColumns": null,
+        "xAxisScale": "linear",
+        "verticalLine": "",
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "5bdfb14a-d228-4b85-a261-b6526393a8fb",
+      "title": "Web API performance over last 3 weeks",
+      "visualType": "table",
+      "pageId": "eceaabc9-9dae-4ee2-b55f-f9cad42a8011",
+      "layout": { "x": 0, "y": 14, "width": 9, "height": 7 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "433b9964-e947-4d0f-8a94-ceb20a9fd34c"
+      },
+      "visualOptions": {
+        "table__enableRenderLinks": true,
+        "colorRulesDisabled": true,
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": [],
+        "table__renderLinks": [],
+        "colorRules": []
+      }
+    },
+    {
+      "id": "3ae5b50b-a65b-4290-90c9-0399c2227fd3",
+      "title": "Performance buckets",
+      "visualType": "stackedcolumn",
+      "pageId": "eceaabc9-9dae-4ee2-b55f-f9cad42a8011",
+      "layout": { "x": 9, "y": 0, "width": 9, "height": 7 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "325e4a6b-dae3-4917-818b-0d6c3ac3e5ca"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "legendLocation": "bottom",
+        "xColumnTitle": "",
+        "xColumn": null,
+        "yColumns": null,
+        "seriesColumns": null,
+        "xAxisScale": "linear",
+        "verticalLine": "",
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "0aea0eb9-7027-4d22-97b7-32795735d52d",
+      "title": "Result code distribution",
+      "visualType": "stackedcolumn",
+      "pageId": "eceaabc9-9dae-4ee2-b55f-f9cad42a8011",
+      "layout": { "x": 9, "y": 14, "width": 9, "height": 7 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "315cd241-ea39-47b0-ab31-72d0b3cfe5a1"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "legendLocation": "bottom",
+        "xColumnTitle": "",
+        "xColumn": null,
+        "yColumns": null,
+        "seriesColumns": null,
+        "xAxisScale": "linear",
+        "verticalLine": "",
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "5ced2666-9cb8-4c7a-8104-96fa234b00b8",
+      "title": "Dataverse web Requests Success Percentage",
+      "visualType": "card",
+      "pageId": "2c5fc843-a757-4854-b7ae-3f0aa890bb1a",
+      "layout": { "x": 0, "y": 0, "width": 8, "height": 3 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "3e8ffb45-ee4e-4add-a60e-09758f4132c7"
+      },
+      "visualOptions": {
+        "multiStat__textSize": "auto",
+        "multiStat__valueColumn": null,
+        "colorRulesDisabled": false,
+        "colorRules": [
+          {
+            "id": "8c2d74f9-7f2e-496c-a40d-168a620409f8",
+            "ruleType": "colorByCondition",
+            "applyToColumn": null,
+            "hideText": false,
+            "applyTo": "cells",
+            "conditions": [
+              { "operator": "<", "column": "SuccessRate", "values": ["99.9"] },
+              { "operator": ">", "column": "SuccessRate", "values": ["99.5"] }
+            ],
+            "chainingOperator": "and",
+            "colorStyle": "bold",
+            "color": "yellow",
+            "tag": "",
+            "icon": "warning",
+            "ruleName": "",
+            "visualType": "card"
+          },
+          {
+            "id": "05dc87b9-2e90-4793-a159-8c4201a514b3",
+            "ruleType": "colorByCondition",
+            "applyToColumn": null,
+            "hideText": false,
+            "applyTo": "cells",
+            "conditions": [
+              { "operator": ">", "column": "SuccessRate", "values": ["99.9"] }
+            ],
+            "chainingOperator": "and",
+            "colorStyle": "bold",
+            "color": "green",
+            "tag": "",
+            "icon": null,
+            "ruleName": "",
+            "visualType": "card"
+          },
+          {
+            "id": "fc45e382-23b4-4cce-af97-8fd04536b8b0",
+            "ruleType": "colorByCondition",
+            "applyToColumn": null,
+            "hideText": false,
+            "applyTo": "cells",
+            "conditions": [
+              { "operator": "<", "column": "SuccessRate", "values": ["99.5"] }
+            ],
+            "chainingOperator": "and",
+            "colorStyle": "bold",
+            "color": "red",
+            "tag": "",
+            "icon": "sad",
+            "ruleName": "",
+            "visualType": "card"
+          }
+        ]
+      }
+    },
+    {
+      "id": "db2b783b-a764-4511-90a4-19682d89a7a7",
+      "title": "Flow Success Percentage",
+      "visualType": "card",
+      "pageId": "2c5fc843-a757-4854-b7ae-3f0aa890bb1a",
+      "layout": { "x": 8, "y": 0, "width": 8, "height": 3 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "d62229fc-ba91-4853-9142-0391db75f3ea"
+      },
+      "visualOptions": {
+        "multiStat__textSize": "auto",
+        "multiStat__valueColumn": null,
+        "colorRulesDisabled": false,
+        "colorRules": [
+          {
+            "id": "8c2d74f9-7f2e-496c-a40d-168a620409f8",
+            "ruleType": "colorByCondition",
+            "applyToColumn": null,
+            "hideText": false,
+            "applyTo": "cells",
+            "conditions": [
+              { "operator": "<", "column": "SuccessRate", "values": ["99.9"] },
+              { "operator": ">", "column": "SuccessRate", "values": ["99.5"] }
+            ],
+            "chainingOperator": "and",
+            "colorStyle": "bold",
+            "color": "yellow",
+            "tag": "",
+            "icon": "warning",
+            "ruleName": "",
+            "visualType": "card"
+          },
+          {
+            "id": "05dc87b9-2e90-4793-a159-8c4201a514b3",
+            "ruleType": "colorByCondition",
+            "applyToColumn": null,
+            "hideText": false,
+            "applyTo": "cells",
+            "conditions": [
+              { "operator": ">", "column": "SuccessRate", "values": ["99.9"] }
+            ],
+            "chainingOperator": "and",
+            "colorStyle": "bold",
+            "color": "green",
+            "tag": "",
+            "icon": null,
+            "ruleName": "",
+            "visualType": "card"
+          },
+          {
+            "id": "fc45e382-23b4-4cce-af97-8fd04536b8b0",
+            "ruleType": "colorByCondition",
+            "applyToColumn": null,
+            "hideText": false,
+            "applyTo": "cells",
+            "conditions": [
+              { "operator": "<", "column": "SuccessRate", "values": ["99.5"] }
+            ],
+            "chainingOperator": "and",
+            "colorStyle": "bold",
+            "color": "red",
+            "tag": "",
+            "icon": "sad",
+            "ruleName": "",
+            "visualType": "card"
+          }
+        ]
+      }
+    },
+    {
+      "id": "6a8efe9d-8c11-4b2e-b674-6698dcc942ee",
+      "title": "Plugin Success Percentage",
+      "visualType": "card",
+      "pageId": "2c5fc843-a757-4854-b7ae-3f0aa890bb1a",
+      "layout": { "x": 0, "y": 3, "width": 8, "height": 3 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "464c002f-6a5b-4895-b069-5393862d8ab6"
+      },
+      "visualOptions": {
+        "multiStat__textSize": "auto",
+        "multiStat__valueColumn": null,
+        "colorRulesDisabled": false,
+        "colorRules": [
+          {
+            "id": "8c2d74f9-7f2e-496c-a40d-168a620409f8",
+            "ruleType": "colorByCondition",
+            "applyToColumn": null,
+            "hideText": false,
+            "applyTo": "cells",
+            "conditions": [
+              { "operator": "<", "column": "SuccessRate", "values": ["99.9"] },
+              { "operator": ">", "column": "SuccessRate", "values": ["99.5"] }
+            ],
+            "chainingOperator": "and",
+            "colorStyle": "bold",
+            "color": "yellow",
+            "tag": "",
+            "icon": "warning",
+            "ruleName": "",
+            "visualType": "card"
+          },
+          {
+            "id": "05dc87b9-2e90-4793-a159-8c4201a514b3",
+            "ruleType": "colorByCondition",
+            "applyToColumn": null,
+            "hideText": false,
+            "applyTo": "cells",
+            "conditions": [
+              { "operator": ">", "column": "SuccessRate", "values": ["99.9"] }
+            ],
+            "chainingOperator": "and",
+            "colorStyle": "bold",
+            "color": "green",
+            "tag": "",
+            "icon": null,
+            "ruleName": "",
+            "visualType": "card"
+          },
+          {
+            "id": "fc45e382-23b4-4cce-af97-8fd04536b8b0",
+            "ruleType": "colorByCondition",
+            "applyToColumn": null,
+            "hideText": false,
+            "applyTo": "cells",
+            "conditions": [
+              { "operator": "<", "column": "SuccessRate", "values": ["99.5"] }
+            ],
+            "chainingOperator": "and",
+            "colorStyle": "bold",
+            "color": "red",
+            "tag": "",
+            "icon": "sad",
+            "ruleName": "",
+            "visualType": "card"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ada00fef-ce8f-427c-8a8a-1d4648d69ebc",
+      "title": "Total API Calls",
+      "visualType": "line",
+      "pageId": "b27b9548-ddcd-44b7-850e-7d4f66548a52",
+      "layout": { "x": 0, "y": 0, "width": 21, "height": 9 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "258f1efa-2256-4e00-ab4e-dd22bf6c448f"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "legendLocation": "bottom",
+        "xColumnTitle": "",
+        "xColumn": null,
+        "yColumns": null,
+        "seriesColumns": null,
+        "xAxisScale": "linear",
+        "verticalLine": "",
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "465cb47d-e035-4536-b0e3-7653ecd3e0de",
+      "title": "Operation Failure statistics",
+      "visualType": "table",
+      "pageId": "b27b9548-ddcd-44b7-850e-7d4f66548a52",
+      "layout": { "x": 0, "y": 9, "width": 9, "height": 13 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "822ef2e2-8dac-4d11-8b78-ef61d668ff0e"
+      },
+      "visualOptions": {
+        "table__enableRenderLinks": true,
+        "colorRulesDisabled": true,
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": [],
+        "table__renderLinks": [],
+        "colorRules": []
+      }
+    },
+    {
+      "id": "fd782842-a297-4550-b835-e36915dcab1b",
+      "title": "Failed Response Codes",
+      "visualType": "bar",
+      "pageId": "b27b9548-ddcd-44b7-850e-7d4f66548a52",
+      "layout": { "x": 9, "y": 9, "width": 12, "height": 7 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "3bf576f0-6a97-4f70-a80f-7abfa30089d8"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "legendLocation": "bottom",
+        "xColumnTitle": "",
+        "xColumn": null,
+        "yColumns": null,
+        "seriesColumns": null,
+        "xAxisScale": "linear",
+        "verticalLine": "",
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "a46b3d02-5c18-490a-bf4c-c665511dc997",
+      "title": "Exception Types",
+      "visualType": "bar",
+      "pageId": "b27b9548-ddcd-44b7-850e-7d4f66548a52",
+      "layout": { "x": 9, "y": 16, "width": 12, "height": 6 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "5052e539-7078-43f0-8175-13940c5053a5"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "legendLocation": "bottom",
+        "xColumnTitle": "",
+        "xColumn": null,
+        "yColumns": null,
+        "seriesColumns": null,
+        "xAxisScale": "linear",
+        "verticalLine": "",
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "b66bb2cd-c2e7-41c0-93dd-c0bf13e846d1",
+      "title": "Entity Create/Update/Delete operations",
+      "visualType": "pie",
+      "pageId": "608d549b-8b3b-44c6-b80a-b3e23973803e",
+      "layout": { "x": 0, "y": 0, "width": 10, "height": 10 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "8527c73f-1163-4f76-b065-fb1b0bfdef74"
+      },
+      "visualOptions": {
+        "hideLegend": false,
+        "legendLocation": "bottom",
+        "xColumn": null,
+        "yColumns": null,
+        "seriesColumns": null,
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "labelDisabled": false,
+        "pie__label": ["name", "percentage"],
+        "tooltipDisabled": false,
+        "pie__tooltip": ["name", "percentage", "value"],
+        "pie__orderBy": "size",
+        "pie__kind": "pie",
+        "pie__topNSlices": null,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "2be20def-6b42-4a81-b4a3-4a0e7d48832b",
+      "title": "SDKCreate operations",
+      "visualType": "bar",
+      "pageId": "608d549b-8b3b-44c6-b80a-b3e23973803e",
+      "layout": { "x": 0, "y": 10, "width": 10, "height": 10 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "589f6848-6821-4210-8c51-bb49081aa619"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "legendLocation": "bottom",
+        "xColumnTitle": "",
+        "xColumn": null,
+        "yColumns": null,
+        "seriesColumns": null,
+        "xAxisScale": "linear",
+        "verticalLine": "",
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "d6508727-1a26-4318-bbcb-3dd9df8c03da",
+      "title": "SDKUpdate operations",
+      "visualType": "bar",
+      "pageId": "608d549b-8b3b-44c6-b80a-b3e23973803e",
+      "layout": { "x": 10, "y": 10, "width": 10, "height": 10 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "cf028fc2-99ec-453a-9de1-1687e21c01de"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "legendLocation": "bottom",
+        "xColumnTitle": "",
+        "xColumn": null,
+        "yColumns": null,
+        "seriesColumns": null,
+        "xAxisScale": "linear",
+        "verticalLine": "",
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "eb95f51e-bcb8-4735-b664-98554843c2e3",
+      "title": "SDKDelete operations",
+      "visualType": "bar",
+      "pageId": "608d549b-8b3b-44c6-b80a-b3e23973803e",
+      "layout": { "x": 0, "y": 20, "width": 10, "height": 10 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "22775e37-f433-4013-b8cd-a80757b3eb0e"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "legendLocation": "bottom",
+        "xColumnTitle": "",
+        "xColumn": null,
+        "yColumns": null,
+        "seriesColumns": null,
+        "xAxisScale": "linear",
+        "verticalLine": "",
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "1be4af33-aac9-420c-997a-b0b346155cf6",
+      "title": "SDKRetrive operations",
+      "visualType": "pie",
+      "pageId": "608d549b-8b3b-44c6-b80a-b3e23973803e",
+      "layout": { "x": 10, "y": 0, "width": 10, "height": 10 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "94e4cd3d-74d7-4002-bb6e-8cf4bb100926"
+      },
+      "visualOptions": {
+        "hideLegend": false,
+        "legendLocation": "bottom",
+        "xColumn": null,
+        "yColumns": null,
+        "seriesColumns": null,
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "labelDisabled": false,
+        "pie__label": ["name", "percentage"],
+        "tooltipDisabled": false,
+        "pie__tooltip": ["name", "percentage", "value"],
+        "pie__orderBy": "size",
+        "pie__kind": "pie",
+        "pie__topNSlices": null,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "e9327244-0f8e-4cf9-b872-8089fd14684b",
+      "title": "Plugin Failures",
+      "visualType": "pie",
+      "pageId": "bf0001d0-beb6-44f8-b32d-1c288245c290",
+      "layout": { "x": 0, "y": 10, "width": 10, "height": 10 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "f7e4c0e6-2d99-44ec-a2a6-bd11ae11941b"
+      },
+      "visualOptions": {
+        "hideLegend": false,
+        "legendLocation": "bottom",
+        "xColumn": null,
+        "yColumns": null,
+        "seriesColumns": null,
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "labelDisabled": false,
+        "pie__label": ["name", "percentage"],
+        "tooltipDisabled": false,
+        "pie__tooltip": ["name", "percentage", "value"],
+        "pie__orderBy": "size",
+        "pie__kind": "pie",
+        "pie__topNSlices": null,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "17569a2f-b061-4ee7-a598-03d633692327",
+      "title": "Total operations",
+      "visualType": "line",
+      "pageId": "bf0001d0-beb6-44f8-b32d-1c288245c290",
+      "layout": { "x": 0, "y": 0, "width": 20, "height": 10 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "b6e57cf3-8f0c-4b3d-9a67-a9a2c38afb4a"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "legendLocation": "bottom",
+        "xColumnTitle": "",
+        "xColumn": null,
+        "yColumns": null,
+        "seriesColumns": null,
+        "xAxisScale": "linear",
+        "verticalLine": "",
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "6e7fc56a-2ece-44d2-a96c-99a18525a18b",
+      "title": "Top 20 Most Active Plugins",
+      "visualType": "bar",
+      "pageId": "bf0001d0-beb6-44f8-b32d-1c288245c290",
+      "layout": { "x": 10, "y": 10, "width": 10, "height": 10 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "3ec1e941-3296-4874-ba62-3abf242c7932"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "legendLocation": "bottom",
+        "xColumnTitle": "",
+        "xColumn": null,
+        "yColumns": null,
+        "seriesColumns": null,
+        "xAxisScale": "linear",
+        "verticalLine": "",
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "8a7f5754-7aca-48b2-9435-4c3b6e868187",
+      "title": "Overall Active users Trend",
+      "visualType": "line",
+      "pageId": "452017d8-c696-4d74-9172-cf6b3536b2cf",
+      "layout": { "x": 0, "y": 0, "width": 20, "height": 8 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "68845216-d4ec-4e63-b4d4-e0cb670747e8"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "legendLocation": "bottom",
+        "xColumnTitle": "",
+        "xColumn": null,
+        "yColumns": null,
+        "seriesColumns": null,
+        "xAxisScale": "linear",
+        "verticalLine": "",
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "f0b21040-e310-4d70-abc2-3cd92691b5e1",
+      "title": "Active users",
+      "visualType": "card",
+      "pageId": "2c5fc843-a757-4854-b7ae-3f0aa890bb1a",
+      "layout": { "x": 8, "y": 3, "width": 8, "height": 3 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "559c3e29-eae9-459c-ace7-ead1bb409897"
+      },
+      "visualOptions": {
+        "multiStat__textSize": "auto",
+        "multiStat__valueColumn": null,
+        "colorRulesDisabled": false,
+        "colorRules": [
+          {
+            "id": "8c2d74f9-7f2e-496c-a40d-168a620409f8",
+            "ruleType": "colorByCondition",
+            "applyToColumn": null,
+            "hideText": false,
+            "applyTo": "cells",
+            "conditions": [
+              { "operator": "<", "column": "SuccessRate", "values": ["99.9"] },
+              { "operator": ">", "column": "SuccessRate", "values": ["99.5"] }
+            ],
+            "chainingOperator": "and",
+            "colorStyle": "bold",
+            "color": "yellow",
+            "tag": "",
+            "icon": "warning",
+            "ruleName": "",
+            "visualType": "card"
+          },
+          {
+            "id": "05dc87b9-2e90-4793-a159-8c4201a514b3",
+            "ruleType": "colorByCondition",
+            "applyToColumn": null,
+            "hideText": false,
+            "applyTo": "cells",
+            "conditions": [
+              { "operator": ">", "column": "SuccessRate", "values": ["99.9"] }
+            ],
+            "chainingOperator": "and",
+            "colorStyle": "bold",
+            "color": "green",
+            "tag": "",
+            "icon": null,
+            "ruleName": "",
+            "visualType": "card"
+          },
+          {
+            "id": "fc45e382-23b4-4cce-af97-8fd04536b8b0",
+            "ruleType": "colorByCondition",
+            "applyToColumn": null,
+            "hideText": false,
+            "applyTo": "cells",
+            "conditions": [
+              { "operator": "<", "column": "SuccessRate", "values": ["99.5"] }
+            ],
+            "chainingOperator": "and",
+            "colorStyle": "bold",
+            "color": "red",
+            "tag": "",
+            "icon": "sad",
+            "ruleName": "",
+            "visualType": "card"
+          }
+        ]
+      }
+    },
+    {
+      "id": "a619b54a-eb56-4980-9a48-6e78cca72c43",
+      "title": "Browser Users by Country",
+      "visualType": "table",
+      "pageId": "452017d8-c696-4d74-9172-cf6b3536b2cf",
+      "layout": { "x": 0, "y": 8, "width": 10, "height": 10 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "9d809e6f-eb6d-4abd-8e5f-4b51439da457"
+      },
+      "visualOptions": {
+        "table__enableRenderLinks": true,
+        "colorRulesDisabled": true,
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": [],
+        "table__renderLinks": [],
+        "colorRules": []
+      }
+    },
+    {
+      "id": "b0970b2c-97b7-4bfb-9e8a-307fbf4ba3cd",
+      "title": "Mobile Users by Country",
+      "visualType": "table",
+      "pageId": "452017d8-c696-4d74-9172-cf6b3536b2cf",
+      "layout": { "x": 10, "y": 8, "width": 10, "height": 10 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "978b9a15-6c9f-411f-9e0d-e0cfbbb548dc"
+      },
+      "visualOptions": {
+        "table__enableRenderLinks": true,
+        "colorRulesDisabled": true,
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": [],
+        "table__renderLinks": [],
+        "colorRules": []
+      }
+    },
+    {
+      "id": "7143e45c-1080-4d09-91be-187a7cf7c55a",
+      "title": "User Activity by User",
+      "visualType": "table",
+      "pageId": "452017d8-c696-4d74-9172-cf6b3536b2cf",
+      "layout": { "x": 0, "y": 18, "width": 12, "height": 11 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "4217af68-c0c9-4e2f-8445-bb2c2722799c"
+      },
+      "visualOptions": {
+        "table__enableRenderLinks": true,
+        "colorRulesDisabled": true,
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": [],
+        "table__renderLinks": [],
+        "colorRules": []
+      }
+    }
+  ],
+  "baseQueries": [],
+  "parameters": [
+    {
+      "kind": "duration",
+      "id": "a3b36f9f-4eee-40ec-ae12-65784e9909d2",
+      "displayName": "Time range",
+      "description": "",
+      "beginVariableName": "_startTime",
+      "endVariableName": "_endTime",
+      "defaultValue": { "kind": "dynamic", "count": 1, "unit": "hours" },
+      "showOnPages": { "kind": "all" }
+    },
+    {
+      "kind": "string",
+      "id": "1d7f6330-a1ff-4e93-bb35-6897d0ddadcf",
+      "displayName": "Country/Region",
+      "description": "",
+      "variableName": "region",
+      "selectionType": "array",
+      "includeAllOption": true,
+      "defaultValue": { "kind": "values", "values": ["United States"] },
+      "dataSource": {
+        "kind": "query",
+        "columns": {
+          "value": "client_CountryOrRegion",
+          "label": "client_CountryOrRegion"
+        },
+        "queryRef": {
+          "kind": "query",
+          "queryId": "5dc1e27d-c73e-4683-a3ac-b64a27c5c087"
+        }
+      },
+      "showOnPages": { "kind": "all" }
+    },
+    {
+      "kind": "string",
+      "id": "196b5617-16d6-4c54-ab73-3550b0b7293a",
+      "displayName": "state",
+      "description": "",
+      "variableName": "state",
+      "selectionType": "array",
+      "includeAllOption": true,
+      "defaultValue": { "kind": "all" },
+      "dataSource": {
+        "kind": "query",
+        "columns": {
+          "value": "client_StateOrProvince",
+          "label": "client_StateOrProvince"
+        },
+        "queryRef": {
+          "kind": "query",
+          "queryId": "a185bd15-0a9a-4268-a5b8-3e5dc55ad10e"
+        }
+      },
+      "showOnPages": { "kind": "all" }
+    },
+    {
+      "kind": "string",
+      "id": "dc7e801b-e4d9-499a-9e27-f70d08f6fd3d",
+      "displayName": "City",
+      "description": "",
+      "variableName": "city",
+      "selectionType": "array",
+      "includeAllOption": true,
+      "defaultValue": { "kind": "all" },
+      "dataSource": {
+        "kind": "query",
+        "columns": { "value": "client_City", "label": "client_City" },
+        "queryRef": {
+          "kind": "query",
+          "queryId": "7f0fb102-21e5-4bdb-af49-b6afc3241772"
+        }
+      },
+      "showOnPages": { "kind": "all" }
+    }
+  ],
+  "dataSources": [
+    {
+      "id": "717a9631-995b-4fde-a915-bb3013f6bab9",
+      "kind": "manual-kusto",
+      "scopeId": "kusto",
+      "name": "Dataverse",
+      "clusterUri": "https://ade.applicationinsights.io/subscriptions/(---Add-your-SubscriptionId---)",
+      "database": "Dynamics365AppInsights"
+    }
+  ],
+  "pages": [
+    { "name": "Overall Health", "id": "2c5fc843-a757-4854-b7ae-3f0aa890bb1a" },
+    {
+      "name": "Requests by Region",
+      "id": "b27b9548-ddcd-44b7-850e-7d4f66548a52"
+    },
+    { "name": "CURD operations", "id": "608d549b-8b3b-44c6-b80a-b3e23973803e" },
+    { "id": "bf0001d0-beb6-44f8-b32d-1c288245c290", "name": "Plugin" },
+    { "id": "452017d8-c696-4d74-9172-cf6b3536b2cf", "name": "User Activity" },
+    {
+      "name": "Web Requests Stastics",
+      "id": "eceaabc9-9dae-4ee2-b55f-f9cad42a8011"
+    }
+  ],
+  "queries": [
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "// Please enter your KQL query (Example):\n// <table name>\n// | where <datetime column> between (['_startTime'] .. ['_endTime']) // Time range filtering\n// | take 100\nrequests\n| where timestamp >= ago(30d)\n| extend SuccessCategory = iif(success == true, \"Success\", \"Failure\")\n| summarize Count = count() by bin(timestamp, 1d), SuccessCategory\n| render columnchart",
+      "id": "8cbae5ac-24c3-4ee4-91b9-ea6323fde590",
+      "usedVariables": []
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "\nrequests\n| where timestamp >= ago(30d)\n| summarize SuccessCount = countif(success == true), TotalCount = count() by bin(timestamp, 1d)\n| extend SuccessRate = todouble(SuccessCount) / todouble(TotalCount) * 100\n| render timechart",
+      "id": "5de36a85-4183-4d42-9a25-589e561c7acb",
+      "usedVariables": []
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "\nrequests\n| where timestamp >= ago(30d)\n| summarize SuccessCount = countif(success != true), TotalCount = count() by bin(timestamp, 1d)\n| extend SuccessRate = todouble(SuccessCount) / todouble(TotalCount) * 100\n| render timechart",
+      "id": "d6e54e11-ab35-4550-8aed-5fa8e44a7746",
+      "usedVariables": []
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "let W0 = requests\n| where timestamp >= startofweek(ago(7d)) and timestamp < startofweek(now())\n| where isnotempty(operation_Name) and trim(\" \", operation_Name) != \"\" \n       and not(operation_Name matches regex \"^[0-9a-fA-F-]{36}$\")\n| summarize \n    P99_W0 = percentile(duration, 99),\n    P95_W0 = percentile(duration, 95),\n    P75_W0 = percentile(duration, 75),\n    P50_W0 = percentile(duration, 50) \n    by operation_Name;\nlet W1 = requests\n| where timestamp >= startofweek(ago(14d)) and timestamp < startofweek(ago(7d))\n| where isnotempty(operation_Name) and trim(\" \", operation_Name) != \"\" \n       and not(operation_Name matches regex \"^[0-9a-fA-F-]{36}$\")\n| summarize \n    P99_W1 = percentile(duration, 99),\n    P95_W1 = percentile(duration, 95),\n    P75_W1 = percentile(duration, 75),\n    P50_W1 = percentile(duration, 50) \n    by operation_Name;\nlet W2 = requests\n| where timestamp >= startofweek(ago(21d)) and timestamp < startofweek(ago(14d))\n| where isnotempty(operation_Name) and trim(\" \", operation_Name) != \"\" \n       and not(operation_Name matches regex \"^[0-9a-fA-F-]{36}$\")\n| summarize \n    P99_W2 = percentile(duration, 99),\n    P95_W2 = percentile(duration, 95),\n    P75_W2 = percentile(duration, 75),\n    P50_W2 = percentile(duration, 50) \n    by operation_Name;\nW0\n| join kind=fullouter (W1) on operation_Name\n| join kind=fullouter (W2) on operation_Name\n| where isnotempty(operation_Name) and trim(\" \", operation_Name) != \"\"  \n| project operation_Name, \n    P99_W0, P99_W1, P99_W2,\n    P95_W0, P95_W1, P95_W2,\n    P75_W0, P75_W1, P75_W2,\n    P50_W0, P50_W1, P50_W2\n| order by operation_Name asc\n",
+      "id": "433b9964-e947-4d0f-8a94-ceb20a9fd34c",
+      "usedVariables": []
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "// Stacked column chart for performance buckets\nrequests\n| where timestamp >= ago(30d)\n| summarize Count = count() by bin(timestamp, 1d), performanceBucket\n| render columnchart",
+      "id": "325e4a6b-dae3-4917-818b-0d6c3ac3e5ca",
+      "usedVariables": []
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "requests\n| where timestamp >= ago(30d)\n| summarize Count = count() by bin(timestamp, 1d), resultCode\n| order by timestamp asc\n",
+      "id": "315cd241-ea39-47b0-ab31-72d0b3cfe5a1",
+      "usedVariables": []
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "requests\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| summarize SuccessCount = countif(success == true), TotalCount = count()\n| extend SuccessRate = todouble(SuccessCount) / todouble(TotalCount) * 100\n| project SuccessRate\n",
+      "id": "3e8ffb45-ee4e-4add-a60e-09758f4132c7",
+      "usedVariables": ["_endTime", "_startTime", "city", "region", "state"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "requests\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| extend cd = parse_json(customDimensions)\n| where cd.resourceProvider has \"Cloud Flow\"\n| summarize SuccessCount = countif(success == true), TotalCount = count()\n| extend SuccessRate = todouble(SuccessCount) / todouble(TotalCount) * 100\n| project SuccessRate\n",
+      "id": "d62229fc-ba91-4853-9142-0391db75f3ea",
+      "usedVariables": ["_endTime", "_startTime", "city", "region", "state"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "dependencies\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| where type == \"Plugin\"\n| extend cd = parse_json(customDimensions)\n| project timestamp, success, correlationId = cd.correlationId, typeName = cd.pluginType\n| summarize NumberofRequest = count(), Passed = dcountif(timestamp, success == \"True\"), Failed = dcountif(timestamp, success == \"False\") by tostring(typeName)\n| extend SuccessRate = todouble(Passed) / todouble(NumberofRequest) * 100\n| project SuccessRate\n",
+      "id": "464c002f-6a5b-4895-b069-5393862d8ab6",
+      "usedVariables": ["_endTime", "_startTime", "city", "region", "state"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "requests\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| summarize Count = count() by bin(timestamp, 1h)\n| order by timestamp asc\n| render timechart",
+      "id": "258f1efa-2256-4e00-ab4e-dd22bf6c448f",
+      "usedVariables": ["_endTime", "_startTime", "city", "region", "state"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "let perOperation = \nrequests\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| summarize \n    FailedCount = countif(success == false),\n    ImpactedUsers = dcountif(user_Id, success == false),\n    TotalCount = count()\n    by operation_Name;\nlet overallTotal =\nrequests\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| summarize \n        FailedCount = countif(success == false),\n        ImpactedUsers = dcountif(user_Id, success == false),\n        TotalCount = count()\n| extend operation_Name = \"Total\";\nunion perOperation, overallTotal\n| where FailedCount > 0\n| order by FailedCount desc nulls last",
+      "id": "822ef2e2-8dac-4d11-8b78-ef61d668ff0e",
+      "usedVariables": ["_endTime", "_startTime", "city", "region", "state"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "requests\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| where success == false\n| summarize Count = count() by resultCode\n| order by Count desc\n| render barchart",
+      "id": "3bf576f0-6a97-4f70-a80f-7abfa30089d8",
+      "usedVariables": ["_endTime", "_startTime", "city", "region", "state"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "requests\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| where success == false\n| project requestTimestamp = timestamp, operation_Id, resultCode, url\n| join kind=inner (\n    exceptions\n    | where timestamp > _startTime and timestamp < _endTime\n    | where isempty( region) or client_CountryOrRegion in (region)\n    | where isempty( state) or client_CountryOrRegion in (state)\n    | where isempty( city) or client_CountryOrRegion in (city)\n    | project exceptionTimestamp = timestamp, operation_Id, exceptionType = type\n) on operation_Id\n| summarize Count = count() by exceptionType\n| order by Count desc\n| render barchart",
+      "id": "5052e539-7078-43f0-8175-13940c5053a5",
+      "usedVariables": ["_endTime", "_startTime", "city", "region", "state"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "dependencies\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| where type in~ (\"SDKCreate\", \"SDKUpdate\", \"SDKDelete\", \"SDKUpsert\", \"SDKUpsertMultiple\")\n| summarize Count = count() by name\n| order by Count desc\n| render piechart",
+      "id": "8527c73f-1163-4f76-b065-fb1b0bfdef74",
+      "usedVariables": ["_endTime", "_startTime", "city", "region", "state"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "dependencies\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| where type == \"SDKCreate\"\n| summarize Count = count() by name\n| order by Count desc",
+      "id": "589f6848-6821-4210-8c51-bb49081aa619",
+      "usedVariables": ["_endTime", "_startTime", "city", "region", "state"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "dependencies\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| where type in~ (\"SDKUpdate\", \"SDKUpsert\", \"SDKUpsertMultiple\")\n| summarize Count = count() by name\n| order by Count desc",
+      "id": "cf028fc2-99ec-453a-9de1-1687e21c01de",
+      "usedVariables": ["_endTime", "_startTime", "city", "region", "state"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "dependencies\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| where type == \"SDKDelete\"\n| summarize Count = count() by name\n| order by Count desc",
+      "id": "22775e37-f433-4013-b8cd-a80757b3eb0e",
+      "usedVariables": ["_endTime", "_startTime", "city", "region", "state"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "dependencies\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| where type in~ (\"SDKRetrieve\", \"SDKRetrieveMultiple\")\n| summarize Count = count() by name\n| order by Count desc\n| render piechart",
+      "id": "94e4cd3d-74d7-4002-bb6e-8cf4bb100926",
+      "usedVariables": ["_endTime", "_startTime", "city", "region", "state"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "dependencies\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| where type == \"Plugin\"\n| extend cd = parse_json(customDimensions)\n| project timestamp, success, correlationId = cd.correlationId, typeName = cd.pluginType\n| summarize NumberofRequest = count(), Passed = dcountif(timestamp, success == \"True\"), Failed = dcountif(timestamp, success == \"False\") by tostring(typeName)\n| order by Failed desc",
+      "id": "f7e4c0e6-2d99-44ec-a2a6-bd11ae11941b",
+      "usedVariables": ["_endTime", "_startTime", "city", "region", "state"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "dependencies\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| where type == \"Plugin\"\n| summarize TotalPlugins = count() by bin(timestamp, 1h)\n| order by timestamp asc\n| render timechart",
+      "id": "b6e57cf3-8f0c-4b3d-9a67-a9a2c38afb4a",
+      "usedVariables": ["_endTime", "_startTime", "city", "region", "state"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "dependencies\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| where type == \"Plugin\"\n| extend cd = parse_json(customDimensions)\n| extend typeName = tostring(cd.pluginType)\n| summarize InvocationCount = count() by typeName\n| order by InvocationCount desc\n| take 20",
+      "id": "3ec1e941-3296-4874-ba62-3abf242c7932",
+      "usedVariables": ["_endTime", "_startTime", "city", "region", "state"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "let requestUsers = \nrequests\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| project timestamp, user_Id;\nlet dependencyUsers = \ndependencies\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| project timestamp, user_Id;\nlet traceUsers = \ntraces\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| project timestamp, user_Id;\nunion requestUsers, dependencyUsers, traceUsers\n| where isnotempty(user_Id)\n| summarize ActiveUsers = dcount(user_Id) by bin(timestamp, 1h)\n| order by timestamp asc;\nlet pageViewUsers =\npageViews\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty(region) or client_CountryOrRegion in (region)\n| where isempty(state) or client_StateOrProvince in (state)\n| where isempty(city) or client_City in (city)\n| project timestamp, user_Id;\nunion requestUsers, dependencyUsers, traceUsers, pageViewUsers\n| where isnotempty(user_Id)\n| summarize ActiveUsers = dcount(user_Id) by bin(timestamp, 1h)\n| order by timestamp asc\n",
+      "id": "68845216-d4ec-4e63-b4d4-e0cb670747e8",
+      "usedVariables": ["_endTime", "_startTime", "city", "region", "state"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "let requestUsers = \nrequests\n| where timestamp > ago(5m)\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| project user_Id;\nlet dependencyUsers = \ndependencies\n| where timestamp > ago(5m)\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| project user_Id;\nlet traceUsers = \ntraces\n| where timestamp > ago(5m)\n| where isempty( region) or client_CountryOrRegion in (region)\n| where isempty( state) or client_CountryOrRegion in (state)\n| where isempty( city) or client_CountryOrRegion in (city)\n| project user_Id;\nunion requestUsers, dependencyUsers, traceUsers\n| where isnotempty(user_Id)\n| summarize CurrentlyActiveUsers = dcount(user_Id)\n",
+      "id": "559c3e29-eae9-459c-ace7-ead1bb409897",
+      "usedVariables": ["city", "region", "state"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "dependencies\n| where timestamp > _startTime and timestamp < _endTime\n| where client_Type == \"Browser\" or client_Type == \"Server\"\n| where isnotempty(user_Id) and isnotempty(client_CountryOrRegion)\n| summarize \n    ActiveUsers = dcount(user_Id), \n    TotalInstances = count()\n    by client_CountryOrRegion\n| order by ActiveUsers desc\n",
+      "id": "9d809e6f-eb6d-4abd-8e5f-4b51439da457",
+      "usedVariables": ["_endTime", "_startTime"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "dependencies\n| where timestamp > _startTime and timestamp < _endTime\n| where client_Type == \"Mobile\"\n| where isnotempty(user_Id) and isnotempty(client_CountryOrRegion)\n| summarize \n    ActiveUsers = dcount(user_Id), \n    TotalInstances = count()\n    by client_CountryOrRegion\n| order by ActiveUsers desc",
+      "id": "978b9a15-6c9f-411f-9e0d-e0cfbbb548dc",
+      "usedVariables": ["_endTime", "_startTime"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "let requestUsers = \nrequests\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty(region) or client_CountryOrRegion in (region)\n| where isempty(state) or client_StateOrProvince in (state)\n| where isempty(city) or client_City in (city)\n| project timestamp, user_Id;\nlet dependencyUsers = \ndependencies\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty(region) or client_CountryOrRegion in (region)\n| where isempty(state) or client_StateOrProvince in (state)\n| where isempty(city) or client_City in (city)\n| project timestamp, user_Id;\nlet traceUsers = \ntraces\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty(region) or client_CountryOrRegion in (region)\n| where isempty(state) or client_StateOrProvince in (state)\n| where isempty(city) or client_City in (city)\n| project timestamp, user_Id;\nlet pageViewUsers =\npageViews\n| where timestamp > _startTime and timestamp < _endTime\n| where isempty(region) or client_CountryOrRegion in (region)\n| where isempty(state) or client_StateOrProvince in (state)\n| where isempty(city) or client_City in (city)\n| project timestamp, user_Id;\nunion requestUsers, dependencyUsers, traceUsers, pageViewUsers\n| where isnotempty(user_Id)\n| summarize EventCount = count(), FirstSeen = min(timestamp), LastSeen = max(timestamp) by user_Id\n| order by EventCount desc\n",
+      "id": "4217af68-c0c9-4e2f-8445-bb2c2722799c",
+      "usedVariables": ["_endTime", "_startTime", "city", "region", "state"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "requests\n| where timestamp > ago( 30d)\n| distinct client_CountryOrRegion",
+      "id": "5dc1e27d-c73e-4683-a3ac-b64a27c5c087",
+      "usedVariables": []
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "requests\n| where timestamp > ago( 30d)\n| where isempty(region) or client_CountryOrRegion in (region)\n| distinct client_StateOrProvince\n",
+      "id": "a185bd15-0a9a-4268-a5b8-3e5dc55ad10e",
+      "usedVariables": ["region"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "717a9631-995b-4fde-a915-bb3013f6bab9"
+      },
+      "text": "requests\n| where timestamp > ago( 30d)\n| where isempty(region) or client_CountryOrRegion in (region)\n| where isempty(state) or client_StateOrProvince  in (state)\n| distinct client_City",
+      "id": "7f0fb102-21e5-4bdb-af49-b6afc3241772",
+      "usedVariables": ["region", "state"]
+    }
+  ]
+}
