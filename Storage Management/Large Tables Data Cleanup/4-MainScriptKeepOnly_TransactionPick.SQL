@@ -20,7 +20,7 @@ The script performs the following steps:
 */
 
 -- Tables to exclude anyway BATCHHISTORY, BATCHJOB, BATCH, BATCHJOBHISTORY,Sysdatabaselog
-DECLARE @SkipTables NVARCHAR(MAX) = 'BATCHHISTORY,BATCH,SYSDATABASELOG,BATCHJOB,BATCHJOBHISTORY' -- Replace with your list of tables (comma separated)
+DECLARE @SkipTables NVARCHAR(MAX) = 'BATCHHISTORY,BATCH,SYSDATABASELOG,BATCHJOB,BATCHJOBHISTORY,INVENTSUM,WHSINVENTRESERVE' -- Replace with your list of tables (comma separated)
 DECLARE @SELECTEDTABLES NVARCHAR(MAX) = '' -- Replace with your list of tables you want to run the script for (comma separated)
 DECLARE @MaxArchivingDate DATE = '2025-03-01' -- Replace with your max archiving date
 DECLARE @Simulation BIT = 0 -- Set to 1 for simulation mode, 0 for actual deletion
@@ -285,6 +285,7 @@ BEGIN
 	SET @SQL = 'DROP TABLE ' + @tempTableListTableName
     EXEC sp_executesql @SQL
 END
+
 
 
 
