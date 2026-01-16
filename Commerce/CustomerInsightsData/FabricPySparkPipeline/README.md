@@ -1,6 +1,6 @@
 # Fabric-first Commerce to Customer Insights - Data (CI Data)
 
-Last updated: 2025-10-30
+Last updated: 2026-01-16
 
 This package provides a reference implementation for landing Dataverse (Commerce) data into Microsoft Fabric, curating Bronze -> Silver -> Gold Delta tables, and preparing Dynamics 365 Customer Insights - Data (CI Data) ingestion. The notebooks in `notebooks/` are the source of truth; the docs describe the current design and operating guidance.
 
@@ -40,9 +40,9 @@ This package provides a reference implementation for landing Dataverse (Commerce
 - Dynamics 365 Customer Insights - Data environment
 - (Optional) ADLS Gen2 account for interim publishing
 
-## Customer statements
+## Partner statements
 
-> "The CI & Commerce Better Together Medallion Blueprint fundamentally shifts the delivery model from manual effort to a roll-out approach. By utilizing reusable artefacts, partners slash deployment times from months to mere days while taking advantage of Microsoft insights into the complex world of Commerce. This shift drives tangible operational improvements: significantly reducing costs and error rates while boosting cross-project consistency and delivery predictability." - Rune Daub, Director of Dynamics 365 CE / PP, HSO
+> "The CI & Commerce Better Together Medallion Blueprint fundamentally shifts the delivery model from manual effort to a roll-out approach. By utilizing reusable artefacts, partners slash deployment times from months to mere days while taking advantage of Microsoft insights into the complex world of Commerce. This shift drives tangible operational improvements: significantly reducing costs and error rates while boosting cross-project consistency and delivery predictability." - Rune Daub, Enterprise Architect, HSO
 > "With the CI & Commerce Better Together medallion blueprint, partners have an extendable accelerator that can be adjusted to the customer's needs. This significantly reduces time to value and increases delivery predictability and maintainability." - Jakob Thomadsen, Context&
 
 ## Notes
