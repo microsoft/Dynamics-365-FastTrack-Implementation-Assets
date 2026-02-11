@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<IgnoreDiagnostics xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>CompileError</Name>
+	<Items>
+		<Diagnostic>
+			<DiagnosticType>Compile</DiagnosticType>
+			<Severity>Warning</Severity>
+			<Path>dynamics://Class/SABatchTracingHelper/Method/sysTraceParserFileSizeOptimizationFlightIsEnabled</Path>
+			<ElementType>Class Method</ElementType>
+			<Moniker>IntrinsicArgIsNotAccessible</Moniker>
+			<Justification>Intentional reference of Microsoft internal use class.</Justification>
+		</Diagnostic>
+		<Diagnostic>
+			<DiagnosticType>Compile</DiagnosticType>
+			<Severity>Warning</Severity>
+			<Path>dynamics://Class/SABatchTracingHelper/Method/uploadLastTraceAlternative</Path>
+			<Moniker>InternalUseOnlyClrMemberInaccessible</Moniker>
+			<Justification>Using public ApplicationServicesEventSource InternalUseOnly for event log messaging.</Justification>
+		</Diagnostic>
+		<Diagnostic>
+			<DiagnosticType>Compile</DiagnosticType>
+			<Severity>Warning</Severity>
+			<Path>dynamics://Class/SABatchTracingHelper/Method/uploadTrace</Path>
+			<Moniker>InternalUseOnlyMethodInaccessible</Moniker>
+			<Justification>Intentional use of Microsoft internal class.</Justification>
+		</Diagnostic>
+		<Diagnostic>
+			<DiagnosticType>Compile</DiagnosticType>
+			<Severity>Warning</Severity>
+			<Path>dynamics://Class/SABatchTracingHelper/Method/uploadTrace</Path>
+			<ElementType>Class Method</ElementType>
+			<Moniker>InternalUseOnlyTypeInaccessible</Moniker>
+			<Justification>Intentional use of Microsoft internal use type.</Justification>
+		</Diagnostic>
+		<Diagnostic>
+			<DiagnosticType>BestPractices</DiagnosticType>
+			<Severity>Warning</Severity>
+			<Path>dynamics://Class/SABatchTracingHelper/Method/traceFileSize</Path>
+			<ElementType>AxClass</ElementType>
+			<Moniker>BPXmlDocMalformed</Moniker>
+		</Diagnostic>
+		<Diagnostic>
+			<DiagnosticType>BestPractices</DiagnosticType>
+			<Severity>Warning</Severity>
+			<Path>dynamics://Table/SABatchTracingParameters/Method/find</Path>
+			<ElementType>AxTable</ElementType>
+			<Moniker>BPXmlDocMalformed</Moniker>
+		</Diagnostic>
+	</Items>
+</IgnoreDiagnostics>
