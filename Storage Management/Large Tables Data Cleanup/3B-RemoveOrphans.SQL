@@ -243,7 +243,11 @@ BEGIN
 			PRINT @SQL
 			EXEC sp_executesql @SQL, N'@NBRecordsEligible BIGINT OUTPUT ', @nbRecordsEligible OUTPUT
 
-			SELECT @NBRecordsEligible = LEAST(@NBRecordsEligible, @BatchSize) ;
+			SELECT @NBRecordsEligible =
+				CASE WHEN @NBRecordsEligible < @BatchSize
+				THEN @NBRecordsEligible
+				ELSE @BatchSize
+			END;
 
 			IF @maxRecId = 0
 			BEGIN
