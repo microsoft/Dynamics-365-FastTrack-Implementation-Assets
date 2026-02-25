@@ -15,7 +15,7 @@ Visit [Microsoft Docs](https://docs.microsoft.com/en-us/azure/data-factory/conce
     - Test connection to verify if the connection works.
     - Create.
 
-![Images](.wiki/images/LinkedServiceIMG.png)
+![Images](.wiki/images/LinkedServiceIMG.PNG)
 
 ## Key Vault
 1. Create two separate secrets for ADLS and SQL pool Connection Strings.
