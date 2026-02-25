@@ -1,0 +1,291 @@
+{
+  "properties": {
+    "connectionReferences": {},
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "undefined",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {},
+          "type": "Request",
+          "kind": "Http",
+          "inputs": {
+            "triggerAuthenticationType": "All"
+          }
+        }
+      },
+      "actions": {
+        "Headless_Search_Customer": {
+          "runAfter": {
+            "Initialize_variable": [
+              "Succeeded"
+            ]
+          },
+          "type": "Http",
+          "inputs": {
+            "uri": "https://CSUURL/Customers/SearchByFields?$top=1",
+            "method": "POST",
+            "headers": {
+              "authorization": "id_token @{body('AccessToken_Data')?['access_token']}",
+              "Content-Type": "application/json",
+              "oun": "052"
+            },
+            "body": {
+              "CustomerSearchByFieldCriteria": {
+                "Criteria": [
+                  {
+                    "SearchTerm": "@body('getEmailId')?['email']",
+                    "SearchField": {
+                      "Name": "Email",
+                      "Value": 3
+                    }
+                  }
+                ],
+                "DataLevelValue": 1
+              }
+            }
+          },
+          "runtimeConfiguration": {
+            "contentTransfer": {
+              "transferMode": "Chunked"
+            }
+          }
+        },
+        "GetAccessToken": {
+          "runAfter": {
+            "getEmailId": [
+              "Succeeded"
+            ]
+          },
+          "type": "Http",
+          "inputs": {
+            "uri": "https://login.microsoftonline.com/<Tenant>/oauth2/token",
+            "method": "POST",
+            "headers": {
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            "body": "grant_type=client_credentials&client_id= <\nClientId>&client_secret=<Client secret>&resource= api://<ClientID>"
+          },
+          "runtimeConfiguration": {
+            "contentTransfer": {
+              "transferMode": "Chunked"
+            }
+          }
+        },
+        "AccessToken_Data": {
+          "runAfter": {
+            "GetAccessToken": [
+              "Succeeded"
+            ]
+          },
+          "type": "ParseJson",
+          "inputs": {
+            "content": "@body('GetAccessToken')",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "token_type": {
+                  "type": "string"
+                },
+                "expires_in": {
+                  "type": "string"
+                },
+                "ext_expires_in": {
+                  "type": "string"
+                },
+                "expires_on": {
+                  "type": "string"
+                },
+                "not_before": {
+                  "type": "string"
+                },
+                "resource": {
+                  "type": "string"
+                },
+                "access_token": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "getEmailId": {
+          "runAfter": {},
+          "type": "ParseJson",
+          "inputs": {
+            "content": "@triggerBody()",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "Email": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "Response": {
+          "runAfter": {
+            "CustomerIdbyEmail": [
+              "Succeeded"
+            ]
+          },
+          "type": "Response",
+          "kind": "Http",
+          "inputs": {
+            "statusCode": 200,
+            "body": {
+              "AccountNumber": "@outputs('CustomerIdbyEmail')"
+            }
+          }
+        },
+        "If_customer_Exists": {
+          "actions": {
+            "For_each": {
+              "foreach": "@outputs('CustomerList')?['body']?['value']",
+              "actions": {
+                "Set_variable": {
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "CustomerId",
+                    "value": "@items('For_each')?['AccountNumber']"
+                  }
+                }
+              },
+              "type": "Foreach"
+            }
+          },
+          "runAfter": {
+            "CustomerList": [
+              "Succeeded"
+            ]
+          },
+          "else": {
+            "actions": {}
+          },
+          "expression": {
+            "and": [
+              {
+                "greater": [
+                  "@length(body('CustomerList')?['value'])",
+                  0
+                ]
+              }
+            ]
+          },
+          "type": "If"
+        },
+        "CustomerList": {
+          "runAfter": {
+            "Headless_Search_Customer": [
+              "Succeeded"
+            ]
+          },
+          "type": "ParseJson",
+          "inputs": {
+            "content": "@body('Headless_Search_Customer')",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "@@odata.context": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "PartyNumber": {
+                        "type": "string"
+                      },
+                      "RecordId": {
+                        "type": "integer"
+                      },
+                      "IsAsyncCustomer": {
+                        "type": "boolean"
+                      },
+                      "AccountNumber": {
+                        "type": "string"
+                      },
+                      "FullName": {
+                        "type": "string"
+                      },
+                      "FullAddress": {
+                        "type": "string"
+                      },
+                      "Email": {
+                        "type": "string"
+                      },
+                      "CustomerTypeValue": {
+                        "type": "integer"
+                      },
+                      "IsB2b": {
+                        "type": "boolean"
+                      },
+                      "Images": {
+                        "type": "array"
+                      },
+                      "ExtensionProperties": {
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "PartyNumber",
+                      "RecordId",
+                      "IsAsyncCustomer",
+                      "AccountNumber",
+                      "FullName",
+                      "FullAddress",
+                      "Email",
+                      "CustomerTypeValue",
+                      "IsB2b",
+                      "Images",
+                      "ExtensionProperties"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "Initialize_variable": {
+          "runAfter": {
+            "AccessToken_Data": [
+              "Succeeded"
+            ]
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "CustomerId",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "CustomerIdbyEmail": {
+          "runAfter": {
+            "If_customer_Exists": [
+              "Succeeded"
+            ]
+          },
+          "type": "Compose",
+          "inputs": "@variables('CustomerId')"
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}

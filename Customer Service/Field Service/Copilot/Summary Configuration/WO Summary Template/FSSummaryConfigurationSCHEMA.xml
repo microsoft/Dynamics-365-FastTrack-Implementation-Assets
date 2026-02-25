@@ -1,0 +1,11 @@
+<entities >
+  <entity name="msdyn_fieldservicesummaryconfiguration" displayname="Field Service Summary Configuration" etc="11176" primaryidfield="msdyn_fieldservicesummaryconfigurationid" primarynamefield="msdyn_name" disableplugins="false">
+    <fields>
+      <field displayname="Field Service Summary Configuration" name="msdyn_fieldservicesummaryconfigurationid" type="guid" primaryKey="true" />
+      <field displayname="Name" name="msdyn_name" type="string" customfield="true" />
+      <field displayname="Summary Configuration" name="msdyn_configurationjson" type="string" customfield="true" />
+      <field displayname="Version Number" name="versionnumber" type="bigint" />
+    </fields>
+    <relationships />
+  </entity>
+</entities>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxSecurityRoleExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SystemTracingUser.SABatchTracing</Name>
+	<DirectAccessPermissions />
+	<Duties />
+	<Privileges>
+		<AxSecurityPrivilegeReference>
+			<Name>SABatchTracing</Name>
+		</AxSecurityPrivilegeReference>
+	</Privileges>
+	<PropertyModifications />
+</AxSecurityRoleExtension>

@@ -27,21 +27,21 @@ Outline the file contents of the repository. It helps users navigate the codebas
 
 | File/folder                            | Description                                |
 |----------------------------------------|--------------------------------------------|
-| [`Finance`](Finance)                   | Dynamics 365 Finance guides                |
-| [`Commerce`](Commerce)                 | Dynamics 365 Commerce guides               |
-| [`Analytics`](Analytics)               | Dynamics 365 Analytics guides              |
-| [`SQL Maintenance`](SQL%20Maintenance) | Indexes & statistics maintenance script    |
-| [`Storage Management`](Storage%20Management) | Data cleanup scripts    |
-| [`Dual-write`](Dual-write)             | Dynamics 365 Dual-write guides             |
-| [`SCM`](SCM)      		                 | Tools for SCM and WHS solutions            |
-| [`ScheduleAPI`](ScheduleAPI)	         | Project Operations - Schedule API example  |
-| [`PO-DataMigration`](PO-DataMigration) | Project Operations - ADF data migration    |
-| [`Cloud security`](CloudSecurity)      | Dynamics 365 Cloud security guides         |
-| [`Integration`](Integration)           | Dynamics 365 integration samples           |
-| [`Monitoring and Telemetry`](MonitoringandTelemetry)           | Monitoring Dynamics 365 using App Insights           |
-| [`Customer Service`](Customer%20Service) | Dynamics 365 Customer Service samples & guides |
-| [`Field Service`](Field%20Service) | Dynamics 365 Field Service samples & guides |
-| [`BatchTracing`](BatchTracing)         | Tool for capturing D365 traces from batch  |
+| [`Finance`](ERP/Finance)                   | Dynamics 365 Finance guides                |
+| [`Commerce`](ERP/Commerce)                 | Dynamics 365 Commerce guides               |
+| [`Analytics`](Administration/Analytics)               | Dynamics 365 Analytics guides              |
+| [`SQL Maintenance`](Administration/SQL%20Maintenance) | Indexes & statistics maintenance script    |
+| [`Storage Management`](Administration/Storage%20Management) | Data cleanup scripts    |
+| [`Dual-write`](Administration/Dual-write)             | Dynamics 365 Dual-write guides             |
+| [`SCM`](ERP/SCM)      		                 | Tools for SCM and WHS solutions            |
+| [`ScheduleAPI`](Administration/ScheduleAPI)	         | Project Operations - Schedule API example  |
+| [`PO-DataMigration`](Administration/PO-DataMigration) | Project Operations - ADF data migration    |
+| [`Cloud security`](Administration/CloudSecurity)      | Dynamics 365 Cloud security guides         |
+| [`Integration`](Administration/Integration)           | Dynamics 365 integration samples           |
+| [`Monitoring and Telemetry`](Administration/MonitoringAndTelemetry)           | Monitoring Dynamics 365 using App Insights           |
+| [`Customer Service`](Customer%20Service/Customer%20Service) | Dynamics 365 Customer Service samples & guides |
+| [`Field Service`](Customer%20Service/Field%20Service) | Dynamics 365 Field Service samples & guides |
+| [`BatchTracing`](Administration/BatchTracing)         | Tool for capturing D365 traces from batch  |
 | [`.gitignore`](.gitignore)             | Define what to ignore at commit time.      |
 | `CHANGELOG.md`                         | List of changes to the sample.             |
 | [`CONTRIBUTING.md`](#contributing)     | Guidelines for contributing to the sample. |
@@ -50,43 +50,43 @@ Outline the file contents of the repository. It helps users navigate the codebas
 
 
 ### Finance guides
-- [Finance](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Finance) 
+- [Finance](ERP/Finance) 
 
 ### Commerce guides
-- [POS UI Negative inventory check/prevention (CRT extension)](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Commerce/NegativeInventoryCheck)
-- [Ecommerce load test sample](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Commerce/CommercePerfTestSample)
-- [Dynamics 365 Commerce storefront E2E functional test sample](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Commerce/EcommerceE2ETestSample)
+- [POS UI Negative inventory check/prevention (CRT extension)](ERP/Commerce/NegativeInventoryCheck)
+- [Ecommerce load test sample](ERP/Commerce/CommercePerfTestSample)
+- [Dynamics 365 Commerce storefront E2E functional test sample](ERP/Commerce/EcommerceE2ETestSample)
 
 ### Analytics guides 
-- [SQL to data lake export](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/README.md)
-- [Export & Process Entity Store Measures in Azure Synapse](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/Analytics/EntityStoreTools/README.md)
+- [SQL to data lake export](Administration/Analytics/AzureDataFactoryARMTemplates/SQLToADLSFullExport/README.md)
+- [Export & Process Entity Store Measures in Azure Synapse](Administration/Analytics/EntityStoreTools/readme.md)
 
 ### SQL Maintenance
-- [SQL maintenance script](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/SQL%20Maintenance)
+- [SQL maintenance script](Administration/SQL%20Maintenance)
 
 ### Dual-write
-- [Bootstrapping CDS data](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Dual-write/Bootstrapping)
+- [Bootstrapping CDS data](Administration/Dual-write/Bootstrapping)
 
 ### SCM Tools
-- [Small Parcel Shipping Tools](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/SCM/SPS) A sample TMS DLL is included for testing SPS scenarios without a live connection to a carrier.
+- [Small Parcel Shipping Tools](ERP/SCM/SPS) A sample TMS DLL is included for testing SPS scenarios without a live connection to a carrier.
 
 ### Project Operations - Schedule API
-- [Schedule API](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/ScheduleAPI) A PowerShell sample to illustrate the Schedule API for Project Operations.
-- [PO-DataMigration](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/PO-DataMigration) An Azure Data Factory sample to illustrate data migration for Project Operations.
+- [Schedule API](Administration/ScheduleAPI) A PowerShell sample to illustrate the Schedule API for Project Operations.
+- [PO-DataMigration](Administration/PO-DataMigration) An Azure Data Factory sample to illustrate data migration for Project Operations.
 
 ### Cloud Security
-- [Conditional access](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/blob/master/CloudSecurity/ConditionalAccess/readme.md) 
+- [Conditional access](Administration/CloudSecurity/ConditionalAccess/readme.md) 
 
 ### Integration
-- [Integration](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Integration) Dynamics 365 integration samples.
+- [Integration](Administration/Integration) Dynamics 365 integration samples.
 
 ### Customer Service
 - [Solution Component Validator](/Customer%20Service/ALM) Sample to monitor components in solutions based on Horizontal Solution Segmentation approach.
 
 ### Field Service
-- [Schedule Board Settings Management PCF Control](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Field%20Service/Component%20Library/URS/ScheduleBoardSettingsManagement) A PCF control created to help manage Schedule Board Settings records, including viewing details about each attribute, copying boards, deleting boards, disabling/enabling boards, and opening the board record form.
-- [Schedule Board Settings Management PCF Control (Virtual)](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Field%20Service/Component%20Library/URS/ScheduleBoardSettingsManagement_Virtual) A variant of the Schedule Board Settings Management PCF control built using the virtual PCF control framework for faster load times and bundle.js size reduction.
-- [Azure DevOps Sample Pipelines](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Field%20Service/ALM/Azure%20DevOps%20Sample%20Pipelines) Azure DevOps export and import sample pipelines for Dataverse (not Field Service-specific) to help you easily implement healthy ALM practices and move away from manual solution deployment processes.
+- [Schedule Board Settings Management PCF Control](Customer%20Service/Field%20Service/Component%20Library/URS/ScheduleBoardSettingsManagement) A PCF control created to help manage Schedule Board Settings records, including viewing details about each attribute, copying boards, deleting boards, disabling/enabling boards, and opening the board record form.
+- [Schedule Board Settings Management PCF Control (Virtual)](Customer%20Service/Field%20Service/Component%20Library/URS/ScheduleBoardSettingsManagement_Virtual) A variant of the Schedule Board Settings Management PCF control built using the virtual PCF control framework for faster load times and bundle.js size reduction.
+- [Azure DevOps Sample Pipelines](Customer%20Service/Field%20Service/ALM/Azure%20DevOps%20Sample%20Pipelines) Azure DevOps export and import sample pipelines for Dataverse (not Field Service-specific) to help you easily implement healthy ALM practices and move away from manual solution deployment processes.
 
 ## Contributing
 
