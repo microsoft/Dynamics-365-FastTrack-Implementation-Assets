@@ -1,0 +1,437 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SABatchTracingParameters</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+///
+///  This source code is freeware and is provided on an "as is" basis without warranties of any kind,
+///  whether express or implied, including without limitation warranties that the code is free of defect,
+///  fit for a particular purpose or non-infringing.  The entire risk as to the quality and performance of
+///  the code is with the end user.
+///
+public class SABatchTracingParameters extends common
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Finds the parameter record
+    /// </summary>
+    /// <param name="_forupdate">
+    /// A Boolean value that determines whether to read the record for update; optional.
+    /// </param>
+    /// <returns>
+    /// A record from the <c>SABatchTracingParameters</c> table.
+    /// </returns
+    public static SABatchTracingParameters find(boolean _forupdate = false)
+    {
+        SABatchTracingParameters  batchTracingParameters;
+
+        if (_forupdate)
+        {
+            batchTracingParameters.selectForUpdate(_forupdate);
+        }
+
+        select firstonly batchTracingParameters;
+
+        return batchTracingParameters;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findOrCreate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// finds or creates a the single parameter record if there is no exitsing record
+    /// </summary>
+    /// <returns>SABatchTracingParameters record</returns>
+    public static SABatchTracingParameters findOrCreate()
+    {
+        SABatchTracingParameters  batchTracingParameters;
+        batchTracingParameters = SABatchTracingParameters::find();
+        if (!batchTracingParameters)
+        {
+            ttsbegin;
+            batchTracingParameters.initValue();
+            batchTracingParameters.insert();
+            ttscommit;
+        }
+
+        return batchTracingParameters;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resetValues</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Resets values back to defaults in the parameters table
+    /// </summary>
+    public static void resetValues()
+    {
+        SABatchTracingParameters  batchTracingParameters;
+
+        ttsbegin;
+        delete_from batchTracingParameters;
+        SABatchTracingParameters::findOrCreate();
+        ttscommit;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setMaxFileSize</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sts the maximum file size parameters
+    /// </summary>
+    /// <param name="_maxFileSize">
+    /// A integer value for the file size.
+    /// </param>
+    public static void setMaxFileSize(int _maxFileSize)
+    {
+        #SABatchTracingParameters
+        SABatchTracingParameters   batchTracingParameters;
+        int minFileSizeLimit = SABatchTracingParameters::findOrCreate().MinFileSizeLimit;
+        int maxFileSizeLimit = SABatchTracingParameters::findOrCreate().MaxFileSizeLimit;
+
+        if(_maxFileSize >= minFileSizeLimit && _maxFileSize <= maxFileSizeLimit)
+        {
+            ttsbegin;
+            batchTracingParameters = SABatchTracingParameters::find(true);
+            if (batchTracingParameters)
+            {
+                batchTracingParameters.MaxFileSize = _maxFileSize;
+                batchTracingParameters.update();
+            }
+            ttscommit;
+        }
+        else
+        {
+            error(strFmt("@SABatchTracing:MaxFileSizeWarning",int2Str(minFileSizeLimit), int2Str(maxFileSizeLimit)));
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initValue</Name>
+				<Source><![CDATA[
+    public void initValue()
+    {
+        #SABatchTracingParameters
+        super();
+        this.IncludeSQLBindParmValues = #IncludeSQLBindParmValues;
+        this.MinFileSizeLimit = #MinFileSizeLimit;
+        this.MaxFileSizeLimit = #MaxFileSizeLimit;
+        this.MaxFileSize  = #MaxFileSize;
+        this.DefaultFileSize = #DefaultFileSize;
+        this.MaxTraceMins = #MaxTraceMins;
+        this.MaxBatchHours = #MaxBatchHours;
+        this.TaskCreatePerBundle  = #TaskCreatePerBundle;
+        this.MaxTaskToCreate = #MaxTaskToCreate;
+        this.PollingDelayTaskBundle = #PollingDelayTaskBundle;
+        this.PollingDelayStartStop = #PollingDelayStartStop;
+        this.SchedulingPriorityIsOverridden = #SchedulingPriorityIsOverridden;
+        this.SchedulingPriority = #SchedulingPriority;
+        this.SysFindTraceAdvanced = #SysFindTraceAdvanced;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateWrite</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Validates Batch Tracing Parameters 
+    /// </summary>
+    /// <returns>Returns a boolean for is the parmaetr record was correctly written</returns>
+    public boolean validateWrite()
+    {
+        #SABatchTracingParameters
+        boolean ret;
+
+        ret = super();
+
+        // General Settings Validation
+        if(this.MaxFileSize < this.minFileSizeLimit || this.MaxFileSize > this.MaxFileSizeLimit)
+        {
+            error(strFmt("@SABatchTracing:MaxFileSizeWarning",int2Str(this.minFileSizeLimit), int2Str(this.maxFileSizeLimit)));
+            ret = false;
+        }
+
+        if(this.MaxTraceMins < #MinTraceMinsLimit || this.MaxTraceMins > #MaxTraceMinsLimit)
+        {
+            error(strFmt("@SABatchTracing:MaxTraceMinsWarning",int2Str(#MinTraceMinsLimit), int2Str(#MaxTraceMinsLimit)));
+            ret = false;
+        }
+
+        if(this.MaxBatchHours < #MinBatchHoursLimit || this.MaxTraceMins > #MaxBatchHoursLimit)
+        {
+            error(strFmt("@SABatchTracing:MaxBatchHoursWarning",int2Str(#MinBatchHoursLimit), int2Str(#MaxBatchHoursLimit)));
+            ret = false;
+        }
+
+        if(this.TaskCreatePerBundle < #TaskCreatePerBundleMin || this.TaskCreatePerBundle > #TaskCreatePerBundleMax)
+        {
+            error(strFmt("@SABatchTracing:TaskPerBundleWarning",int2Str(#TaskCreatePerBundleMin), int2Str(#TaskCreatePerBundleMax)));
+            ret = false;
+        }
+
+        if(this.MaxTaskToCreate < #MaxTaskToCreateMin || this.MaxTaskToCreate > #MaxTaskToCreateMax)
+        {
+            error(strFmt("@SABatchTracing:MaximumTaskWarning",int2Str(#MaxTaskToCreateMin), int2Str(#MaxTaskToCreateMax)));
+            ret = false;
+        }
+
+        if(this.TaskCreatePerBundle >= this.MaxTaskToCreate)
+        {
+            error(strFmt("@SABatchTracing:TaskPerBundleOverMaxTasks",int2Str(this.TaskCreatePerBundle), int2Str(this.MaxTaskToCreate)));
+            ret = false;
+        }
+    
+        if(this.PollingDelayTaskBundle < #PollingDelayTaskBundleMin || this.PollingDelayTaskBundle > #PollingDelayTaskBundleMax)
+        {
+            error(strFmt("@SABatchTracing:BundleDelayWarning",int2Str(#PollingDelayTaskBundleMin), int2Str(#PollingDelayTaskBundleMax)));
+            ret = false;
+        }
+
+        if(this.PollingDelayStartStop < #PollingDelayStartStopMin || this.PollingDelayStartStop > #PollingDelayStartStopMax)
+        {
+            error(strFmt("@SABatchTracing:StartStopDelayWarning",int2Str(#PollingDelayStartStopMin), int2Str(#PollingDelayStartStopMax)));
+            ret = false;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>@SABatchTracing:BatchTracingParameters</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<AllowRowVersionChangeTracking>Yes</AllowRowVersionChangeTracking>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>IncludeSQLBindParmValues</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MinFileSizeLimit</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MaxFileSizeLimit</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MaxFileSize</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DefaultFileSize</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MaxTraceMins</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MaxBatchHours</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PollingDelayTaskBundle</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PollingDelayStartStop</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TaskCreatePerBundle</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MaxTaskToCreate</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>General</Name>
+			<Label>@SABatchTracing:ParametersGeneral</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>IncludeSQLBindParmValues</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MaxFileSize</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MaxTraceMins</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MaxBatchHours</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TaskCreatePerBundle</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MaxTaskToCreate</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SysFindTraceAdvanced</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Advanced</Name>
+			<Label>@SABatchTracing:ParametersAdvanced</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MinFileSizeLimit</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MaxFileSizeLimit</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DefaultFileSize</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PollingDelayTaskBundle</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PollingDelayStartStop</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SchedulingPriorityIsOverridden</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SchedulingPriority</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IncludeSQLBindParmValues</Name>
+			<Label>@SysTraceCockpit:TracingPane_SQLBindParameter</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>MinFileSizeLimit</Name>
+			<ExtendedDataType>SABatchTracingParameter</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SABatchTracing:MinFileSizeLimit</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>MaxFileSizeLimit</Name>
+			<ExtendedDataType>SABatchTracingParameter</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SABatchTracing:MaxFileSizeLimit</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>MaxFileSize</Name>
+			<ExtendedDataType>SABatchTracingParameter</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SABatchTracing:MaxFileSize</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>DefaultFileSize</Name>
+			<ExtendedDataType>SABatchTracingParameter</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SABatchTracing:DefaultFileSize</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>MaxTraceMins</Name>
+			<ExtendedDataType>SABatchTracingParameter</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SABatchTracing:MaxTraceMins</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>MaxBatchHours</Name>
+			<ExtendedDataType>SABatchTracingParameter</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SABatchTracing:JobMaxHours</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>PollingDelayTaskBundle</Name>
+			<ExtendedDataType>SABatchTracingParameter</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SABatchTracing:PollingDelayTaskBundle</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>PollingDelayStartStop</Name>
+			<ExtendedDataType>SABatchTracingParameter</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SABatchTracing:PollingDelayStartStop</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>TaskCreatePerBundle</Name>
+			<ExtendedDataType>SABatchTracingParameter</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SABatchTracing:TaskCreatePerBundle</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>MaxTaskToCreate</Name>
+			<ExtendedDataType>SABatchTracingParameter</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SABatchTracing:MaxTaskToCreate</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SchedulingPriorityIsOverridden</Name>
+			<Label>@ApplicationPlatform:SchedlingPriorityIsOverridden</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SchedulingPriority</Name>
+			<EnumType>BatchSchedulingPriority</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SysFindTraceAdvanced</Name>
+			<Label>@SABatchTracing:SysFindTraceAdvanced</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes />
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

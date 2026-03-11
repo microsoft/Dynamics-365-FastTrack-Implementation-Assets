@@ -1,0 +1,731 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SABatchTracingHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+///
+///  This source code is freeware and is provided on an "as is" basis without warranties of any kind,
+///  whether express or implied, including without limitation warranties that the code is free of defect,
+///  fit for a particular purpose or non-infringing.  The entire risk as to the quality and performance of
+///  the code is with the end user.
+///
+using InsertStatementEvent = Microsoft.Dynamics.AX.Services.Tracing.TraceParser.DataServices.DataContracts.InsertStatementEvent;
+using ApplicationServicesEventSource = Microsoft.Dynamics.ApplicationPlatform.Services.Instrumentation.ApplicationServicesEventSource;
+
+/// <summary>
+///     The <c>SABatchTracingHelper</c> Help class for batch tracing
+/// </summary>
+public class SABatchTracingHelper
+{
+    #SABatchTracingParameters
+    public str maximumEtlFileSizeInMbConfigKey = 'MaximumEtlFileSizeInMb';
+    private str traceName = '';
+    private ServerId serverID = '';
+    private utcdatetime startTime;
+    private utcdatetime stopTime;
+    private boolean traceRunning = false;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>isAnotherTracingBatchRunning</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Checks if there is an active batch job of the same class SABatchTracingController
+    /// (SABatchTracingController master task is left running during the batch job for this.)
+    /// </summary>
+    /// <param name="_thisBatch">batch record</param>
+    /// <returns>True or false</returns>
+    public static boolean isAnotherTracingBatchRunning(Batch _thisBatch)
+    {
+        Batch batch;
+   
+        select firstonly RecId from batch
+            where batch.ClassNumber == className2Id('SABatchTracingController')
+                && batch.BatchJobId != _thisBatch.BatchJobId  
+                && batch.Status == BatchStatus::Executing;
+
+        return (batch && batch.RecId != 0) ? true : false;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isTracingBatchCancelled</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Checks is tracing batch is cancelled
+    /// </summary>
+    /// <param name="_batchJobId">BatchJobId</param>
+    /// <returns>True or false</returns>
+    public static boolean isTracingBatchCancelled(RecId _batchJobId)
+    {
+
+        BatchJob batchJob;
+
+        select firstonly1 batchJob
+                where batchJob.RecId == _batchJobId;
+          
+        if (batchJob)
+        {
+            if (batchJob.Status == BatchStatus::Cancelling  || batchJob.Status == BatchStatus::Canceled)
+            {
+                return true;
+            }
+        }
+
+        return false;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTraceName</Name>
+				<Source><![CDATA[
+    public str parmTraceName(str _traceName = traceName)
+    {
+        traceName = _traceName;
+        return traceName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTraceRunning</Name>
+				<Source><![CDATA[
+    public boolean parmTraceRunning(boolean _traceRunning = traceRunning)
+    {
+        traceRunning = _traceRunning;
+        return traceRunning;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmServerId</Name>
+				<Source><![CDATA[
+    public ServerId parmServerId(ServerId _serverID = serverID)
+    {
+        serverID = _serverID;
+        return serverID;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>startTrace</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Checks is tracing batch is cancelled
+    /// </summary>
+    /// <param name="_traceIncludeSQLBindParameters">Should trace include SQL Bind Parameters</param>
+    /// <returns>True or false</returns>
+    public boolean startTrace(NoYes _traceIncludeSQLBindParameters = NoYes::No)
+    {
+
+        SABatchTracingTable batchTracingTable;
+        System.Exception exception;
+        try
+        {
+            if (traceName)
+            {
+                SABatchTracingTable::updateStatus(serverID, SABatchTracingStatus::Starting);
+                if (SABatchTracingHelper::sysTraceParserFileSizeOptimizationFlightIsEnabled())
+                {
+                    if (_traceIncludeSQLBindParameters == NoYes::Yes)
+                    {
+                        Microsoft.Dynamics.AX.Services.Tracing.TraceParser.TraceParserOrchestrator::StartTraceOptimizedIncludeSQLBind(traceName);
+                    
+                    }
+                    else
+                    {
+                        Microsoft.Dynamics.AX.Services.Tracing.TraceParser.TraceParserOrchestrator::StartTraceOptimized(traceName);
+                    }
+                }
+                else
+                {
+                    Microsoft.Dynamics.AX.Services.Tracing.TraceParser.TraceParserOrchestrator::StartTrace(traceName);
+                }
+                startTime = DateTimeUtil::getSystemDateTime();
+                stopTime = utcDateTimeNull();
+                this.parmTraceRunning(true);
+                batchTracingTable = SABatchTracingTable::findByServerId(serverID, true);
+                if(batchTracingTable)
+                {
+                    ttsbegin;
+                    batchTracingTable.Status = SABatchTracingStatus::Started;
+                    batchTracingTable.Name = traceName;
+                    batchTracingTable.StartTime = startTime;
+                    batchTracingTable.StopTime = stopTime;
+                    batchTracingTable.update();
+                    ttscommit;
+                }
+            }
+        }
+        catch(exception)
+        {
+            throw error(exception.get_Message());
+        }
+        return true;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>stopTrace</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Stop a trace
+    /// </summary>
+    /// <param name="_traceName">Optional Trace Name</param>
+    /// <param name="_tryRecovery">Set status that this is called as part of a recovery</param>
+    /// <returns>True or false</returns>
+    public boolean stopTrace(str _traceName = traceName, boolean _tryRecovery = false)
+    {
+
+        SABatchTracingTable batchTracingTable;
+        System.Exception exception;
+        try
+        {
+            if(!_tryRecovery)
+            {
+                SABatchTracingTable::updateStatus(serverID, SABatchTracingStatus::Stopping);
+            }
+            else
+            {
+                SABatchTracingTable::updateStatus(serverID, SABatchTracingStatus::Recovering);
+            }
+
+            Microsoft.Dynamics.AX.Services.Tracing.TraceParser.TraceParserOrchestrator::StopTrace(_traceName);
+            stopTime = DateTimeUtil::getSystemDateTime();
+            str warning = Microsoft.Dynamics.AX.Services.Tracing.TraceParser.TraceParserOrchestrator::GetWarning(_traceName);
+            if(warning != null)
+            {
+                info(warning);
+            }
+            this.parmTraceRunning(false);
+
+            if(_tryRecovery)
+            {
+                return true;  
+            }
+
+            sleep(10 * 1000);  //Wait 10 seconds after trace was stopped
+
+            if(this.uploadTrace())
+            {
+                sleep(10 * 1000);
+                batchTracingTable = SABatchTracingTable::findByServerId(serverID, true);
+                if(batchTracingTable)
+                {
+                    ttsbegin;
+                    batchTracingTable.Status = SABatchTracingStatus::Stopped;
+                    batchTracingTable.StopTime = stopTime;
+                    batchTracingTable.update();
+                    ttscommit;
+                }
+            }
+        }
+        catch(exception)
+        {
+            if(!_tryRecovery)
+            {
+                SABatchTracingTable::updateStatus(serverID, SABatchTracingStatus::Failed);
+            }
+            throw error(exception.get_Message());
+        }
+        return true;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>allTasksSubmitted</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Checks is all batch tasks were submitted. Used to set if the tracing partially started
+    /// </summary>
+    /// <returns>True or false</returns>
+    public static boolean allTasksSubmitted()
+    {
+        Batch batch, batchCount;
+   
+        select firstonly RecId, BatchJobId from batch
+            where batch.ClassNumber == className2Id('SABatchTracingController')
+                && batch.Status == BatchStatus::Executing;
+
+        if (batch && batch.RecId != 0) 
+        {
+            select count(RecId) from batchCount
+                where batchCount.BatchJobId == batch.BatchJobId;
+            if (batchCount.RecId >= SABatchTracingParameters::findOrCreate().MaxTaskToCreate)
+            {
+                return true;
+            }
+        }
+        return false;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>uploadTrace</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Upload a trace
+    /// </summary>
+    /// <param name="_traceName">Optional Trace Name</param>
+    /// <param name="_tryRecovery">Optional - Indicates recovery is tried</param>
+    /// <returns>True or false</returns>
+    private boolean uploadTrace(str _traceName = traceName, boolean _tryRecovery = false)
+    {
+        
+        SABatchTracingTable batchTracingTable;
+        System.Exception exception;
+        SysTracingTable sysTracingTable;
+
+        try
+        {
+            if(!_tryRecovery)
+            {
+                SABatchTracingTable::updateStatus(serverID, SABatchTracingStatus::UploadStarted);
+            }
+
+            FileUploadTemporaryStorageResult fileUploadResult = SysTraceController::uploadLastTrace(_traceName);
+
+            if (fileUploadResult != null && fileUploadResult.getUploadStatus() && SysTracingTable::AddTrace(_traceName, curUserId(), fileUploadResult.pack(), startTime, stopTime))
+            {
+                info(strFmt("@SysTraceCockpit:TracingPane_UploadSuccessful", _traceName));
+
+                select firstonly1 RecId from sysTracingTable
+                    where sysTracingTable.Name == _traceName;
+                batchTracingTable = SABatchTracingTable::findByServerId(serverID, true);
+                if(batchTracingTable)
+                {
+                    ttsbegin;
+                    if(!_tryRecovery)
+                    {
+                        batchTracingTable.Status = SABatchTracingStatus::UploadSuccessful;
+                    }
+                    else
+                    {
+                        batchTracingTable.Status = SABatchTracingStatus::RecoverySuccessful;
+                    }
+                    batchTracingTable.StopTime = stopTime;
+                    batchTracingTable.SysTracingTableRefRecId = sysTracingTable.RecId;
+                    batchTracingTable.update();
+                    ttscommit;
+                }
+            }
+            else
+            {
+                // Try alternative approach to upload trace file
+                FileUploadTemporaryStorageResult fileUploadResultAlt = this.uploadLastTraceAlternative(_traceName);
+                if (fileUploadResultAlt != null && fileUploadResultAlt.getUploadStatus() && SysTracingTable::AddTrace(_traceName, curUserId(), fileUploadResultAlt.pack(), startTime, stopTime))
+                {
+                    info(strFmt("@SysTraceCockpit:TracingPane_UploadSuccessful", _traceName));
+
+                    select firstonly1 RecId from sysTracingTable
+                    where sysTracingTable.Name == _traceName;
+                    batchTracingTable = SABatchTracingTable::findByServerId(serverID, true);
+                    if(batchTracingTable)
+                    {
+                        ttsbegin;
+                        if(!_tryRecovery)
+                        {
+                            batchTracingTable.Status = SABatchTracingStatus::UploadSuccessful;
+                        }
+                        else
+                        {
+                            batchTracingTable.Status = SABatchTracingStatus::RecoverySuccessful;
+                        }
+                        batchTracingTable.StopTime = stopTime;
+                        batchTracingTable.SysTracingTableRefRecId = sysTracingTable.RecId;
+                        batchTracingTable.update();
+                        ttscommit;
+                    }
+                }
+                else
+                {
+                    warning(strFmt("@SysTraceCockpit:TracingPane_UploadFailed", _traceName));
+                    batchTracingTable = SABatchTracingTable::findByServerId(serverID, true);
+                    if(batchTracingTable)
+                    {
+                        ttsbegin;
+                        if(!_tryRecovery)
+                        {
+                            batchTracingTable.Status = SABatchTracingStatus::UploadFailed;
+                        }
+                        else
+                        {
+                            batchTracingTable.Status = SABatchTracingStatus::RecoveryFailed;
+                        }
+                        batchTracingTable.StopTime = stopTime;
+                        batchTracingTable.SysTracingTableRefRecId = -1;
+                        batchTracingTable.update();
+                        ttscommit;
+                    }
+                    return false;
+                }
+            }
+        }
+        catch(exception)
+        {
+            throw error(exception.get_Message());
+        }
+        return true;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>cleanupExistingCaptures</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// If the batch engine failed or crashed, the trace file may still be on the server
+    /// This method will attempt to stop the trace (if not already stopped) and then upload the file.
+    /// </summary>
+    public void cleanupExistingCaptures()
+    {
+        
+        SABatchTracingTable batchTracingTable;
+                
+        batchTracingTable = SABatchTracingTable::findByServerId(serverId);
+        if(batchTracingTable.Name != '' && batchTracingTable.SysTracingTableRefRecId == -1)
+        {
+            startTime = batchTracingTable.StartTime;
+            stopTime = batchTracingTable.StopTime;
+            
+            // Try to stop previous trace, it might be still running
+            try
+            {
+                if(!this.stopTrace(batchTracingTable.Name, true))
+                {
+                    info(strFmt("@SABatchTracing:ErrorOnStop", traceName));
+                    stopTime = DateTimeUtil::getSystemDateTime();
+                    traceRunning = false;
+                }
+            }
+            catch
+            {
+                info(strFmt("@SABatchTracing:ErrorOnStop", traceName));
+                stopTime = DateTimeUtil::getSystemDateTime();
+                traceRunning = false;
+            }
+
+            // Try to upload previous trace
+            try
+            {
+                if(!this.uploadTrace(batchTracingTable.Name))
+                {
+                    info(strFmt("@SABatchTracing:ErrorOnUpload", traceName));
+                }
+            }
+            catch
+            {
+                info(strFmt("@SABatchTracing:ErrorOnUpload", traceName));
+            }
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateMaxTraceFileSize</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Set the maximum file size for a trace
+    /// </summary>
+    /// <param name="_maxFileSize">Max File Size in MB</param>
+    public void updateMaxTraceFileSize(int _maxFileSize)
+    {
+
+        #SABatchTracingParameters
+        if(_maxFileSize > #MinFileSizeLimit && _maxFileSize < #MaxFileSizeLimit)
+        {
+            Microsoft.Dynamics.AX.Services.Tracing.TraceParser.Configuration.CustomConfiguration::UpdateAppSettings(#MaximumEtlFileSizeInMbConfigKey, int2Str(_maxFileSize));
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sysTraceParserFileSizeOptimizationFlightIsEnabled</Name>
+				<Source><![CDATA[
+    private static boolean sysTraceParserFileSizeOptimizationFlightIsEnabled()
+    {
+
+        const int MaxLengthOfFlightNameInCarbon = 64;
+        SysFlightName flightName = classId2Name(classNum(SysTraceParserFileSizeOptimizationFlight));
+        SysFlightName carbonFlightName = subStr(flightName, 1, MaxLengthOfFlightNameInCarbon);
+        
+        if (flightName == carbonFlightName)
+        {
+            return !isFlightEnabled(flightName);
+        }
+        return !isFlightEnabled(flightName) && !isFlightEnabled(carbonFlightName);
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>uploadLastTraceAlternative</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Following is based on the original system method, but tries to find the existing trace in the temp folder and upload it
+    /// This is typically when the the service has crashed, but the trace file is still there to upload.
+    /// </summary>
+    /// <param name="_traceName">Trace Name</param>
+    /// <returns>Returns type FileUploadTemporaryStorageResult for uploaded file</returns>
+    private FileUploadTemporaryStorageResult uploadLastTraceAlternative(str _traceName)
+    {
+        System.IO.Stream stream;
+        System.IO.FileStream fs;
+        System.Exception exception;
+        System.IO.FileNotFoundException fnfexception;
+        System.IO.FileInfo fileInfo;
+        FileUploadTemporaryStorageResult fileUploadResult;
+
+        str tempPath = System.IO.Path::GetTempPath();
+        str traceFilePath = strFmt('%1\%2.etl',tempPath,strReplace(_traceName, ':', '_'));
+
+        fileInfo = new System.IO.FileInfo(traceFilePath);
+        if (fileInfo.get_Exists())
+        {
+            try
+            {
+                fs= new System.IO.FileStream(traceFilePath, System.IO.FileMode::Open, System.IO.FileAccess::Read);
+                stream = fs;
+
+                fileUploadResult = File::SendFileToTempStore_GetResult(stream, traceFilePath);
+
+                fs.Close();
+
+                // Cleanup Trace File
+                fileInfo.Delete();
+
+            }
+            catch (fnfexception)
+            {
+                ApplicationServicesEventSource::EventWriteTraceParserException(System.Environment::MachineName, 'DownloadOrAnalyze', fnfexception.Message);
+                info("@SysTraceCockpit:TraceNotFound");
+            }
+            catch (exception)
+            {
+                ApplicationServicesEventSource::EventWriteTraceParserException(System.Environment::MachineName, 'DownloadOrAnalyze', exception.Message);
+                info("@SysTraceCockpit:TraceException");
+            }
+        }
+
+        return fileUploadResult;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>traceFileSize</Name>
+				<Source><![CDATA[
+    /// <summary>
+    // Following is based on the original system method, but tried to find the existing trace in the temp folder and upload it
+    // This is typically when the the service has crashed, but the trace file is still there to upload.
+    /// </summary>
+    public int traceFileSize()
+    {
+
+        System.IO.FileInfo fileInfo;
+        int fileSizeInMB;
+
+        str tempPath = System.IO.Path::GetTempPath();
+        str traceFilePath = strFmt('%1\%2.etl',tempPath,strReplace(traceName, ':', '_'));
+
+        fileInfo = new System.IO.FileInfo(traceFilePath);
+        if (fileInfo.get_Exists())
+        {
+            try
+            {
+                fileSizeInMB = real2int(fileInfo.get_Length() / (1024.0 * 1024.0));
+            }
+            catch (exception::CLRError)
+            {
+                System.Exception ex = CLRInterop::getLastException();
+                error(ex.Message);
+            }
+        }
+
+        return fileSizeInMB;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resetSettings</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Reset all values to defaults, and cleans up Batch Tracing Table
+    /// </summary>
+    public void resetSettings()
+    {
+        
+        if(!SABatchTracingHelper::isAnotherTracingBatchRunning(null))
+        {
+            SABatchTracingTable::resetRecords();
+            SABatchTracingParameters::resetValues();
+            info("@SABatchTracing:AdvancedResetComplete");
+        }
+        else
+        {
+            info("@SABatchTracing:AdvancedResetWarning");
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>startBatchTracingAllServers</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Start tracing on all batch servers, and wait until started, the return
+    /// </summary>
+    /// <param name="_waitForStart">Optional parameter to wait until all servers have started, default is true</param>
+    public static void startBatchTracingAllServers(boolean _waitForStart = true)
+    {
+        SABatchTracingTable batchTracingTable;
+        boolean enabledAllServers = false;
+        List serverIdList = new List(Types::String);
+        ListIterator iterator;
+        boolean traceNotStarted;
+        int maxWaitCheck = 4;
+        int checkCount;
+        boolean checkUntilMax = false;
+
+        while select batchTracingTable
+            where batchTracingTable.ServerId != 'AllServers'
+        {
+            if(batchTracingTable.Status == SABatchTracingStatus::Stopped)
+            {
+                SABatchTracingTable::updateStatus(batchTracingTable.ServerId, SABatchTracingStatus::StartRequested);
+                enabledAllServers = true;
+                serverIdList.addEnd(batchTracingTable.ServerId);
+                info(strFmt("@SABatchTracing:StartedTraceOnServer", batchTracingTable.ServerId));
+            }
+        }
+
+        if(enabledAllServers && _waitForStart)
+        {
+            
+            sleep((SABatchTracingParameters::findOrCreate().PollingDelayStartStop)*1000);
+            
+            do
+            {
+                traceNotStarted = false;
+                iterator = new ListIterator(serverIdList);
+
+                while(iterator.more())
+                {
+                    if(SABatchTracingTable::findByServerId(iterator.value()).Status != SABatchTracingStatus::Started)
+                    {
+                        traceNotStarted = true;
+                    }
+                    iterator.next();
+                }
+
+                if(traceNotStarted)
+                {
+                    checkCount++;
+                    if(checkCount >= maxWaitCheck && checkUntilMax)
+                    {
+                        traceNotStarted = false; // Drop from loop checking, to prevent hold up of processing
+                    }
+                    else
+                    {
+                        sleep((SABatchTracingParameters::findOrCreate().PollingDelayStartStop)*1000); // Sleep polling time to check again.
+                    }
+                }
+            }
+            while (traceNotStarted);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>stopBatchTracingAllServers</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Start tracing on all batch servers, and wait until started, the return
+    /// </summary>
+    /// <param name="_waitForStart">Optional parameter to wait until all servers have stopped, default is true</param>
+    public static void stopBatchTracingAllServers(boolean _waitForStart = true)
+    {
+        SABatchTracingTable batchTracingTable;
+        boolean enabledAllServers = false;
+        List serverIdList = new List(Types::String);
+        ListIterator iterator;
+        boolean traceNotStopped;
+        int maxWaitCheck = 4;
+        int checkCount;
+        boolean checkUntilMax = false;
+
+        while select batchTracingTable
+            where batchTracingTable.ServerId != 'AllServers'
+        {
+            if(batchTracingTable.Status == SABatchTracingStatus::Started)
+            {
+                SABatchTracingTable::updateStatus(batchTracingTable.ServerId, SABatchTracingStatus::StopRequested);
+                enabledAllServers = true;
+                serverIdList.addEnd(batchTracingTable.ServerId);
+                info(strFmt("@SABatchTracing:StoppedTraceOnServer", batchTracingTable.ServerId));
+            }
+        }
+
+        if(enabledAllServers && _waitForStart)
+        {
+            sleep((SABatchTracingParameters::findOrCreate().PollingDelayStartStop)*1000);
+
+            do
+            {
+                traceNotStopped = false;
+                iterator = new ListIterator(serverIdList);
+
+                while(iterator.more())
+                {
+                    if(SABatchTracingTable::findByServerId(iterator.value()).Status != SABatchTracingStatus::Stopped)
+                    {
+                        traceNotStopped = true;
+                    }
+                    iterator.next();
+                }
+
+                if(traceNotStopped)
+                {
+                    checkCount++;
+                    if(checkCount >= maxWaitCheck && checkUntilMax)
+                    {
+                        traceNotStopped = false; // Drop from loop checking, to prevent hold up of processing
+                    }
+                    else
+                    {
+                        sleep((SABatchTracingParameters::findOrCreate().PollingDelayStartStop)*1000); // Sleep polling time to check again.
+                    }
+                }
+            }
+            while (traceNotStopped);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
