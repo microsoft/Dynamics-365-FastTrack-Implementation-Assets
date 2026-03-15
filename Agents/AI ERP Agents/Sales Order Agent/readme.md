@@ -8,10 +8,11 @@
 6. [Limitations and constraints](#limitations)
 7. [Roadmap](#roadmap)
 8. [Troubleshooting](#troubleshooting)
-9. [Security Guide](#securityguide)
-10. [Extensibility Guide](#extensibility)
-11. [Uninstall / Rollback](#uninstall)
-12. [Changelog](#changelog)
+9. [Minimum Permission Requirements](#permissions)
+10. [Security Guide](#securityguide)
+11. [Extensibility Guide](#extensibility)
+12. [Uninstall / Rollback](#uninstall)
+13. [Changelog](#changelog)
 
 
 
@@ -164,7 +165,7 @@ After installing the solution containing the sales order agent and components in
 
  - **4. Update Connection References** - start by adding these 4 connection references to your unmanaged solution (Add existing -> More - > Connection references).
   ![addvariables3](images/connectionreferences_1.png)
-    - Open each connection reference (Edit) and update its related connection by creating either a new connection or by using an existing connection if available. See the [Security Guide](#securityguide) for least-privilege permission requirements for each connection reference.
+    - Open each connection reference (Edit) and update its related connection by creating either a new connection or by using an existing connection if available. See the [Minimum Permission Requirements](#permissions) and [Security Guide](#securityguide) for least-privilege permission requirements for each connection reference.
     -	For example when trying to create a new Fin & Ops (Dynamics 365) connection for the Fin & Ops connection reference, a new Connection page is opened, type to search for Dynamics 365 and select the create Action. Afterwards, in the unmanaged solution, associate the newly created connection with your Connection Reference. 
     ![addvariables4](images/connectionreferences_2.png)
     ![addvariables5](images/connectionreferences_3.png)
@@ -301,6 +302,20 @@ The following improvements are planned or recommended for future versions:
 ### Connections expire or become invalid
 - Connections based on user accounts will break when the user's password changes or the account is disabled. Use a dedicated service account or service principal where possible (see [Security Guide](#securityguide)).
 - To renew a connection, navigate to Power Automate → Connections, find the expired connection, and re-authenticate.
+
+<a id="permissions"></a>
+# 🔐 Minimum Permission Requirements
+
+Use the least-privileged account or service principal for each connection reference. The table below summarises the minimum permissions needed for each connector at runtime. The System Administrator role is only required during initial solution import and should be removed afterwards.
+
+| Connection Reference | Connector | Minimum Runtime Permissions |
+|---|---|---|
+| **Dataverse** | Microsoft Dataverse | Custom security role with Create, Read, Write, Delete on the three staging tables (`Staging Document`, `Staging Sales Order Header`, `Staging Sales Order Lines`) and Read on the `Released Products V2 (mserp)` and `Customers V3 (mserp)` virtual tables. Use the **Sales Order Agent Service** role after installation. |
+| **Office 365 Outlook** | Office 365 Outlook | Access to the monitored mailbox. For a shared mailbox: `Full Access` or `Send As` permission on the shared mailbox for the service account. For a personal mailbox: the mailbox owner's account or a dedicated service account with delegated access. No Exchange admin rights are required. |
+| **Dynamics 365 Finance & Operations** | Dynamics 365 Finance & Operations | **Sales clerk** role (or a custom role with `Sales order entry` duty plus read access to customers and released products). Do **not** use System Administrator or a global admin for the ongoing connection. |
+| **AI Builder / Copilot Studio** | Microsoft Copilot Studio | **Environment Maker** role plus the **AI Builder** service plan license assigned to the account or service principal. No additional Dataverse privileges beyond those listed for the Dataverse connection are required. |
+
+> **TIP**: After installation, audit all connection references to confirm none are still using a System Administrator account. Elevated privileges are only necessary during initial deployment.
 
 <a id="securityguide"></a>
 # 🔒 Security Guide
