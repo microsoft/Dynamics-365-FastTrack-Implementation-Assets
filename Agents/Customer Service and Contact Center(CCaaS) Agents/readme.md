@@ -4,6 +4,8 @@ This folder contains agent templates for Dynamics 365 Customer Service and Conta
 
 📖 **Overview:** [Service Agent Templates - Microsoft Learn](https://learn.microsoft.com/en-us/dynamics365/guidance/agent-templates/service-agent-templates)
 
+> **Note:** The agent templates aren't yet ready for download. If you're interested in the agent templates, [fill in this form](https://forms.office.com/r/3gqLtKnXN2).
+
 ## Available Agent Templates
 
 | # | Agent | Category |
