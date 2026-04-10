@@ -1,0 +1,168 @@
+/* M365 Global Styles */
+/* Add this to your main CSS file or _Host.cshtml */
+
+:root {
+    /* M365 Color Palette */
+    --m365-primary: #5b5fc7;
+    --m365-primary-hover: #4a4eb5;
+    --m365-primary-active: #3d4099;
+    --m365-primary-light: rgba(91, 95, 199, 0.1);
+    --m365-text-primary: #242424;
+    --m365-text-secondary: #616161;
+    --m365-text-disabled: #a3a3a3;
+    --m365-bg-primary: #ffffff;
+    --m365-bg-secondary: #f5f5f5;
+    --m365-bg-tertiary: #fafafa;
+    --m365-border: #e5e5e5;
+    --m365-border-strong: #d1d5db;
+    --m365-success: #107c10;
+    --m365-warning: #ffb900;
+    --m365-error: #d13438;
+    /* Typography */
+    --m365-font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+    --m365-font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+/* Reset and base styles */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--m365-font-family);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--m365-text-primary);
+    background: var(--m365-bg-secondary);
+    min-height: 100vh;
+}
+
+/* Main page container - applies to the full page */
+#app,
+.page,
+main,
+article {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: var(--m365-bg-secondary);
+}
+
+/* Page width constraint for content */
+.page-width {
+    max-width: 900px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Focus styles for accessibility */
+:focus-visible {
+    outline: 2px solid var(--m365-primary);
+    outline-offset: 2px;
+}
+
+/* Button reset */
+button {
+    font-family: inherit;
+    cursor: pointer;
+}
+
+/* Link styles */
+a {
+    color: var(--m365-primary);
+    text-decoration: none;
+}
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+/* Selection styles */
+::selection {
+    background: rgba(91, 95, 199, 0.2);
+    color: var(--m365-text-primary);
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c4c4c4;
+    border-radius: 4px;
+}
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #a3a3a3;
+    }
+
+/* Loading Spinner - Global styles */
+loading-spinner,
+.loading-spinner {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0.25rem 0;
+}
+
+    loading-spinner::before,
+    loading-spinner::after,
+    .loading-spinner::before,
+    .loading-spinner::after {
+        content: '';
+        display: block;
+        width: 8px;
+        height: 8px;
+        background: #5b5fc7;
+        border-radius: 50%;
+        animation: typingBounce 1.4s ease-in-out infinite;
+    }
+
+    loading-spinner::before,
+    .loading-spinner::before {
+        animation-delay: 0s;
+    }
+
+    loading-spinner::after,
+    .loading-spinner::after {
+        animation-delay: 0.3s;
+    }
+
+    /* Add a third dot using a child element or additional pseudo */
+    loading-spinner span,
+    .loading-spinner span {
+        display: block;
+        width: 8px;
+        height: 8px;
+        background: #5b5fc7;
+        border-radius: 50%;
+        animation: typingBounce 1.4s ease-in-out infinite;
+        animation-delay: 0.15s;
+    }
+
+@keyframes typingBounce {
+    0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.4;
+    }
+
+    30% {
+        transform: translateY(-6px);
+        opacity: 1;
+    }
+}

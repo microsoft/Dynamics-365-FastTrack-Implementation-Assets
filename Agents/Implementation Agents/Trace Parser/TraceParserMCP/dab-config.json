@@ -1,0 +1,708 @@
+{
+  "$schema": "https://github.com/Azure/data-api-builder/releases/download/v1.7.83/dab.draft.schema.json",
+  "data-source": {
+    "database-type": "mssql",
+    "connection-string": "@env('AZURE_SQL_CONNECTION_STRING')"
+  },
+  "runtime": {
+    "rest": {
+      "enabled": true,
+      "path": "/api",
+      "request-body-strict": true
+    },
+    "graphql": {
+      "enabled": true,
+      "path": "/graphql",
+      "allow-introspection": true
+    },
+    "mcp": {
+      "enabled": true,
+      "path": "/mcp",
+      "dml-tools": {
+        "describe-entities": true,
+        "create-record": false,
+        "read-records": true,
+        "update-record": false,
+        "delete-record": false,
+        "execute-entity": true
+      }
+    },
+    "host": {
+      "mode": "Production",
+      "cors": {
+        "origins": ["*"],
+        "allow-credentials": false
+      }
+    }
+  },
+  "entities": {
+    "Traces": {
+      "description": "Imported ETL trace files. Each trace contains multiple user sessions.",
+      "source": {
+        "object": "dbo.Traces",
+        "type": "table"
+      },
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "Traces",
+          "plural": "Traces"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "read"
+            },
+            {
+              "action": "delete"
+            }
+          ]
+        }
+      ]
+    },
+    "UserSessions": {
+      "description": "User sessions within a trace. Join with Users to get username.",
+      "source": {
+        "object": "dbo.UserSessions",
+        "type": "table"
+      },
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "UserSessions",
+          "plural": "UserSessions"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "read"
+            },
+            {
+              "action": "delete"
+            }
+          ]
+        }
+      ]
+    },
+    "Users": {
+      "description": "User lookup table with UserId to UserName mapping.",
+      "source": {
+        "object": "dbo.Users",
+        "type": "table"
+      },
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "Users",
+          "plural": "Users"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "read"
+            }
+          ]
+        }
+      ]
+    },
+    "UserSessionProcessThreads": {
+      "description": "Process threads within sessions. Links to TraceLines.",
+      "source": {
+        "object": "dbo.UserSessionProcessThreads",
+        "type": "table"
+      },
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "UserSessionProcessThreads",
+          "plural": "UserSessionProcessThreads"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "read"
+            },
+            {
+              "action": "delete"
+            }
+          ]
+        }
+      ]
+    },
+    "TraceLines": {
+      "description": "Main trace data with call tree and timing. Times in NANOSECONDS - divide by 1000000 for ms.",
+      "source": {
+        "object": "dbo.TraceLines",
+        "type": "table"
+      },
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "TraceLines",
+          "plural": "TraceLines"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "read"
+            }
+          ]
+        }
+      ]
+    },
+    "MethodNames": {
+      "description": "Method name lookup. Join with TraceLines.MethodHash.",
+      "source": {
+        "object": "dbo.MethodNames",
+        "type": "table"
+      },
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "MethodNames",
+          "plural": "MethodNames"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "read"
+            }
+          ]
+        }
+      ]
+    },
+    "QueryStatements": {
+      "description": "SQL statement text lookup. Join with TraceLines.QueryStatementHash.",
+      "source": {
+        "object": "dbo.QueryStatements",
+        "type": "table"
+      },
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "QueryStatements",
+          "plural": "QueryStatements"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "read"
+            }
+          ]
+        }
+      ]
+    },
+    "QueryTables": {
+      "description": "Table names lookup. Join with TraceLines.QueryTableHash.",
+      "source": {
+        "object": "dbo.QueryTables",
+        "type": "table"
+      },
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "QueryTables",
+          "plural": "QueryTables"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "read"
+            }
+          ]
+        }
+      ]
+    },
+    "TopMethods": {
+      "description": "Pre-aggregated top methods by performance.",
+      "source": {
+        "object": "dbo.TopMethods",
+        "type": "table"
+      },
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "TopMethods",
+          "plural": "TopMethods"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "read"
+            }
+          ]
+        }
+      ]
+    },
+    "SessionSummary": {
+      "description": "Denormalized session view with user and trace info. Use for session discovery.",
+      "source": {
+        "object": "dbo.vw_SessionSummary",
+        "type": "view",
+        "key-fields": [
+          "SessionId"
+        ]
+      },
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "SessionSummary",
+          "plural": "SessionSummaries"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "read"
+            }
+          ]
+        }
+      ]
+    },
+    "SessionMetrics": {
+      "description": "Session with aggregated metrics. Times in MILLISECONDS.",
+      "source": {
+        "object": "dbo.vw_SessionMetrics",
+        "type": "view",
+        "key-fields": [
+          "SessionId"
+        ]
+      },
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "SessionMetrics",
+          "plural": "SessionMetrics"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "read"
+            }
+          ]
+        }
+      ]
+    },
+    "TraceLineDetails": {
+      "description": "TraceLines with method names and SQL resolved. Times in MILLISECONDS.",
+      "source": {
+        "object": "dbo.vw_TraceLineDetails",
+        "type": "view",
+        "key-fields": [
+          "TraceLineId"
+        ]
+      },
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "TraceLineDetails",
+          "plural": "TraceLineDetails"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "read"
+            }
+          ]
+        }
+      ]
+    },
+    "NPlusOnePatterns": {
+      "description": "N+1 query pattern candidates: >100 DB calls, <5ms avg.",
+      "source": {
+        "object": "dbo.vw_NPlusOnePatterns",
+        "type": "view",
+        "key-fields": [
+          "TraceLineId"
+        ]
+      },
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "NPlusOnePatterns",
+          "plural": "NPlusOnePatterns"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "read"
+            }
+          ]
+        }
+      ]
+    },
+    "SlowSqlStatements": {
+      "description": "SQL statements >5 seconds with full text.",
+      "source": {
+        "object": "dbo.vw_SlowSqlStatements",
+        "type": "view",
+        "key-fields": [
+          "TraceLineId"
+        ]
+      },
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "SlowSqlStatements",
+          "plural": "SlowSqlStatements"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "read"
+            }
+          ]
+        }
+      ]
+    },
+    "TopMethodsBySession": {
+      "description": "Method performance aggregated by session.",
+      "source": {
+        "object": "dbo.vw_TopMethodsBySession",
+        "type": "view",
+        "key-fields": [
+          "SessionId",
+          "MethodName"
+        ]
+      },
+      "graphql": {
+        "enabled": true,
+        "type": {
+          "singular": "TopMethodsBySession",
+          "plural": "TopMethodsBySessions"
+        }
+      },
+      "rest": {
+        "enabled": true
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "read"
+            }
+          ]
+        }
+      ]
+    },
+    "SearchTracesByKeyword": {
+      "description": "Search traces by keyword. Parameters: TraceId (required), Keyword (required), SearchIn (ALL/SQL/METHOD/MESSAGE/TABLE), MaxResults (default 100)",
+      "source": {
+        "object": "dbo.sp_SearchTracesByKeyword",
+        "type": "stored-procedure",
+        "parameters": [
+          {
+            "name": "TraceId",
+            "required": false,
+            "default": "2"
+          },
+          {
+            "name": "Keyword",
+            "required": false,
+            "default": ""
+          },
+          {
+            "name": "SearchIn",
+            "required": false,
+            "default": "ALL"
+          },
+          {
+            "name": "MaxResults",
+            "required": false,
+            "default": "100"
+          }
+        ]
+      },
+      "graphql": {
+        "enabled": true,
+        "operation": "mutation",
+        "type": {
+          "singular": "SearchTracesByKeyword",
+          "plural": "SearchTracesByKeywords"
+        }
+      },
+      "rest": {
+        "enabled": true,
+        "methods": [
+          "post"
+        ]
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "execute"
+            }
+          ]
+        }
+      ]
+    },
+    "SearchSqlStatements": {
+      "description": "Search SQL statements by keyword. Parameters: TraceId (required), Keyword (required), MaxResults (default 100)",
+      "source": {
+        "object": "dbo.sp_SearchSqlStatements",
+        "type": "stored-procedure",
+        "parameters": [
+          {
+            "name": "TraceId",
+            "required": false,
+            "default": "2"
+          },
+          {
+            "name": "Keyword",
+            "required": false,
+            "default": ""
+          },
+          {
+            "name": "MaxResults",
+            "required": false,
+            "default": "100"
+          }
+        ]
+      },
+      "graphql": {
+        "enabled": true,
+        "operation": "mutation",
+        "type": {
+          "singular": "SearchSqlStatements",
+          "plural": "SearchSqlStatements"
+        }
+      },
+      "rest": {
+        "enabled": true,
+        "methods": [
+          "post"
+        ]
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "execute"
+            }
+          ]
+        }
+      ]
+    },
+    "SearchMethods": {
+      "description": "Search method names by keyword. Parameters: TraceId (required), Keyword (required), MaxResults (default 100)",
+      "source": {
+        "object": "dbo.sp_SearchMethods",
+        "type": "stored-procedure",
+        "parameters": [
+          {
+            "name": "TraceId",
+            "required": false,
+            "default": "2"
+          },
+          {
+            "name": "Keyword",
+            "required": false,
+            "default": ""
+          },
+          {
+            "name": "MaxResults",
+            "required": false,
+            "default": "100"
+          }
+        ]
+      },
+      "graphql": {
+        "enabled": true,
+        "operation": "mutation",
+        "type": {
+          "singular": "SearchMethods",
+          "plural": "SearchMethods"
+        }
+      },
+      "rest": {
+        "enabled": true,
+        "methods": [
+          "post"
+        ]
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "execute"
+            }
+          ]
+        }
+      ]
+    },
+    "SearchMessages": {
+      "description": "Search messages by keyword. Parameters: TraceId (required), Keyword (required), MaxResults (default 100)",
+      "source": {
+        "object": "dbo.sp_SearchMessages",
+        "type": "stored-procedure",
+        "parameters": [
+          {
+            "name": "TraceId",
+            "required": false,
+            "default": "2"
+          },
+          {
+            "name": "Keyword",
+            "required": false,
+            "default": ""
+          },
+          {
+            "name": "MaxResults",
+            "required": false,
+            "default": "100"
+          }
+        ]
+      },
+      "graphql": {
+        "enabled": true,
+        "operation": "mutation",
+        "type": {
+          "singular": "SearchMessages",
+          "plural": "SearchMessages"
+        }
+      },
+      "rest": {
+        "enabled": true,
+        "methods": [
+          "post"
+        ]
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "execute"
+            }
+          ]
+        }
+      ]
+    },
+    "DeleteTrace": {
+      "description": "Delete a trace and all related data (TraceLines, UserSessions, etc.) by TraceId.",
+      "source": {
+        "object": "dbo.sp_DeleteTrace",
+        "type": "stored-procedure",
+        "parameters": [
+          {
+            "name": "TraceId",
+            "required": false,
+            "default": "0"
+          }
+        ]
+      },
+      "graphql": {
+        "enabled": true,
+        "operation": "mutation",
+        "type": {
+          "singular": "DeleteTrace",
+          "plural": "DeleteTraces"
+        }
+      },
+      "rest": {
+        "enabled": true,
+        "methods": [
+          "post"
+        ]
+      },
+      "permissions": [
+        {
+          "role": "anonymous",
+          "actions": [
+            {
+              "action": "execute"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

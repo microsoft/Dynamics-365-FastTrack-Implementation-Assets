@@ -1,0 +1,620 @@
+﻿/* Footnote-style links */
+::deep sup a.footnote {
+    font-size: 0.85em;
+    text-decoration: none;
+    color: #5b5fc7;
+}
+
+    ::deep sup a.footnote:hover {
+        text-decoration: underline;
+    }
+
+/* User message - M365 style */
+.user-message {
+    align-self: flex-end;
+    max-width: 70%;
+    min-width: 60px;
+    padding: 0.625rem 0.875rem;
+    border-radius: 8px 8px 2px 8px;
+    white-space: pre-wrap;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 400;
+    line-height: 1.5;
+    position: relative;
+    word-break: break-word;
+    /* M365 purple/blue background for user messages */
+    background: #5b5fc7;
+    color: #ffffff;
+    /* Subtle shadow */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    /* Smooth entrance animation */
+    animation: messageSlideIn 0.2s ease-out;
+}
+
+@keyframes messageSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Hover effect for user messages */
+.user-message:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+/* Assistant message - M365 style */
+.assistant-message, .assistant-search {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    position: relative;
+    max-width: 100%;
+}
+
+    /* Only animate messages when they first appear, not during streaming or after completion */
+    .assistant-message:not(.streaming-complete):not(.is-streaming) {
+        animation: messageSlideIn 0.2s ease-out;
+    }
+
+/* Add smooth transition instead of animation for the text container */
+.assistant-message-text {
+    color: #242424;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    padding: 0.75rem 1rem;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e5e5;
+    word-break: break-word;
+    /* Smooth transitions for content changes */
+    transition: box-shadow 0.15s ease;
+}
+
+/* Disable animation during streaming to prevent blinking */
+.assistant-message.is-streaming {
+    animation: none !important;
+}
+
+/* Disable animation for completed messages to prevent re-triggering */
+.assistant-message.streaming-complete {
+    animation: none !important;
+}
+
+.assistant-message-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600 !important;
+    font-size: 0.875rem;
+    color: #242424 !important;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+}
+
+.assistant-message-text {
+    color: #242424;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    padding: 0.75rem 1rem;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e5e5;
+    word-break: break-word;
+}
+
+/* Adaptive Card container within assistant message - no extra styling since the card provides its own */
+.assistant-message-card {
+    max-width: 100%;
+}
+
+    /* Remove default styling from adaptive card container when inside assistant message card wrapper */
+    .assistant-message-card .adaptive-card-container {
+        margin: 0;
+    }
+
+    /* Ensure the adaptive card itself doesn't have double borders/shadows */
+    .assistant-message-card .ac-adaptiveCard,
+    .assistant-message-card .ac-m365-theme {
+        margin: 0;
+    }
+
+.assistant-message-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 6px;
+    width: 1.75rem;
+    height: 1.75rem;
+    background: linear-gradient(135deg, #f0f0ff 0%, #e8e8f5 100%);
+    flex-shrink: 0;
+    padding: 2px;
+    box-shadow: 0 1px 2px rgba(91, 95, 199, 0.15);
+}
+
+    .assistant-message-icon svg {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+
+    .assistant-message-icon img {
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: 6px;
+    }
+
+.assistant-search {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+.assistant-search-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    color: #616161;
+}
+
+    .assistant-search-icon svg {
+        width: 1rem;
+        height: 1rem;
+    }
+
+.assistant-search-content {
+    align-content: center;
+    color: #616161;
+}
+
+.assistant-search-phrase {
+    font-weight: 600;
+    color: #424242;
+}
+
+/* Completed reasoning - persisted informative message (no loading animation) */
+.completed-reasoning {
+    opacity: 0.75;
+}
+
+.completed-reasoning .completed-icon {
+    color: #5b5fc7;
+}
+
+    .completed-reasoning .completed-icon svg {
+        width: 0.875rem;
+        height: 0.875rem;
+    }
+
+/* Markdown styling - M365 style */
+::deep ul {
+    list-style-type: disc;
+    margin-left: 1.25rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: #242424;
+}
+
+::deep ol {
+    list-style-type: decimal;
+    margin-left: 1.25rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: #242424;
+}
+
+::deep li {
+    margin: 0.25rem 0;
+    line-height: 1.5;
+}
+
+::deep strong {
+    font-weight: 600;
+    color: #242424;
+}
+
+::deep h3 {
+    margin: 1rem 0 0.5rem 0;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #242424;
+}
+
+::deep p + p {
+    margin-top: 0.75rem;
+}
+
+::deep a {
+    color: #5b5fc7;
+    text-decoration: none;
+}
+
+    ::deep a:hover {
+        text-decoration: underline;
+    }
+
+::deep code {
+    background: #f5f5f5;
+    padding: 0.125rem 0.375rem;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.875em;
+    color: #d63384;
+}
+
+::deep pre {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 0.75rem 0;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+    ::deep pre code {
+        background: transparent;
+        padding: 0;
+        color: inherit;
+    }
+
+::deep blockquote {
+    border-left: 3px solid #5b5fc7;
+    margin: 0.75rem 0;
+    padding: 0.5rem 1rem;
+    background: #f9f9f9;
+    color: #424242;
+}
+
+/* Table styling - M365 style */
+::deep table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0.75rem 0;
+    font-size: 0.875rem;
+}
+
+::deep th {
+    background: #f5f5f5;
+    padding: 0.625rem 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: #242424;
+    border-bottom: 2px solid #e5e5e5;
+}
+
+::deep td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #e5e5e5;
+    color: #424242;
+}
+
+::deep tr:hover td {
+    background: #f9f9f9;
+}
+
+/* Adaptive card container */
+.adaptive-card-container {
+    max-width: 100%;
+    margin: 0.5rem 0;
+}
+
+/* Tool Call Info - collapsible panel */
+.tool-call-info {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fafafa;
+    overflow: hidden;
+    animation: messageSlideIn 0.2s ease-out;
+}
+
+.tool-call-header {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+    text-align: left;
+}
+
+    .tool-call-header:hover {
+        background: #f0f0f5;
+    }
+
+.tool-call-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #ede9fe 0%, #e0e7ff 100%);
+    color: #5b5fc7;
+    flex-shrink: 0;
+}
+
+    .tool-call-icon svg {
+        width: 0.875rem;
+        height: 0.875rem;
+    }
+
+.tool-call-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.tool-call-label {
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: #6b7280;
+    white-space: nowrap;
+}
+
+.tool-call-name {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #374151;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tool-call-chevron {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: #9ca3af;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+    .tool-call-chevron svg {
+        width: 0.75rem;
+        height: 0.75rem;
+    }
+
+    .tool-call-chevron.expanded {
+        transform: rotate(180deg);
+    }
+
+.tool-call-details {
+    border-top: 1px solid #e5e7eb;
+    padding: 0.625rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    animation: detailsSlideDown 0.15s ease-out;
+}
+
+@keyframes detailsSlideDown {
+    0% {
+        opacity: 0;
+        max-height: 0;
+    }
+
+    100% {
+        opacity: 1;
+        max-height: 500px;
+    }
+}
+
+/* Completed state */
+.tool-call-info.tool-completed {
+    /* no visual accent */
+}
+
+/* Success badge */
+.tool-call-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.125rem;
+    font-size: 0;
+    flex-shrink: 0;
+}
+
+.tool-badge-success {
+    color: #16a34a;
+}
+
+/* Execution time */
+.tool-call-duration {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #9ca3af;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-left: auto;
+    padding-left: 0.5rem;
+}
+
+/* Section wrapper for Arguments / Observation blocks */
+.tool-detail-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+    width: 100%;
+}
+
+.tool-detail-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.125rem;
+    width: 100%;
+}
+
+/* Observation label accent */
+.tool-detail-key-obs {
+    color: #5b5fc7;
+}
+
+/* Observation JSON block — slightly different background */
+.tool-detail-json-obs {
+    background: #1a1b2e;
+    border-left: 3px solid #5b5fc7;
+}
+
+/* Copy button — compact inline style */
+.tool-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.375rem;
+    border: 1px solid #d1d5db;
+    border-radius: 3px;
+    background: #ffffff;
+    color: #9ca3af;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.625rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+    line-height: 1;
+    height: 1.25rem;
+}
+
+    .tool-copy-btn svg {
+        width: 0.625rem;
+        height: 0.625rem;
+        flex-shrink: 0;
+    }
+
+    .tool-copy-btn span {
+        font-size: 0.625rem;
+        line-height: 1;
+    }
+
+    .tool-copy-btn:hover {
+        background: #f3f4f6;
+        border-color: #9ca3af;
+        color: #374151;
+    }
+
+    .tool-copy-btn:active {
+        background: #e5e7eb;
+    }
+
+    /* Copied state */
+    .tool-copy-btn.copied {
+        background: #f0fdf4;
+        border-color: #86efac;
+        color: #16a34a;
+    }
+
+.tool-detail-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+}
+
+.tool-detail-key {
+    font-weight: 500;
+    color: #6b7280;
+    min-width: 80px;
+    flex-shrink: 0;
+    padding-top: 1px;
+}
+
+.tool-detail-value {
+    color: #374151;
+    word-break: break-word;
+}
+
+.tool-detail-mono {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.8125rem;
+    background: #f3f4f6;
+    padding: 0.125rem 0.375rem;
+    border-radius: 3px;
+}
+
+.tool-detail-args {
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.tool-detail-json {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    padding: 0.625rem 0.75rem;
+    border-radius: 6px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    overflow-x: auto;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 300px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #585b70 transparent;
+}
+
+
+/* Message actions - M365 style */
+.message-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+    .assistant-message:hover .message-actions,
+    .message-actions:focus-within {
+        opacity: 1;
+    }
+
+.action-btn {
+    padding: 0.375rem;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #616161;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .action-btn:hover {
+        background: #f5f5f5;
+        color: #424242;
+    }
+
+    .action-btn svg {
+        width: 1rem;
+        height: 1rem;
+    }

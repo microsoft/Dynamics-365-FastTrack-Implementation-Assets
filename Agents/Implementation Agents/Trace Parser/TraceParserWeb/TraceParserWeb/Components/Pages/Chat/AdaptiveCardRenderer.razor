@@ -1,0 +1,62 @@
+﻿@using Microsoft.Agents.Core.Models
+@inject IJSRuntime JS
+@implements IDisposable
+
+<div class="adaptive-card-container">
+    <div id="@_containerId"></div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public string CardJson { get; set; } = default!;
+
+    [Parameter]
+    public string? IncomingActivityId { get; set; }
+
+    [Parameter]
+    public EventCallback<Activity> OnInvoke { get; set; }
+
+    private readonly string _containerId = $"ac-{Guid.NewGuid()}";
+    private DotNetObjectReference<AdaptiveCardRenderer>? _objRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _objRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync(
+                "adaptiveCardRenderer.render",
+                _containerId,
+                CardJson,
+                IncomingActivityId,
+                _objRef  // Pass the instance reference to JS
+            );
+        }
+    }
+
+    /// <summary>
+    /// Called from JavaScript when an adaptive card action is submitted.
+    /// This is an instance method, so each card has its own callback.
+    /// </summary>
+    [JSInvokable]
+    public async Task OnCardActionAsync(Dictionary<string, object> data)
+    {
+        var activity = new Activity
+        {
+            Type = ActivityTypes.Invoke,
+            Name = "adaptiveCard/action",
+            Value = data,
+            ReplyToId = IncomingActivityId
+        };
+
+        if (OnInvoke.HasDelegate)
+        {
+            await OnInvoke.InvokeAsync(activity);
+        }
+    }
+
+    public void Dispose()
+    {
+        _objRef?.Dispose();
+    }
+}

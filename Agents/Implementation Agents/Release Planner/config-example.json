@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "ms-release-planner": {
+      "command": "node",
+      "args": [
+        "REPLACE_WITH_YOUR_PATH/Microsoft Release Planner MCP Server/build/index.js"
+      ]
+    }
+  },
+  "_instructions": {
+    "1": "Replace REPLACE_WITH_YOUR_PATH with the full path to this project",
+    "2": "For Claude Desktop: Add this to your claude_desktop_config.json",
+    "3": "For Copilot Studio: Use this configuration in your MCP server settings",
+    "4": "Example path (Windows): C:/Users/YourName/Documents/VSCode/Microsoft Release Planner MCP Server/build/index.js",
+    "5": "Example path (Mac/Linux): /Users/YourName/Documents/VSCode/Microsoft Release Planner MCP Server/build/index.js"
+  }
+}

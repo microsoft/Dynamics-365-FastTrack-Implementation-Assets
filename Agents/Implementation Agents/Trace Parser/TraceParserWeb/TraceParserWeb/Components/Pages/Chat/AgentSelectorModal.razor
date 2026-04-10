@@ -1,0 +1,191 @@
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+@if (IsVisible)
+{
+    <div class="modal-overlay" @onclick="OnOverlayClick">
+        <div class="modal-card" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2 class="modal-title">Switch Agent</h2>
+                <button class="modal-close" @onclick="Close" title="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            @if (savedProfiles.Count > 0)
+            {
+                <div class="modal-section">
+                    <h3 class="section-label">Saved Agents</h3>
+                    <div class="saved-agents-list">
+                        @foreach (var profile in savedProfiles)
+                        {
+                            var isActive = profile.Name == ActiveAgentName
+                                && profile.EnvironmentId == editEnvironmentId
+                                && profile.SchemaName == editSchemaName;
+                            <div class="saved-agent-card @(isActive ? "active" : "")" @onclick="() => SelectProfile(profile)">
+                                <div class="saved-agent-info">
+                                    <span class="saved-agent-name">@profile.Name</span>
+                                    <span class="saved-agent-detail">@profile.SchemaName</span>
+                                </div>
+                                <button class="saved-agent-delete" @onclick="() => DeleteProfile(profile)" @onclick:stopPropagation="true" title="Remove">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="modal-section">
+                <h3 class="section-label">Connection Details</h3>
+                <div class="form-fields">
+                    <div class="form-field">
+                        <label class="field-label">Agent Name</label>
+                        <input class="field-input" type="text" placeholder="My Agent" @bind="editName" />
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label">Environment ID</label>
+                        <input class="field-input" type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" @bind="editEnvironmentId" />
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label">Schema Name</label>
+                        <input class="field-input" type="text" placeholder="copilots_header_xxxxx" @bind="editSchemaName" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-secondary" @onclick="Close">Cancel</button>
+                <button class="btn-primary" @onclick="ConnectAgent" disabled="@(!IsFormValid)">Connect</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<AgentProfile> OnConnect { get; set; }
+    [Parameter] public string? ActiveAgentName { get; set; }
+
+    private IJSObjectReference? jsModule;
+    private List<AgentProfile> savedProfiles = new();
+
+    private string editName = "";
+    private string editEnvironmentId = "";
+    private string editSchemaName = "";
+
+    private bool IsFormValid =>
+        !string.IsNullOrWhiteSpace(editEnvironmentId) &&
+        !string.IsNullOrWhiteSpace(editSchemaName);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            jsModule = await JS.InvokeAsync<IJSObjectReference>(
+                "import", "./Components/Pages/Chat/AgentSelectorModal.razor.js");
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsVisible && jsModule is not null)
+        {
+            await LoadProfiles();
+        }
+    }
+
+    private async Task LoadProfiles()
+    {
+        if (jsModule is null) return;
+        try
+        {
+            savedProfiles = await jsModule.InvokeAsync<List<AgentProfile>>("loadAgentProfiles")
+                ?? new List<AgentProfile>();
+        }
+        catch
+        {
+            savedProfiles = new List<AgentProfile>();
+        }
+    }
+
+    private async Task SaveProfiles()
+    {
+        if (jsModule is null) return;
+        try
+        {
+            await jsModule.InvokeVoidAsync("saveAgentProfiles", savedProfiles);
+        }
+        catch
+        {
+            // localStorage may be unavailable
+        }
+    }
+
+    private void SelectProfile(AgentProfile profile)
+    {
+        editName = profile.Name;
+        editEnvironmentId = profile.EnvironmentId;
+        editSchemaName = profile.SchemaName;
+    }
+
+    private async Task DeleteProfile(AgentProfile profile)
+    {
+        savedProfiles.RemoveAll(p => p.Name == profile.Name && p.EnvironmentId == profile.EnvironmentId);
+        await SaveProfiles();
+    }
+
+    private async Task ConnectAgent()
+    {
+        if (!IsFormValid) return;
+
+        var profile = new AgentProfile
+        {
+            Name = string.IsNullOrWhiteSpace(editName) ? editSchemaName : editName.Trim(),
+            EnvironmentId = editEnvironmentId.Trim(),
+            SchemaName = editSchemaName.Trim()
+        };
+
+        // Save/update in profiles list
+        savedProfiles.RemoveAll(p => p.Name == profile.Name);
+        savedProfiles.Insert(0, profile);
+        await SaveProfiles();
+
+        await OnConnect.InvokeAsync(profile);
+        await Close();
+    }
+
+    private async Task Close()
+    {
+        editName = "";
+        editEnvironmentId = "";
+        editSchemaName = "";
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task OnOverlayClick()
+    {
+        await Close();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (jsModule is not null)
+        {
+            await jsModule.DisposeAsync();
+        }
+    }
+
+    public class AgentProfile
+    {
+        public string Name { get; set; } = "";
+        public string EnvironmentId { get; set; } = "";
+        public string SchemaName { get; set; } = "";
+    }
+}

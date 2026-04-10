@@ -1,0 +1,231 @@
+/* Backdrop - subtle overlay to indicate panel is open */
+.prompt-guide-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 499;
+    background: rgba(0, 0, 0, 0.15);
+    animation: guideBackdropFadeIn 0.2s ease-out;
+}
+
+@keyframes guideBackdropFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Panel */
+.prompt-guide-panel {
+    position: fixed;
+    top: 60px;
+    right: 0;
+    bottom: 0;
+    width: 360px;
+    max-width: 90vw;
+    z-index: 500;
+    background: #ffffff;
+    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column;
+    animation: guideSlideIn 0.25s ease-out;
+    overflow: hidden;
+}
+
+@keyframes guideSlideIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+/* Header */
+.prompt-guide-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e5e5e5;
+    flex-shrink: 0;
+}
+
+.prompt-guide-title {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #242424;
+    margin: 0;
+}
+
+.prompt-guide-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    color: #616161;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+    .prompt-guide-close:hover {
+        background: #f5f5f5;
+        color: #242424;
+    }
+
+/* Content area */
+.prompt-guide-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.75rem 0;
+    scrollbar-width: thin;
+    scrollbar-color: #c4c4c4 transparent;
+}
+
+    .prompt-guide-content::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .prompt-guide-content::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .prompt-guide-content::-webkit-scrollbar-thumb {
+        background: #c4c4c4;
+        border-radius: 3px;
+    }
+
+/* Pro tip banner */
+.prompt-guide-tip {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin: 0 1rem 0.75rem;
+    padding: 0.625rem 0.75rem;
+    background: #f0f0ff;
+    border-radius: 8px;
+    border-left: 3px solid #5b5fc7;
+}
+
+    .prompt-guide-tip svg {
+        color: #5b5fc7;
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+
+    .prompt-guide-tip span {
+        font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 0.8125rem;
+        color: #424242;
+        line-height: 1.4;
+    }
+
+/* Category accordion */
+.prompt-category {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.prompt-category-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.75rem 1.25rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    text-align: left;
+}
+
+    .prompt-category-header:hover {
+        background: #fafafa;
+    }
+
+.prompt-category-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+}
+
+.prompt-category-title {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #242424;
+}
+
+.prompt-category-subtitle {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #9ca3af;
+    font-style: italic;
+}
+
+.prompt-category-chevron {
+    color: #9ca3af;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+    .prompt-category-chevron.expanded {
+        transform: rotate(180deg);
+    }
+
+/* Prompt items list */
+.prompt-category-items {
+    padding: 0 0.75rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.prompt-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.5rem 0.625rem;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s ease;
+}
+
+    .prompt-item:hover {
+        background: #f8f8ff;
+    }
+
+.prompt-item-icon {
+    color: #5b5fc7;
+    flex-shrink: 0;
+    margin-top: 2px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.prompt-item:hover .prompt-item-icon {
+    opacity: 1;
+}
+
+.prompt-item span {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.8125rem;
+    color: #424242;
+    line-height: 1.4;
+}
+
+.prompt-item:hover span {
+    color: #5b5fc7;
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+    .prompt-guide-panel {
+        top: 56px;
+        width: 100%;
+        max-width: 100%;
+    }
+}

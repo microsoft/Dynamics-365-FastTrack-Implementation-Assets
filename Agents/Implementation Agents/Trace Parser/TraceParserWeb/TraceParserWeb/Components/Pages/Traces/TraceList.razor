@@ -1,0 +1,312 @@
+@page "/traces"
+@using Microsoft.AspNetCore.Authorization
+@using TraceParserWeb.Services
+@attribute [Authorize]
+@inject TraceService TraceSvc
+@inject ILogger<TraceList> Logger
+@implements IDisposable
+
+<TraceParserWeb.Components.Pages.Chat.ChatHeader CurrentPage="traces" />
+
+<div class="traces-container">
+    <div class="traces-card">
+        <div class="traces-card-header">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                 stroke-width="1.5" stroke="currentColor" class="traces-header-icon"
+                 width="28" height="28">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+            </svg>
+            <div>
+                <h2 class="traces-title">Imported Traces</h2>
+                <p class="traces-subtitle">Manage imported ETL trace sessions.</p>
+            </div>
+        </div>
+
+        @if (_loading)
+        {
+            <div class="traces-loading">
+                <span class="loading-spinner"></span>
+                <span class="loading-text">Loading traces...</span>
+            </div>
+        }
+        else if (_error != null)
+        {
+            <div class="traces-status status-error">@_error</div>
+        }
+        else if (_traces.Count == 0)
+        {
+            <div class="traces-empty">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                     stroke-width="1.5" stroke="currentColor" class="empty-icon">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m6 4.125l2.25 2.25m0 0l2.25 2.25M12 13.875l2.25-2.25M12 13.875l-2.25 2.25M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                </svg>
+                <span>No traces imported yet.</span>
+                <a href="/upload" class="btn-upload-link">Upload an ETL file</a>
+            </div>
+        }
+        else
+        {
+            <div class="traces-list">
+                @foreach (var trace in _traces)
+                {
+                    <div class="trace-row" @key="trace.TraceId">
+                        <div class="trace-info">
+                            <span class="trace-name">@trace.TraceName</span>
+                            <div class="trace-meta">
+                                <span class="trace-id">ID: @trace.TraceId</span>
+                                @if (trace.TimeStampBegin.HasValue)
+                                {
+                                    <span class="trace-date">@trace.TimeStampBegin.Value.ToString("MMM dd, yyyy HH:mm")</span>
+                                    @if (trace.TimeStampEnd.HasValue)
+                                    {
+                                        <span class="trace-date-sep">&mdash;</span>
+                                        <span class="trace-date">@trace.TimeStampEnd.Value.ToString("HH:mm")</span>
+                                    }
+                                }
+                            </div>
+                            @if (_traceStats.TryGetValue(trace.TraceId, out var stats))
+                            {
+                                <div class="trace-stats">
+                                    <span class="stat-item">@stats.SessionCount sessions</span>
+                                    <span class="stat-sep"></span>
+                                    <span class="stat-item">@FormatCount(stats.TotalTraceLines) lines</span>
+                                    <span class="stat-sep"></span>
+                                    <span class="stat-item">@FormatDuration(stats.TotalDurationMs)</span>
+                                    @if (stats.TotalDatabaseMs > 0)
+                                    {
+                                        <span class="stat-sep"></span>
+                                        <span class="stat-item stat-db">DB: @FormatDuration(stats.TotalDatabaseMs)</span>
+                                    }
+                                </div>
+                            }
+                            else if (_importingStages.TryGetValue(trace.TraceId, out var stage))
+                            {
+                                <div class="trace-importing">
+                                    <span class="importing-spinner"></span>
+                                    <span class="importing-text">@GetImportStageText(stage)</span>
+                                </div>
+                            }
+                        </div>
+                        <div class="trace-actions">
+                            @if (_confirmDeleteId == trace.TraceId)
+                            {
+                                <span class="confirm-text">Delete?</span>
+                                <button class="btn-confirm-yes" @onclick="@(async () => await ConfirmDelete(trace.TraceId))" disabled="@_deleting">
+                                    @if (_deleting && _deletingId == trace.TraceId)
+                                    {
+                                        <span class="btn-spinner-sm"></span>
+                                    }
+                                    else
+                                    {
+                                        <span>Yes</span>
+                                    }
+                                </button>
+                                <button class="btn-confirm-no" @onclick="CancelDelete" disabled="@_deleting">No</button>
+                            }
+                            else
+                            {
+                                <button class="btn-delete" @onclick="@(() => RequestDelete(trace.TraceId))" title="Delete trace">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                         stroke-width="1.5" stroke="currentColor" width="16" height="16">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                    </svg>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(_statusMessage))
+        {
+            <div class="traces-status @(_statusIsError ? "status-error" : "status-success")">
+                @_statusMessage
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    List<TraceDto> _traces = new();
+    Dictionary<int, TraceStats> _traceStats = new();
+    Dictionary<int, ImportStage> _importingStages = new();
+    bool _loading = true;
+    string? _error;
+    int? _confirmDeleteId;
+    bool _deleting;
+    int? _deletingId;
+    string? _statusMessage;
+    bool _statusIsError;
+    System.Threading.Timer? _importPollTimer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTraces();
+    }
+
+    async Task LoadTraces()
+    {
+        _loading = true;
+        _error = null;
+        StateHasChanged();
+
+        try
+        {
+            var tracesTask = TraceSvc.GetTracesAsync();
+            var statsTask = TraceSvc.GetTraceStatsAsync();
+            await Task.WhenAll(tracesTask, statsTask);
+            _traces = tracesTask.Result;
+            _traceStats = statsTask.Result;
+
+            // Detect traces without stats — they may be importing
+            await DetectImportingTraces();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Failed to load traces: {ex.Message}";
+            Logger.LogError(ex, "Failed to load traces");
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    async Task DetectImportingTraces()
+    {
+        _importingStages.Clear();
+        _importPollTimer?.Dispose();
+        _importPollTimer = null;
+
+        var tracesWithoutStats = _traces.Where(t => !_traceStats.ContainsKey(t.TraceId)).ToList();
+        if (tracesWithoutStats.Count == 0) return;
+
+        // Check stage for each trace without stats
+        foreach (var trace in tracesWithoutStats)
+        {
+            var stage = await TraceSvc.GetImportStageAsync(trace.TraceId);
+            if (stage != ImportStage.Complete)
+                _importingStages[trace.TraceId] = stage;
+        }
+
+        if (_importingStages.Count == 0) return;
+
+        // Start polling importing traces every 10s
+        _importPollTimer = new System.Threading.Timer(async _ =>
+        {
+            try
+            {
+                var changed = false;
+                foreach (var traceId in _importingStages.Keys.ToList())
+                {
+                    var stage = await TraceSvc.GetImportStageAsync(traceId);
+                    if (stage == ImportStage.Complete)
+                    {
+                        _importingStages.Remove(traceId);
+                        changed = true;
+                    }
+                    else if (_importingStages[traceId] != stage)
+                    {
+                        _importingStages[traceId] = stage;
+                        changed = true;
+                    }
+                }
+
+                if (changed)
+                {
+                    // If any completed, refresh stats
+                    if (_importingStages.Count < _traces.Count(t => !_traceStats.ContainsKey(t.TraceId)))
+                    {
+                        _traceStats = await TraceSvc.GetTraceStatsAsync();
+                    }
+
+                    if (_importingStages.Count == 0)
+                    {
+                        _importPollTimer?.Dispose();
+                        _importPollTimer = null;
+                    }
+                }
+
+                await InvokeAsync(StateHasChanged);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Import poll error on Traces page");
+            }
+        }, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+    }
+
+    void RequestDelete(int traceId)
+    {
+        _confirmDeleteId = traceId;
+        _statusMessage = null;
+    }
+
+    void CancelDelete()
+    {
+        _confirmDeleteId = null;
+    }
+
+    async Task ConfirmDelete(int traceId)
+    {
+        _deleting = true;
+        _deletingId = traceId;
+        _statusMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            await TraceSvc.DeleteTraceAsync(traceId);
+            _statusMessage = $"Trace {traceId} deleted successfully.";
+            _statusIsError = false;
+            _traces.RemoveAll(t => t.TraceId == traceId);
+            _traceStats.Remove(traceId);
+        }
+        catch (Exception ex)
+        {
+            _statusMessage = $"Failed to delete trace {traceId}: {ex.Message}";
+            _statusIsError = true;
+            Logger.LogError(ex, "Failed to delete trace {TraceId}", traceId);
+        }
+        finally
+        {
+            _deleting = false;
+            _deletingId = null;
+            _confirmDeleteId = null;
+        }
+    }
+
+    static string FormatCount(long count)
+    {
+        if (count >= 1_000_000) return $"{count / 1_000_000.0:0.#}M";
+        if (count >= 1_000) return $"{count / 1_000.0:0.#}K";
+        return count.ToString("N0");
+    }
+
+    static string FormatDuration(decimal totalMs)
+    {
+        var ts = TimeSpan.FromMilliseconds((double)totalMs);
+        if (ts.TotalHours >= 1) return $"{(int)ts.TotalHours}h {ts.Minutes}m";
+        if (ts.TotalMinutes >= 1) return $"{(int)ts.TotalMinutes}m {ts.Seconds}s";
+        if (ts.TotalSeconds >= 1) return $"{ts.TotalSeconds:0.#}s";
+        return $"{totalMs:0}ms";
+    }
+
+    static string GetImportStageText(ImportStage stage) => stage switch
+    {
+        ImportStage.WaitingForFunction => "Waiting for processing...",
+        ImportStage.Parsing => "Parsing ETL events...",
+        ImportStage.ProcessingDimensions => "Importing trace lines...",
+        ImportStage.Finalizing => "Finalizing...",
+        _ => "Importing..."
+    };
+
+    public void Dispose()
+    {
+        _importPollTimer?.Dispose();
+    }
+}

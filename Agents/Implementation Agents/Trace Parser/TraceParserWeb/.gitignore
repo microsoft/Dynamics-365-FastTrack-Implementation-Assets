@@ -1,0 +1,52 @@
+## Build outputs
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+
+## Publish artifacts
+publish/
+publish-deploy/
+publish_deploy/
+deploy.zip
+deploy-out.zip
+deploy_linux.zip
+
+## .NET user/local files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Azure Functions local settings (contains connection strings)
+local.settings.json
+
+## ASP.NET Core environment-specific settings
+appsettings.Development.json
+
+## IDE
+.vs/
+.vscode/
+.idea/
+
+## Azure local emulator data
+.azurite/
+
+## Azure CLI deployment config
+.azure/
+
+## Claude Code local settings
+.claude/
+
+## OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+~$*
+
+## NuGet
+*.nupkg
+**/packages/*
+
+## Test results
+[Tt]est[Rr]esult*/

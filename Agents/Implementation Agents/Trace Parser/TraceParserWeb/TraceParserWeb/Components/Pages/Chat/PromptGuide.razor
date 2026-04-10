@@ -1,0 +1,133 @@
+@if (IsOpen)
+{
+    <div class="prompt-guide-backdrop" @onclick="OnClose"></div>
+    <div class="prompt-guide-panel">
+        <div class="prompt-guide-header">
+            <h2 class="prompt-guide-title">Prompt Guide</h2>
+            <button class="prompt-guide-close" @onclick="OnClose" title="Close">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="prompt-guide-content">
+            <div class="prompt-guide-tip">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
+                </svg>
+                <span>Start with "Show me all available traces" to know what trace IDs exist.</span>
+            </div>
+
+            @foreach (var category in categories)
+            {
+                <div class="prompt-category">
+                    <button class="prompt-category-header" @onclick="() => ToggleCategory(category.Key)">
+                        <div class="prompt-category-info">
+                            <span class="prompt-category-title">@category.Title</span>
+                            <span class="prompt-category-subtitle">@category.Subtitle</span>
+                        </div>
+                        <svg class="prompt-category-chevron @(expandedCategories.Contains(category.Key) ? "expanded" : "")"
+                             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    @if (expandedCategories.Contains(category.Key))
+                    {
+                        <div class="prompt-category-items">
+                            @foreach (var prompt in category.Prompts)
+                            {
+                                <button class="prompt-item" @onclick="() => SelectPrompt(prompt)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="12" height="12" class="prompt-item-icon">
+                                        <path fill-rule="evenodd" d="M2 10a.75.75 0 01.75-.75h12.59l-2.1-1.95a.75.75 0 111.02-1.1l3.5 3.25a.75.75 0 010 1.1l-3.5 3.25a.75.75 0 11-1.02-1.1l2.1-1.95H2.75A.75.75 0 012 10z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>@prompt</span>
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnPromptSelected { get; set; }
+
+    private HashSet<string> expandedCategories = new();
+
+    private record PromptCategory(string Key, string Title, string Subtitle, string[] Prompts);
+
+    private readonly PromptCategory[] categories = new[]
+    {
+        new PromptCategory("getting-started", "Getting Started", "What do I have?", new[]
+        {
+            "Show me all available traces",
+            "What traces are currently loaded?",
+            "Show me the sessions in trace [ID]",
+            "How many events are in session [ID]?",
+            "Give me an overview of trace [ID]"
+        }),
+        new PromptCategory("performance", "General Performance Analysis", "Something is slow", new[]
+        {
+            "Analyze the slowest session in the latest trace",
+            "What are the top 10 slowest operations?",
+            "Compare performance between session [A] and [B]",
+            "Show me the call tree for the slowest method",
+            "Which methods have the highest total execution time?"
+        }),
+        new PromptCategory("troubleshooting", "Troubleshooting a Specific Issue", "Something is broken", new[]
+        {
+            "Sales order posting is slow — find the bottleneck",
+            "Why is [form name] taking so long to load?",
+            "Show me any errors or exceptions in session [ID]",
+            "Are there any deadlocks or timeouts in this trace?",
+            "Which operations were called more than 100 times?"
+        }),
+        new PromptCategory("reporting", "Summary & Reporting", "I need to explain this to someone", new[]
+        {
+            "Give me a summary of performance issues in the latest trace",
+            "What are the top 3 root causes of slowness?",
+            "Create a performance report for trace [ID]",
+            "Explain the findings in non-technical terms",
+            "What are the recommended next steps?"
+        }),
+        new PromptCategory("sql", "Slow SQL Investigation", "Database queries are slow", new[]
+        {
+            "Show me the slowest SQL queries",
+            "Which queries take more than 1 second?",
+            "Find queries that cause full table scans",
+            "Show SQL queries with the most bind parameters",
+            "Are there any N+1 query patterns?"
+        }),
+        new PromptCategory("search", "Searching the Trace", "Find something specific", new[]
+        {
+            "Find all references to \"INVENTTABLE\" in the trace",
+            "Search for method calls containing \"post\"",
+            "Show all SQL queries that touch [table name]",
+            "Find all X++ methods called by [class name]",
+            "Search for any events with \"error\" in the description"
+        })
+    };
+
+    private void ToggleCategory(string key)
+    {
+        if (!expandedCategories.Remove(key))
+        {
+            expandedCategories.Add(key);
+        }
+    }
+
+    private async Task SelectPrompt(string prompt)
+    {
+        await OnPromptSelected.InvokeAsync(prompt);
+    }
+}

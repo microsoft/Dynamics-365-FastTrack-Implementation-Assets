@@ -1,0 +1,391 @@
+/* Fixed header at the top of the viewport */
+.chat-header-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: #ffffff;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.chat-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 100%;
+    padding: 0.875rem 1.5rem;
+    margin: 0 auto;
+}
+
+.chat-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.microsoft-logo {
+    flex-shrink: 0;
+}
+
+.chat-header-title-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-header-title {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333333;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.chat-header-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Reasoning toggle */
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    margin-right: 0.5rem;
+    padding-right: 0.75rem;
+    border-right: 1px solid #e0e0e0;
+}
+
+.toggle-text {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #616161;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.toggle-switch {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    background: #c4c4c4;
+    border-radius: 10px;
+    transition: background 0.2s ease;
+    flex-shrink: 0;
+}
+
+    .toggle-switch.toggle-on {
+        background: #5b5fc7;
+    }
+
+.toggle-knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: #ffffff;
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch.toggle-on .toggle-knob {
+    transform: translateX(16px);
+}
+
+/* Active agent name under title */
+.active-agent-name {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #5b5fc7;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 200px;
+}
+
+/* Switch Agent button - matches New Conversation style */
+.switch-agent-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #5b5fc7;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+    .switch-agent-btn:hover {
+        background: #4a4eb5;
+        box-shadow: 0 2px 4px rgba(91, 95, 199, 0.3);
+    }
+
+    .switch-agent-btn:active {
+        background: #3d4099;
+        transform: translateY(1px);
+    }
+
+    .switch-agent-btn:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(91, 95, 199, 0.4);
+    }
+
+.switch-agent-icon {
+    width: 0.9375rem;
+    height: 0.9375rem;
+    flex-shrink: 0;
+}
+
+/* Prompt Guide button - outline style */
+.prompt-guide-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    color: #5b5fc7;
+    border: 1px solid #5b5fc7;
+    border-radius: 6px;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+    .prompt-guide-btn:hover {
+        background: rgba(91, 95, 199, 0.1);
+    }
+
+    .prompt-guide-btn:active {
+        background: rgba(91, 95, 199, 0.2);
+    }
+
+    .prompt-guide-btn:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(91, 95, 199, 0.4);
+    }
+
+/* New Conversation button - M365 style */
+.new-chat-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #5b5fc7;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+    .new-chat-btn:hover {
+        background: #4a4eb5;
+        box-shadow: 0 2px 4px rgba(91, 95, 199, 0.3);
+    }
+
+    .new-chat-btn:active {
+        background: #3d4099;
+        transform: translateY(1px);
+    }
+
+    .new-chat-btn:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(91, 95, 199, 0.4);
+    }
+
+.new-chat-icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+}
+
+/* User Profile Section */
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: 0.75rem;
+    padding-left: 0.75rem;
+    border-left: 1px solid #e0e0e0;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #5b5fc7 0%, #7B83EB 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    flex-shrink: 0;
+    cursor: default;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #242424;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sign-out-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    color: #616161;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+    .sign-out-btn:hover {
+        background: #f5f5f5;
+        color: #d13438;
+    }
+
+    .sign-out-btn svg {
+        width: 1.125rem;
+        height: 1.125rem;
+    }
+
+/* Analysis navigation link */
+.analysis-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    color: #5b5fc7;
+    border: 1px solid #5b5fc7;
+    border-radius: 6px;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+    .analysis-nav-btn:hover {
+        background: rgba(91, 95, 199, 0.1);
+        text-decoration: none;
+        color: #5b5fc7;
+    }
+
+    .analysis-nav-btn:active {
+        background: rgba(91, 95, 199, 0.2);
+    }
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+    .chat-header-inner {
+        padding: 0.75rem 1rem;
+    }
+
+    .new-chat-btn span,
+    .switch-agent-btn span,
+    .analysis-nav-btn span,
+    .prompt-guide-btn span {
+        display: none;
+    }
+
+    .new-chat-btn,
+    .switch-agent-btn,
+    .analysis-nav-btn,
+    .prompt-guide-btn {
+        padding: 0.5rem;
+        border-radius: 4px;
+    }
+
+    .chat-header-title {
+        font-size: 0.9375rem;
+    }
+
+    .user-info {
+        display: none;
+    }
+
+    .user-profile {
+        margin-left: 0.5rem;
+        padding-left: 0.5rem;
+    }
+
+    .toggle-text {
+        display: none;
+    }
+
+    .toggle-label {
+        margin-right: 0.25rem;
+        padding-right: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .chat-header-title {
+        font-size: 0.875rem;
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .microsoft-logo {
+        width: 20px;
+        height: 20px;
+    }
+
+    .user-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 0.6875rem;
+    }
+
+    .sign-out-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+        .sign-out-btn svg {
+            width: 1rem;
+            height: 1rem;
+        }
+}

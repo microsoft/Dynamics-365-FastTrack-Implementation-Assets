@@ -1,0 +1,390 @@
+@page "/upload"
+@using Microsoft.AspNetCore.Authorization
+@using TraceParserWeb.Services
+@attribute [Authorize]
+@inject EtlUploadService UploadSvc
+@inject IJSRuntime JS
+@inject ILogger<EtlUpload> Logger
+@implements IDisposable
+
+<TraceParserWeb.Components.Pages.Chat.ChatHeader CurrentPage="upload" />
+
+<div class="upload-container">
+    <div class="upload-card">
+        <div class="upload-card-header">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                 stroke-width="1.5" stroke="currentColor" class="upload-header-icon">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+            </svg>
+            <div>
+                <h2 class="upload-title">Upload ETL Trace</h2>
+                <p class="upload-subtitle">Upload a D365 ETL file to import into the Trace Parser database.</p>
+            </div>
+        </div>
+
+        <div class="upload-form">
+            <div class="form-group">
+                <label class="form-label">Session Name</label>
+                <input class="form-input" @bind="SessionName" @bind:event="oninput"
+                       placeholder="e.g. T77-prod-978MB" disabled="@Busy" />
+            </div>
+
+            <div class="form-group">
+                <span class="form-label">ETL File (.etl)</span>
+                <InputFile style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0"
+                           id="etlFileInput" OnChange="FileSelected" accept=".etl" disabled="@Busy" />
+                @if (File == null)
+                {
+                    <label class="drop-zone" for="etlFileInput">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke-width="1.5" stroke="currentColor" class="drop-zone-icon">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.338-2.32 3 3 0 013.438 3.42A3.75 3.75 0 0118 19.5H6.75z" />
+                        </svg>
+                        <span class="drop-zone-text">Click to browse for an ETL file</span>
+                        <span class="drop-zone-hint">.etl files only</span>
+                    </label>
+                }
+                else
+                {
+                    <div class="file-selected">
+                        <div class="file-selected-info">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                 stroke-width="1.5" stroke="currentColor" class="file-icon">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                            </svg>
+                            <div class="file-details">
+                                <span class="file-name">@File.Name</span>
+                                <span class="file-size">@FormatFileSize(File.Size)</span>
+                            </div>
+                        </div>
+                        @if (!Busy)
+                        {
+                            <button class="file-remove-btn" @onclick="RemoveFile" title="Remove file">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                     stroke-width="1.5" stroke="currentColor" width="16" height="16">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+
+            <button class="upload-btn"
+                    @onclick="StartUpload"
+                    disabled="@(Busy || File == null || string.IsNullOrWhiteSpace(SessionName))">
+                @if (Busy)
+                {
+                    <span class="btn-spinner"></span>
+                    <span>Processing...</span>
+                }
+                else
+                {
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke-width="1.5" stroke="currentColor" width="16" height="16">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                    </svg>
+                    <span>Upload &amp; Import</span>
+                }
+            </button>
+        </div>
+
+        @if (_isUploading)
+        {
+            <div class="progress-section">
+                <div class="progress-bar-track">
+                    <div class="progress-bar-fill" style="width: @(UploadPercent)%"></div>
+                </div>
+                <span class="progress-text">Uploading... @UploadPercent% (@FormatFileSize(_uploadedBytes) / @FormatFileSize(File?.Size ?? 0))</span>
+                <p class="upload-warning">
+                    Keep this page open and your computer awake during upload.
+                    Navigating away or letting your device sleep will cancel the upload.
+                </p>
+            </div>
+        }
+
+        @if (_isProcessing)
+        {
+            <div class="progress-section">
+                <div class="progress-bar-track">
+                    <div class="progress-bar-fill progress-processing" style="width: @(GetStageProgress(_currentStage))%"></div>
+                </div>
+
+                <div class="stage-indicators">
+                    @foreach (var stage in _displayStages)
+                    {
+                        @if (stage != _displayStages[0])
+                        {
+                            <span class="stage-line @(_currentStage >= stage ? "line-complete" : "line-pending")"></span>
+                        }
+                        <div class="stage-dot-group">
+                            <span class="stage-dot @(GetDotClass(stage))">
+                                @if (_currentStage > stage)
+                                {
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="check-icon">
+                                        <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
+                                    </svg>
+                                }
+                            </span>
+                            <span class="stage-label @(GetLabelClass(stage))">@GetStageLabel(stage)</span>
+                        </div>
+                    }
+                </div>
+
+                <span class="progress-text">@GetStageMessage(_currentStage)</span>
+
+                <div class="time-estimate">
+                    <span class="estimate-label">Estimated:</span>
+                    <span class="estimate-value">@_timeEstimate</span>
+                    <span class="estimate-elapsed">(@FormatElapsed(DateTime.UtcNow - _processingStartTime) elapsed)</span>
+                </div>
+
+                <p class="upload-warning">
+                    You can safely close this page. The import continues in the background.
+                    Check the <a href="/traces">Traces page</a> later to see when it completes.
+                </p>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(StatusMessage) && !_isUploading)
+        {
+            <div class="upload-status @(IsError ? "status-error" : IsComplete ? "status-success" : "")">
+                @StatusMessage
+            </div>
+        }
+
+        @if (IsComplete)
+        {
+            <div class="upload-complete-actions">
+                <a href="/" class="btn-go-chat">
+                    Go to Chat to query this trace
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    IBrowserFile? File;
+    string SessionName = "";
+    bool Busy, IsError, IsComplete;
+    bool _isUploading, _isProcessing;
+    long _uploadedBytes;
+    string StatusMessage = "";
+    System.Threading.Timer? _pollTimer;
+    DotNetObjectReference<EtlUpload>? _dotNetRef;
+    ImportStage _currentStage = ImportStage.WaitingForFunction;
+    DateTime _processingStartTime;
+    string _timeEstimate = "";
+
+    static readonly ImportStage[] _displayStages =
+    [
+        ImportStage.WaitingForFunction,
+        ImportStage.Parsing,
+        ImportStage.ProcessingDimensions,
+        ImportStage.Finalizing
+    ];
+
+    int UploadPercent => File?.Size > 0 ? (int)(_uploadedBytes * 100 / File.Size) : 0;
+
+    const long MaxFileSizeBytes = 1_073_741_824; // 1 GB
+
+    void FileSelected(InputFileChangeEventArgs e)
+    {
+        File = e.File;
+        if (File.Size > MaxFileSizeBytes)
+        {
+            StatusMessage = $"File too large ({FormatFileSize(File.Size)}). Maximum allowed size is 1 GB.";
+            IsError = true;
+            File = null;
+        }
+        else
+        {
+            StatusMessage = "";
+            IsError = false;
+        }
+        StateHasChanged();
+    }
+
+    void RemoveFile()
+    {
+        File = null;
+        StateHasChanged();
+    }
+
+    string FormatFileSize(long bytes)
+    {
+        if (bytes >= 1_073_741_824) return $"{bytes / 1_073_741_824.0:F1} GB";
+        if (bytes >= 1_048_576) return $"{bytes / 1_048_576.0:F1} MB";
+        if (bytes >= 1024) return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes} B";
+    }
+
+    async Task StartUpload()
+    {
+        if (File == null || string.IsNullOrWhiteSpace(SessionName)) return;
+
+        Busy = true;
+        IsError = false;
+        IsComplete = false;
+        _isUploading = true;
+        _isProcessing = false;
+        _uploadedBytes = 0;
+        StatusMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            // Step 1: Generate SAS URL server-side (Blazor Server runs on the server)
+            var sasUrl = UploadSvc.GenerateSasUrl(SessionName, File.Name);
+
+            // Step 2: Upload directly from browser to Azure Blob via JS interop
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("blobUpload.upload", sasUrl, "etlFileInput", _dotNetRef);
+        }
+        catch (Exception ex)
+        {
+            _isUploading = false;
+            _isProcessing = false;
+            IsError = true;
+            Busy = false;
+            StatusMessage = $"Error: {ex.Message}";
+            Logger.LogError(ex, "Upload failed for session {Session}", SessionName);
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnUploadProgress(long loaded, long total)
+    {
+        _uploadedBytes = loaded;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public async Task OnUploadComplete()
+    {
+        _isUploading = false;
+        _isProcessing = true;
+        _processingStartTime = DateTime.UtcNow;
+        _currentStage = ImportStage.WaitingForFunction;
+        _timeEstimate = EstimateProcessingTime(File?.Size ?? 0);
+        StatusMessage = "";
+        await InvokeAsync(StateHasChanged);
+
+        Logger.LogInformation("Direct blob upload complete for session {Session}", SessionName);
+
+        // Start polling for import stage
+        _pollTimer = new System.Threading.Timer(async _ =>
+        {
+            try
+            {
+                var status = await UploadSvc.GetImportStatusAsync(SessionName, CancellationToken.None);
+
+                if (status.Stage != _currentStage)
+                {
+                    _currentStage = status.Stage;
+                    Logger.LogInformation("Import stage: {Stage} for session {Session}", status.Stage, SessionName);
+                }
+
+                if (status.Stage == ImportStage.Complete)
+                {
+                    _pollTimer?.Dispose();
+                    _pollTimer = null;
+                    _isProcessing = false;
+                    IsComplete = true;
+                    Busy = false;
+                    StatusMessage = $"Import complete! Session '{SessionName}' is ready to query in Chat.";
+                }
+
+                await InvokeAsync(StateHasChanged);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Status poll error for session {Session}", SessionName);
+            }
+        }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+    }
+
+    [JSInvokable]
+    public async Task OnUploadError(string message)
+    {
+        _isUploading = false;
+        _isProcessing = false;
+        IsError = true;
+        Busy = false;
+        StatusMessage = $"Upload failed: {message}";
+        Logger.LogError("Direct blob upload failed for session {Session}: {Error}", SessionName, message);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    static string EstimateProcessingTime(long fileSizeBytes)
+    {
+        var sizeMb = fileSizeBytes / 1_048_576.0;
+        // ~5.3 sec/MB on S4 (200 DTU), based on 978 MB → ~86 min extrapolated from S6
+        var estMinutes = sizeMb * 5.3 / 60.0;
+        var lowMin = (int)Math.Max(1, estMinutes * 0.7);
+        var highMin = (int)Math.Ceiling(estMinutes * 1.5);
+        if (highMin <= 2) return "1-2 minutes";
+        return $"{lowMin}-{highMin} minutes";
+    }
+
+    static string GetStageMessage(ImportStage stage) => stage switch
+    {
+        ImportStage.WaitingForFunction => "Waiting for Azure Function to pick up the file...",
+        ImportStage.Parsing => "Parsing ETL events and staging data...",
+        ImportStage.ProcessingDimensions => "Promoting trace lines and rebuilding indexes...",
+        ImportStage.Finalizing => "Computing session aggregations...",
+        ImportStage.Complete => "Import complete!",
+        _ => "Processing..."
+    };
+
+    static string GetStageLabel(ImportStage stage) => stage switch
+    {
+        ImportStage.WaitingForFunction => "Queued",
+        ImportStage.Parsing => "Parsing",
+        ImportStage.ProcessingDimensions => "Importing",
+        ImportStage.Finalizing => "Finalizing",
+        _ => ""
+    };
+
+    static int GetStageProgress(ImportStage stage) => stage switch
+    {
+        ImportStage.WaitingForFunction => 3,
+        ImportStage.Parsing => 25,
+        ImportStage.ProcessingDimensions => 60,
+        ImportStage.Finalizing => 90,
+        ImportStage.Complete => 100,
+        _ => 0
+    };
+
+    string GetDotClass(ImportStage stage)
+    {
+        if (_currentStage > stage) return "stage-complete";
+        if (_currentStage == stage) return "stage-active";
+        return "stage-pending";
+    }
+
+    string GetLabelClass(ImportStage stage)
+    {
+        if (_currentStage > stage) return "label-complete";
+        if (_currentStage == stage) return "label-active";
+        return "label-pending";
+    }
+
+    static string FormatElapsed(TimeSpan ts)
+    {
+        if (ts.TotalHours >= 1) return $"{(int)ts.TotalHours}h {ts.Minutes}m";
+        if (ts.TotalMinutes >= 1) return $"{(int)ts.TotalMinutes}m {ts.Seconds}s";
+        return $"{(int)ts.TotalSeconds}s";
+    }
+
+    public void Dispose()
+    {
+        _pollTimer?.Dispose();
+        _dotNetRef?.Dispose();
+    }
+}
