@@ -20,7 +20,9 @@
 --  Copyright (c) Microsoft Corporation.
 -- ============================================================
 
-USE AxTrace;
+-- Run this script in the target Trace Parser database context
+-- (e.g., AxTrace or TraceParserDB). Select the correct database
+-- in SSMS or your deployment tool before executing.
 GO
 
 PRINT 'Creating TraceParser Analysis Views...';

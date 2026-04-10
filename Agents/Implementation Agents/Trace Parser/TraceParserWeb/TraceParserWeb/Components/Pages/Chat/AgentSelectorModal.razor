@@ -90,6 +90,14 @@
         {
             jsModule = await JS.InvokeAsync<IJSObjectReference>(
                 "import", "./Components/Pages/Chat/AgentSelectorModal.razor.js");
+
+            // Load profiles immediately after module import if modal is already visible,
+            // since OnParametersSetAsync may have run before jsModule was set.
+            if (IsVisible)
+            {
+                await LoadProfiles();
+                StateHasChanged();
+            }
         }
     }
 
@@ -137,7 +145,7 @@
 
     private async Task DeleteProfile(AgentProfile profile)
     {
-        savedProfiles.RemoveAll(p => p.Name == profile.Name && p.EnvironmentId == profile.EnvironmentId);
+        savedProfiles.RemoveAll(p => p.EnvironmentId == profile.EnvironmentId && p.SchemaName == profile.SchemaName);
         await SaveProfiles();
     }
 
@@ -152,8 +160,8 @@
             SchemaName = editSchemaName.Trim()
         };
 
-        // Save/update in profiles list
-        savedProfiles.RemoveAll(p => p.Name == profile.Name);
+        // Save/update in profiles list — use EnvironmentId+SchemaName as composite key
+        savedProfiles.RemoveAll(p => p.EnvironmentId == profile.EnvironmentId && p.SchemaName == profile.SchemaName);
         savedProfiles.Insert(0, profile);
         await SaveProfiles();
 

@@ -1,5 +1,7 @@
 ﻿@inject IJSRuntime JS
 @using Microsoft.Agents.Core.Models
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
 <div class="message-list-container" @ref="_scrollContainer">
     <chat-messages class="page-width message-list" in-progress="@(InProgressMessage is not null)">
         @* === PREVIOUS TURNS (older messages) === *@
@@ -64,6 +66,7 @@
     public EventCallback<Activity> OnAdaptiveCardInvokeAction { get; set; }
     private ElementReference _scrollContainer;
     private ElementReference _currentTurnRef;
+    private IJSObjectReference? _jsModule;
     private int _previousMessageCount = 0;
     private bool IsEmpty => !Messages.Any(m =>
         m is not null
@@ -116,7 +119,7 @@
         if (firstRender)
         {
             var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            await JS.InvokeVoidAsync("import",
+            _jsModule = await JS.InvokeAsync<IJSObjectReference>("import",
                 $"./Components/Pages/Chat/ChatMessageList.razor.js?v={timestamp}");
             await ScrollCurrentTurnForcedAsync();
         }
@@ -135,5 +138,14 @@
     {
         try { await JS.InvokeVoidAsync("scrollCurrentTurnToTopForced"); }
         catch { }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_jsModule is not null)
+        {
+            try { await _jsModule.DisposeAsync(); }
+            catch { }
+        }
     }
 }

@@ -1,5 +1,5 @@
 ﻿// Auto-scroll behavior for the chat messages list
-console.log('ChatMessageList.razor.js loaded!');
+// Auto-scroll behavior initialized
 let isAutoScrolling = false;
 /**
  * Sets --chat-viewport-height on the scroll container so that

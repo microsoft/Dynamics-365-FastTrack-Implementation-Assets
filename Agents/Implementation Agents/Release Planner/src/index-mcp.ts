@@ -10,7 +10,6 @@
 import express, { Request, Response } from 'express';
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { z } from 'zod';
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
@@ -32,21 +31,24 @@ import {
 const app = express();
 app.use(express.json());
 
-// Create the MCP server
-const server = new Server(
-  {
-    name: "ms-release-planner-mcp-server",
-    version: "1.0.0",
-  },
-  {
-    capabilities: {
-      tools: {},
+// Factory: creates a new MCP Server instance with all handlers registered.
+// A fresh instance is created per HTTP request to avoid state leaks from
+// calling server.connect() on a singleton.
+function createMcpServer(): Server {
+  const server = new Server(
+    {
+      name: "ms-release-planner-mcp-server",
+      version: "1.0.0",
     },
-  }
-);
+    {
+      capabilities: {
+        tools: {},
+      },
+    }
+  );
 
-// Handler: List available tools
-server.setRequestHandler(ListToolsRequestSchema, async () => {
+  // Handler: List available tools
+  server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
@@ -213,6 +215,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 });
 
+  return server;
+}
+
 // Helper function to format wave summary
 function formatWaveSummary(summary: any): string {
   const productBreakdown = summary.productBreakdown
@@ -240,9 +245,10 @@ ${productBreakdown}
 ${investmentBreakdown}`;
 }
 
-// Handle MCP requests
+// Handle MCP requests — create a fresh server instance per request
 app.post('/mcp', async (req: Request, res: Response) => {
   try {
+    const server = createMcpServer();
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
       enableJsonResponse: true

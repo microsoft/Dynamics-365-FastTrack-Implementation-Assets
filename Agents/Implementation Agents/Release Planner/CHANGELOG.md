@@ -130,4 +130,4 @@ For questions about specific versions:
 
 ---
 
-[1.0.0]: https://github.com/yourusername/ms-release-planner-mcp/releases/tag/v1.0.0
+[1.0.0]: https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Agents/Implementation%20Agents/Release%20Planner

@@ -1,6 +1,6 @@
 # Implementation Agents
 
-Implementation agents accelerateDynamics 365 project delivery by automating release planning, performance diagnostics, and implementation lifecycle tasks. These prebuilt templates are designed for implementation teams, FastTrack solution architects, support engineers, and partner consultants who need to reduce manual effort, improve quality, and scale their delivery capabilities with AI.
+Implementation agents accelerate Dynamics 365 project delivery by automating release planning, performance diagnostics, and implementation lifecycle tasks. These prebuilt templates are designed for implementation teams, FastTrack solution architects, support engineers, and partner consultants who need to reduce manual effort, improve quality, and scale their delivery capabilities with AI.
 
 Unlike product-specific agents, implementation agents are cross-functional and can be used across multiple Dynamics 365 modules and deployment scenarios.
 
