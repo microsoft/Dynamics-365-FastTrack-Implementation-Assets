@@ -1,0 +1,384 @@
+/* ===== Page Layout ===== */
+.traces-container {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #f5f5f5;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+/* ===== Card ===== */
+.traces-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    padding: 2rem;
+    max-width: 800px;
+    width: 100%;
+}
+
+/* ===== Card Header ===== */
+.traces-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.traces-header-icon {
+    width: 28px;
+    height: 28px;
+    color: #5b5fc7;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.traces-title {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #242424;
+    margin: 0 0 0.25rem;
+}
+
+.traces-subtitle {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.8125rem;
+    color: #616161;
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* ===== Loading State ===== */
+.traces-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 2rem 0;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2.5px solid #e5e5e5;
+    border-top-color: #5b5fc7;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.875rem;
+    color: #616161;
+}
+
+/* ===== Empty State ===== */
+.traces-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 2rem 0;
+    color: #9ca3af;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.875rem;
+}
+
+.empty-icon {
+    width: 40px;
+    height: 40px;
+    color: #d1d5db;
+}
+
+.btn-upload-link {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #5b5fc7;
+    text-decoration: none;
+}
+
+    .btn-upload-link:hover {
+        text-decoration: underline;
+    }
+
+/* ===== Trace List ===== */
+.traces-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.trace-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+    background: #ffffff;
+}
+
+    .trace-row:hover {
+        border-color: #d1d5db;
+        background: #fafafa;
+    }
+
+.trace-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+    flex: 1;
+}
+
+.trace-name {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #242424;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.trace-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.trace-id {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.trace-date {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.trace-date-sep {
+    font-size: 0.75rem;
+    color: #d1d5db;
+}
+
+/* ===== Stats Row ===== */
+.trace-stats {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.125rem;
+}
+
+.stat-item {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.6875rem;
+    color: #6b7280;
+}
+
+.stat-db {
+    color: #2563eb;
+}
+
+.stat-sep {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #d1d5db;
+    flex-shrink: 0;
+}
+
+/* ===== Importing State ===== */
+.trace-importing {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-top: 0.125rem;
+}
+
+.importing-spinner {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border: 1.5px solid #e5e5e5;
+    border-top-color: #5b5fc7;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    flex-shrink: 0;
+}
+
+.importing-text {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.6875rem;
+    color: #5b5fc7;
+    font-weight: 500;
+}
+
+/* ===== Actions ===== */
+.trace-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    margin-left: 1rem;
+}
+
+.btn-delete {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    color: #9ca3af;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+    .btn-delete:hover {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+/* ===== Confirm Delete ===== */
+.confirm-text {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #dc2626;
+}
+
+.btn-confirm-yes {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border: none;
+    border-radius: 4px;
+    background: #dc2626;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    min-width: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .btn-confirm-yes:hover:not(:disabled) {
+        background: #b91c1c;
+    }
+
+    .btn-confirm-yes:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+.btn-confirm-no {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    padding: 0.25rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #424242;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+    .btn-confirm-no:hover:not(:disabled) {
+        background: #f5f5f5;
+    }
+
+    .btn-confirm-no:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+.btn-spinner-sm {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+/* ===== Status Messages ===== */
+.traces-status {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    margin-top: 1.25rem;
+}
+
+.status-success {
+    background: rgba(16, 124, 16, 0.08);
+    color: #107c10;
+    border: 1px solid rgba(16, 124, 16, 0.2);
+}
+
+.status-error {
+    background: rgba(209, 52, 56, 0.08);
+    color: #d13438;
+    border: 1px solid rgba(209, 52, 56, 0.2);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 800px) {
+    .traces-container {
+        top: 56px;
+        padding: 1rem;
+    }
+
+    .traces-card {
+        padding: 1.5rem;
+    }
+
+    .traces-card-header {
+        gap: 0.75rem;
+    }
+
+    .traces-header-icon {
+        width: 24px;
+        height: 24px;
+    }
+
+    .trace-row {
+        padding: 0.625rem 0.75rem;
+    }
+
+    .trace-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.125rem;
+    }
+
+    .trace-stats {
+        flex-wrap: wrap;
+    }
+}

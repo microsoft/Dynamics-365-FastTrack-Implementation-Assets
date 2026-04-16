@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Main gradient: deep navy to dark blue -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0F1B33"/>
+      <stop offset="100%" style="stop-color:#1B2A4A"/>
+    </linearGradient>
+    <!-- Teal accent gradient -->
+    <linearGradient id="tealGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0891B2"/>
+      <stop offset="100%" style="stop-color:#22D3EE"/>
+    </linearGradient>
+    <!-- Blue accent gradient -->
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0078D4"/>
+      <stop offset="100%" style="stop-color:#0891B2"/>
+    </linearGradient>
+    <!-- Glow filter for the sparkle -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <!-- Subtle inner shadow -->
+    <filter id="innerShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8" result="blur"/>
+      <feOffset dx="0" dy="4" result="offsetBlur"/>
+      <feComposite in="SourceGraphic" in2="offsetBlur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect x="24" y="24" width="464" height="464" rx="88" ry="88" fill="url(#bgGrad)" />
+  
+  <!-- Subtle border -->
+  <rect x="24" y="24" width="464" height="464" rx="88" ry="88" 
+        fill="none" stroke="#0891B2" stroke-width="2" opacity="0.3"/>
+
+  <!-- Background grid lines (subtle, representing data/traces) -->
+  <g opacity="0.06" stroke="#22D3EE" stroke-width="1">
+    <line x1="80" y1="140" x2="432" y2="140"/>
+    <line x1="80" y1="200" x2="432" y2="200"/>
+    <line x1="80" y1="260" x2="432" y2="260"/>
+    <line x1="80" y1="320" x2="432" y2="320"/>
+    <line x1="80" y1="380" x2="432" y2="380"/>
+    <line x1="140" y1="100" x2="140" y2="420"/>
+    <line x1="210" y1="100" x2="210" y2="420"/>
+    <line x1="280" y1="100" x2="280" y2="420"/>
+    <line x1="350" y1="100" x2="350" y2="420"/>
+  </g>
+
+  <!-- Main trace waveform — the hero element -->
+  <!-- This represents a performance trace: starts stable, spikes (problem), then resolves -->
+  <path d="M 80 300 
+           L 120 300 L 140 290 L 155 305 L 170 280 
+           L 190 310 L 205 260 L 215 320 L 230 230 
+           L 245 340 L 255 180 L 265 350 L 275 160 
+           L 290 320 L 305 220 L 320 290 L 335 250 
+           L 350 275 L 370 265 L 390 270 L 410 268 L 432 270"
+        fill="none" stroke="url(#tealGrad)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Secondary trace (background, subtler) -->
+  <path d="M 80 310 
+           L 120 308 L 160 315 L 200 305 L 240 320 
+           L 280 300 L 320 310 L 360 295 L 400 300 L 432 298"
+        fill="none" stroke="#0078D4" stroke-width="2.5" stroke-linecap="round" opacity="0.35"/>
+
+  <!-- Magnifying glass / search element (top-right area) — representing analysis -->
+  <g transform="translate(340, 120)">
+    <!-- Glass circle -->
+    <circle cx="0" cy="0" r="42" fill="none" stroke="url(#blueGrad)" stroke-width="5" opacity="0.9"/>
+    <!-- Glass fill (very subtle) -->
+    <circle cx="0" cy="0" r="39" fill="#0078D4" opacity="0.08"/>
+    <!-- Handle -->
+    <line x1="30" y1="30" x2="58" y2="58" stroke="url(#blueGrad)" stroke-width="6" stroke-linecap="round" opacity="0.9"/>
+  </g>
+
+  <!-- AI Sparkle / Star (inside magnifying glass) — representing AI intelligence -->
+  <g transform="translate(340, 120)" filter="url(#glow)">
+    <!-- 4-point star -->
+    <path d="M 0 -18 L 4 -4 L 18 0 L 4 4 L 0 18 L -4 4 L -18 0 L -4 -4 Z" 
+          fill="#22D3EE" opacity="0.95"/>
+    <!-- Small sparkle dots -->
+    <circle cx="12" cy="-12" r="2" fill="#22D3EE" opacity="0.7"/>
+    <circle cx="-10" cy="-14" r="1.5" fill="#22D3EE" opacity="0.5"/>
+    <circle cx="14" cy="10" r="1.5" fill="#22D3EE" opacity="0.5"/>
+  </g>
+
+  <!-- Database icon (bottom-left) — representing trace data -->
+  <g transform="translate(110, 395)">
+    <ellipse cx="0" cy="0" rx="28" ry="10" fill="none" stroke="#0078D4" stroke-width="3" opacity="0.5"/>
+    <path d="M -28 0 L -28 24 Q -28 34 0 34 Q 28 34 28 24 L 28 0" 
+          fill="none" stroke="#0078D4" stroke-width="3" opacity="0.5"/>
+    <ellipse cx="0" cy="24" rx="28" ry="10" fill="none" stroke="#0078D4" stroke-width="3" opacity="0.5"/>
+  </g>
+
+  <!-- Small decorative dots representing data points along the trace -->
+  <circle cx="255" cy="180" r="5" fill="#22D3EE" opacity="0.8"/>
+  <circle cx="275" cy="160" r="5" fill="#22D3EE" opacity="0.8"/>
+  <circle cx="230" cy="230" r="4" fill="#0891B2" opacity="0.6"/>
+
+  <!-- Bottom accent bar -->
+  <rect x="80" y="448" width="352" height="3" rx="1.5" fill="url(#tealGrad)" opacity="0.4"/>
+</svg>

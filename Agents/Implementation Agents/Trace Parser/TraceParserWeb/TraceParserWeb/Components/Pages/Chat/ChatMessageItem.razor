@@ -1,0 +1,408 @@
+﻿@using System.Runtime.CompilerServices
+@using System.Text.RegularExpressions
+@using System.Linq
+@using System.Text.Json
+@using Microsoft.Agents.Core.Models
+@using Microsoft.JSInterop
+@using Markdig
+@inject IJSRuntime JS
+
+@* Guard against null Message during render race conditions *@
+@if (Message is null)
+{
+    return;
+}
+
+@if (Message.Role == ChatRole.User)
+{
+    <div class="user-message">
+        @Message.Text
+    </div>
+}
+else if (Message.Role == ChatRole.Assistant)
+{
+    foreach (var content in Message.Contents)
+    {
+        if (content is TextContent { Text: { Length: > 0 } text })
+        {
+            <div class="assistant-message @(InProgress ? "is-streaming" : "streaming-complete")">
+                <div class="assistant-message-header">
+                    <div class="assistant-message-icon">
+                        @CopilotIcon
+                    </div>
+                    <span>Copilot Studio Agent</span>
+                </div>
+                <div class="assistant-message-text">
+                    @((MarkupString)RenderMarkdown(text))
+                </div>
+            </div>
+        }
+        else if (content is FunctionCallContent { CallId: "RenderAdaptiveCardAsync" } acc &&
+                 acc.Arguments?.TryGetValue("adaptiveCardJson", out var cardJsonObj) is true &&
+                 cardJsonObj is string cardJson)
+        {
+            var incomingActivityId = acc.Arguments.TryGetValue("incomingActivityId", out var idObj) && idObj is string idStr ? idStr : null;
+
+            <!-- Wrap Adaptive Card in assistant message structure -->
+            <div class="assistant-message">
+                <div class="assistant-message-header">
+                    <div class="assistant-message-icon">
+                        @CopilotIcon
+                    </div>
+                    <span>Copilot Studio Agent</span>
+                </div>
+                <div class="assistant-message-card">
+                    <AdaptiveCardRenderer CardJson="@cardJson"
+                                          IncomingActivityId="@incomingActivityId"
+                                          OnInvoke="@OnAdaptiveCardInvokeAction" />
+                </div>
+            </div>
+        }
+        else if (content is FunctionCallContent { CallId: "InformativeMessage" } infoMsg &&
+                 infoMsg.Arguments?.TryGetValue("message", out var msgObj) is true &&
+                 msgObj is string infoText)
+        {
+            <!-- Informative message - status/search indicator -->
+            <div class="assistant-search">
+                <div class="assistant-message-header">
+                    <div class="assistant-search-icon">
+                        @LoadingIcon
+                    </div>
+                    <div class="assistant-search-content">
+                        <span class="assistant-search-phrase">@infoText</span>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (content is FunctionCallContent { CallId: "CompletedReasoning" } completedMsg &&
+                 completedMsg.Arguments?.TryGetValue("message", out var completedMsgObj) is true &&
+                 completedMsgObj is string completedText)
+        {
+            <!-- Completed reasoning message - persisted status indicator -->
+            <div class="assistant-search completed-reasoning">
+                <div class="assistant-message-header">
+                    <div class="assistant-search-icon completed-icon">
+                        @CopilotIcon
+                    </div>
+                    <div class="assistant-search-content">
+                        <span class="assistant-search-phrase">@completedText</span>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (content is FunctionCallContent { CallId: "ToolCallInfo" } toolCall)
+        {
+            var toolId = GetToolArg(toolCall, "taskDialogId") ?? "Unknown";
+            var toolArgs = GetToolArg(toolCall, "arguments");
+            var toolObs = GetToolArg(toolCall, "observation");
+            var toolEvent = GetToolArg(toolCall, "eventName");
+            var toolState = GetToolArg(toolCall, "state");
+            var toolDuration = GetToolArg(toolCall, "executionTime");
+            var toolPlan = GetToolArg(toolCall, "planIdentifier");
+            var uniqueId = $"tool-{toolPlan ?? toolId}-{toolCall.GetHashCode()}";
+            var isCompleted = toolState == "completed";
+            var shortName = ExtractShortToolName(toolId);
+
+            <!-- Tool Call Info - collapsible detail panel -->
+            <div class="tool-call-info @(isCompleted ? "tool-completed" : "")">
+                <button class="tool-call-header" @onclick="() => ToggleToolDetail(uniqueId)">
+                    <div class="tool-call-icon">
+                        @ToolIcon
+                    </div>
+                    <div class="tool-call-summary">
+                        <span class="tool-call-label">Tool called</span>
+                        <span class="tool-call-name" title="@toolId">@shortName</span>
+                        @if (isCompleted)
+                        {
+                            <span class="tool-call-badge tool-badge-success">
+                                <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:0.75rem;height:0.75rem">
+                                    <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                        }
+                        @if (toolDuration is not null)
+                        {
+                            <span class="tool-call-duration">@toolDuration</span>
+                        }
+                    </div>
+                    <div class="tool-call-chevron @(IsToolExpanded(uniqueId) ? "expanded" : "")">
+                        <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </button>
+                @if (IsToolExpanded(uniqueId))
+                {
+                    <div class="tool-call-details">
+                        @if (toolEvent is not null)
+                        {
+                            <div class="tool-detail-row">
+                                <span class="tool-detail-key">Event</span>
+                                <span class="tool-detail-value">@toolEvent</span>
+                            </div>
+                        }
+                        <div class="tool-detail-row">
+                            <span class="tool-detail-key">Task Dialog</span>
+                            <span class="tool-detail-value tool-detail-mono">@toolId</span>
+                        </div>
+                        @if (toolArgs is not null)
+                        {
+                            var argsId = $"{uniqueId}-args";
+                            <div class="tool-detail-section">
+                                <div class="tool-detail-section-header">
+                                    <span class="tool-detail-key">Arguments</span>
+                                    <button class="tool-copy-btn @(IsCopied(argsId) ? "copied" : "")"
+                                            @onclick="() => CopyToClipboard(argsId, toolArgs)"
+                                            @onclick:stopPropagation="true">
+                                        @if (IsCopied(argsId))
+                                        {
+                                            @CopyCheckIcon <span>Copied</span>
+                                        }
+                                        else
+                                        {
+                                            @CopyIcon <span>Copy</span>
+                                        }
+                                    </button>
+                                </div>
+                                <pre class="tool-detail-json">@FormatJson(toolArgs)</pre>
+                            </div>
+                        }
+                        @if (toolObs is not null)
+                        {
+                            var obsId = $"{uniqueId}-obs";
+                            <div class="tool-detail-section">
+                                <div class="tool-detail-section-header">
+                                    <span class="tool-detail-key tool-detail-key-obs">Observation</span>
+                                    <button class="tool-copy-btn @(IsCopied(obsId) ? "copied" : "")"
+                                            @onclick="() => CopyToClipboard(obsId, toolObs)"
+                                            @onclick:stopPropagation="true">
+                                        @if (IsCopied(obsId))
+                                        {
+                                            @CopyCheckIcon <span>Copied</span>
+                                        }
+                                        else
+                                        {
+                                            @CopyIcon <span>Copy</span>
+                                        }
+                                    </button>
+                                </div>
+                                <pre class="tool-detail-json tool-detail-json-obs">@FormatJson(toolObs)</pre>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    }
+}
+
+@code {
+    private static readonly ConditionalWeakTable<ChatMessage, ChatMessageItem> SubscribersLookup = new();
+
+    // Markdig pipeline with common extensions
+    private static readonly MarkdownPipeline MarkdownPipeline = new MarkdownPipelineBuilder()
+        .UseAdvancedExtensions()
+        .UseSoftlineBreakAsHardlineBreak()
+        .Build();
+
+    [Parameter, EditorRequired]
+    public required ChatMessage Message { get; set; }
+
+    [Parameter]
+    public bool InProgress { get; set; }
+
+    [Parameter]
+    public EventCallback<Activity> OnAdaptiveCardInvokeAction { get; set; }
+
+    // Track expanded/collapsed state for tool call details
+    private readonly HashSet<string> _expandedTools = new();
+
+    // Track "Copied!" feedback state
+    private readonly HashSet<string> _copiedFields = new();
+
+    private void ToggleToolDetail(string id)
+    {
+        if (!_expandedTools.Remove(id))
+            _expandedTools.Add(id);
+    }
+
+    private bool IsToolExpanded(string id) => _expandedTools.Contains(id);
+
+    private bool IsCopied(string id) => _copiedFields.Contains(id);
+
+    private async Task CopyToClipboard(string id, string text)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", FormatJson(text));
+            _copiedFields.Add(id);
+            StateHasChanged();
+            _ = ResetCopyStateAsync(id);
+        }
+        catch { /* clipboard may not be available */ }
+    }
+
+    private async Task ResetCopyStateAsync(string id)
+    {
+        await Task.Delay(2000);
+        _copiedFields.Remove(id);
+        StateHasChanged();
+    }
+
+    private static string? GetToolArg(FunctionCallContent fc, string key)
+        => fc.Arguments?.TryGetValue(key, out var val) is true && val is string s ? s : null;
+
+    private static string ExtractShortToolName(string fullId)
+    {
+        // "MCP:...MicrosoftDataverseMCPServer:read_query" -> "read_query"
+        var lastColon = fullId.LastIndexOf(':');
+        return lastColon >= 0 && lastColon < fullId.Length - 1
+            ? fullId[(lastColon + 1)..]
+            : fullId;
+    }
+
+    private static readonly JsonSerializerOptions IndentedJsonOptions = new() { WriteIndented = true };
+
+    private static string FormatJson(string json)
+    {
+        try
+        {
+            var parsed = JsonSerializer.Deserialize<JsonElement>(json);
+            return JsonSerializer.Serialize(parsed, IndentedJsonOptions);
+        }
+        catch
+        {
+            return json;
+        }
+    }
+
+    // Tool/wrench icon for tool calls
+    private static RenderFragment ToolIcon => __builder =>
+    {
+        <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14.66 3.34a4.5 4.5 0 00-5.94 5.94L3.4 14.6a1.5 1.5 0 002.12 2.12l5.32-5.32a4.5 4.5 0 005.94-5.94l-2.83 2.83-1.41-1.41 2.83-2.83z"
+                  fill="currentColor" opacity="0.9"/>
+        </svg>
+    };
+
+    // Copy icon
+    private static RenderFragment CopyIcon => __builder =>
+    {
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M4 11H3.5A1.5 1.5 0 012 9.5v-7A1.5 1.5 0 013.5 1h7A1.5 1.5 0 0112 2.5V3" stroke="currentColor" stroke-width="1.2"/>
+        </svg>
+    };
+
+    // Checkmark icon for "Copied" feedback
+    private static RenderFragment CopyCheckIcon => __builder =>
+    {
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    };
+
+    private static RenderFragment CopilotIcon => __builder =>
+    {
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Main sparkle -->
+            <path d="M14 3C14 3 15.5 8.5 17.5 10.5C19.5 12.5 25 14 25 14C25 14 19.5 15.5 17.5 17.5C15.5 19.5 14 25 14 25C14 25 12.5 19.5 10.5 17.5C8.5 15.5 3 14 3 14C3 14 8.5 12.5 10.5 10.5C12.5 8.5 14 3 14 3Z"
+                  fill="url(#copilotGradient)" />
+            <!-- Small sparkle top-right -->
+            <path d="M22 2C22 2 22.5 4 23.5 5C24.5 6 26.5 6.5 26.5 6.5C26.5 6.5 24.5 7 23.5 8C22.5 9 22 11 22 11C22 11 21.5 9 20.5 8C19.5 7 17.5 6.5 17.5 6.5C17.5 6.5 19.5 6 20.5 5C21.5 4 22 2 22 2Z"
+                  fill="url(#copilotGradient2)" fill-opacity="0.7" />
+            <defs>
+                <linearGradient id="copilotGradient" x1="3" y1="3" x2="25" y2="25" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#7B83EB" />
+                    <stop offset="50%" stop-color="#5B5FC7" />
+                    <stop offset="100%" stop-color="#6264A7" />
+                </linearGradient>
+                <linearGradient id="copilotGradient2" x1="17.5" y1="2" x2="26.5" y2="11" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#9BA0F0" />
+                    <stop offset="100%" stop-color="#7B83EB" />
+                </linearGradient>
+            </defs>
+        </svg>
+    };
+
+    // Search/Processing Icon for informative messages
+    private static RenderFragment LoadingIcon => __builder =>
+    {
+        <div class="loading-icon-container">
+            <svg class="loading-sparkle" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Main sparkle with animation -->
+                <path class="sparkle-main" d="M14 3C14 3 15.5 8.5 17.5 10.5C19.5 12.5 25 14 25 14C25 14 19.5 15.5 17.5 17.5C15.5 19.5 14 25 14 25C14 25 12.5 19.5 10.5 17.5C8.5 15.5 3 14 3 14C3 14 8.5 12.5 10.5 10.5C12.5 8.5 14 3 14 3Z"
+                      fill="url(#loadingGradient)" />
+                <!-- Small sparkle with delayed animation -->
+                <path class="sparkle-small" d="M22 2C22 2 22.5 4 23.5 5C24.5 6 26.5 6.5 26.5 6.5C26.5 6.5 24.5 7 23.5 8C22.5 9 22 11 22 11C22 11 21.5 9 20.5 8C19.5 7 17.5 6.5 17.5 6.5C17.5 6.5 19.5 6 20.5 5C21.5 4 22 2 22 2Z"
+                      fill="url(#loadingGradient2)" />
+                <defs>
+                    <linearGradient id="loadingGradient" x1="3" y1="3" x2="25" y2="25" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#7B83EB" />
+                        <stop offset="50%" stop-color="#5B5FC7" />
+                        <stop offset="100%" stop-color="#6264A7" />
+                    </linearGradient>
+                    <linearGradient id="loadingGradient2" x1="17.5" y1="2" x2="26.5" y2="11" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#9BA0F0" />
+                        <stop offset="100%" stop-color="#7B83EB" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            <div class="loading-dots">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+        </div>
+    };
+
+    protected override void OnInitialized()
+    {
+        if (Message is not null)
+        {
+            SubscribersLookup.AddOrUpdate(Message, this);
+        }
+    }
+
+    public static void NotifyChanged(ChatMessage? source)
+    {
+        if (source is not null && SubscribersLookup.TryGetValue(source, out var subscriber))
+        {
+            subscriber.StateHasChanged();
+        }
+    }
+
+    private string RenderMarkdown(string markdown)
+    {
+        if (string.IsNullOrEmpty(markdown))
+            return string.Empty;
+
+        // Remove citation tags if present
+        var cleanedMarkdown = Regex.Replace(markdown, @"<citation.*?</citation>", "", RegexOptions.Singleline);
+
+        // Convert markdown to HTML using Markdig
+        var html = Markdown.ToHtml(cleanedMarkdown, MarkdownPipeline);
+
+        // Basic HTML sanitization (remove script tags, etc.)
+        html = Regex.Replace(html, @"<script.*?</script>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+        html = Regex.Replace(html, @"on\w+\s*=\s*[""'][^""']*[""']", "", RegexOptions.IgnoreCase);
+
+        // Convert number-only links to superscript footnotes with brackets FIRST
+        html = Regex.Replace(
+            html,
+            @"<a\s+([^>]*?)>(\d+)</a>",
+            @"<sup><a $1 class=""footnote"">[$2]</a></sup>",
+            RegexOptions.IgnoreCase
+        );
+
+        // Make ALL links open in new tab LAST (applies to all links including footnotes)
+        html = Regex.Replace(
+            html,
+            @"<a\s+",
+            @"<a target=""_blank"" rel=""noopener noreferrer"" ",
+            RegexOptions.IgnoreCase
+        );
+
+        return html;
+    }
+}

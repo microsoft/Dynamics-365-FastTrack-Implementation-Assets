@@ -1,0 +1,227 @@
+﻿.message-list-container {
+    flex-grow: 1;
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 1.5rem;
+    padding-bottom: 2rem;
+    background: transparent;
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 100%;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: #c4c4c4 transparent;
+    box-sizing: border-box;
+}
+
+    .message-list-container::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .message-list-container::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .message-list-container::-webkit-scrollbar-thumb {
+        background: #c4c4c4;
+        border-radius: 3px;
+    }
+
+        .message-list-container::-webkit-scrollbar-thumb:hover {
+            background: #a3a3a3;
+        }
+
+.message-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.previous-messages-section {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.current-turn-section {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+/* Only add top gap when previous messages exist above */
+.previous-messages-section + .current-turn-section {
+    padding-top: 1.5rem;
+}
+/* min-height always applied once there are messages — ensures enough
+   scrollHeight to scroll the current turn's top edge to the viewport top */
+.current-turn-section.has-messages {
+    min-height: var(--chat-viewport-height, 100%);
+}
+
+.no-messages {
+    text-align: center;
+    margin-top: calc(25vh - 3rem);
+    padding: 2rem;
+}
+
+    .no-messages > div:first-child,
+    .welcome-title {
+        font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+        font-weight: 600;
+        font-size: 1.5rem;
+        color: #242424;
+        margin-bottom: 0.25rem;
+    }
+
+.welcome-subtitle {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+    font-weight: 400;
+    font-size: 0.9375rem;
+    color: #616161;
+    margin-bottom: 1rem;
+}
+
+.welcome-image {
+    margin-bottom: 1.25rem;
+    text-align: center;
+    transition: all 0.4s ease-out;
+}
+
+    .welcome-image img {
+        max-width: 160px;
+        width: 100%;
+        height: auto;
+        opacity: 0.95;
+        transition: all 0.3s ease;
+        display: block;
+        margin: 0 auto;
+    }
+
+        .welcome-image img:hover {
+            opacity: 1;
+            transform: scale(1.02);
+        }
+
+.welcome-image-visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+    .welcome-image-visible img {
+        opacity: 0.9;
+        transform: scale(1);
+    }
+
+.welcome-image:not(.welcome-image-visible) {
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+}
+
+.waiting-message {
+    display: flex;
+    justify-content: flex-start;
+}
+
+    .waiting-message .assistant-message {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+    }
+
+::deep .loading-spinner,
+::deep loading-spinner {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0.5rem 0;
+}
+
+    ::deep .loading-spinner::before,
+    ::deep .loading-spinner::after,
+    ::deep .loading-spinner span,
+    ::deep loading-spinner::before,
+    ::deep loading-spinner::after {
+        content: '';
+        width: 8px;
+        height: 8px;
+        background: #5b5fc7;
+        border-radius: 50%;
+        animation: typingBounce 1.4s ease-in-out infinite;
+    }
+
+    ::deep .loading-spinner::before,
+    ::deep loading-spinner::before {
+        animation-delay: 0s;
+    }
+
+    ::deep .loading-spinner span {
+        animation-delay: 0.2s;
+    }
+
+    ::deep .loading-spinner::after,
+    ::deep loading-spinner::after {
+        animation-delay: 0.4s;
+    }
+
+@keyframes typingBounce {
+    0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.4;
+    }
+
+    30% {
+        transform: translateY(-6px);
+        opacity: 1;
+    }
+}
+
+.date-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+    .date-divider::before,
+    .date-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e0e0e0;
+    }
+
+.date-divider-text {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #616161;
+    text-transform: none;
+}
+
+@media (max-width: 640px) {
+    .message-list-container {
+        padding: 1rem;
+    }
+
+    .no-messages {
+        margin-top: calc(20vh - 2rem);
+        padding: 1.5rem;
+    }
+
+        .welcome-title,
+        .no-messages > div:first-child {
+            font-size: 1.25rem;
+        }
+}

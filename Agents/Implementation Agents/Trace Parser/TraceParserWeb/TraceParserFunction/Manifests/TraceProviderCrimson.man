@@ -1,0 +1,1309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<instrumentationManifest xsi:schemaLocation="http://schemas.microsoft.com/win/2004/08/events eventman.xsd" xmlns="http://schemas.microsoft.com/win/2004/08/events" xmlns:win="http://manifests.microsoft.com/win/2004/08/windows/events" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:trace="http://schemas.microsoft.com/win/2004/08/events/trace">
+  <instrumentation>
+    <events>
+      <provider name="Microsoft-DynamicsAX-Tracing" guid="{8E410B1F-EB34-4417-BE16-478A22C98916}" symbol="Microsoft_DynamicsAX_Tracing" resourceFileName="%WINDIR%\System32\TraceProviderCrimson.dll" messageFileName="%WINDIR%\System32\TraceProviderCrimson.dll">
+        <events>
+          <event symbol="OutOfMemoryError" value="0" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Critical" task="ServerHealthTask" opcode="win:Info" keywords="ServerHealth " message="$(string.Microsoft-DynamicsAX-Tracing.event.0.message)">
+          </event>
+          <event symbol="SecurityTPFAuthz" value="11" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="SecurityTask" opcode="win:Info" template="SecurityTPFAuthzTemplate" keywords="Database Security " message="$(string.Microsoft-DynamicsAX-Tracing.event.11.message)">
+          </event>
+          <event symbol="TableLoading" value="12" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="AOTTask" opcode="win:Info" template="TableLoadingTemplate" keywords="Caching AOT " message="$(string.Microsoft-DynamicsAX-Tracing.event.12.message)">
+          </event>
+          <event symbol="ClassLoading" value="13" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="AOTTask" opcode="win:Info" template="ClassLoadingTemplate" keywords="Caching AOT " message="$(string.Microsoft-DynamicsAX-Tracing.event.13.message)">
+          </event>
+          <event symbol="UnitOfWorkAddClone" value="14" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="UnitOfWorkTask" opcode="win:Info" template="UnitOfWorkTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.14.message)">
+          </event>
+          <event symbol="UnitOfWorkConflict" value="15" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="UnitOfWorkTask" opcode="win:Info" template="UnitOfWorkTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.15.message)">
+          </event>
+          <event symbol="UnitOfWorkSaveChangesBegin" value="16" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="UnitOfWorkTask" opcode="win:Info" template="UnitOfWorkTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.16.message)">
+          </event>
+          <event symbol="UnitOfWorkSaveChangesEnd" value="17" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="UnitOfWorkTask" opcode="win:Info" template="UnitOfWorkTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.17.message)">
+          </event>
+          <event symbol="UnitOfWorkStateChange" value="18" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="UnitOfWorkTask" opcode="win:Info" template="UnitOfWorkTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.18.message)">
+          </event>
+          <event symbol="UnitOfWorkPack" value="19" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="UnitOfWorkTask" opcode="win:Info" template="UnitOfWorkTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.19.message)">
+          </event>
+          <event symbol="UnitOfWorkUnpack" value="20" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="UnitOfWorkTask" opcode="win:Info" template="UnitOfWorkTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.20.message)">
+          </event>
+          <event symbol="UnitOfWorkTopologicalOrder" value="21" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="UnitOfWorkTask" opcode="win:Info" template="UnitOfWorkTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.21.message)">
+          </event>
+          <event symbol="UnitOfWorkDbOperation" value="22" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="UnitOfWorkTask" opcode="win:Info" template="UnitOfWorkTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.22.message)">
+          </event>
+          <event symbol="ViewDictViewComputedColumnMethodCalled" value="23" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="ViewTask" opcode="win:Info" template="ViewTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.23.message)">
+          </event>
+          <event symbol="ViewDictViewComputedColumnMethodFailed" value="24" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="ViewTask" opcode="win:Info" template="ViewTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.24.message)">
+          </event>
+          <event symbol="ViewDictViewComputedColumnMethodSucceeded" value="25" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="ViewTask" opcode="win:Info" template="ViewTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.25.message)">
+          </event>
+          <event symbol="ViewComputedColumnMethodCalled" value="26" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="ViewTask" opcode="win:Info" template="ViewTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.26.message)">
+          </event>
+          <event symbol="ViewComputedColumnMethodFailed" value="27" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="ViewTask" opcode="win:Info" template="ViewTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.27.message)">
+          </event>
+          <event symbol="ViewComputedColumnMethodSucceeded" value="28" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="ViewTask" opcode="win:Info" template="ViewTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.28.message)">
+          </event>
+          <event symbol="ViewDDLGenerationStarted" value="29" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="ViewTask" opcode="win:Info" template="ViewTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.29.message)">
+          </event>
+          <event symbol="ViewDDLGenerationFinished" value="30" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="ViewTask" opcode="win:Info" template="ViewTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.30.message)">
+          </event>
+          <event symbol="ViewFieldListGenerationStarted" value="31" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="ViewTask" opcode="win:Info" template="ViewTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.31.message)">
+          </event>
+          <event symbol="ViewFieldListGenerationFinished" value="32" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="ViewTask" opcode="win:Info" template="ViewTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.32.message)">
+          </event>
+          <event symbol="DataAccessCaching" value="33" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="DataAccessTask" opcode="win:Info" template="DataAccessCachingTemplate" keywords="Caching Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.33.message)">
+          </event>
+          <event symbol="DataAccessSCSCCaching" value="34" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="DataAccessTask" opcode="win:Info" template="DataAccessCachingTemplate" keywords="Caching Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.34.message)">
+          </event>
+          <event symbol="QueryFilterOperationEvent" value="35" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="QueryTask" opcode="win:Info" template="QueryFilterOperationTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.35.message)">
+          </event>
+          <event symbol="SecurityAPIInvoked" value="36" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Verbose" task="SecurityTask" opcode="win:Info" template="SecurityAPIInvokedTemplate" keywords="Security " message="$(string.Microsoft-DynamicsAX-Tracing.event.36.message)">
+          </event>
+          <event symbol="SecurityEntryPointAuthz" value="37" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="SecurityTask" opcode="win:Info" template="SecurityEntryPointAuthz" keywords="Security " message="$(string.Microsoft-DynamicsAX-Tracing.event.37.message)">
+          </event>
+          <event symbol="SecurityLoadRolePermissions" value="38" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="SecurityTask" opcode="win:Info" template="SecurityLoadRolePermissionsTemplate" keywords="Database Security " message="$(string.Microsoft-DynamicsAX-Tracing.event.38.message)">
+          </event>
+          <event symbol="SecurityLoadUserRolesDatabase" value="39" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="SecurityTask" opcode="win:Info" template="SecurityLoadUserRolesTemplate" keywords="Security " message="$(string.Microsoft-DynamicsAX-Tracing.event.39.message)">
+          </event>
+          <event symbol="SecurityMenuItemInvoked" value="40" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="SecurityTask" opcode="win:Info" template="SecurityMenuItemClickTemplate" keywords="AOT Security " message="$(string.Microsoft-DynamicsAX-Tracing.event.40.message)">
+          </event>
+          <event symbol="TimeZoneConversion" value="43" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="TimeZoneTask" opcode="win:Info" template="TimeZoneConversionTemplate" message="$(string.Microsoft-DynamicsAX-Tracing.event.43.message)">
+          </event>
+          <event symbol="SetupLogMessage" value="71" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="SetupTask" opcode="win:Info" template="SetupLogMessageTemplate" message="$(string.Microsoft-DynamicsAX-Tracing.event.71.message)">
+          </event>
+          <event symbol="SetupLogError" value="72" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Error" task="SetupTask" opcode="win:Info" template="SetupLogMessageTemplate" message="$(string.Microsoft-DynamicsAX-Tracing.event.72.message)">
+          </event>
+          <event symbol="AxTransactionBeginEvent" value="51" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Start" template="TraceMarkerTemplate" keywords="XppMarker " message="$(string.Microsoft-DynamicsAX-Tracing.event.51.message)">
+          </event>
+          <event symbol="AxTransactionEndEvent" value="52" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Stop" template="TraceMarkerTemplate" keywords="XppMarker " message="$(string.Microsoft-DynamicsAX-Tracing.event.52.message)">
+          </event>
+          <event symbol="AxTraceMessageEvent" value="53" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="AxAppTask" opcode="win:Info" template="TraceMessageTemplate" keywords="TraceInfo " message="$(string.Microsoft-DynamicsAX-Tracing.event.53.message)">
+          </event>
+          <event symbol="CSRoundTripBegin" value="54" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Start" template="RPCTemplate" keywords="RPC " message="$(string.Microsoft-DynamicsAX-Tracing.event.54.message)">
+          </event>
+          <event symbol="CSRoundTripEnd" value="55" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Stop" template="RPCTemplate" keywords="RPC " message="$(string.Microsoft-DynamicsAX-Tracing.event.55.message)">
+          </event>
+          <event symbol="XppMethodBegin" value="56" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Start" template="XppMethodTemplate" keywords="XPP " message="$(string.Microsoft-DynamicsAX-Tracing.event.56.message)">
+          </event>
+          <event symbol="XppMethodEnd" value="57" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Stop" template="XppMethodTemplate" keywords="XPP " message="$(string.Microsoft-DynamicsAX-Tracing.event.57.message)">
+          </event>
+          <event symbol="XppUtilFunc" value="58" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Info" template="XppUtilFuncTemplate" keywords="AxUtilFunc " message="$(string.Microsoft-DynamicsAX-Tracing.event.58.message)">
+          </event>
+          <event symbol="AxSqlStmtEvent" value="59" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Info" template="SqlStmtTemplate" keywords="SQL " message="$(string.Microsoft-DynamicsAX-Tracing.event.59.message)">
+          </event>
+          <event symbol="DBConnect" value="60" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Info" template="DBConnectionTemplate" keywords="DatabaseDetailed " message="$(string.Microsoft-DynamicsAX-Tracing.event.60.message)">
+          </event>
+          <event symbol="DBDisconnect" value="61" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Info" template="DBConnectionTemplate" keywords="DatabaseDetailed " message="$(string.Microsoft-DynamicsAX-Tracing.event.61.message)">
+          </event>
+          <event symbol="TTSBegin" value="62" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Start" template="TTSBeginTemplate" keywords="TTS " message="$(string.Microsoft-DynamicsAX-Tracing.event.62.message)">
+          </event>
+          <event symbol="TTSCommit" value="63" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Stop" template="TTSEndTemplate" keywords="TTS " message="$(string.Microsoft-DynamicsAX-Tracing.event.63.message)">
+          </event>
+          <event symbol="TTSAbort" value="64" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Stop" template="TTSEndTemplate" keywords="TTS " message="$(string.Microsoft-DynamicsAX-Tracing.event.64.message)">
+          </event>
+          <event symbol="SqlInputBind" value="65" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Info" template="SqlInputBindTemplate" keywords="BindParameter " message="$(string.Microsoft-DynamicsAX-Tracing.event.66.message)">
+          </event>
+          <event symbol="SqlRowFetch" value="66" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Info" template="SqlRowFetchTemplate" keywords="DatabaseDetailed " message="$(string.Microsoft-DynamicsAX-Tracing.event.66.message)">
+          </event>
+          <event symbol="SqlRowFetchCumu" value="67" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Info" template="SqlRowFetchCumnTemplate" keywords="DatabaseDetailed " message="$(string.Microsoft-DynamicsAX-Tracing.event.67.message)">
+          </event>
+          <event symbol="AxTraceComponentMessageEvent" value="68" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="AxAppTask" opcode="win:Info" template="TraceComponentMessageTemplate" keywords="TraceInfo " message="$(string.Microsoft-DynamicsAX-Tracing.event.68.message)">
+          </event>
+          <event symbol="MRPItem" value="92" version="0" channel="Microsoft-DynamicsAX-Operational" level="win:Informational" task="MRPTask" opcode="win:Info" template="MRPMessageTemplate" keywords="MRP " message="$(string.Microsoft-DynamicsAX-Tracing.event.92.message)">
+          </event>
+          <event symbol="MRPReqTask" value="93" version="0" channel="Microsoft-DynamicsAX-Operational" level="win:Informational" task="MRPTask" opcode="win:Info" template="MRPMessageTemplate" keywords="MRP " message="$(string.Microsoft-DynamicsAX-Tracing.event.93.message)">
+          </event>
+          <event symbol="MRPExplanation" value="107" version="0" channel="Microsoft-DynamicsAX-Operational" level="win:Informational" task="MRPTask" opcode="win:Info" template="MRPExplanationTemplate" keywords="MRP" message="$(string.Microsoft-DynamicsAX-Tracing.event.107.message)">
+          </event>
+          <event symbol="MRPExplanationDetail" value="108" version="0" channel="Microsoft-DynamicsAX-Operational" level="win:Informational" task="MRPTask" opcode="win:Info" template="MRPExplanationDetailTemplate" keywords="MRP" message="$(string.Microsoft-DynamicsAX-Tracing.event.108.message)">
+          </event>
+          <event symbol="MRPWrkCtrSchedulerLoadOrder" value="82" version="0" channel="Microsoft-DynamicsAX-Operational" level="win:Informational" task="MRPTask" opcode="win:Info" template="MRPMessageTemplate" keywords="MRP " message="$(string.Microsoft-DynamicsAX-Tracing.event.82.message)">
+          </event>
+          <event symbol="MRPWrkCtrSchedulerSaveJobs" value="83" version="0" channel="Microsoft-DynamicsAX-Operational" level="win:Informational" task="MRPTask" opcode="win:Info" template="MRPMessageTemplate" keywords="MRP " message="$(string.Microsoft-DynamicsAX-Tracing.event.83.message)">
+          </event>
+          <event symbol="MRPError" value="84" version="0" channel="Microsoft-DynamicsAX-Operational" level="win:Informational" task="MRPTask" opcode="win:Info" template="MRPMessageTemplate" keywords="MRP " message="$(string.Microsoft-DynamicsAX-Tracing.event.84.message)">
+          </event>
+          <event symbol="MRPReqProcessStatus" value="85" version="0" channel="Microsoft-DynamicsAX-Operational" level="win:Informational" task="MRPTask" opcode="win:Info" template="MRPMessageTemplate" keywords="MRP " message="$(string.Microsoft-DynamicsAX-Tracing.event.85.message)">
+          </event>
+          <event symbol="MRPPartitionOrders" value="86" version="0" channel="Microsoft-DynamicsAX-Operational" level="win:Informational" task="MRPTask" opcode="win:Info" template="MRPMessageTemplate" keywords="MRP " message="$(string.Microsoft-DynamicsAX-Tracing.event.86.message)">
+          </event>
+          <event symbol="MRPBOMLevel" value="87" version="0" channel="Microsoft-DynamicsAX-Operational" level="win:Informational" task="MRPTask" opcode="win:Info" template="MRPMessageTemplate" keywords="MRP " message="$(string.Microsoft-DynamicsAX-Tracing.event.87.message)">
+          </event>
+          <event symbol="MRPWrkCtrSchedulerSaveDerived" value="88" version="0" channel="Microsoft-DynamicsAX-Operational" level="win:Informational" task="MRPTask" opcode="win:Info" template="MRPMessageTemplate" keywords="MRP " message="$(string.Microsoft-DynamicsAX-Tracing.event.88.message)">
+          </event>
+          <event symbol="MRPReqTaskController" value="89" version="0" channel="Microsoft-DynamicsAX-Operational" level="win:Informational" task="MRPTask" opcode="win:Info" template="MRPMessageTemplate" keywords="MRP " message="$(string.Microsoft-DynamicsAX-Tracing.event.89.message)">
+          </event>
+          <event symbol="MRPActionMessage" value="90" version="0" channel="Microsoft-DynamicsAX-Operational" level="win:Informational" task="MRPTask" opcode="win:Info" template="MRPMessageTemplate" keywords="MRP " message="$(string.Microsoft-DynamicsAX-Tracing.event.90.message)">
+          </event>
+          <event symbol="MRPNetResourceScheduler" value="91" version="0" channel="Microsoft-DynamicsAX-Operational" level="win:Informational" task="MRPTask" opcode="win:Info" template="MRPMessageTemplate" keywords="MRP " message="$(string.Microsoft-DynamicsAX-Tracing.event.91.message)">
+          </event>
+          <event symbol="SecurityAccessDenied" value="69" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Warning" task="SecurityTask" opcode="win:Info" template="SecurityAccessDeniedTemplate" keywords="Security " message="$(string.Microsoft-DynamicsAX-Tracing.event.69.message)">
+          </event>
+          <event symbol="ServerStartup" value="73" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="DataAccessTask" opcode="win:Info" template="GeneralEventTemplate" keywords="Database " message="$(string.Microsoft-DynamicsAX-Tracing.event.73.message)">
+          </event>
+          <event symbol="ModelStoredProc" value="74" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Info" template="SqlStmtTemplate" keywords="SQL " message="$(string.Microsoft-DynamicsAX-Tracing.event.74.message)">
+          </event>
+          <event symbol="ComponentInstallationStart" value="75" version="0" channel="Microsoft-DynamicsAX-Admin" level="win:Informational" task="SetupTask" opcode="win:Info" template="SetupComponentStatusTemplate" keywords="Setup " message="$(string.Microsoft-DynamicsAX-Tracing.event.75.message)">
+          </event>
+          <event symbol="ComponentInstallationSuccess" value="76" version="0" channel="Microsoft-DynamicsAX-Admin" level="win:Informational" task="SetupTask" opcode="win:Info" template="SetupComponentStatusTemplate" keywords="Setup " message="$(string.Microsoft-DynamicsAX-Tracing.event.76.message)">
+          </event>
+          <event symbol="ComponentInstallationWarning" value="77" version="0" channel="Microsoft-DynamicsAX-Admin" level="win:Warning" task="SetupTask" opcode="win:Info" template="SetupComponentStatusLogTemplate" keywords="Setup " message="$(string.Microsoft-DynamicsAX-Tracing.event.77.message)">
+          </event>
+          <event symbol="ComponentInstallationError" value="78" version="0" channel="Microsoft-DynamicsAX-Admin" level="win:Error" task="SetupTask" opcode="win:Info" template="SetupComponentStatusLogTemplate" keywords="Setup " message="$(string.Microsoft-DynamicsAX-Tracing.event.78.message)">
+          </event>
+          <event symbol="InstallationError" value="81" version="0" channel="Microsoft-DynamicsAX-Admin" level="win:Error" task="SetupTask" opcode="win:Info" template="SetupExitCodeLogTemplate" keywords="Setup " message="$(string.Microsoft-DynamicsAX-Tracing.event.81.message)">
+          </event>
+          <event symbol="InstallationSuccess" value="80" version="0" channel="Microsoft-DynamicsAX-Admin" level="win:Informational" task="SetupTask" opcode="win:Info" keywords="Setup " message="$(string.Microsoft-DynamicsAX-Tracing.event.80.message)">
+          </event>
+          <event symbol="InstallationStart" value="79" version="0" channel="Microsoft-DynamicsAX-Admin" level="win:Informational" task="SetupTask" opcode="win:Info" keywords="Setup " message="$(string.Microsoft-DynamicsAX-Tracing.event.79.message)">
+          </event>
+          <event symbol="SecurityWebEntryPointAuthorization" value="44" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="SecurityTask" opcode="win:Info" template="SecurityWebEntryPointAuthorizationTemplate" keywords="EP AOT Security " message="$(string.Microsoft-DynamicsAX-Tracing.event.44.message)">
+          </event>
+          <event symbol="SCscInsertRecordSetOrder" value="50" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="DataAccessTask" opcode="win:Info" template="SCscInsertRecordSetOrderTemplate" message="$(string.Microsoft-DynamicsAX-Tracing.event.50.message)">
+          </event>
+          <event symbol="ModelSqlInputBind" value="94" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Info" template="SqlInputBindTemplate" keywords="BindParameter " message="$(string.Microsoft-DynamicsAX-Tracing.event.94.message)">
+          </event>
+          <event symbol="SecurityWebUserRoles" value="45" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="SecurityTask" opcode="win:Info" template="SecurityWebUserRolesTemplate" keywords="EP AOT Security " message="$(string.Microsoft-DynamicsAX-Tracing.event.45.message)">
+          </event>
+          <event symbol="WebFrameworkException" value="46" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Error" task="WebFrameworkTask" opcode="win:Info" template="WebFrameworkExceptionTemplate" keywords="EP " message="$(string.Microsoft-DynamicsAX-Tracing.event.46.message)">
+          </event>
+          <event symbol="ClientEventFormOpen" value="95" version="0" channel="Microsoft-DynamicsAX-ClientAccess" level="win:LogAlways" opcode="FormOpened" template="ClientEvent" message="$(string.Microsoft-DynamicsAX-Tracing.event.95.message)">
+          </event>
+          <event symbol="ClientEventFormClose" value="96" version="0" channel="Microsoft-DynamicsAX-ClientAccess" level="win:LogAlways" opcode="FormClosed" template="ClientEvent" message="$(string.Microsoft-DynamicsAX-Tracing.event.96.message)">
+          </event>
+          <event symbol="ClientEventControlClicked" value="97" version="0" channel="Microsoft-DynamicsAX-ClientAccess" level="win:LogAlways" opcode="ControlClicked" template="ClientEvent" message="$(string.Microsoft-DynamicsAX-Tracing.event.97.message)">
+          </event>
+          <event symbol="TraceInformation" value="70" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Info" template="TraceInformation" keywords="BindParameter TTS DatabaseDetailed SQL XPP RPC TraceInfo XppMarker " message="$(string.Microsoft-DynamicsAX-Tracing.event.70.message)">
+          </event>
+          <event symbol="AssemblyCacheElementBegin" value="98" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Info" keywords="Caching " message="$(string.Microsoft-DynamicsAX-Tracing.event.98.message)">
+          </event>
+          <event symbol="AssemblyCacheElement" value="99" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Info" template="AssemblyCacheElement" keywords="Caching " message="$(string.Microsoft-DynamicsAX-Tracing.event.99.message)">
+          </event>
+          <event symbol="AssemblyCacheElementEnd" value="100" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Info" keywords="Caching " message="$(string.Microsoft-DynamicsAX-Tracing.event.100.message)">
+          </event>
+          <event symbol="SecurityScScFilteredAllTables" value="101" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="SecurityTask" opcode="win:Info" template="SecurityScScFilteredAllTablesTemplate" keywords="Security " message="$(string.Microsoft-DynamicsAX-Tracing.event.11111.message)">
+          </event>
+          <event symbol="SecurityEmptyCrossCompanyFilter" value="102" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="SecurityTask" opcode="win:Info" template="SecurityInvalidCrossCompanyFilter" keywords="Security " message="$(string.Microsoft-DynamicsAX-Tracing.event.102.message)">
+          </event>
+          <event symbol="SecurityLoadRolePermission" value="103" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Verbose" task="SecurityTask" opcode="win:Info" template="SecurityLoadRolePermissionTemplate" keywords="Security " message="$(string.Microsoft-DynamicsAX-Tracing.event.103.message)">
+          </event>
+          <event symbol="SecurityLoadUserRolesCache" value="104" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="SecurityTask" opcode="win:Info" template="SecurityLoadUserRolesTemplate" keywords="Security " message="$(string.Microsoft-DynamicsAX-Tracing.event.104.message)">
+          </event>
+          <event symbol="SecurityEntryPointAuthzFailed" value="105" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Warning" task="SecurityTask" opcode="win:Info" template="SecurityEntryPointAuthz" keywords="Security " message="$(string.Microsoft-DynamicsAX-Tracing.event.105.message)">
+          </event>
+          <event symbol="XppParameterInfo" value="106" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Info" template="XppParameterTemplate" keywords="XPPParm ">
+          </event>
+		  <event symbol="RemoteClassNames" value="109" version="0" channel="Microsoft-DynamicsAX-Analytic" level="win:Informational" task="PerformanceTask" opcode="win:Info" template="RemoteClassNamesTemplate" keywords="RPC " message="$(string.Microsoft-DynamicsAX-Tracing.event.109.message)">
+          </event>
+        </events>
+        <levels>
+        </levels>
+        <tasks>
+          <task name="SecurityTask" symbol="SecurityTask" value="11" eventGUID="{DA5B9169-3173-4526-A557-5E39F16ABA5F}">
+          </task>
+          <task name="AOTTask" symbol="AOTTask" value="2" eventGUID="{DAA1FB69-1DA6-4007-8172-12FED1B20B08}">
+          </task>
+          <task name="UnitOfWorkTask" symbol="UnitOfWorkTask" value="3" eventGUID="{3CA5F52A-BD39-4710-865B-049418DC192C}">
+          </task>
+          <task name="ViewTask" symbol="ViewTask" value="4" eventGUID="{F173E838-4EE3-48F5-A32F-5AAB6647C745}">
+          </task>
+          <task name="DataAccessTask" symbol="DataAccessTask" value="5" eventGUID="{6596E98E-B74D-4A66-A49D-402000848484}">
+          </task>
+          <task name="QueryTask" symbol="QueryTask" value="6" eventGUID="{6E384EDD-0818-4483-AE2E-80EB1537783E}">
+          </task>
+          <task name="SynchronizationTask" symbol="SynchronizationTask" value="7" eventGUID="{B3FE55C4-F4AF-4CCA-A5ED-FD9A4F89229D}">
+          </task>
+          <task name="TimeZoneTask" symbol="TimeZoneTask" value="8" eventGUID="{D5F5A140-7E07-4791-B735-AF4CC548E7DA}">
+          </task>
+          <task name="PerformanceTask" symbol="PerformanceTask" value="9" eventGUID="{3854C2CB-6F0C-4ABB-A7F9-E7C26B04CCEE}">
+          </task>
+          <task name="AxAppTask" symbol="AxAppTask" value="10" eventGUID="{0A749BA5-241E-4D40-9F8A-B20EF1B7E07A}">
+          </task>
+          <task name="ServerHealthTask" symbol="ServerHealthTask" value="1" eventGUID="{66A93E1D-0FB3-40CB-86DF-5F284E915743}">
+          </task>
+          <task name="SetupTask" symbol="SetupTask" value="12" eventGUID="{E41568C6-B156-4CD3-AE50-93615AB724AA}">
+          </task>
+          <task name="WebFrameworkTask" symbol="WebFrameworkTask" value="13" eventGUID="{3415E3F1-BF1E-4600-B7B3-BF276B640ECC}" message="$(string.Microsoft-DynamicsAX-Tracing.task.WebFrameworkTask.message)">
+          </task>
+          <task name="MRPTask" symbol="MRPTask" value="14" eventGUID="{6CA24A93-CB10-408B-A4AB-FFFCFF5D70E4}">
+          </task>
+        </tasks>
+        <opcodes>
+          <opcode name="FormOpened" symbol="AX_Form_Opened" value="10" message="$(string.Microsoft-DynamicsAX-Tracing.opcode.AX_Form_Opened.message)">
+          </opcode>
+          <opcode name="FormClosed" symbol="AX_Form_Closed" value="11" message="$(string.Microsoft-DynamicsAX-Tracing.opcode.AX_Form_Closed.message)">
+          </opcode>
+          <opcode name="ControlClicked" symbol="AX_Control_Clicked" value="12" message="$(string.Microsoft-DynamicsAX-Tracing.opcode.AX_Control_Clicked.message)">
+          </opcode>
+        </opcodes>
+        <channels>
+          <channel name="Microsoft-DynamicsAX-Analytic" chid="Microsoft-DynamicsAX-Analytic" symbol="Microsoft_DynamicsAX_Analytic_Channel" type="Analytic" enabled="false" message="$(string.Microsoft-DynamicsAX-Tracing.channel.Server.message)">
+          </channel>
+          <channel name="Microsoft-DynamicsAX-Admin" chid="Microsoft-DynamicsAX-Admin" symbol="Microsoft_DynamicsAX_Admin_Channel" type="Admin" enabled="true" message="$(string.Microsoft-DynamicsAX-Tracing.channel.Microsoft_DynamicsAX_Tracing_Admin.message)">
+          </channel>
+          <channel name="Microsoft-DynamicsAX-ClientAccess" chid="Microsoft-DynamicsAX-ClientAccess" symbol="Microsoft_DynamicsAX_ClientAccess" type="Operational" enabled="true" message="$(string.Microsoft-DynamicsAX-Tracing.channel.Microsoft_DynamicsAX_ClientAccess.message)">
+          </channel>
+          <channel name="Microsoft-DynamicsAX-Operational" chid="Microsoft-DynamicsAX-Operational" symbol="Microsoft_DynamicsAX_Operational_Channel" type="Operational" enabled="false" message="$(string.Microsoft-DynamicsAX-Tracing.channel.Microsoft_DynamicsAX_Operational_Channel.message)">
+          </channel>
+        </channels>
+        <keywords>
+          <keyword name="Security" symbol="SecurityKeyword" mask="0x800000000000" message="$(string.Microsoft-DynamicsAX-Tracing.keyword.SecurityKeyword.message)">
+          </keyword>
+          <keyword name="Database" symbol="DatabaseKeyword" mask="0x400000000000" message="$(string.Microsoft-DynamicsAX-Tracing.keyword.DatabaseKeyword.message)">
+          </keyword>
+          <keyword name="AOT" symbol="AOTKeword" mask="0x200000000000">
+          </keyword>
+          <keyword name="Caching" symbol="CachingKeyword" mask="0x100000000000">
+          </keyword>
+          <keyword name="XppMarker" symbol="XppMarkerKeyword" mask="0x1">
+          </keyword>
+          <keyword name="TraceInfo" symbol="TraceInfoKeyword" mask="0x2">
+          </keyword>
+          <keyword name="RPC" symbol="RPCKeyword" mask="0x4">
+          </keyword>
+          <keyword name="XPP" symbol="XPPKeyword" mask="0x8">
+          </keyword>
+          <keyword name="SQL" symbol="SQLKeyword" mask="0x10">
+          </keyword>
+          <keyword name="DatabaseDetailed" symbol="DatabaseDetailedKeyword" mask="0x20">
+          </keyword>
+          <keyword name="TTS" symbol="TTSKeyword" mask="0x40">
+          </keyword>
+          <keyword name="BindParameter" symbol="BindParameterKeyword" mask="0x80" message="$(string.Microsoft-DynamicsAX-Tracing.keyword.BindParameterKeyword.message)">
+          </keyword>
+          <keyword name="ServerHealth" symbol="ServerHealthKeyword" mask="0x80000000000">
+          </keyword>
+          <keyword name="Setup" symbol="SetupKeyword" mask="0x10000000000">
+          </keyword>
+          <keyword name="MRP" symbol="MRPKeyword" mask="0x20000000000">
+          </keyword>
+          <keyword name="EP" symbol="EPKeyword" mask="0x40000000000" message="$(string.Microsoft-DynamicsAX-Tracing.Keyword.EPKeyword.message)">
+          </keyword>
+          <keyword name="AxUtilFunc" symbol="AxXppUtilFunc" mask="0x100" message="$(string.Microsoft-DynamicsAX-Tracing.Keyword.AxXppUtilFunc.message)">
+          </keyword>
+          <keyword name="XPPParm" symbol="XPPParmKeyword" mask="0x200" message="$(string.Microsoft-DynamicsAX-Tracing.keyword.XPPParmKeyword.message)">
+          </keyword>
+        </keywords>
+        <templates>
+          <template tid="SecurityTPFAuthzTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxTableName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="DMLOperationType" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="error" inType="win:Int32" outType="xs:int">
+            </data>
+          </template>
+          <template tid="TableLoadingTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxTableId" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="AxTableName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxLoadingStrategy" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxRequestType" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUtilMode" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxMethodList" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUCBufferSize" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="AxCBufferSize" inType="win:Int64" outType="xs:long">
+            </data>
+          </template>
+          <template tid="ClassLoadingTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxClassId" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="AxClassName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxLoadingStrategy" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxRequestType" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxComponentName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxBufferSize" inType="win:Int64" outType="xs:long">
+            </data>
+          </template>
+          <template tid="UnitOfWorkTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="UnitOfWorkId" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="TableId" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="TableName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="DataAreaId" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="ProposedId" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="State" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="ViewTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="ViewId" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="ViewName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="DataSourceName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="FieldName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="ReturnValue" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="MethodName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="DataAccessCachingTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="EventName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="RootTableId" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="RootTableName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="RecId" inType="win:Int64" outType="xs:long">
+            </data>
+          </template>
+          <template tid="QueryFilterOperationTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="OperationType" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="QueryName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="DataSourceName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="TableName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="JoinType" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="FieldName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="OldFilterValue" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="NewFilterValue" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="SecurityAPIInvokedTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxSecurableType" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSecurableName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSecurableChildName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AccessRight" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="error" inType="win:Int32" outType="xs:int">
+            </data>
+          </template>
+          <template tid="SecurityEntryPointAuthz">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxClassName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxMethodName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AccessRight" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="DebugInfo" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="error" inType="win:Int32" outType="xs:int">
+            </data>
+          </template>
+          <template tid="SecurityLoadRolePermissionTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxRoleName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSecurableType" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSecurableName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSecurableChildName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxRoleId" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="AccessRight" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="error" inType="win:Int32" outType="xs:int">
+            </data>
+          </template>
+          <template tid="SecurityLoadUserRolesTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="DebugInfo" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="SecurityMenuItemClickTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="MenuItemType" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="MenuItemName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AccessRight" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="DebugInfo" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="error" inType="win:Int32" outType="xs:int">
+            </data>
+          </template>
+          <template tid="TimeZoneConversionTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxConvType" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxInDateTime" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxOutDateTime" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxTzName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxTzRuleId" inType="win:Int64" outType="xs:long">
+            </data>
+          </template>
+          <template tid="SetupLogMessageTemplate">
+            <data name="message" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="TraceMarkerTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxMarkerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxMarkerGuid" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="RPCTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxRC" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxRPCName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxNestLevel" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="AxServerBytesRecd" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="AxServerBytesSent" inType="win:Int64" outType="xs:long">
+            </data>
+          </template>
+          <template tid="XppUtilFuncTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxRC" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxXppUtilFuncName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxDuration" inType="win:Int64" outType="xs:long">
+            </data>
+          </template>
+          <template tid="XppMethodTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxRC" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxXppClassName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxXppMethodName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxFormPath" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxNestLevel" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="AxXppTargetType" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="SqlStmtTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxRC" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxConDBSpid" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="AxSqlStmt" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxDuration" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="AxPrepDuration" inType="win:Int64" outType="xs:long">
+            </data>
+          </template>
+          <template tid="DBConnectionTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxRC" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxConDBSpid" inType="win:Int64" outType="xs:long">
+            </data>
+          </template>
+          <template tid="TTSBeginTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxRC" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxConDBSpid" inType="win:Int64" outType="xs:long">
+            </data>
+          </template>
+          <template tid="SqlInputBindTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxRC" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxConDBSpid" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="AxBindColId" inType="win:Int16" outType="xs:short">
+            </data>
+            <data name="AxBindVarLength" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxBindVarType" inType="win:Int16" outType="xs:short">
+            </data>
+            <data name="AxBindVarValue" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="SqlRowFetchTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxRC" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxConDBSpid" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="AxDuration" inType="win:Int64" outType="xs:long">
+            </data>
+          </template>
+          <template tid="SqlRowFetchCumnTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxRC" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxConDBSpid" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="AxDuration" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="AxFetchCount" inType="win:Int64" outType="xs:long">
+            </data>
+          </template>
+          <template tid="TraceMessageTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxMsg" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="TTSEndTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxRC" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxConDBSpid" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="AxDuration" inType="win:Int64" outType="xs:long">
+            </data>
+          </template>
+          <template tid="TraceComponentMessageTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxComponent" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxMsg" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="MRPMessageTemplate">
+            <data name="message" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="MRPExplanationTemplate">
+            <data name="message" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="traceId" inType="win:GUID">
+            </data>
+            <data name="eventId" inType="win:GUID">
+            </data>
+            <data name="planVersion" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="bomLevel" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="reqLevelState" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="reqProcessStatus" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="sequence" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="itemId" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="reqTransRefId" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="messageContainer" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="messageType" inType="win:Int32" outType="xs:int">
+            </data>
+          </template>
+          <template tid="MRPExplanationDetailTemplate">
+            <data name="message" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="traceId" inType="win:GUID">
+            </data>
+            <data name="eventId" inType="win:GUID">
+            </data>
+            <data name="parentEventId" inType="win:GUID">
+            </data>
+            <data name="sequence" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="messageDetailType" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="messageContainer" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="SecurityAccessDeniedTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxObjectType" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxObjectName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxObjectRequiredAccess" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxCallStack" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="DebugInfo" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="error" inType="win:Int32" outType="xs:int">
+            </data>
+          </template>
+          <template tid="GeneralEventTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="EventName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="SetupComponentStatusTemplate">
+            <data name="componentName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="SetupComponentStatusLogTemplate">
+            <data name="componentName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="logFileName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="SetupExitCodeLogTemplate">
+            <data name="exitCode" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="logFileName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="SecurityWebEntryPointAuthorizationTemplate">
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxWebServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="HttpSessionId" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="MenuItemName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="ModuleName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="PageName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="EntryPointType" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="EntryPointName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="IsPostback" inType="win:Boolean" outType="xs:boolean">
+            </data>
+            <data name="AccessGranted" inType="win:Boolean" outType="xs:boolean">
+            </data>
+          </template>
+          <template tid="SecurityWebUserRolesTemplate">
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxWebServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="HttpSessionId" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="MenuItemName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="ModuleName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="PageName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="Roles" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="IsPostback" inType="win:Boolean" outType="xs:boolean">
+            </data>
+          </template>
+          <template tid="WebFrameworkExceptionTemplate">
+            <data name="AxWebServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="HttpSessionId" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="MenuItemName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="ModuleName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="PageName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="Message" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="Exception" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="IsPostback" inType="win:Boolean" outType="xs:boolean">
+            </data>
+          </template>
+          <template tid="SCscInsertRecordSetOrderTemplate">
+            <data name="Position" inType="win:UInt16" outType="xs:unsignedShort">
+            </data>
+            <data name="TargetTable" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="TargetField" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="SourceTable" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="SourceField" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="SourceAggregate" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="XppParameterTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="ParamCount" inType="win:UInt32" outType="xs:unsignedInt">
+            </data>
+            <data name="ParamValues" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="ClientEvent">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="ControlName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="TraceInformation">
+            <data name="ProcessName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="ComputerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxVersion" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="UserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="AssemblyCacheElement">
+            <data name="Element" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="SecurityScScFilteredAllTablesTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxTableName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxStackTrace" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="DebugInfo" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="SecurityInvalidCrossCompanyFilter">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxTableName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxCallStack" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="DebugInfo" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+          <template tid="SecurityLoadRolePermissionsTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxRoleName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxRoleId" inType="win:Int64" outType="xs:long">
+            </data>
+            <data name="error" inType="win:Int32" outType="xs:int">
+            </data>
+          </template>
+		  <template tid="RemoteClassNamesTemplate">
+            <data name="seqNum" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="AxServerName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxUserName" inType="win:UnicodeString" outType="xs:string">
+            </data>
+            <data name="AxSessionId" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="ClassCount" inType="win:UInt32" outType="xs:unsignedInt">
+            </data>
+            <data name="ClassNames" inType="win:UnicodeString" outType="xs:string">
+            </data>
+          </template>
+        </templates>
+      </provider>
+    </events>
+  </instrumentation>
+  <localization>
+    <resources culture="en-US">
+      <stringTable>
+        <string id="task.None" value="None">
+        </string>
+        <string id="opcode.Stop" value="Stop">
+        </string>
+        <string id="opcode.Start" value="Start">
+        </string>
+        <string id="opcode.Info" value="Info">
+        </string>
+        <string id="level.Warning" value="Warning">
+        </string>
+        <string id="level.Verbose" value="Verbose">
+        </string>
+        <string id="level.LogAlways" value="Log Always">
+        </string>
+        <string id="level.Informational" value="Information">
+        </string>
+        <string id="level.Error" value="Error">
+        </string>
+        <string id="level.Critical" value="Critical">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.task.WebFrameworkTask.message" value="Events related to the Enterprise Portal framework.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.opcode.AX_Form_Opened.message" value="Form Opened">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.opcode.AX_Form_Closed.message" value="Form Closed">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.opcode.AX_Control_Clicked.message" value="Control Clicked">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.keyword.XPPParmKeyword.message" value="If keywords are not explicitly selected or if [XPPParm] keyword is selected,  PII may be recorded in the traces.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.keyword.SecurityKeyword.message" value="Security">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.keyword.DatabaseKeyword.message" value="Database">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.keyword.BindParameterKeyword.message" value="If keywords are not explicitly selected or if [BindParameter] keyword is selected,  PII may be recorded in the traces.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.99.message" value="Assembly Cache Element">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.98.message" value="Assembly Cache Element Begin">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.97.message" value="Dynamics AX Client Control Clicked">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.96.message" value="Dynamics AX Client Form Closed">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.95.message" value="Dynamics AX Form Opened">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.94.message" value="Model Stored Procedure Parameters:">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.93.message" value="ReqTask">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.107.message" value="ReqExplanation"/>
+        <string id="Microsoft-DynamicsAX-Tracing.event.108.message" value="ReqExplanationDetail"/>
+        <string id="Microsoft-DynamicsAX-Tracing.event.92.message" value="Item">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.91.message" value="NetResourceScheduler">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.90.message" value="ActionMessage">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.89.message" value="ReqTaskController">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.88.message" value="WrkCtrSchedulerSaveDerived">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.87.message" value="BOMLevel">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.86.message" value="PartitionOrders">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.85.message" value="ReqProcessStatus">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.84.message" value="Error">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.83.message" value="WrkCtrSchedulerSaveJobs">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.82.message" value="WrkCtrSchedulerLoadOrder">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.81.message" value="Installation failed with error code %1. Review the log file &quot;%2&quot; for details.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.80.message" value="Installation completed successfully.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.79.message" value="Installation started.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.78.message" value="Installation of component &quot;%1&quot; failed. Review the log file &quot;%2&quot; for details.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.77.message" value="Installation of component &quot;%1&quot; completed with a warning. Review the log file &quot;%2&quot; for details.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.76.message" value="Installation of component &quot;%1&quot; completed successfully.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.75.message" value="Installation of component &quot;%1&quot; started.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.74.message" value="Model Stored Procedure:">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.73.message" value="ServerStartup: %1,%2,%3,%4,%5">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.72.message" value="Setup log error: %1">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.71.message" value="Setup log message: %1">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.70.message" value="Trace Information">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.69.message" value="Access denied.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.68.message" value="Ax trace message.
+Component: %5
+Message: %6">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.67.message" value="AX SqlRowFetchCumu">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.66.message" value="AX SqlRowFetch">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.64.message" value="AX TTSAbort">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.63.message" value="AX TTSCommit">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.62.message" value="AX TTSBegin">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.61.message" value="AX DB Disconnect">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.60.message" value="AX DB Connect">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.59.message" value="AX SQL Statement">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.58.message" value="AX XppUtilFunc">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.57.message" value="AX Xpp Method End">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.56.message" value="AX Xpp Method Begin">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.55.message" value="AX RPC End">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.54.message" value="AX RPC Begin">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.53.message" value="AX Trace Message">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.52.message" value="Dynamics AX Trace Marker End">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.51.message" value="Dynamics AX Trace Marker Begin.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.50.message" value="SCscInsertRecordSetOrder">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.46.message" value="An exception that occurred during web framework execution.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.45.message" value="Security Roles assigned to the currently logged in Enterprise Portal user.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.44.message" value="Authorization for Web Menu Items and Content Items.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.43.message" value="AX Timezone.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.42.message" value="Security permission synchornization error.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.41.message" value="Form activated.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.40.message" value="Menu item invoked.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.39.message" value="User to role mapping loaded from database (cache miss).">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.38.message" value="Role permissions loaded from database.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.37.message" value="Entry point authorization executed.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.36.message" value="The permission returned when the security API was invoked.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.35.message" value="Query filter operation.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.34.message" value="scSC caching events.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.33.message" value="Data caching events.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.32.message" value="View field list generation finished.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.31.message" value="View field list generation started.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.30.message" value="View DDL generation finished.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.29.message" value="View DDL generation started.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.28.message" value="View computed column method succeeded.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.27.message" value="View computed column method failed.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.26.message" value="View computed column method called.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.25.message" value="View computed column method succeeded.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.24.message" value="View computed column method failed.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.23.message" value="View computed column method called.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.22.message" value="Unit of Work db operation.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.21.message" value="Unit of Work toplogical order.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.20.message" value="Unit of work unpack.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.19.message" value="Unit of work pack.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.18.message" value="Unit of Work state change.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.17.message" value="Unit of Work end save changes.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.16.message" value="Unit of Work begin save changes.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.15.message" value="Unit of Work conflict.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.14.message" value="Unit of Work Clone and Add.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.13.message" value="Loading class: %6.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.12.message" value="Loading table: %6.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.11111.message" value="The user does not have access to any tables derived from the given base table.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.11.message" value="Table authorization executed.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.106.message" value="Table authorization failed.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.105.message" value="Entry point authorization failed.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.104.message" value="User to role mapping loaded from cache.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.103.message" value="Role permission loaded from database.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.102.message" value="An empty cross company filter has been applied.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.100.message" value="Assembly Cache Element End">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.event.0.message" value="Out of memory.">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.channel.Server.message" value="Analytic">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.channel.Microsoft_DynamicsAX_Tracing_Admin.message" value="Admin">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.channel.Microsoft_DynamicsAX_Operational_Channel.message" value="Operational">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.channel.Microsoft_DynamicsAX_ClientAccess.message" value="ClientAccess">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.Keyword.EPKeyword.message" value="Enterprise Portal">
+        </string>
+        <string id="Microsoft-DynamicsAX-Tracing.Keyword.AxXppUtilFunc.message" value="System functions.">
+        </string>
+		<string id="Microsoft-DynamicsAX-Tracing.event.109.message" value="Remote class names">
+        </string>
+      </stringTable>
+    </resources>
+  </localization>
+</instrumentationManifest>

@@ -1,0 +1,597 @@
+@page "/"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@using System.ComponentModel
+@using TraceParserWeb.Services
+@using Microsoft.Agents.Core.Models
+@using Microsoft.Identity.Web
+@using Microsoft.Extensions.AI
+@using TraceParserWeb.Services.Authentication
+@using Microsoft.Agents.CopilotStudio.Client
+@using System.Text.Json
+@inject IChatClient ChatClient
+@inject CopilotStudioIChatClient CopilotStudioClient
+@inject NavigationManager Nav
+@inject IHttpClientFactory HttpClientFactory
+@inject ILoggerFactory LoggerFactory
+@inject IConfiguration Configuration
+@inject IJSRuntime JS
+@implements IDisposable
+
+<PageTitle>Chat</PageTitle>
+
+<ChatHeader OnNewChat="@ResetConversationAsync"
+            ShowInformativeMessages="@showInformativeMessages"
+            OnToggleInformativeMessages="@ToggleInformativeMessages"
+            OnSwitchAgent="@OpenAgentSelector"
+            OnTogglePromptGuide="@TogglePromptGuide"
+            ActiveAgentName="@activeAgentName" />
+
+<div class="chat-messages-container">
+    <ChatMessageList Messages="@messages"
+                     InProgressMessage="@currentResponseMessage"
+                     IsWaiting="@isWaitingForResponse"
+                     OnAdaptiveCardInvokeAction="@OnAdaptiveCardInvokeAction">
+        <NoMessagesContent>
+            <div class="welcome-subtitle">AI-powered D365 F&O performance trace analysis</div>
+            <div class="welcome-suggestions">
+                <button class="suggestion-chip" @onclick='() => AddUserMessageAsync(new ChatMessage(ChatRole.User, "Show me all available traces"))'>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="14" height="14"><path d="M2.5 3A1.5 1.5 0 001 4.5v1.756a49.7 49.7 0 009.5 0V4.5A1.5 1.5 0 009 3H2.5zm0 14A1.5 1.5 0 011 15.5v-1.756a49.7 49.7 0 009.5 0v1.756A1.5 1.5 0 019 17H2.5zm10-14A1.5 1.5 0 0011 4.5v11a1.5 1.5 0 001.5 1.5H19a1.5 1.5 0 001.5-1.5v-11A1.5 1.5 0 0019 3h-6.5z" /></svg>
+                    Show all available traces
+                </button>
+                <button class="suggestion-chip" @onclick='() => AddUserMessageAsync(new ChatMessage(ChatRole.User, "Analyze the slowest session in the latest trace"))'>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd" /></svg>
+                    Analyze the slowest session
+                </button>
+                <button class="suggestion-chip" @onclick='() => AddUserMessageAsync(new ChatMessage(ChatRole.User, "Show me the slowest SQL queries"))'>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M4.25 2A2.25 2.25 0 002 4.25v2.5A2.25 2.25 0 004.25 9h2.5A2.25 2.25 0 009 6.75v-2.5A2.25 2.25 0 006.75 2h-2.5zm0 9A2.25 2.25 0 002 13.25v2.5A2.25 2.25 0 004.25 18h2.5A2.25 2.25 0 009 15.75v-2.5A2.25 2.25 0 006.75 11h-2.5zm9-9A2.25 2.25 0 0011 4.25v2.5A2.25 2.25 0 0013.25 9h2.5A2.25 2.25 0 0018 6.75v-2.5A2.25 2.25 0 0015.75 2h-2.5zm0 9A2.25 2.25 0 0011 13.25v2.5A2.25 2.25 0 0013.25 18h2.5A2.25 2.25 0 0018 15.75v-2.5A2.25 2.25 0 0015.75 11h-2.5z" clip-rule="evenodd" /></svg>
+                    Slowest SQL queries
+                </button>
+            </div>
+        </NoMessagesContent>
+    </ChatMessageList>
+</div>
+
+<div class="chat-input-container">
+    <ChatInput OnSend="@AddUserMessageAsync" @ref="@chatInput" IsDisabled="@isProcessing" />
+</div>
+
+<PromptGuide IsOpen="@showPromptGuide"
+             OnClose="@ClosePromptGuide"
+             OnPromptSelected="@OnPromptGuideSelected" />
+
+@if (showAgentSelector)
+{
+    <div class="agent-modal-overlay" @onclick="CloseAgentSelector">
+        <div class="agent-modal-card" @onclick:stopPropagation="true">
+            <div class="agent-modal-header">
+                <h2 class="agent-modal-title">Switch Agent</h2>
+                <button class="agent-modal-close" @onclick="CloseAgentSelector" title="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="16" height="16">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            @if (savedAgentProfiles.Count > 0)
+            {
+                <div class="agent-modal-section">
+                    <h3 class="agent-section-label">Saved Agents</h3>
+                    <div class="agent-saved-list">
+                        @foreach (var profile in savedAgentProfiles)
+                        {
+                            <div class="agent-saved-card @(profile.Name == activeAgentName ? "active" : "")"
+                                 @onclick="() => SelectAgentProfile(profile)">
+                                <div class="agent-saved-info">
+                                    <span class="agent-saved-name">@profile.Name</span>
+                                    <span class="agent-saved-detail">@profile.SchemaName</span>
+                                </div>
+                                <button class="agent-saved-delete" @onclick="() => DeleteAgentProfile(profile)"
+                                        @onclick:stopPropagation="true" title="Remove">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                         stroke-width="1.5" stroke="currentColor" width="14" height="14">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="agent-modal-section">
+                <h3 class="agent-section-label">Connection Details</h3>
+                <div class="agent-form-fields">
+                    <div class="agent-form-field">
+                        <label class="agent-field-label">Agent Name</label>
+                        <input class="agent-field-input" type="text" placeholder="My Agent"
+                               @bind="editAgentName" />
+                    </div>
+                    <div class="agent-form-field">
+                        <label class="agent-field-label">Environment ID</label>
+                        <input class="agent-field-input" type="text"
+                               placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                               @bind="editEnvironmentId" />
+                    </div>
+                    <div class="agent-form-field">
+                        <label class="agent-field-label">Schema Name</label>
+                        <input class="agent-field-input" type="text"
+                               placeholder="copilots_header_xxxxx"
+                               @bind="editSchemaName" />
+                    </div>
+
+                    <div class="agent-form-separator"></div>
+
+                    <div class="agent-form-field">
+                        <label class="agent-field-label">Tenant ID</label>
+                        <input class="agent-field-input" type="text"
+                               placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                               @bind="editTenantId" />
+                    </div>
+                    <div class="agent-form-field">
+                        <label class="agent-field-label">Client ID</label>
+                        <input class="agent-field-input" type="text"
+                               placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                               @bind="editClientId" />
+                    </div>
+                    <div class="agent-form-field">
+                        <label class="agent-field-label">Client Secret</label>
+                        <input class="agent-field-input" type="password"
+                               placeholder="Enter client secret"
+                               @bind="editClientSecret" />
+                        <span class="agent-field-hint">Not saved to browser storage</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="agent-modal-actions">
+                <button class="agent-btn-secondary" @onclick="CloseAgentSelector">Cancel</button>
+                <button class="agent-btn-primary" @onclick="ConnectToAgent"
+                        disabled="@(!IsAgentFormValid)">Connect</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private readonly ChatOptions chatOptions = new();
+    private readonly List<ChatMessage> messages = new();
+    private CancellationTokenSource? currentResponseCancellation;
+    private ChatMessage? currentResponseMessage;
+    private ChatInput? chatInput;
+    private bool isWaitingForResponse = false;
+    private bool isProcessing = false;
+    private bool showInformativeMessages = false;
+    private bool showAgentSelector = false;
+    private bool showPromptGuide = false;
+    private string? activeAgentName;
+
+    // Agent selector form fields
+    private string editAgentName = "";
+    private string editEnvironmentId = "";
+    private string editSchemaName = "";
+    private string editTenantId = "";
+    private string editClientId = "";
+    private string editClientSecret = "";
+    private List<AgentProfile> savedAgentProfiles = new();
+
+    protected override void OnInitialized()
+    {
+        activeAgentName = CopilotStudioClient.ActiveAgentName;
+    }
+
+    private bool IsAgentFormValid =>
+        !string.IsNullOrWhiteSpace(editEnvironmentId) &&
+        !string.IsNullOrWhiteSpace(editSchemaName) &&
+        !string.IsNullOrWhiteSpace(editTenantId) &&
+        !string.IsNullOrWhiteSpace(editClientId) &&
+        !string.IsNullOrWhiteSpace(editClientSecret);
+
+    private void ToggleInformativeMessages()
+    {
+        showInformativeMessages = !showInformativeMessages;
+    }
+
+    private void TogglePromptGuide()
+    {
+        showPromptGuide = !showPromptGuide;
+    }
+
+    private void ClosePromptGuide()
+    {
+        showPromptGuide = false;
+    }
+
+    private async Task OnPromptGuideSelected(string prompt)
+    {
+        showPromptGuide = false;
+        if (System.Text.RegularExpressions.Regex.IsMatch(prompt, @"\[.+?\]"))
+        {
+            await chatInput!.SetTextAsync(prompt);
+        }
+        else
+        {
+            await AddUserMessageAsync(new ChatMessage(ChatRole.User, prompt));
+        }
+    }
+
+    private async Task OpenAgentSelector()
+    {
+        // Load saved profiles from localStorage
+        try
+        {
+            var json = await JS.InvokeAsync<string?>("localStorage.getItem", "copilot-agent-profiles");
+            if (!string.IsNullOrEmpty(json))
+            {
+                savedAgentProfiles = JsonSerializer.Deserialize<List<AgentProfile>>(json) ?? new();
+            }
+        }
+        catch
+        {
+            savedAgentProfiles = new();
+        }
+
+        // Pre-fill Azure AD fields from current configuration
+        editTenantId = Configuration["AzureAd:TenantId"] ?? "";
+        editClientId = Configuration["AzureAd:ClientId"] ?? "";
+        editClientSecret = Configuration["AzureAd:ClientSecret"] ?? "";
+
+        showAgentSelector = true;
+    }
+
+    private void CloseAgentSelector()
+    {
+        showAgentSelector = false;
+        editAgentName = "";
+        editEnvironmentId = "";
+        editSchemaName = "";
+        editTenantId = "";
+        editClientId = "";
+        editClientSecret = "";
+    }
+
+    private void SelectAgentProfile(AgentProfile profile)
+    {
+        editAgentName = profile.Name;
+        editEnvironmentId = profile.EnvironmentId;
+        editSchemaName = profile.SchemaName;
+        editTenantId = profile.TenantId;
+        editClientId = profile.ClientId;
+    }
+
+    private async Task DeleteAgentProfile(AgentProfile profile)
+    {
+        savedAgentProfiles.RemoveAll(p => p.Name == profile.Name && p.EnvironmentId == profile.EnvironmentId);
+        await SaveAgentProfiles();
+    }
+
+    private async Task SaveAgentProfiles()
+    {
+        try
+        {
+            var json = JsonSerializer.Serialize(savedAgentProfiles);
+            await JS.InvokeVoidAsync("localStorage.setItem", "copilot-agent-profiles", json);
+        }
+        catch
+        {
+            // localStorage may be unavailable
+        }
+    }
+
+    private async Task ConnectToAgent()
+    {
+        if (!IsAgentFormValid) return;
+
+        var profile = new AgentProfile
+        {
+            Name = string.IsNullOrWhiteSpace(editAgentName) ? editSchemaName : editAgentName.Trim(),
+            EnvironmentId = editEnvironmentId.Trim(),
+            SchemaName = editSchemaName.Trim(),
+            TenantId = editTenantId.Trim(),
+            ClientId = editClientId.Trim()
+        };
+
+        // Save/update in profiles list (ClientSecret is NOT saved)
+        savedAgentProfiles.RemoveAll(p => p.Name == profile.Name);
+        savedAgentProfiles.Insert(0, profile);
+        await SaveAgentProfiles();
+
+        // Build in-memory configuration from form values
+        var configData = new Dictionary<string, string?>
+        {
+            ["CopilotStudio:EnvironmentId"] = profile.EnvironmentId,
+            ["CopilotStudio:SchemaName"] = profile.SchemaName,
+            ["AzureAd:TenantId"] = editTenantId.Trim(),
+            ["AzureAd:ClientId"] = editClientId.Trim(),
+            ["AzureAd:ClientSecret"] = editClientSecret.Trim(),
+        };
+        var memConfig = new ConfigurationBuilder()
+            .AddInMemoryCollection(configData)
+            .Build();
+
+        var newSettings = new CopilotStudioConnectionSettings(
+            memConfig.GetSection("CopilotStudio"),
+            memConfig.GetSection("AzureAd"));
+
+        var newScope = CopilotClient.ScopeFromSettings(newSettings);
+        var logger = LoggerFactory.CreateLogger<CopilotClient>();
+        var newClient = new CopilotClient(newSettings, HttpClientFactory, logger, "mcs");
+
+        CopilotStudioClient.SwitchAgent(newClient, newScope);
+
+        // Cancel any in-progress streaming and reset conversation
+        currentResponseCancellation?.Cancel();
+        currentResponseCancellation?.Dispose();
+        currentResponseCancellation = null;
+        currentResponseMessage = null;
+        isWaitingForResponse = false;
+        isProcessing = false;
+        messages.Clear();
+
+        activeAgentName = profile.Name;
+        CopilotStudioClient.ActiveAgentName = profile.Name;
+        showAgentSelector = false;
+        editAgentName = "";
+        editEnvironmentId = "";
+        editSchemaName = "";
+        editTenantId = "";
+        editClientId = "";
+        editClientSecret = "";
+
+        await chatInput!.FocusAsync();
+    }
+
+    private async Task AddUserMessageAsync(ChatMessage userMessage)
+    {
+        messages.Add(userMessage);
+        await chatInput!.FocusAsync();
+
+        currentResponseCancellation = new CancellationTokenSource();
+
+        var streamingUpdates = ChatClient.GetStreamingResponseAsync(
+            [.. messages],
+            chatOptions,
+            currentResponseCancellation.Token
+        );
+
+        isProcessing = true;
+        try
+        {
+            await ProcessStreamingResponseAsync(streamingUpdates);
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task OnAdaptiveCardInvokeAction(Activity invokeActivity)
+    {
+        currentResponseCancellation = new CancellationTokenSource();
+
+        var streamingUpdates = CopilotStudioClient.SendAdaptiveCardResponseAsync(
+            invokeActivity,
+            currentResponseCancellation.Token
+        );
+
+        isProcessing = true;
+        try
+        {
+            await ProcessStreamingResponseAsync(streamingUpdates);
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    /// <summary>
+    /// Common method to process streaming responses
+    /// </summary>
+    private async Task ProcessStreamingResponseAsync(IAsyncEnumerable<ChatResponseUpdate> updates)
+    {
+        isWaitingForResponse = true;
+        var responseText = new TextContent("");
+        var responseContents = new List<AIContent> { responseText };
+        currentResponseMessage = new ChatMessage(ChatRole.Assistant, responseContents);
+
+        StateHasChanged();
+
+        try
+        {
+            await foreach (var update in updates)
+            {
+                ProcessUpdateContents(update, responseText, responseContents);
+
+                ChatMessageItem.NotifyChanged(currentResponseMessage);
+                StateHasChanged();
+                await Task.Yield();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected when conversation is reset while streaming
+        }
+        catch (Exception ex)
+        {
+            responseText.Text = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isWaitingForResponse = false;
+        }
+
+        // If reset cleared currentResponseMessage during cancellation, bail out
+        if (currentResponseMessage is null)
+        {
+            currentResponseCancellation?.Dispose();
+            currentResponseCancellation = null;
+            return;
+        }
+
+        // Cleanup: remove reasoning and tool info if toggle is off
+        if (!showInformativeMessages)
+        {
+            responseContents.RemoveAll(c => c is FunctionCallContent { CallId: "InformativeMessage" });
+            responseContents.RemoveAll(c => c is FunctionCallContent { CallId: "CompletedReasoning" });
+            responseContents.RemoveAll(c => c is FunctionCallContent { CallId: "ToolCallInfo" });
+        }
+        else
+        {
+            // Remove the live streaming slot (only keep completed snapshots)
+            responseContents.RemoveAll(c => c is FunctionCallContent { CallId: "InformativeMessage" });
+        }
+
+        // Store final response
+        messages.Add(currentResponseMessage);
+        currentResponseMessage = null;
+
+        // Dispose the cancellation token source
+        currentResponseCancellation?.Dispose();
+        currentResponseCancellation = null;
+    }
+
+    /// <summary>
+    /// Snapshots the current InformativeMessage as CompletedReasoning.
+    /// If the previous CompletedReasoning is a prefix of this one (incomplete mid-stream snapshot),
+    /// replaces it instead of keeping both.
+    /// </summary>
+    private static void SnapshotInformativeMessage(List<AIContent> responseContents, int infoIdx)
+    {
+        var info = (FunctionCallContent)responseContents[infoIdx];
+        var infoText = info.Arguments?.TryGetValue("message", out var mtObj) is true
+            ? mtObj as string : "";
+
+        // Check if the last CompletedReasoning is a prefix (incomplete snapshot of same phase)
+        for (int i = responseContents.Count - 1; i >= 0; i--)
+        {
+            if (responseContents[i] is FunctionCallContent { CallId: "CompletedReasoning" } prev)
+            {
+                var prevText = prev.Arguments?.TryGetValue("message", out var ptObj) is true
+                    ? ptObj as string : "";
+                if (prevText is { Length: > 0 } && infoText is { Length: > 0 }
+                    && infoText.StartsWith(prevText))
+                {
+                    // Replace the incomplete snapshot with the fuller version
+                    responseContents.RemoveAt(i);
+                    if (infoIdx > i) infoIdx--; // adjust index after removal
+                }
+                break; // only check the most recent CompletedReasoning
+            }
+        }
+
+        responseContents[infoIdx] = new FunctionCallContent(
+            "CompletedReasoning", info.Name)
+        { Arguments = info.Arguments };
+    }
+
+    private void ProcessUpdateContents(
+        ChatResponseUpdate update,
+        TextContent responseText,
+        List<AIContent> responseContents)
+    {
+        foreach (var content in update.Contents)
+        {
+            switch (content)
+            {
+                case TextContent { Text: { Length: > 0 } text }:
+                    isWaitingForResponse = false;
+                    // Snapshot any remaining informative message (last reasoning before answer)
+                    var lastInfoIdx = responseContents.FindIndex(
+                        c => c is FunctionCallContent { CallId: "InformativeMessage" });
+                    if (lastInfoIdx >= 0)
+                    {
+                        SnapshotInformativeMessage(responseContents, lastInfoIdx);
+                    }
+                    responseText.Text = text;
+                    break;
+
+                case FunctionCallContent { CallId: "InformativeMessage" } infoContent:
+                    var newMsg = infoContent.Arguments?.TryGetValue("message", out var nmObj) is true
+                        ? nmObj as string : "";
+                    var curIdx = responseContents.FindIndex(
+                        c => c is FunctionCallContent { CallId: "InformativeMessage" });
+                    if (curIdx >= 0)
+                    {
+                        var cur = (FunctionCallContent)responseContents[curIdx];
+                        var curMsg = cur.Arguments?.TryGetValue("message", out var cmObj) is true
+                            ? cmObj as string : "";
+                        // New phase: new text is shorter and not a prefix of current
+                        if (curMsg is { Length: > 0 } && newMsg is not null
+                            && newMsg.Length < curMsg.Length && !curMsg.StartsWith(newMsg))
+                        {
+                            SnapshotInformativeMessage(responseContents, curIdx);
+                            responseContents.Add(infoContent);
+                        }
+                        else
+                        {
+                            responseContents[curIdx] = infoContent;
+                        }
+                    }
+                    else
+                    {
+                        responseContents.Add(infoContent);
+                    }
+                    break;
+
+                case FunctionCallContent { CallId: "ToolCallInfo" } toolCallContent:
+                    // Snapshot current informative message as completed reasoning
+                    var currentInfoIdx = responseContents.FindIndex(
+                        c => c is FunctionCallContent { CallId: "InformativeMessage" });
+                    if (currentInfoIdx >= 0)
+                    {
+                        SnapshotInformativeMessage(responseContents, currentInfoIdx);
+                    }
+                    // Accumulate tool call info
+                    responseContents.Add(toolCallContent);
+                    break;
+
+                case FunctionCallContent { CallId: "RenderAdaptiveCardAsync" } cardContent:
+                    messages.Add(new ChatMessage(ChatRole.Assistant, [cardContent]));
+                    break;
+            }
+        }
+    }
+
+    private async Task ResetConversationAsync()
+    {
+        // Cancel any in-progress streaming
+        currentResponseCancellation?.Cancel();
+        currentResponseCancellation?.Dispose();
+        currentResponseCancellation = null;
+
+        // Clean up in-progress message without saving it
+        currentResponseMessage = null;
+        isWaitingForResponse = false;
+        isProcessing = false;
+
+        messages.Clear();
+
+        // Reset the server-side conversation so the next message starts fresh
+        try
+        {
+            await CopilotStudioClient.ResetConversationAsync();
+        }
+        catch
+        {
+            // If reset fails, the next message will still attempt to start a new conversation
+        }
+
+        await chatInput!.FocusAsync();
+    }
+
+    public void Dispose()
+    {
+        currentResponseCancellation?.Cancel();
+        currentResponseCancellation?.Dispose();
+    }
+
+    public class AgentProfile
+    {
+        public string Name { get; set; } = "";
+        public string EnvironmentId { get; set; } = "";
+        public string SchemaName { get; set; } = "";
+        public string TenantId { get; set; } = "";
+        public string ClientId { get; set; } = "";
+    }
+}

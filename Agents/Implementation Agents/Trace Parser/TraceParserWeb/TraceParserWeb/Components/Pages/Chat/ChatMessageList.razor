@@ -1,0 +1,151 @@
+﻿@inject IJSRuntime JS
+@using Microsoft.Agents.Core.Models
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+<div class="message-list-container" @ref="_scrollContainer">
+    <chat-messages class="page-width message-list" in-progress="@(InProgressMessage is not null)">
+        @* === PREVIOUS TURNS (older messages) === *@
+        @if (PreviousMessages.Any())
+        {
+            <div class="previous-messages-section">
+                @foreach (var message in PreviousMessages)
+                {
+                    <ChatMessageItem @key="@message" Message="@message" OnAdaptiveCardInvokeAction="@OnAdaptiveCardInvokeAction" />
+                }
+            </div>
+        }
+        @* === CURRENT TURN (latest user message + response) === *@
+        <div class="current-turn-section @(IsEmpty ? "" : "has-messages")" @ref="_currentTurnRef">
+            @if (CurrentTurnMessages.Any() || InProgressMessage is not null || IsWaiting)
+            {
+                @foreach (var message in CurrentTurnMessages)
+                {
+                    <ChatMessageItem @key="@message" Message="@message" OnAdaptiveCardInvokeAction="@OnAdaptiveCardInvokeAction" />
+                }
+                @if (InProgressMessage is not null)
+                {
+                    <ChatMessageItem Message="@InProgressMessage" InProgress="true" OnAdaptiveCardInvokeAction="@OnAdaptiveCardInvokeAction" />
+                    <LoadingSpinner />
+                }
+                else if (IsWaiting)
+                {
+                    <div class="waiting-message">
+                        <div class="assistant-message">
+                            <div class="assistant-message-icon">
+                                <svg fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <LoadingSpinner />
+                        </div>
+                    </div>
+                }
+            }
+            else if (IsEmpty)
+            {
+                <div class="no-messages">
+                    <div class="welcome-image welcome-image-visible">
+                        <img src="TraceParserAgent_Logo_3D_transparent.png" alt="Trace Parser Agent" />
+                    </div>
+                    @NoMessagesContent
+                </div>
+            }
+        </div>
+    </chat-messages>
+</div>
+@code {
+    [Parameter]
+    public required IEnumerable<ChatMessage> Messages { get; set; }
+    [Parameter]
+    public ChatMessage? InProgressMessage { get; set; }
+    [Parameter]
+    public bool IsWaiting { get; set; }
+    [Parameter]
+    public RenderFragment? NoMessagesContent { get; set; }
+    [Parameter]
+    public EventCallback<Activity> OnAdaptiveCardInvokeAction { get; set; }
+    private ElementReference _scrollContainer;
+    private ElementReference _currentTurnRef;
+    private IJSObjectReference? _jsModule;
+    private int _previousMessageCount = 0;
+    private bool IsEmpty => !Messages.Any(m =>
+        m is not null
+        && (m.Role == ChatRole.User || m.Role == ChatRole.Assistant)
+        && !string.IsNullOrEmpty(m.Text));
+    /// <summary>
+    /// All messages except the last user+assistant pair (the current turn).
+    /// </summary>
+    private IEnumerable<ChatMessage> PreviousMessages
+    {
+        get
+        {
+            var all = Messages.Where(m => m is not null).ToList();
+            var lastUserIndex = -1;
+            for (int i = all.Count - 1; i >= 0; i--)
+            {
+                if (all[i].Role == ChatRole.User)
+                {
+                    lastUserIndex = i;
+                    break;
+                }
+            }
+            if (lastUserIndex <= 0) return Enumerable.Empty<ChatMessage>();
+            return all.Take(lastUserIndex);
+        }
+    }
+    /// <summary>
+    /// The latest turn: last user message + any assistant messages after it.
+    /// </summary>
+    private IEnumerable<ChatMessage> CurrentTurnMessages
+    {
+        get
+        {
+            var all = Messages.Where(m => m is not null).ToList();
+            var lastUserIndex = -1;
+            for (int i = all.Count - 1; i >= 0; i--)
+            {
+                if (all[i].Role == ChatRole.User)
+                {
+                    lastUserIndex = i;
+                    break;
+                }
+            }
+            if (lastUserIndex < 0) return all;
+            return all.Skip(lastUserIndex);
+        }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            _jsModule = await JS.InvokeAsync<IJSObjectReference>("import",
+                $"./Components/Pages/Chat/ChatMessageList.razor.js?v={timestamp}");
+            await ScrollCurrentTurnForcedAsync();
+        }
+        var currentMessageCount = Messages.Count();
+        if (currentMessageCount != _previousMessageCount)
+        {
+            var hadNewUserMessage = currentMessageCount > _previousMessageCount &&
+                Messages.LastOrDefault()?.Role == ChatRole.User;
+            _previousMessageCount = currentMessageCount;
+            if (hadNewUserMessage)
+                await ScrollCurrentTurnForcedAsync();
+        }
+    }
+
+    private async Task ScrollCurrentTurnForcedAsync()
+    {
+        try { await JS.InvokeVoidAsync("scrollCurrentTurnToTopForced"); }
+        catch { }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_jsModule is not null)
+        {
+            try { await _jsModule.DisposeAsync(); }
+            catch { }
+        }
+    }
+}

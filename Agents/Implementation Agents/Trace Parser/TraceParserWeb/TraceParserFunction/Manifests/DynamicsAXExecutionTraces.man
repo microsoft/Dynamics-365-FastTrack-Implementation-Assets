@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<instrumentationManifest xsi:schemaLocation="http://schemas.microsoft.com/win/2004/08/events eventman.xsd" xmlns="http://schemas.microsoft.com/win/2004/08/events" xmlns:win="http://manifests.microsoft.com/win/2004/08/windows/events" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:trace="http://schemas.microsoft.com/win/2004/08/events/trace">
+	<instrumentation>
+		<events>
+			<provider name="Microsoft-Dynamics-AX-ExecutionTraces" guid="{70560195-BECD-45D4-AC93-97290953AD02}" symbol="Microsoft_Dynamics_AX_ExecutionTraces" resourceFileName="%APPROOT%\Monitoring\DynamicsAXExecutionTracesResource.dll" messageFileName="%APPROOT%\Monitoring\DynamicsAXExecutionTracesResource.dll">
+				<events>
+					<event symbol="AosInitInfo" value="4900" version="0" channel="Debug" level="win:Informational" template="ExecutionTrace" keywords="Init ">
+					</event>
+					<event symbol="AosInitVerbose" value="4901" version="0" channel="Debug" level="win:Verbose" template="ExecutionTrace" keywords="Init ">
+					</event>
+					<event symbol="AosAuthenticationInfo" value="4902" version="0" channel="Debug" level="win:Informational" template="ExecutionTrace" keywords="Authentication ">
+					</event>
+					<event symbol="AosAuthenticationVerbose" value="4903" version="0" channel="Debug" level="win:Verbose" template="ExecutionTrace" keywords="Authentication ">
+					</event>
+					<event symbol="AosAccessControlInfo" value="4904" version="0" channel="Debug" level="win:Informational" template="ExecutionTrace" keywords="AccessControl ">
+					</event>
+					<event symbol="AosAccessControlVerbose" value="4905" version="0" channel="Debug" level="win:Verbose" template="ExecutionTrace" keywords="AccessControl ">
+					</event>
+					<event symbol="AosSessionManagementInfo" value="4906" version="0" channel="Debug" level="win:Informational" template="ExecutionTrace" keywords="SessionManagement " message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.event.4906.message)">
+					</event>
+					<event symbol="AosSessionManagementVerbose" value="4907" version="0" channel="Debug" level="win:Verbose" template="ExecutionTrace" keywords="SessionManagement " message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.event.4907.message)">
+					</event>
+					<event symbol="AosDatabaseInfo" value="4908" version="0" channel="Debug" level="win:Informational" template="ExecutionTrace" keywords="Database " message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.event.4908.message)">
+					</event>
+					<event symbol="AosDatabaseVerbose" value="4909" version="0" channel="Debug" level="win:Verbose" template="ExecutionTrace" keywords="Database " message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.event.4909.message)">
+					</event>
+					<event symbol="AosServicesInfo" value="4910" version="0" channel="Debug" level="win:Informational" template="ExecutionTrace" keywords="Services " message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.event.4910.message)">
+					</event>
+					<event symbol="AosServicesVerbose" value="4911" version="0" channel="Debug" level="win:Verbose" template="ExecutionTrace" keywords="Services " message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.event.4911.message)">
+					</event>
+					<event symbol="AosUserManagementInfo" value="4912" version="0" channel="Debug" level="win:Informational" template="ExecutionTrace" keywords="UserManagement " message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.event.4912.message)">
+					</event>
+					<event symbol="AosUserManagementVerbose" value="4913" version="0" channel="Debug" level="win:Verbose" template="ExecutionTrace" keywords="UserManagement " message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.event.4913.message)">
+					</event>
+					<event symbol="AosMetadataInfo" value="4914" version="0" channel="Debug" level="win:Informational" template="ExecutionTrace" keywords="Metadata " message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.event.4914.message)">
+					</event>
+					<event symbol="AosMetadataVerbose" value="4915" version="0" channel="Debug" level="win:Verbose" template="ExecutionTrace" keywords="Metadata " message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.event.4915.message)">
+					</event>
+					<event symbol="AosBatchWorkerInfo" value="4916" version="0" channel="Debug" level="win:Informational" template="ExecutionTrace" keywords="BatchWorker " message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.event.4916.message)">
+					</event>
+					<event symbol="AosBatchWorkerVerbose" value="4917" version="0" channel="Debug" level="win:Verbose" template="ExecutionTrace" keywords="BatchWorker " message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.event.4917.message)">
+					</event>
+					<event symbol="AosFormsInfo" value="4918" version="0" channel="Debug" level="win:Informational" template="ExecutionTrace" keywords="FormsEngine " message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.event.4918.message)">
+					</event>
+					<event symbol="AosFormsVerbose" value="4919" version="0" channel="Debug" level="win:Verbose" template="ExecutionTrace" keywords="FormsEngine " message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.event.4919.message)">
+					</event>
+					<event symbol="AosReflectionInfo" value="4920" version="0" channel="Debug" level="win:Informational" template="ExecutionTrace" keywords="Reflection " message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.event.4920.message)">
+					</event>
+					<event symbol="AosReflectionVerbose" value="4921" version="0" channel="Debug" level="win:Verbose" template="ExecutionTrace" keywords="Reflection " message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.event.4921.message)">
+					</event>
+					<event symbol="AosSqlStatementExecutionLatency" value="4922" version="0" channel="Debug" level="win:Verbose" template="AosSqlStatementExecutionLatencyParam" keywords="Database " message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.event.4922.message)">
+					</event>
+					<event symbol="AosSqlStatementInputBind" value="4923" version="0" channel="Debug" level="win:Verbose" template="AosSqlStatementInputBindParam" keywords="Database " message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.event.4923.message)">
+					</event>
+					<event symbol="AosSqlRowFetchLatency" value="4924" version="0" channel="Debug" level="win:Verbose" template="AosSqlRowFetchLatencyParam" keywords="Database " message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.event.4924.message)">
+					</event>
+					<event symbol="AosSqlCumulativeRowFetchDuration" value="4925" version="0" channel="Debug" level="win:Verbose" template="AosSqlCumulativeRowFetchDurationParam" keywords="Database " message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.event.4925.message)">
+					</event>
+				</events>
+				<levels>
+				</levels>
+        <channels>
+          <channel name="Microsoft-Dynamics-AX-ExecutionTraces/Debug" chid="Debug" type="Debug" enabled="false" message="$(string.Channel.Microsoft-Dynamics-AX-ExecutionTraces/Debug)">
+          </channel>
+        </channels>
+				<keywords>
+					<keyword name="Init" symbol="Microsoft_Dynamics_AX_Keyword_Init" mask="0x1" message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.keyword.Microsoft_Dynamics_AX_Keyword_Init.message)">
+					</keyword>
+					<keyword name="Authentication" symbol="Microsoft_Dynamics_AX_Keyword_Authentication" mask="0x2" message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.Keyword.Microsoft_Dynamics_AX_Keyword_Authentication.message)">
+					</keyword>
+					<keyword name="AccessControl" symbol="Microsoft_Dynamics_AX_Keyword_AccessControl" mask="0x4" message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.Keyword.Microsoft_Dynamics_AX_Keyword_AccessControl.message)">
+					</keyword>
+					<keyword name="SessionManagement" symbol="Microsoft_Dynamics_AX_Keyword_SessionManagement" mask="0x8" message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.Keyword.Microsoft_Dynamics_AX_Keyword_SessionManagement.message)">
+					</keyword>
+					<keyword name="Database" symbol="Microsoft_Dynamics_AX_Keyword_Database" mask="0x10" message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.Keyword.Microsoft_Dynamics_AX_Keyword_Database.message)">
+					</keyword>
+					<keyword name="Services" symbol="Microsoft_Dynamics_AX_Keyword_Services" mask="0x20" message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.Keyword.Microsoft_Dynamics_AX_Keyword_Services.message)">
+					</keyword>
+					<keyword name="UserManagement" symbol="Microsoft_Dynamics_AX_Keyword_UserManagement" mask="0x40" message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.Keyword.Microsoft_Dynamics_AX_Keyword_UserManagement.message)">
+					</keyword>
+					<keyword name="Metadata" symbol="Microsoft_Dynamics_AX_Keyword_Metadata" mask="0x80" message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.Keyword.Microsoft_Dynamics_AX_Keyword_Metadata.message)">
+					</keyword>
+					<keyword name="BatchWorker" symbol="Microsoft_Dynamics_AX_Keyword_BatchWorker" mask="0x100" message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.Keyword.Microsoft_Dynamics_AX_Keyword_BatchWorker.message)">
+					</keyword>
+					<keyword name="FormsEngine" symbol="Microsoft_Dynamics_AX_Keyword_Forms" mask="0x200" message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.Keyword.Microsoft_Dynamics_AX_Keyword_Forms.message)">
+					</keyword>
+					<keyword name="Reflection" symbol="Microsoft_Dynamics_AX_Keyword_Reflection" mask="0x400" message="$(string.Microsoft-Dynamics-AX-ExecutionTraces.Keyword.Microsoft_Dynamics_AX_Keyword_Reflection.message)">
+					</keyword>
+				</keywords>
+				<templates>
+					<template tid="ExecutionTrace">
+						<data name="fileName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="methodName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="lineNumber" inType="win:UInt32" outType="xs:unsignedInt">
+						</data>
+						<data name="serviceUnitType" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="serviceUnitId" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="branchName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="userLanguage" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="ipAddress" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="deviceName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="machineName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="runtimeMessage" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="author" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="customer" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="userId" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="sessionId" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="requestId" inType="win:GUID" outType="xs:GUID">
+						</data>
+						<data name="buildVersion" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="message" inType="win:UnicodeString" outType="xs:string">
+						</data>
+					</template>
+					<template tid="AosSqlStatementExecutionLatencyParam">
+						<data name="fileName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="methodName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="lineNumber" inType="win:UInt32" outType="xs:unsignedInt">
+						</data>
+						<data name="serviceUnitType" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="serviceUnitId" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="branchName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="userLanguage" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="ipAddress" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="deviceName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="machineName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="runtimeMessage" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="author" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="customer" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="userGuid" inType="win:GUID" outType="xs:GUID">
+						</data>
+						<data name="sessionId" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="requestId" inType="win:GUID" outType="xs:GUID">
+						</data>
+						<data name="buildVersion" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="isModelDatabase" inType="win:Boolean" outType="xs:boolean">
+						</data>
+						<data name="sqlServiceProcessId" inType="win:UInt64" outType="xs:unsignedLong">
+						</data>
+						<data name="sqlStatement" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="preparationTimeSeconds" inType="win:Double" outType="xs:double">
+						</data>
+						<data name="executionTimeSeconds" inType="win:Double" outType="xs:double">
+						</data>
+					</template>
+					<template tid="AosSqlStatementInputBindParam">
+						<data name="fileName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="methodName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="lineNumber" inType="win:UInt32" outType="xs:unsignedInt">
+						</data>
+						<data name="serviceUnitType" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="serviceUnitId" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="branchName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="userLanguage" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="ipAddress" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="deviceName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="machineName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="runtimeMessage" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="author" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="customer" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="userGuid" inType="win:GUID" outType="xs:GUID">
+						</data>
+						<data name="sessionId" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="requestId" inType="win:GUID" outType="xs:GUID">
+						</data>
+						<data name="buildVersion" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="isModelDatabase" inType="win:Boolean" outType="xs:boolean">
+						</data>
+						<data name="sqlServiceProcessId" inType="win:UInt64" outType="xs:unsignedLong">
+						</data>
+            <data name="sqlColumnId" inType="win:Int16" outType="xs:short">
+            </data>
+            <data name="parameterLength" inType="win:Int32" outType="xs:int">
+            </data>
+            <data name="parameterType" inType="win:Int16" outType="xs:short">
+            </data>
+            <data name="parameterValue" inType="win:UnicodeString" outType="xs:string">
+            </data>
+					</template>
+					<template tid="AosSqlRowFetchLatencyParam">
+						<data name="fileName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="methodName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="lineNumber" inType="win:UInt32" outType="xs:unsignedInt">
+						</data>
+						<data name="serviceUnitType" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="serviceUnitId" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="branchName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="userLanguage" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="ipAddress" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="deviceName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="machineName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="runtimeMessage" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="author" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="customer" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="userGuid" inType="win:GUID" outType="xs:GUID">
+						</data>
+						<data name="sessionId" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="requestId" inType="win:GUID" outType="xs:GUID">
+						</data>
+						<data name="buildVersion" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="sqlServiceProcessId" inType="win:UInt64" outType="xs:unsignedLong">
+						</data>
+						<data name="executionTimeSeconds" inType="win:Double" outType="xs:double">
+						</data>
+					</template>
+					<template tid="AosSqlCumulativeRowFetchDurationParam">
+						<data name="fileName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="methodName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="lineNumber" inType="win:UInt32" outType="xs:unsignedInt">
+						</data>
+						<data name="serviceUnitType" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="serviceUnitId" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="branchName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="userLanguage" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="ipAddress" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="deviceName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="machineName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="runtimeMessage" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="author" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="customer" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="userGuid" inType="win:GUID" outType="xs:GUID">
+						</data>
+						<data name="sessionId" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="requestId" inType="win:GUID" outType="xs:GUID">
+						</data>
+						<data name="buildVersion" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="sqlServiceProcessId" inType="win:UInt64" outType="xs:unsignedLong">
+						</data>
+						<data name="durationSeconds" inType="win:Double" outType="xs:double">
+						</data>
+						<data name="fetchCount" inType="win:UInt32" outType="xs:unsignedInt">
+						</data>
+					</template>
+				</templates>
+			</provider>
+		</events>
+	</instrumentation>
+	<localization>
+		<resources culture="en-US">
+			<stringTable>
+        <string id="Channel.Microsoft-Dynamics-AX-ExecutionTraces/Debug" value="Debug">
+        </string>
+        <string id="level.Verbose" value="Verbose">
+				</string>
+				<string id="level.Informational" value="Information">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.keyword.Microsoft_Dynamics_AX_Keyword_Init.message" value="Initialization related events.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.event.4925.message" value="SQL cumulative row fetch duration">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.event.4924.message" value="SQL row fetch latency">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.event.4923.message" value="SQL input binding info">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.event.4922.message" value="SQL statement execution/preparation latency">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.event.4921.message" value="Execution time use of reflection.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.event.4920.message" value="Execution time use of reflection.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.event.4919.message" value="Forms engine.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.event.4918.message" value="Forms engine.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.event.4917.message" value="AOS batch worker">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.event.4916.message" value="AOS batch worker.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.event.4915.message" value="AX metadata">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.event.4914.message" value="AX Metadata">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.event.4913.message" value="AX user management.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.event.4912.message" value="AX user management.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.event.4911.message" value="WCF services for use by active and passive clients.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.event.4910.message" value="WCF services for use by active and passive clients.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.event.4909.message" value="Database access related">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.event.4908.message" value="Database access related.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.event.4907.message" value="User session management.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.event.4906.message" value="User session management.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.Keyword.Microsoft_Dynamics_AX_Keyword_UserManagement.message" value="WCF services for use by active and passive clients.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.Keyword.Microsoft_Dynamics_AX_Keyword_SessionManagement.message" value="AX user session management.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.Keyword.Microsoft_Dynamics_AX_Keyword_Services.message" value="WCF services for use by active and passive clients.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.Keyword.Microsoft_Dynamics_AX_Keyword_Reflection.message" value="Execution time use of reflection related events.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.Keyword.Microsoft_Dynamics_AX_Keyword_Metadata.message" value="AX metadata.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.Keyword.Microsoft_Dynamics_AX_Keyword_Forms.message" value="Forms engine.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.Keyword.Microsoft_Dynamics_AX_Keyword_Database.message" value="Database access related.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.Keyword.Microsoft_Dynamics_AX_Keyword_BatchWorker.message" value="AOS Batch worker.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.Keyword.Microsoft_Dynamics_AX_Keyword_Authentication.message" value="Authentication category: determine authenticated user's identity.">
+				</string>
+				<string id="Microsoft-Dynamics-AX-ExecutionTraces.Keyword.Microsoft_Dynamics_AX_Keyword_AccessControl.message" value="AccessControl category: Access control decisions based on user's identity/role.">
+				</string>
+			</stringTable>
+		</resources>
+	</localization>
+</instrumentationManifest>

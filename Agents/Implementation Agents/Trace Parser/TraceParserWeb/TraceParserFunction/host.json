@@ -1,0 +1,18 @@
+{
+    "version": "2.0",
+    "functionTimeout": "02:00:00",
+    "extensions": {
+        "blobs": {
+            "maxDegreeOfParallelism": 1
+        }
+    },
+    "logging": {
+        "applicationInsights": {
+            "samplingSettings": {
+                "isEnabled": false,
+                "excludedTypes": "Request"
+            },
+            "enableLiveMetricsFilters": true
+        }
+    }
+}

@@ -1,0 +1,60 @@
+# Dependencies
+node_modules/
+yarn.lock
+
+# Build output
+build/
+dist/
+
+# TypeScript
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+temp/
+
+# Deployment artifacts
+deploy-staging/
+deploy.zip
+azure-logs/
+azure-logs.zip
+logs.zip
+
+# Claude Code / AI assistant settings
+.claude/
+CLAUDE.md
+tasks/
+
+# Internal documents (Word duplicates, email templates)
+*.docx
+CUSTOMER_EMAIL_TEMPLATE*.md
+
+# Customer-specific packages
+Customer*.zip

@@ -1,0 +1,95 @@
+﻿/* Microsoft Colors Loading Spinner - Used under CC0 license */
+
+.lds-ellipsis {
+    animation: fade-in 1s;
+}
+
+@keyframes fade-in {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.lds-ellipsis,
+.lds-ellipsis div {
+    box-sizing: border-box;
+}
+
+.lds-ellipsis {
+    margin: auto;
+    display: block;
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+    .lds-ellipsis div {
+        position: absolute;
+        top: 33.33333px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        animation-timing-function: cubic-bezier(0, 1, 1, 0);
+    }
+
+        /* Microsoft Red */
+        .lds-ellipsis div:nth-child(1) {
+            left: 8px;
+            background: #F25022;
+            animation: lds-ellipsis1 0.6s infinite;
+        }
+
+        /* Microsoft Green */
+        .lds-ellipsis div:nth-child(2) {
+            left: 8px;
+            background: #7FBA00;
+            animation: lds-ellipsis2 0.6s infinite;
+        }
+
+        /* Microsoft Blue */
+        .lds-ellipsis div:nth-child(3) {
+            left: 32px;
+            background: #00A4EF;
+            animation: lds-ellipsis2 0.6s infinite;
+        }
+
+        /* Microsoft Yellow */
+        .lds-ellipsis div:nth-child(4) {
+            left: 56px;
+            background: #FFB900;
+            animation: lds-ellipsis3 0.6s infinite;
+        }
+
+@keyframes lds-ellipsis1 {
+    0% {
+        transform: scale(0);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes lds-ellipsis3 {
+    0% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(0);
+    }
+}
+
+@keyframes lds-ellipsis2 {
+    0% {
+        transform: translate(0, 0);
+    }
+
+    100% {
+        transform: translate(24px, 0);
+    }
+}

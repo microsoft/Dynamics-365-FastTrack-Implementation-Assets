@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<instrumentationManifest xsi:schemaLocation="http://schemas.microsoft.com/win/2004/08/events eventman.xsd" xmlns="http://schemas.microsoft.com/win/2004/08/events" xmlns:win="http://manifests.microsoft.com/win/2004/08/windows/events" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:trace="http://schemas.microsoft.com/win/2004/08/events/trace">
+	<instrumentation>
+		<events>
+			<provider name="Microsoft-Dynamics-AX-XppExecutionTraces" guid="{C0D248CE-634D-426B-9E31-5A50A6D83024}" symbol="Microsoft_Dynamics_AX_XppExecutionTraces" resourceFileName="%APPROOT%\Monitoring\DynamicsAXXppExecutionTracesResource.dll" messageFileName="%APPROOT%\Monitoring\DynamicsAXXppExecutionTracesResource.dll">
+				<events>
+					<event symbol="XppMethodEnter" value="24500" version="0" channel="Debug" level="win:Verbose" template="ExecutionTrace" keywords="ImplicitTraces " message="$(string.Microsoft-Dynamics-AX-XppExecutionTraces.event.24500.message)">
+					</event>
+					<event symbol="XppMethodExit" value="24501" version="0" channel="Debug" level="win:Verbose" template="ExecutionTrace" keywords="ImplicitTraces " message="$(string.Microsoft-Dynamics-AX-XppExecutionTraces.event.24501.message)">
+					</event>
+					<event symbol="XppSequencePoint" value="24502" version="0" channel="Debug" level="win:Verbose" template="ExecutionTrace" keywords="ImplicitTraces " message="$(string.Microsoft-Dynamics-AX-XppExecutionTraces.event.24502.message)">
+					</event>
+				</events>
+				<levels>
+				</levels>
+        <channels>
+          <channel name="Microsoft-Dynamics-AX-XppExecutionTraces/Debug" chid="Debug" type="Debug" enabled="false" message="$(string.Channel.Microsoft-Dynamics-AX-XppExecutionTraces/Debug)">
+          </channel>
+        </channels>
+				<keywords>
+					<keyword name="ImplicitTraces" symbol="Microsoft_Dynamics_AX_Xpp_ImplicitTraces" mask="0x1">
+					</keyword>
+				</keywords>
+				<templates>
+					<template tid="ExecutionTrace">
+						<data name="fileName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="methodName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="lineNumber" inType="win:UInt32" outType="xs:unsignedInt">
+						</data>
+						<data name="serviceUnitType" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="serviceUnitId" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="branchName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="userLanguage" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="userGuid" inType="win:GUID" outType="xs:GUID">
+						</data>
+						<data name="deviceName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="machineName" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="runtimeMessage" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="author" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="customer" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="sessionId" inType="win:UnicodeString" outType="xs:string">
+						</data>
+						<data name="requestId" inType="win:GUID" outType="xs:GUID">
+						</data>
+						<data name="buildVersion" inType="win:UnicodeString" outType="xs:string">
+						</data>
+					</template>
+				</templates>
+			</provider>
+		</events>
+	</instrumentation>
+	<localization>
+		<resources culture="en-US">
+			<stringTable>
+        <string id="Channel.Microsoft-Dynamics-AX-XppExecutionTraces/Debug" value="Debug">
+        </string>
+        <string id="level.Verbose" value="Verbose">
+				</string>
+				<string id="Microsoft-Dynamics-AX-XppExecutionTraces.event.24502.message" value="X++ Sequence Point">
+				</string>
+				<string id="Microsoft-Dynamics-AX-XppExecutionTraces.event.24501.message" value="Exiting X++ method">
+				</string>
+				<string id="Microsoft-Dynamics-AX-XppExecutionTraces.event.24500.message" value="Entering X++ method.">
+				</string>
+			</stringTable>
+		</resources>
+	</localization>
+</instrumentationManifest>
