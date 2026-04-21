@@ -1,0 +1,2844 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "factoryName": {
+            "type": "string",
+            "metadata": "Data Factory name",
+            "defaultValue": "paymentreconadfv4"
+        },
+        "PaymentReconFiles_connectionString": {
+            "type": "secureString",
+            "metadata": "Secure string for 'connectionString' of 'PaymentReconFiles'"
+        },
+        "PaymentReconSQL_password": {
+            "type": "secureString",
+            "metadata": "Secure string for 'password' of 'PaymentReconSQL'"
+        },
+        "PaymentReconSQL_properties_typeProperties_server": {
+            "type": "string",
+            "defaultValue": "cxgcomreconserver.database.windows.net"
+        },
+        "PaymentReconSQL_properties_typeProperties_database": {
+            "type": "string",
+            "defaultValue": "CXGComReconDB_02"
+        },
+        "PaymentReconSQL_properties_typeProperties_userName": {
+            "type": "string",
+            "defaultValue": "Saadmin"
+        }
+    },
+    "variables": {
+        "factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+    },
+    "resources": [
+        {
+            "name": "[concat(parameters('factoryName'), '/ProcessAllCommercePaymentTransV4_PaymentAccountingReport')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "GetCommercePaymentFileNames",
+                        "type": "GetMetadata",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "0.12:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "dataset": {
+                                "referenceName": "CommerceFileSourceDS_AllFiles",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            },
+                            "fieldList": [
+                                "childItems"
+                            ],
+                            "storeSettings": {
+                                "type": "AzureBlobStorageReadSettings",
+                                "recursive": true,
+                                "enablePartitionDiscovery": false
+                            },
+                            "formatSettings": {
+                                "type": "DelimitedTextReadSettings"
+                            }
+                        }
+                    },
+                    {
+                        "name": "ProcessFiles",
+                        "type": "ForEach",
+                        "dependsOn": [
+                            {
+                                "activity": "GetCommercePaymentFileNames",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "items": {
+                                "value": "@activity('GetCommercePaymentFileNames').output.childItems",
+                                "type": "Expression"
+                            },
+                            "activities": [
+                                {
+                                    "name": "Copy data to SQL",
+                                    "type": "Copy",
+                                    "dependsOn": [],
+                                    "policy": {
+                                        "timeout": "0.12:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "source": {
+                                            "type": "DelimitedTextSource",
+                                            "storeSettings": {
+                                                "type": "AzureBlobStorageReadSettings",
+                                                "recursive": true,
+                                                "enablePartitionDiscovery": false
+                                            },
+                                            "formatSettings": {
+                                                "type": "DelimitedTextReadSettings"
+                                            }
+                                        },
+                                        "sink": {
+                                            "type": "AzureSqlSink",
+                                            "writeBehavior": "insert",
+                                            "sqlWriterUseTableLock": false,
+                                            "disableMetricsCollection": false
+                                        },
+                                        "enableStaging": false,
+                                        "translator": {
+                                            "type": "TabularTranslator",
+                                            "mappings": [
+                                                {
+                                                    "source": {
+                                                        "name": "Transaction number",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "TransactionId",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "PSP Reference",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "PaymentReferenceId",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Payment method",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "PaymentMethod",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Store number",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "StoreId",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Date",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "TransactionDate",
+                                                        "type": "Date",
+                                                        "physicalType": "date"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Tendered",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "Tendered",
+                                                        "type": "Decimal",
+                                                        "physicalType": "decimal",
+                                                        "scale": 2,
+                                                        "precision": 32
+                                                    }
+                                                }
+                                            ],
+                                            "typeConversion": true,
+                                            "typeConversionSettings": {
+                                                "allowDataTruncation": true,
+                                                "treatBooleanAsNumber": false
+                                            }
+                                        }
+                                    },
+                                    "inputs": [
+                                        {
+                                            "referenceName": "CommercePaymentTransFileDS_V4PaymentsAccounting",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "FileName": {
+                                                    "value": "@item().name",
+                                                    "type": "Expression"
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    "outputs": [
+                                        {
+                                            "referenceName": "CommercePaymentTransStagingSQLDS_V4PaymentsAccounting",
+                                            "type": "DatasetReference",
+                                            "parameters": {}
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "Archive Commerce File",
+                                    "type": "Copy",
+                                    "dependsOn": [
+                                        {
+                                            "activity": "Copy data to SQL",
+                                            "dependencyConditions": [
+                                                "Succeeded"
+                                            ]
+                                        }
+                                    ],
+                                    "policy": {
+                                        "timeout": "0.12:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "source": {
+                                            "type": "BinarySource",
+                                            "storeSettings": {
+                                                "type": "AzureBlobStorageReadSettings",
+                                                "recursive": true
+                                            },
+                                            "formatSettings": {
+                                                "type": "BinaryReadSettings"
+                                            }
+                                        },
+                                        "sink": {
+                                            "type": "BinarySink",
+                                            "storeSettings": {
+                                                "type": "AzureBlobStorageWriteSettings"
+                                            }
+                                        },
+                                        "enableStaging": false
+                                    },
+                                    "inputs": [
+                                        {
+                                            "referenceName": "ArchiveCommerceFileSourceDS",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "FileName": {
+                                                    "value": "@item().name",
+                                                    "type": "Expression"
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    "outputs": [
+                                        {
+                                            "referenceName": "ArchiveCommerceFileSinkDS",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "OutFileName": {
+                                                    "value": "@item().name",
+                                                    "type": "Expression"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "Delete commerce files",
+                                    "type": "Delete",
+                                    "dependsOn": [
+                                        {
+                                            "activity": "Archive Commerce File",
+                                            "dependencyConditions": [
+                                                "Succeeded"
+                                            ]
+                                        }
+                                    ],
+                                    "policy": {
+                                        "timeout": "0.12:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "dataset": {
+                                            "referenceName": "ArchiveCommerceFileSourceDS",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "FileName": {
+                                                    "value": "@item().name",
+                                                    "type": "Expression"
+                                                }
+                                            }
+                                        },
+                                        "enableLogging": false,
+                                        "storeSettings": {
+                                            "type": "AzureBlobStorageReadSettings",
+                                            "recursive": true,
+                                            "enablePartitionDiscovery": false
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "policy": {
+                    "elapsedTimeMetric": {}
+                },
+                "folder": {
+                    "name": "Payment Recon V4 PaymentAccountingReport"
+                },
+                "annotations": [],
+                "lastPublishTime": "2026-02-19T21:47:57Z"
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/CommerceFileSourceDS_AllFiles')]",
+                "[concat(variables('factoryId'), '/datasets/CommercePaymentTransFileDS_V4PaymentsAccounting')]",
+                "[concat(variables('factoryId'), '/datasets/CommercePaymentTransStagingSQLDS_V4PaymentsAccounting')]",
+                "[concat(variables('factoryId'), '/datasets/ArchiveCommerceFileSourceDS')]",
+                "[concat(variables('factoryId'), '/datasets/ArchiveCommerceFileSinkDS')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ProcessAllPaymentProcessorV4_PaymentAccountingReport')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "GetPaymentProcessorFileNames",
+                        "type": "GetMetadata",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "0.12:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "dataset": {
+                                "referenceName": "PaymentFileSourceDS_AllFiles",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            },
+                            "fieldList": [
+                                "childItems"
+                            ],
+                            "storeSettings": {
+                                "type": "AzureBlobStorageReadSettings",
+                                "recursive": true,
+                                "enablePartitionDiscovery": false
+                            },
+                            "formatSettings": {
+                                "type": "DelimitedTextReadSettings"
+                            }
+                        }
+                    },
+                    {
+                        "name": "Loop",
+                        "type": "ForEach",
+                        "dependsOn": [
+                            {
+                                "activity": "GetPaymentProcessorFileNames",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "items": {
+                                "value": "@activity('GetPaymentProcessorFileNames').output.childItems",
+                                "type": "Expression"
+                            },
+                            "activities": [
+                                {
+                                    "name": "Copy data to SQL",
+                                    "type": "Copy",
+                                    "dependsOn": [],
+                                    "policy": {
+                                        "timeout": "0.12:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "source": {
+                                            "type": "DelimitedTextSource",
+                                            "storeSettings": {
+                                                "type": "AzureBlobStorageReadSettings",
+                                                "recursive": true,
+                                                "enablePartitionDiscovery": false
+                                            },
+                                            "formatSettings": {
+                                                "type": "DelimitedTextReadSettings"
+                                            }
+                                        },
+                                        "sink": {
+                                            "type": "AzureSqlSink",
+                                            "writeBehavior": "insert",
+                                            "sqlWriterUseTableLock": true,
+                                            "disableMetricsCollection": false
+                                        },
+                                        "enableStaging": false,
+                                        "translator": {
+                                            "type": "TabularTranslator",
+                                            "mappings": [
+                                                {
+                                                    "source": {
+                                                        "name": "Merchant Account",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "MerchantAccount",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Psp Reference",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "PaymentReferenceId",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Merchant Reference",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "MerchantReference",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Payment Method",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "PaymentMethod",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Booking Date",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "CreationDate",
+                                                        "type": "DateTime",
+                                                        "physicalType": "datetime2"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "TimeZone",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "TimeZone",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Record Type",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "Status",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Modification Merchant Reference",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "ModificationReference",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Payment Currency",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "Currency",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Authorised (PC)",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "Authorised",
+                                                        "type": "Decimal",
+                                                        "physicalType": "decimal",
+                                                        "scale": 2,
+                                                        "precision": 32
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Commission (SC)",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "Commission",
+                                                        "type": "Decimal",
+                                                        "physicalType": "decimal",
+                                                        "scale": 2,
+                                                        "precision": 32
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Interchange (SC)",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "Interchange",
+                                                        "type": "Decimal",
+                                                        "physicalType": "decimal",
+                                                        "scale": 2,
+                                                        "precision": 32
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Received (PC)",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "Received",
+                                                        "type": "Decimal",
+                                                        "physicalType": "decimal",
+                                                        "scale": 2,
+                                                        "precision": 32
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Markup (SC)",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "Markup",
+                                                        "type": "Decimal",
+                                                        "physicalType": "decimal",
+                                                        "scale": 2,
+                                                        "precision": 32
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Captured (PC)",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "Captured",
+                                                        "type": "Decimal",
+                                                        "physicalType": "decimal",
+                                                        "scale": 2,
+                                                        "precision": 32
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Payable (SC)",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "Payable",
+                                                        "type": "Decimal",
+                                                        "physicalType": "decimal",
+                                                        "scale": 2,
+                                                        "precision": 32
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Scheme Fees (SC)",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "SchemeFees",
+                                                        "type": "Decimal",
+                                                        "physicalType": "decimal",
+                                                        "scale": 2,
+                                                        "precision": 32
+                                                    }
+                                                }
+                                            ],
+                                            "typeConversion": true,
+                                            "typeConversionSettings": {
+                                                "allowDataTruncation": true,
+                                                "treatBooleanAsNumber": false,
+                                                "culture": "en-GB"
+                                            }
+                                        }
+                                    },
+                                    "inputs": [
+                                        {
+                                            "referenceName": "PaymentProcessorTransFileDS_V4PaymentsAccounting",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "OutputFileName": {
+                                                    "value": "@item().name",
+                                                    "type": "Expression"
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    "outputs": [
+                                        {
+                                            "referenceName": "PaymentProcessorTransStagingSQLDS_V4PaymentsAccounting",
+                                            "type": "DatasetReference",
+                                            "parameters": {}
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "Archive Payment File",
+                                    "type": "Copy",
+                                    "dependsOn": [
+                                        {
+                                            "activity": "Copy data to SQL",
+                                            "dependencyConditions": [
+                                                "Succeeded"
+                                            ]
+                                        }
+                                    ],
+                                    "policy": {
+                                        "timeout": "0.12:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "source": {
+                                            "type": "BinarySource",
+                                            "storeSettings": {
+                                                "type": "AzureBlobStorageReadSettings",
+                                                "recursive": true
+                                            },
+                                            "formatSettings": {
+                                                "type": "BinaryReadSettings"
+                                            }
+                                        },
+                                        "sink": {
+                                            "type": "BinarySink",
+                                            "storeSettings": {
+                                                "type": "AzureBlobStorageWriteSettings"
+                                            }
+                                        },
+                                        "enableStaging": false
+                                    },
+                                    "inputs": [
+                                        {
+                                            "referenceName": "ArchiverPaymentFileSourceDS",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "FileName": {
+                                                    "value": "@item().name",
+                                                    "type": "Expression"
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    "outputs": [
+                                        {
+                                            "referenceName": "ArchiverPaymentFileSinkDS",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "OutFileName": {
+                                                    "value": "@item().name",
+                                                    "type": "Expression"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "DeletePaymentProcessorFile",
+                                    "type": "Delete",
+                                    "dependsOn": [
+                                        {
+                                            "activity": "Archive Payment File",
+                                            "dependencyConditions": [
+                                                "Succeeded"
+                                            ]
+                                        }
+                                    ],
+                                    "policy": {
+                                        "timeout": "0.12:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "dataset": {
+                                            "referenceName": "PaymentProcessorTransFileDS_V4PaymentsAccounting",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "OutputFileName": {
+                                                    "value": "@item().name",
+                                                    "type": "Expression"
+                                                }
+                                            }
+                                        },
+                                        "enableLogging": false,
+                                        "storeSettings": {
+                                            "type": "AzureBlobStorageReadSettings",
+                                            "recursive": true,
+                                            "enablePartitionDiscovery": false
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "policy": {
+                    "elapsedTimeMetric": {}
+                },
+                "folder": {
+                    "name": "Payment Recon V4 PaymentAccountingReport"
+                },
+                "annotations": [],
+                "lastPublishTime": "2026-02-23T19:01:13Z"
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/PaymentFileSourceDS_AllFiles')]",
+                "[concat(variables('factoryId'), '/datasets/PaymentProcessorTransFileDS_V4PaymentsAccounting')]",
+                "[concat(variables('factoryId'), '/datasets/PaymentProcessorTransStagingSQLDS_V4PaymentsAccounting')]",
+                "[concat(variables('factoryId'), '/datasets/ArchiverPaymentFileSourceDS')]",
+                "[concat(variables('factoryId'), '/datasets/ArchiverPaymentFileSinkDS')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ProcessAllCommercePaymentTransV3SettlementDetails')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "GetCommercePaymentFileNames",
+                        "type": "GetMetadata",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "0.12:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "dataset": {
+                                "referenceName": "CommerceFileSourceDS_AllFiles",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            },
+                            "fieldList": [],
+                            "storeSettings": {
+                                "type": "AzureBlobStorageReadSettings",
+                                "recursive": true,
+                                "enablePartitionDiscovery": false
+                            },
+                            "formatSettings": {
+                                "type": "DelimitedTextReadSettings"
+                            }
+                        }
+                    },
+                    {
+                        "name": "ProcessFiles",
+                        "type": "ForEach",
+                        "dependsOn": [
+                            {
+                                "activity": "GetCommercePaymentFileNames",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "items": {
+                                "value": "@activity('GetCommercePaymentFileNames').output.childItems",
+                                "type": "Expression"
+                            },
+                            "activities": [
+                                {
+                                    "name": "Copy data to SQL",
+                                    "type": "Copy",
+                                    "dependsOn": [],
+                                    "policy": {
+                                        "timeout": "0.12:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "source": {
+                                            "type": "DelimitedTextSource",
+                                            "storeSettings": {
+                                                "type": "AzureBlobStorageReadSettings",
+                                                "recursive": true,
+                                                "enablePartitionDiscovery": false
+                                            },
+                                            "formatSettings": {
+                                                "type": "DelimitedTextReadSettings"
+                                            }
+                                        },
+                                        "sink": {
+                                            "type": "AzureSqlSink",
+                                            "writeBehavior": "insert",
+                                            "sqlWriterUseTableLock": false,
+                                            "disableMetricsCollection": false
+                                        },
+                                        "enableStaging": false,
+                                        "translator": {
+                                            "type": "TabularTranslator",
+                                            "mappings": [
+                                                {
+                                                    "source": {
+                                                        "name": "Transaction number",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "TransactionId",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "PSP Reference",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "PaymentReferenceId",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Payment method",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "PaymentMethod",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Store number",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "StoreId",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Date",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "TransactionDate",
+                                                        "type": "Date",
+                                                        "physicalType": "date"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Tendered",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "Tendered",
+                                                        "type": "Decimal",
+                                                        "physicalType": "decimal",
+                                                        "scale": 2,
+                                                        "precision": 32
+                                                    }
+                                                }
+                                            ],
+                                            "typeConversion": true,
+                                            "typeConversionSettings": {
+                                                "allowDataTruncation": true,
+                                                "treatBooleanAsNumber": false
+                                            }
+                                        }
+                                    },
+                                    "inputs": [
+                                        {
+                                            "referenceName": "CommercePaymentTransFileDS_V3SettlementDetails",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "FileName": {
+                                                    "value": "@item().name",
+                                                    "type": "Expression"
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    "outputs": [
+                                        {
+                                            "referenceName": "CommercePaymentTransStagingSQLDS_V3SettlementDetails",
+                                            "type": "DatasetReference",
+                                            "parameters": {}
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "Archive Commerce File",
+                                    "type": "Copy",
+                                    "dependsOn": [
+                                        {
+                                            "activity": "Copy data to SQL",
+                                            "dependencyConditions": [
+                                                "Succeeded"
+                                            ]
+                                        }
+                                    ],
+                                    "policy": {
+                                        "timeout": "0.12:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "source": {
+                                            "type": "BinarySource",
+                                            "storeSettings": {
+                                                "type": "AzureBlobStorageReadSettings",
+                                                "recursive": true
+                                            },
+                                            "formatSettings": {
+                                                "type": "BinaryReadSettings"
+                                            }
+                                        },
+                                        "sink": {
+                                            "type": "BinarySink",
+                                            "storeSettings": {
+                                                "type": "AzureBlobStorageWriteSettings"
+                                            }
+                                        },
+                                        "enableStaging": false
+                                    },
+                                    "inputs": [
+                                        {
+                                            "referenceName": "ArchiveCommerceFileSourceDS",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "FileName": "@dataset().FileName"
+                                            }
+                                        }
+                                    ],
+                                    "outputs": [
+                                        {
+                                            "referenceName": "ArchiveCommerceFileSinkDS",
+                                            "type": "DatasetReference",
+                                            "parameters": {}
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "Delete commerce files",
+                                    "type": "Delete",
+                                    "dependsOn": [
+                                        {
+                                            "activity": "Archive Commerce File",
+                                            "dependencyConditions": [
+                                                "Succeeded"
+                                            ]
+                                        }
+                                    ],
+                                    "policy": {
+                                        "timeout": "0.12:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "dataset": {
+                                            "referenceName": "ArchiveCommerceFileSourceDS",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "FileName": {
+                                                    "value": "@item().name",
+                                                    "type": "Expression"
+                                                }
+                                            }
+                                        },
+                                        "enableLogging": false,
+                                        "storeSettings": {
+                                            "type": "AzureBlobStorageReadSettings",
+                                            "recursive": true,
+                                            "enablePartitionDiscovery": false
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "policy": {
+                    "elapsedTimeMetric": {}
+                },
+                "folder": {
+                    "name": "Payment Recon V3 Settlement Details"
+                },
+                "annotations": [],
+                "lastPublishTime": "2026-02-19T21:57:01Z"
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/CommerceFileSourceDS_AllFiles')]",
+                "[concat(variables('factoryId'), '/datasets/CommercePaymentTransFileDS_V3SettlementDetails')]",
+                "[concat(variables('factoryId'), '/datasets/CommercePaymentTransStagingSQLDS_V3SettlementDetails')]",
+                "[concat(variables('factoryId'), '/datasets/ArchiveCommerceFileSourceDS')]",
+                "[concat(variables('factoryId'), '/datasets/ArchiveCommerceFileSinkDS')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ProcessAllPaymentProcessorV3SettlementDetails')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "GetPaymentProcessorFileNames",
+                        "type": "GetMetadata",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "0.12:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "dataset": {
+                                "referenceName": "PaymentFileSourceDS_AllFiles",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            },
+                            "fieldList": [],
+                            "storeSettings": {
+                                "type": "AzureBlobStorageReadSettings",
+                                "recursive": true,
+                                "enablePartitionDiscovery": false
+                            },
+                            "formatSettings": {
+                                "type": "DelimitedTextReadSettings"
+                            }
+                        }
+                    },
+                    {
+                        "name": "Loop",
+                        "type": "ForEach",
+                        "dependsOn": [
+                            {
+                                "activity": "GetPaymentProcessorFileNames",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "items": {
+                                "value": "@activity('GetPaymentProcessorFileNames').output.childItems",
+                                "type": "Expression"
+                            },
+                            "activities": [
+                                {
+                                    "name": "Copy data to SQL",
+                                    "type": "Copy",
+                                    "dependsOn": [],
+                                    "policy": {
+                                        "timeout": "0.12:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "source": {
+                                            "type": "DelimitedTextSource",
+                                            "storeSettings": {
+                                                "type": "AzureBlobStorageReadSettings",
+                                                "recursive": true,
+                                                "enablePartitionDiscovery": false
+                                            },
+                                            "formatSettings": {
+                                                "type": "DelimitedTextReadSettings"
+                                            }
+                                        },
+                                        "sink": {
+                                            "type": "AzureSqlSink",
+                                            "writeBehavior": "insert",
+                                            "sqlWriterUseTableLock": true,
+                                            "disableMetricsCollection": false
+                                        },
+                                        "enableStaging": false,
+                                        "translator": {
+                                            "type": "TabularTranslator",
+                                            "mappings": [
+                                                {
+                                                    "source": {
+                                                        "name": "Merchant Account",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "MerchantAccount",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Psp Reference",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "PaymentReferenceId",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Merchant Reference",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "MerchantReference",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Payment Method",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "PaymentMethod",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Creation Date",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "CreationDate",
+                                                        "type": "DateTime",
+                                                        "physicalType": "datetime2"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "TimeZone",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "TimeZone",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Type",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "StatusType",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Modification Reference",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "ModificationReference",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Gross Currency",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "GrossCurrency",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Gross Debit (GC)",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "GrossDebit",
+                                                        "type": "Decimal",
+                                                        "physicalType": "decimal",
+                                                        "scale": 2,
+                                                        "precision": 32
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Gross Credit (GC)",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "GrossCredit",
+                                                        "type": "Decimal",
+                                                        "physicalType": "decimal",
+                                                        "scale": 2,
+                                                        "precision": 32
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Exchange Rate",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "ExchangeRate",
+                                                        "type": "Decimal",
+                                                        "physicalType": "decimal",
+                                                        "scale": 6,
+                                                        "precision": 18
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Batch Number",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "BatchNumber",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "Modification Merchant Reference",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "ModificationMerchantReference",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                },
+                                                {
+                                                    "source": {
+                                                        "name": "ARN",
+                                                        "type": "String",
+                                                        "physicalType": "String"
+                                                    },
+                                                    "sink": {
+                                                        "name": "ARN",
+                                                        "type": "String",
+                                                        "physicalType": "nvarchar"
+                                                    }
+                                                }
+                                            ],
+                                            "typeConversion": true,
+                                            "typeConversionSettings": {
+                                                "allowDataTruncation": true,
+                                                "treatBooleanAsNumber": false,
+                                                "culture": "en-GB"
+                                            }
+                                        }
+                                    },
+                                    "inputs": [
+                                        {
+                                            "referenceName": "PaymentProcessorTransFileDS_V3SettlementDetails",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "OutputFileName": "@item().name"
+                                            }
+                                        }
+                                    ],
+                                    "outputs": [
+                                        {
+                                            "referenceName": "PaymentProcessorTransStagingSQLDS_V3SettlementDetails",
+                                            "type": "DatasetReference",
+                                            "parameters": {}
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "Archive Payment File",
+                                    "type": "Copy",
+                                    "dependsOn": [
+                                        {
+                                            "activity": "Copy data to SQL",
+                                            "dependencyConditions": [
+                                                "Succeeded"
+                                            ]
+                                        }
+                                    ],
+                                    "policy": {
+                                        "timeout": "0.12:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "source": {
+                                            "type": "BinarySource",
+                                            "storeSettings": {
+                                                "type": "AzureBlobStorageReadSettings",
+                                                "recursive": true
+                                            },
+                                            "formatSettings": {
+                                                "type": "BinaryReadSettings"
+                                            }
+                                        },
+                                        "sink": {
+                                            "type": "BinarySink",
+                                            "storeSettings": {
+                                                "type": "AzureBlobStorageWriteSettings"
+                                            }
+                                        },
+                                        "enableStaging": false
+                                    },
+                                    "inputs": [
+                                        {
+                                            "referenceName": "ArchiverPaymentFileSourceDS",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "FileName": {
+                                                    "value": "@item().name",
+                                                    "type": "Expression"
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    "outputs": [
+                                        {
+                                            "referenceName": "ArchiverPaymentFileSinkDS",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "OutFileName": {
+                                                    "value": "@item().name",
+                                                    "type": "Expression"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "DeletePaymentProcessorFile",
+                                    "type": "Delete",
+                                    "dependsOn": [
+                                        {
+                                            "activity": "Archive Payment File",
+                                            "dependencyConditions": [
+                                                "Succeeded"
+                                            ]
+                                        }
+                                    ],
+                                    "policy": {
+                                        "timeout": "0.12:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "dataset": {
+                                            "referenceName": "ArchiverPaymentFileSourceDS",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "FileName": {
+                                                    "value": "@item().name",
+                                                    "type": "Expression"
+                                                }
+                                            }
+                                        },
+                                        "enableLogging": false,
+                                        "storeSettings": {
+                                            "type": "AzureBlobStorageReadSettings",
+                                            "recursive": true,
+                                            "enablePartitionDiscovery": false
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "policy": {
+                    "elapsedTimeMetric": {}
+                },
+                "folder": {
+                    "name": "Payment Recon V3 Settlement Details"
+                },
+                "annotations": [],
+                "lastPublishTime": "2026-02-19T21:57:01Z"
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/PaymentFileSourceDS_AllFiles')]",
+                "[concat(variables('factoryId'), '/datasets/PaymentProcessorTransFileDS_V3SettlementDetails')]",
+                "[concat(variables('factoryId'), '/datasets/PaymentProcessorTransStagingSQLDS_V3SettlementDetails')]",
+                "[concat(variables('factoryId'), '/datasets/ArchiverPaymentFileSourceDS')]",
+                "[concat(variables('factoryId'), '/datasets/ArchiverPaymentFileSinkDS')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ArchiverPaymentFileSourceDS')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "PaymentReconFiles",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "FileName": {
+                        "type": "string",
+                        "defaultValue": "@dataset().FileName"
+                    }
+                },
+                "folder": {
+                    "name": "Payment Recon V3 Adyen"
+                },
+                "annotations": [],
+                "type": "Binary",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "container": "paymentfilestorage-in"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/PaymentReconFiles')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ArchiverPaymentFileSinkDS')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "PaymentReconFiles",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "OutFileName": {
+                        "type": "string"
+                    }
+                },
+                "folder": {
+                    "name": "Payment Recon V3 Adyen"
+                },
+                "annotations": [],
+                "type": "Binary",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "container": "paymentfilestorage-out"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/PaymentReconFiles')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/CommercePaymentTransStagingSQLDS_V4PaymentsAccounting')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "Copy data to CommercePaymentTransStagingSQLDS",
+                "linkedServiceName": {
+                    "referenceName": "PaymentReconSQL",
+                    "type": "LinkedServiceReference"
+                },
+                "folder": {
+                    "name": "Payment Recon V4 PaymentsAccounting"
+                },
+                "annotations": [],
+                "type": "AzureSqlTable",
+                "schema": [
+                    {
+                        "name": "TransactionId",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "PaymentReferenceId",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "PaymentMethod",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "StoreId",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "TerminalId",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "TransactionDate",
+                        "type": "date"
+                    },
+                    {
+                        "name": "CreationDate",
+                        "type": "datetime2",
+                        "scale": 3
+                    },
+                    {
+                        "name": "Currency",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "Tendered",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "FileImportedDateTime",
+                        "type": "datetime2",
+                        "scale": 3
+                    }
+                ],
+                "typeProperties": {
+                    "schema": "dbo",
+                    "table": "CommercePaymentTransactionsStaging"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/PaymentReconSQL')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/CommercePaymentTransFileDS_V3SettlementDetails')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "PaymentReconFiles",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "FileName": {
+                        "type": "string"
+                    }
+                },
+                "folder": {
+                    "name": "Payment Recon V3 Settlement Details"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "fileName": {
+                            "value": "@dataset().FileName",
+                            "type": "Expression"
+                        },
+                        "container": "commercefilestorage-in"
+                    },
+                    "columnDelimiter": ",",
+                    "rowDelimiter": "\n",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "name": "Store number",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Transaction number",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Entry status",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Void status",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Payment method",
+                        "type": "String"
+                    },
+                    {
+                        "name": "last 4",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Change line",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Tendered",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Date",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Transaction time",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ClientLine Invoice ID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PSP Reference\r",
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/PaymentReconFiles')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/CommercePaymentTransStagingSQLDS_V3SettlementDetails')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "Copy data to CommercePaymentTransStagingSQLDS",
+                "linkedServiceName": {
+                    "referenceName": "PaymentReconSQL",
+                    "type": "LinkedServiceReference"
+                },
+                "folder": {
+                    "name": "Payment Recon V3 Settlement Details"
+                },
+                "annotations": [],
+                "type": "AzureSqlTable",
+                "schema": [
+                    {
+                        "name": "TransactionId",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "PaymentReferenceId",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "PaymentMethod",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "StoreId",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "TerminalId",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "TransactionDate",
+                        "type": "date"
+                    },
+                    {
+                        "name": "CreationDate",
+                        "type": "datetime2",
+                        "scale": 3
+                    },
+                    {
+                        "name": "Currency",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "Tendered",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "FileImportedDateTime",
+                        "type": "datetime2",
+                        "scale": 3
+                    }
+                ],
+                "typeProperties": {
+                    "schema": "dbo",
+                    "table": "CommercePaymentTransactionsStaging"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/PaymentReconSQL')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/PaymentProcessorTransStagingSQLDS_V3SettlementDetails')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "Copy data to PaymentProcessorTransStagingSQLDS",
+                "linkedServiceName": {
+                    "referenceName": "PaymentReconSQL",
+                    "type": "LinkedServiceReference"
+                },
+                "folder": {
+                    "name": "Payment Recon V3 Settlement Details"
+                },
+                "annotations": [],
+                "type": "AzureSqlTable",
+                "schema": [
+                    {
+                        "name": "MerchantAccount",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "PaymentReferenceId",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "MerchantReference",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "PaymentMethod",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "CreationDate",
+                        "type": "datetime2",
+                        "scale": 3
+                    },
+                    {
+                        "name": "TimeZone",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "StatusType",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "ModificationReference",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "GrossCurrency",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "GrossDebit",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "GrossCredit",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "ExchangeRate",
+                        "type": "decimal",
+                        "precision": 18,
+                        "scale": 6
+                    },
+                    {
+                        "name": "BatchNumber",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "ModificationMerchantReference",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "ARN",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "Currency",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "Authorised",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "Commission",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "Interchange",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "Received",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "Markup",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "CapturedAmount",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "Payable",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "SchemeFees",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "FileImportedDateTime",
+                        "type": "datetime2",
+                        "scale": 3
+                    }
+                ],
+                "typeProperties": {
+                    "schema": "dbo",
+                    "table": "PaymentProcessorTransactionsStaging"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/PaymentReconSQL')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/PaymentProcessorTransFileDS_V3SettlementDetails')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "PaymentReconFiles",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "OutputFileName": {
+                        "type": "string"
+                    }
+                },
+                "folder": {
+                    "name": "Payment Recon V3 Settlement Details"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "fileName": {
+                            "value": "@dataset().OutputFileName",
+                            "type": "Expression"
+                        },
+                        "container": "paymentfilestorage-in"
+                    },
+                    "columnDelimiter": ",",
+                    "rowDelimiter": "\n",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "name": "Company Account",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Merchant Account",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Psp Reference",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Merchant Reference",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Payment Method",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Booking Date",
+                        "type": "String"
+                    },
+                    {
+                        "name": "TimeZone",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Main Currency",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Main Amount",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Record Type",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Payment Currency",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Received (PC)",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Authorised (PC)",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Captured (PC)",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Settlement Currency",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Payable (SC)",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Commission (SC)",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Markup (SC)",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Scheme Fees (SC)",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Interchange (SC)",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Processing Fee Currency",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Processing Fee (FC)",
+                        "type": "String"
+                    },
+                    {
+                        "name": "User Name",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Payment Method Variant",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Card Number",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Modification Merchant Reference",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Store",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Reserved3",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Reserved4",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Reserved5",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Reserved6",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Reserved7",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Reserved8",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Reserved9",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Reserved10",
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/PaymentReconFiles')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/PaymentProcessorTransStagingSQLDS_V4PaymentsAccounting')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "Copy data to PaymentProcessorTransStagingSQLDS",
+                "linkedServiceName": {
+                    "referenceName": "PaymentReconSQL",
+                    "type": "LinkedServiceReference"
+                },
+                "folder": {
+                    "name": "Payment Recon V4 PaymentsAccounting"
+                },
+                "annotations": [],
+                "type": "AzureSqlTable",
+                "schema": [
+                    {
+                        "name": "MerchantAccount",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "PaymentReferenceId",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "MerchantReference",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "PaymentMethod",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "CreationDate",
+                        "type": "datetime2",
+                        "scale": 3
+                    },
+                    {
+                        "name": "TimeZone",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "Status",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "ModificationReference",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "GrossCurrency",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "GrossDebit",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "GrossCredit",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "ExchangeRate",
+                        "type": "decimal",
+                        "precision": 18,
+                        "scale": 6
+                    },
+                    {
+                        "name": "BatchNumber",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "ModificationMerchantReference",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "ARN",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "Currency",
+                        "type": "nvarchar"
+                    },
+                    {
+                        "name": "Authorised",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "Commission",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "Interchange",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "Received",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "Markup",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "Captured",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "Payable",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "SchemeFees",
+                        "type": "decimal",
+                        "precision": 32,
+                        "scale": 2
+                    },
+                    {
+                        "name": "FileImportedDateTime",
+                        "type": "datetime2",
+                        "scale": 3
+                    }
+                ],
+                "typeProperties": {
+                    "schema": "dbo",
+                    "table": "PaymentProcessorTransactionsStaging"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/PaymentReconSQL')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/CommercePaymentTransFileDS_V4PaymentsAccounting')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "PaymentReconFiles",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "FileName": {
+                        "type": "string"
+                    }
+                },
+                "folder": {
+                    "name": "Payment Recon V4 PaymentsAccounting"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "fileName": {
+                            "value": "@dataset().FileName",
+                            "type": "Expression"
+                        },
+                        "container": "commercefilestorage-in"
+                    },
+                    "columnDelimiter": ",",
+                    "rowDelimiter": "\n",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "name": "Store number",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Transaction number",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Entry status",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Void status",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Payment method",
+                        "type": "String"
+                    },
+                    {
+                        "name": "last 4",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Change line",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Tendered",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Date",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Transaction time",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ClientLine Invoice ID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PSP Reference",
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/PaymentReconFiles')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/PaymentProcessorTransFileDS_V4PaymentsAccounting')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "PaymentReconFiles",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "OutputFileName": {
+                        "type": "string"
+                    }
+                },
+                "folder": {
+                    "name": "Payment Recon V4 PaymentsAccounting"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "fileName": {
+                            "value": "@dataset().OutputFileName",
+                            "type": "Expression"
+                        },
+                        "container": "paymentfilestorage-in"
+                    },
+                    "columnDelimiter": ",",
+                    "rowDelimiter": "\n",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "name": "Company Account",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Merchant Account",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Psp Reference",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Merchant Reference",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Payment Method",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Booking Date",
+                        "type": "String"
+                    },
+                    {
+                        "name": "TimeZone",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Main Currency",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Main Amount",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Record Type",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Payment Currency",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Received (PC)",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Authorised (PC)",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Captured (PC)",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Settlement Currency",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Payable (SC)",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Commission (SC)",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Markup (SC)",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Scheme Fees (SC)",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Interchange (SC)",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Processing Fee Currency",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Processing Fee (FC)",
+                        "type": "String"
+                    },
+                    {
+                        "name": "User Name",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Payment Method Variant",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Card Number",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Modification Merchant Reference",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Store",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Reserved3",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Reserved4",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Reserved5",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Reserved6",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Reserved7",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Reserved8",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Reserved9",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Reserved10",
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/PaymentReconFiles')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ArchiveCommerceFileSinkDS')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "PaymentReconFiles",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "OutFileName": {
+                        "type": "string"
+                    }
+                },
+                "folder": {
+                    "name": "Payment Recon V3 Adyen"
+                },
+                "annotations": [],
+                "type": "Binary",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "container": "commercefilestorage-out"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/PaymentReconFiles')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ArchiveCommerceFileSourceDS')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "PaymentReconFiles",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "FileName": {
+                        "type": "string",
+                        "defaultValue": "@dataset().FileName"
+                    }
+                },
+                "folder": {
+                    "name": "Payment Recon V3 Adyen"
+                },
+                "annotations": [],
+                "type": "Binary",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "container": "commercefilestorage-in"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/PaymentReconFiles')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/CommerceFileSourceDS_AllFiles')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "PaymentReconFiles",
+                    "type": "LinkedServiceReference"
+                },
+                "folder": {
+                    "name": "Payment Recon V3 Adyen"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "container": "commercefilestorage-in"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "name": "Store number",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Transaction number",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Entry status",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Void status",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Payment method",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Card ID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Card or account",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Change line",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Tendered",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Date",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Transaction time",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ClientLine Invoice ID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PSP Reference",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Receipt number",
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/PaymentReconFiles')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/PaymentFileSourceDS_AllFiles')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "PaymentReconFiles",
+                    "type": "LinkedServiceReference"
+                },
+                "folder": {
+                    "name": "Payment Recon V3 Adyen"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "container": "paymentfilestorage-in"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "name": "Store number",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Transaction number",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Entry status",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Void status",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Payment method",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Card ID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Card or account",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Change line",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Tendered",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Date",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Transaction time",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ClientLine Invoice ID",
+                        "type": "String"
+                    },
+                    {
+                        "name": "PSP Reference",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Receipt number",
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/PaymentReconFiles')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/PaymentReconFiles')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureBlobStorage",
+                "typeProperties": {
+                    "connectionString": "[parameters('PaymentReconFiles_connectionString')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/PaymentReconSQL')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureSqlDatabase",
+                "typeProperties": {
+                    "server": "[parameters('PaymentReconSQL_properties_typeProperties_server')]",
+                    "database": "[parameters('PaymentReconSQL_properties_typeProperties_database')]",
+                    "encrypt": "mandatory",
+                    "trustServerCertificate": false,
+                    "authenticationType": "SQL",
+                    "userName": "[parameters('PaymentReconSQL_properties_typeProperties_userName')]",
+                    "password": {
+                        "type": "SecureString",
+                        "value": "[parameters('PaymentReconSQL_password')]"
+                    }
+                }
+            },
+            "dependsOn": []
+        }
+    ]
+}
