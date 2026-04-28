@@ -1,6 +1,6 @@
 # PAYMENT RECON AGENT — Deployment Instruction Guide
 
-> **Version:** v4.1.0.0.15 | **Date:** 03/24/2026 | **Status:** Final | **Audience:** DevOps / Deployment Team
+> **Version:** v4.1.0.0.16 | **Date:** 04/24/2026 | **Status:** Final | **Audience:** DevOps / Deployment Team
 
 ---
 
@@ -10,6 +10,7 @@
 |---|---|---|---|
 | v4.1.0.0.13 | 03/01/2026 | — | Initial release of deployment guide |
 | v4.1.0.0.15 | 03/24/2026 | — | Updated with latest version |
+| v4.1.0.0.16 | 04/24/2026 | — | Updated Power Platform solution package to v4.1.0.0.16 |
 
 ---
 
@@ -87,7 +88,7 @@ The deployment package includes the following files:
 | `03_seed_rules.sql` | Seeds reconciliation rules required at runtime. |
 | `arm-storage-v4.json` | ARM template for provisioning the Azure Storage Account and Blob containers. |
 | `arm-datafactory-v4.json` | ARM template for provisioning and configuring Azure Data Factory pipelines. |
-| `PaymentReconAgentV4_1_0_0_15.zip` | Application package for deployment to the host environment. |
+| `PaymentReconAgentV4_1_0_0_16.zip` | Application package for deployment to the host environment. |
 
 ---
 
@@ -225,7 +226,7 @@ After deploying the ARM template, update Linked Services in ADF Studio -> 'Manag
 
 ## 8. Deploy PaymentRecon Agent Application
 
-This step covers importing the PaymentRecon Agent solution (`PaymentReconAgentV4_1_0_0_15.zip`) into the target Power Platform environment.
+This step covers importing the PaymentRecon Agent solution (`PaymentReconAgentV4_1_0_0_16.zip`) into the target Power Platform environment.
 
 ### 8.1 Preparation
 
@@ -236,7 +237,7 @@ This step covers importing the PaymentRecon Agent solution (`PaymentReconAgentV4
 
 1. Go to [https://make.powerapps.com](https://make.powerapps.com) and select the correct environment.
 2. Navigate to **Solutions > Import solution**.
-3. Select `PaymentReconAgentV4_1_0_0_15.zip` and follow the import prompts.
+3. Select `PaymentReconAgentV4_1_0_0_16.zip` and follow the import prompts.
 
 The solution contains the following components:
 
