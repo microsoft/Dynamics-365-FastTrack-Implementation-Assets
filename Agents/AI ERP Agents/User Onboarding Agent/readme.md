@@ -298,7 +298,7 @@ Customers are responsible for:
 - validating data access and permissions,
 - configuring security and compliance controls,
 - performing any required risk, privacy, or regulatory assessments,
-- and ensuring the final deployed agent complies with internal and external policies.
+- ensuring the final deployed agent complies with internal and external policies.
 
 This template inherits the security and Responsible AI protections of Microsoft Copilot Studio. It does not add or replace platform‑level controls and is intended to be adapted and governed by customers within their own deployment context.
 
