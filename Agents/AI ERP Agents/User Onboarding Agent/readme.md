@@ -269,7 +269,7 @@ This step passes structured data to the Copilot Agent for further decision-makin
 
 ## Note on Responsible AI
 
-When developing or deploying AI systems, we use Microsoft's standards and processes to build innovative, trusted, and secure AI systems to comply with applicable laws and regulations.
+Microsoft publishes Responsible AI principles, standards, and processes to support the development of innovative, trustworthy, and secure AI systems.
 
 ---
 
