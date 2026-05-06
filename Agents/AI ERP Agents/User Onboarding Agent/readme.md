@@ -267,4 +267,39 @@ This step passes structured data to the Copilot Agent for further decision-makin
 
 ---
 
+## Note on Responsible AI
 
+When developing or deploying AI systems, we use Microsoft's standards and processes to build innovative, trusted, and secure AI systems to comply with applicable laws and regulations.
+
+---
+
+### Transparency and Security Boundaries
+
+This agent template is provided as a starting point for building agents with Microsoft Copilot Studio. It does not represent a deployed or managed Microsoft service and is intended to be configured, extended, and operated by customers within their own tenant. Microsoft Copilot Studio enforces a set of platform‑level security, privacy, and Responsible AI guardrails, including but not limited to:
+- isolation boundaries between tenants,
+- prompt‑injection and misuse protections,
+- Responsible AI safeguards and policy enforcement.
+
+These protections are inherited automatically by agents built using standard Copilot Studio functionality and are not re‑implemented or modified by this template. This template introduces no additional security controls beyond the Copilot Studio platform. Customers are responsible for reviewing and validating their final agent configuration, especially when:
+- extending prompts or instructions,
+- connecting the agent to enterprise data sources,
+- enabling actions or integrations,
+- deploying the agent to production users.
+
+Customers should perform their own security, compliance, and risk assessments to ensure the final agent meets their organizational and regulatory requirements.
+
+---
+
+### Customer Responsibility Statement & Customer Deployment Responsibility
+
+This template is not deployed by Microsoft and does not make assumptions about customer data, identity models, permissions, or compliance requirements.
+
+Customers are responsible for:
+- validating data access and permissions,
+- configuring security and compliance controls,
+- performing any required risk, privacy, or regulatory assessments,
+- and ensuring the final deployed agent complies with internal and external policies.
+
+This template inherits the security and Responsible AI protections of Microsoft Copilot Studio. It does not add or replace platform‑level controls and is intended to be adapted and governed by customers within their own deployment context.
+
+---
