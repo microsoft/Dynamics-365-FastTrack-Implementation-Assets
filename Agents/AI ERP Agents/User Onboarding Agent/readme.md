@@ -290,7 +290,7 @@ Customers should perform their own security, compliance, and risk assessments to
 
 ---
 
-### Customer Responsibility Statement & Customer Deployment Responsibility
+### Customer responsibilities
 
 This template is not deployed by Microsoft and does not make assumptions about customer data, identity models, permissions, or compliance requirements.
 
