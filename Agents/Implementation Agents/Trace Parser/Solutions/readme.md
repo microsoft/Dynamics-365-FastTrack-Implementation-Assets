@@ -4,14 +4,14 @@
 
 | File | Description |
 |------|-------------|
-| `TraceParser_1_0_0_4.zip` | Copilot Studio agent solution — the Trace Parser AI agent that connects to the MCP server for conversational trace analysis |
+| `TraceParser_1_0_0_5.zip` | Copilot Studio agent solution — the Trace Parser AI agent that connects to the MCP server for conversational trace analysis |
 | `TPA - Solution Files V1.zip` | Supporting solution files for the Trace Parser agent |
 
 ## Import Instructions
 
 1. Go to [make.powerapps.com](https://make.powerapps.com) → **Solutions** → **Import**
    - Or open [Copilot Studio](https://copilotstudio.microsoft.com) → **Import Agent**
-2. Select `TraceParser_1_0_0_4.zip`
+2. Select `TraceParser_1_0_0_5.zip`
 3. Follow the wizard to create/sign in to required connections
 4. Click **Import** and wait for completion
 5. After import, open the agent in Copilot Studio and configure the MCP server connection to your deployed DAB instance
