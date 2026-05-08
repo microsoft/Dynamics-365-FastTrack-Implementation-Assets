@@ -1,0 +1,31 @@
+<Project Sdk="WixToolset.Sdk/4.0.6">
+  <PropertyGroup>
+    <OutputType>Package</OutputType>
+    <Platform>x64</Platform>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <HeatEnabled>true</HeatEnabled>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ServiceProjectDir>..\..\services\DatabaseMetricsService</ServiceProjectDir>
+    <PublishDir>$(ServiceProjectDir)\bin\$(Configuration)\net8.0-windows\win-x64\publish\</PublishDir>
+    <ScriptsDir>..\scripts\</ScriptsDir>
+    <DefineConstants>PublishDir=$(PublishDir);ScriptsDir=$(ScriptsDir)</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.Util.wixext" />
+    <PackageReference Include="WixToolset.Heat" />
+    <PackageReference Include="WixToolset.UI.wixext" />
+  </ItemGroup>
+
+  <!-- Harvest all files from publish directory automatically -->
+  <ItemGroup>
+    <HarvestDirectory Include="$(PublishDir)">
+      <ComponentGroupName>PublishFiles</ComponentGroupName>
+      <DirectoryRefId>INSTALLFOLDER</DirectoryRefId>
+      <SuppressRootDirectory>true</SuppressRootDirectory>
+      <PreprocessorVariable>var.PublishDir</PreprocessorVariable>
+    </HarvestDirectory>
+  </ItemGroup>
+</Project>

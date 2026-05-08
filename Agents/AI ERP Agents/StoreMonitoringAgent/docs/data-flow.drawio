@@ -1,0 +1,117 @@
+<mxfile host="app.diagrams.net" modified="2026-02-13T00:00:00.000Z" agent="Mozilla/5.0" version="22.0.0" etag="store-monitoring-dataflow">
+  <diagram id="store-monitoring-dataflow" name="Data Flow">
+    <mxGraphModel dx="1434" dy="780" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="500" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Title -->
+        <mxCell id="title" value="Store Monitoring Agent - Data Flow" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="450" y="30" width="400" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 1: POS Device -->
+        <mxCell id="step1" value="📱 POS Device" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="150" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="label1" value="1. Events occur" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="220" width="120" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 2: Windows Event Log -->
+        <mxCell id="step2" value="📋 Windows&#xa;Event Log" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="150" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="label2" value="2. Logs captured" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="200" y="220" width="120" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 3: AMA -->
+        <mxCell id="step3" value="📊 Azure Monitor&#xa;Agent" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#50e6ff;strokeColor=#00a2d9;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="150" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="label3" value="3. Collect events" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="360" y="220" width="120" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 4: DCR -->
+        <mxCell id="step4" value="📝 Data Collection&#xa;Rules" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#50e6ff;strokeColor=#00a2d9;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="520" y="150" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="label4" value="4. Apply rules" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="520" y="220" width="120" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 5: Log Analytics -->
+        <mxCell id="step5" value="🗄️ Log Analytics&#xa;Workspace" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#00bcf2;strokeColor=#0078d4;fontColor=#ffffff;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="680" y="150" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="label5" value="5. Store data" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="680" y="220" width="120" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 6: Agent Flow -->
+        <mxCell id="step6" value="⚡ Agent Flow" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8661c5;strokeColor=#5c3d8a;fontColor=#ffffff;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="840" y="150" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="label6" value="6. Execute KQL" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="840" y="220" width="120" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 7: Copilot Studio -->
+        <mxCell id="step7" value="🤖 Copilot Studio" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8661c5;strokeColor=#5c3d8a;fontColor=#ffffff;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="150" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="label7" value="7. AI analysis" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="220" width="120" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 8: User -->
+        <mxCell id="step8" value="👤 User" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1160" y="150" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="label8" value="8. Get response" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="1160" y="220" width="120" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Arrows -->
+        <mxCell id="arrow1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#d6b656;endArrow=classic;endFill=1;" edge="1" parent="1" source="step1" target="step2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#00a2d9;endArrow=classic;endFill=1;" edge="1" parent="1" source="step2" target="step3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#00a2d9;endArrow=classic;endFill=1;" edge="1" parent="1" source="step3" target="step4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#0078d4;endArrow=classic;endFill=1;" edge="1" parent="1" source="step4" target="step5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#8661c5;endArrow=classic;endFill=1;" edge="1" parent="1" source="step5" target="step6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#8661c5;endArrow=classic;endFill=1;" edge="1" parent="1" source="step6" target="step7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;endArrow=classic;endFill=1;" edge="1" parent="1" source="step7" target="step8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Layer Labels -->
+        <mxCell id="layer-store" value="STORE" style="text;html=1;strokeColor=none;fillColor=#fff2cc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;fontStyle=1;fontColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="40" y="110" width="280" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="layer-azure" value="AZURE MONITORING" style="text;html=1;strokeColor=none;fillColor=#d5f5ff;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;fontStyle=1;fontColor=#0078d4;" vertex="1" parent="1">
+          <mxGeometry x="360" y="110" width="440" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="layer-ai" value="AI LAYER" style="text;html=1;strokeColor=none;fillColor=#e1d5e7;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;fontStyle=1;fontColor=#8661c5;" vertex="1" parent="1">
+          <mxGeometry x="840" y="110" width="280" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="layer-user" value="USER" style="text;html=1;strokeColor=none;fillColor=#f5f5f5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;fontStyle=1;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="1160" y="110" width="120" height="20" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,233 @@
+// Performance Metrics Query for Store Monitoring
+// Provides detailed performance analysis for POS devices
+//
+// Covers: CPU, Memory, Disk I/O, Network, and identifies performance bottlenecks
+
+let TimeRange = 24h;
+let PerformanceThreshold_CPU = 80.0;  // CPU usage threshold
+let PerformanceThreshold_Memory = 85.0;  // Memory usage threshold
+let PerformanceThreshold_DiskFree = 15.0;  // Free disk space threshold
+
+// ========================================
+// CPU Performance
+// ========================================
+Perf
+| where TimeGenerated > ago(TimeRange)
+| where ObjectName == "Processor" and CounterName == "% Processor Time"
+| where InstanceName == "_Total"
+| summarize 
+    AvgCPU = round(avg(CounterValue), 2),
+    MaxCPU = round(max(CounterValue), 2),
+    MinCPU = round(min(CounterValue), 2),
+    P95_CPU = round(percentile(CounterValue, 95), 2)
+    by Computer
+| extend CPUStatus = case(
+    MaxCPU >= PerformanceThreshold_CPU, "Critical",
+    P95_CPU >= PerformanceThreshold_CPU * 0.8, "Warning",
+    "Healthy"
+)
+| project 
+    Device = Computer,
+    Component = "CPU",
+    Status = CPUStatus,
+    AvgUsage = AvgCPU,
+    MaxUsage = MaxCPU,
+    P95Usage = P95_CPU
+| order by MaxUsage desc
+
+
+// ========================================
+// Memory Performance
+// ========================================
+/*
+Perf
+| where TimeGenerated > ago(TimeRange)
+| where (ObjectName == "Memory" and CounterName in ("Available MBytes", "% Committed Bytes In Use"))
+| summarize 
+    AvgValue = avg(CounterValue),
+    MinValue = min(CounterValue),
+    MaxValue = max(CounterValue)
+    by Computer, CounterName
+| extend 
+    Status = case(
+        CounterName == "Available MBytes" and MinValue < 512, "Critical",
+        CounterName == "Available MBytes" and MinValue < 1024, "Warning",
+        CounterName == "% Committed Bytes In Use" and MaxValue > PerformanceThreshold_Memory, "Critical",
+        CounterName == "% Committed Bytes In Use" and MaxValue > PerformanceThreshold_Memory * 0.9, "Warning",
+        "Healthy"
+    )
+| project 
+    Device = Computer,
+    Component = "Memory",
+    Metric = CounterName,
+    Status,
+    AvgValue = round(AvgValue, 2),
+    MinValue = round(MinValue, 2),
+    MaxValue = round(MaxValue, 2)
+| order by Status desc, Device asc
+*/
+
+
+// ========================================
+// Disk Performance
+// ========================================
+/*
+Perf
+| where TimeGenerated > ago(TimeRange)
+| where ObjectName == "LogicalDisk" and InstanceName == "_Total"
+| where CounterName in ("% Free Space", "Avg. Disk sec/Read", "Avg. Disk sec/Write")
+| summarize 
+    AvgValue = avg(CounterValue),
+    MinValue = min(CounterValue),
+    MaxValue = max(CounterValue)
+    by Computer, CounterName
+| extend 
+    Status = case(
+        CounterName == "% Free Space" and MinValue < PerformanceThreshold_DiskFree, "Critical",
+        CounterName == "% Free Space" and MinValue < PerformanceThreshold_DiskFree * 1.5, "Warning",
+        CounterName contains "Disk sec" and AvgValue > 0.015, "Warning",  // >15ms latency
+        CounterName contains "Disk sec" and AvgValue > 0.025, "Critical",  // >25ms latency
+        "Healthy"
+    )
+| project 
+    Device = Computer,
+    Component = "Disk",
+    Metric = CounterName,
+    Status,
+    AvgValue = round(AvgValue, 4),
+    MinValue = round(MinValue, 4),
+    MaxValue = round(MaxValue, 4)
+| order by Status desc, Device asc
+*/
+
+
+// ========================================
+// Network Performance
+// ========================================
+/*
+Perf
+| where TimeGenerated > ago(TimeRange)
+| where ObjectName == "Network Interface" or ObjectName == "Network Adapter"
+| where CounterName == "Bytes Total/sec"
+| where InstanceName !contains "Loopback"
+| summarize 
+    AvgBytesPerSec = avg(CounterValue),
+    MaxBytesPerSec = max(CounterValue),
+    P95BytesPerSec = percentile(CounterValue, 95)
+    by Computer, InstanceName
+| extend 
+    AvgMbps = round(AvgBytesPerSec * 8 / 1000000, 2),
+    MaxMbps = round(MaxBytesPerSec * 8 / 1000000, 2),
+    P95Mbps = round(P95BytesPerSec * 8 / 1000000, 2)
+| project 
+    Device = Computer,
+    Component = "Network",
+    Interface = InstanceName,
+    AvgMbps,
+    MaxMbps,
+    P95Mbps
+| order by MaxMbps desc
+*/
+
+
+// ========================================
+// Comprehensive Performance Dashboard
+// ========================================
+/*
+let CPUData = Perf
+| where TimeGenerated > ago(TimeRange)
+| where ObjectName == "Processor" and CounterName == "% Processor Time" and InstanceName == "_Total"
+| summarize AvgCPU = avg(CounterValue), MaxCPU = max(CounterValue) by Computer;
+
+let MemoryData = Perf
+| where TimeGenerated > ago(TimeRange)
+| where ObjectName == "Memory" and CounterName == "Available MBytes"
+| summarize AvgMemoryMB = avg(CounterValue), MinMemoryMB = min(CounterValue) by Computer;
+
+let DiskData = Perf
+| where TimeGenerated > ago(TimeRange)
+| where ObjectName == "LogicalDisk" and CounterName == "% Free Space" and InstanceName == "_Total"
+| summarize AvgFreeDisk = avg(CounterValue), MinFreeDisk = min(CounterValue) by Computer;
+
+CPUData
+| join kind=inner (MemoryData) on Computer
+| join kind=inner (DiskData) on Computer
+| extend 
+    CPUStatus = case(MaxCPU >= PerformanceThreshold_CPU, "Critical", MaxCPU >= 60, "Warning", "Healthy"),
+    MemoryStatus = case(MinMemoryMB < 512, "Critical", MinMemoryMB < 1024, "Warning", "Healthy"),
+    DiskStatus = case(MinFreeDisk < PerformanceThreshold_DiskFree, "Critical", MinFreeDisk < 25, "Warning", "Healthy")
+| extend OverallStatus = case(
+    CPUStatus == "Critical" or MemoryStatus == "Critical" or DiskStatus == "Critical", "Critical",
+    CPUStatus == "Warning" or MemoryStatus == "Warning" or DiskStatus == "Warning", "Warning",
+    "Healthy"
+)
+| project 
+    Device = Computer,
+    OverallStatus,
+    CPUStatus,
+    AvgCPU = round(AvgCPU, 2),
+    MaxCPU = round(MaxCPU, 2),
+    MemoryStatus,
+    AvgMemoryMB = round(AvgMemoryMB, 0),
+    MinMemoryMB = round(MinMemoryMB, 0),
+    DiskStatus,
+    AvgFreeDisk = round(AvgFreeDisk, 2),
+    MinFreeDisk = round(MinFreeDisk, 2)
+| order by OverallStatus desc, Device asc
+*/
+
+
+// ========================================
+// Performance Trend Over Time
+// ========================================
+/*
+Perf
+| where TimeGenerated > ago(TimeRange)
+| where ObjectName == "Processor" and CounterName == "% Processor Time" and InstanceName == "_Total"
+| summarize AvgCPU = avg(CounterValue) by Computer, bin(TimeGenerated, 1h)
+| render timechart 
+*/
+
+
+// ========================================
+// Top Resource Consumers
+// ========================================
+/*
+Perf
+| where TimeGenerated > ago(TimeRange)
+| where (ObjectName == "Processor" and CounterName == "% Processor Time" and InstanceName == "_Total")
+    or (ObjectName == "Memory" and CounterName == "% Committed Bytes In Use")
+| extend Metric = strcat(ObjectName, " - ", CounterName)
+| summarize AvgUsage = avg(CounterValue) by Computer, Metric
+| order by AvgUsage desc
+| take 20
+*/
+
+
+// ========================================
+// Performance Baseline Deviation
+// ========================================
+/*
+let Baseline = Perf
+| where TimeGenerated between (ago(7d) .. ago(1d))
+| where ObjectName == "Processor" and CounterName == "% Processor Time" and InstanceName == "_Total"
+| summarize BaselineAvg = avg(CounterValue), BaselineStdDev = stdev(CounterValue) by Computer;
+
+Perf
+| where TimeGenerated > ago(TimeRange)
+| where ObjectName == "Processor" and CounterName == "% Processor Time" and InstanceName == "_Total"
+| summarize CurrentAvg = avg(CounterValue) by Computer
+| join kind=inner (Baseline) on Computer
+| extend 
+    Deviation = CurrentAvg - BaselineAvg,
+    DeviationPercent = round(100.0 * (CurrentAvg - BaselineAvg) / BaselineAvg, 2),
+    IsAnomaly = abs(CurrentAvg - BaselineAvg) > (2 * BaselineStdDev)
+| project 
+    Device = Computer,
+    CurrentAvg = round(CurrentAvg, 2),
+    BaselineAvg = round(BaselineAvg, 2),
+    Deviation = round(Deviation, 2),
+    DeviationPercent,
+    IsAnomaly
+| order by abs(Deviation) desc
+*/

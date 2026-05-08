@@ -1,0 +1,32 @@
+// Parse XML EventData from Application Event Log and extract Data nodes as columns
+Event 
+| where EventLog == "Application" 
+| where EventLevelName in ("Error", "Critical") 
+| extend DeviceName = Computer, ErrorMessage = RenderedDescription 
+| extend ParsedXml = parse_xml(EventData)
+| extend EventDataXml = ParsedXml.DataItem.EventData
+| extend DataNodes = EventDataXml.Data
+| mv-expand DataNode = DataNodes
+| extend DataValue = tostring(DataNode)
+| summarize DataValues = make_list(DataValue), arg_max(TimeGenerated, *) by EventData
+| extend 
+    EventSummary = tostring(DataValues[0]),
+    EventId = trim_start("EventId: ", tostring(DataValues[1])),
+    LogLevel = trim_start("LogLevel: ", tostring(DataValues[3])),
+    Name = trim_start("name: ", tostring(DataValues[4])),
+    Message = trim_start("message: ", tostring(DataValues[5])),
+    Scope = tostring(DataValues[7])
+| extend
+    ActivityId = extract("Activity ID: ([^;]+)", 1, Scope),
+    AppSessionId = extract("App Session ID: ([^;]+)", 1, Scope),
+    UserSessionId = extract("User Session ID: ([^;]+)", 1, Scope),
+    UserId = extract("User ID: ([^;]+)", 1, Scope),
+    TenantId = extract("Tenant ID: ([^;]+)", 1, Scope),
+    OfflineAvailability = extract("Offline Availability: ([^;]+)", 1, Scope),
+    OfflineCurrentMode = extract("Current Offline Mode: ([^;]+)", 1, Scope),
+    DeviceId = extract("Device ID: ([^;]+)", 1, Scope),
+    DeviceRecordId = extract("Device Record ID: ([^;]+)", 1, Scope),
+    TerminalRecordId = extract("Terminal Record ID: ([^;]+)", 1, Scope)
+| project-away DataValues, EventDataXml, DataNodes, DataNode, DataValue, ParsedXml
+| order by TimeGenerated desc 
+| limit 10

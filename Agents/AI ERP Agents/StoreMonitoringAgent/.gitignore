@@ -1,0 +1,70 @@
+# Azure credentials
+*.credentials
+*.secret
+appsettings.local.json
+
+# PowerShell
+*.ps1.bak
+
+# IDE
+.vscode/
+.vs/
+*.suo
+*.user
+*.sln.docstates
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+temp/
+
+# Environment-specific
+.env
+.env.local
+
+# Azure specific
+local.settings.json
+
+# Build outputs
+bin/
+obj/
+out/
+
+# NuGet
+*.nupkg
+packages/
+
+# User-specific files
+*.rsuser
+*.userprefs
+
+# Test results
+TestResults/
+*.trx
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Agent work folder 
+evaldataset/
+evalsnapshot/
+docs/azure-sre-agent-comparison.md
+docs/transparency-note.md
+docs/threat-model.md
+docs/threat-model-diagrams.md
+docs/Store monitoring agent -Threat model.tm7
+docs/security-development-lifecycle.md
+docs/privacy-data-flow-diagram.vdx
+docs/privacy-data-flow-diagram.png
+docs/privacy-data-flow-diagram.md
+docs/privacy-data-flow-diagram.drawio
+docs/Privacy DFD Template.vsdx
+docs/mcs-agent-instructions.md
+docs/agent-analytics.md
+kql-queries/agent-telemetry-dashboard.kql
+agent/
+docs/setup-landing-zone.md

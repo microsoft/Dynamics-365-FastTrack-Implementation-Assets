@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+
+  <Package Name="Database Metrics Service"
+           Manufacturer="Store Monitoring"
+           Version="1.0.0.0"
+           UpgradeCode="A1B2C3D4-E5F6-4789-A012-3456789ABCDE"
+           Scope="perMachine"
+           InstallerVersion="500">
+
+    <SummaryInformation Description="Database Metrics Service Installer" Manufacturer="Store Monitoring" />
+    <Launch Condition="Privileged" Message="Administrator privileges required." />
+    <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- Check if the service is already installed via registry -->
+    <Property Id="SERVICEALREADYINSTALLED" Secure="yes">
+      <RegistrySearch Id="ServiceRegistrySearch" 
+                      Root="HKLM" 
+                      Key="SYSTEM\CurrentControlSet\Services\DatabaseMetricsService" 
+                      Type="raw" />
+    </Property>
+
+    <!-- If service exists but product not registered, treat as installed to show Repair/Remove dialog -->
+    <SetProperty Id="Installed" Value="1" Before="LaunchConditions" Sequence="ui" Condition="SERVICEALREADYINSTALLED AND NOT Installed" />
+
+    <!-- SQL Configuration Properties -->
+    <Property Id="SQL_SERVER" Value="localhost" Secure="yes" />
+    <Property Id="DATABASE_NAME" Value="RetailOfflineDatabase" Secure="yes" />
+
+    <!-- License File for WixUI -->
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+
+    <!-- Directory Structure -->
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="CompanyFolder" Name="StoreMonitoring">
+        <Directory Id="INSTALLFOLDER" Name="DatabaseMetricsService" />
+      </Directory>
+    </StandardDirectory>
+
+    <!-- Feature -->
+    <Feature Id="Main" Title="Database Metrics Service" Level="1">
+      <ComponentGroupRef Id="PublishFiles" />
+      <ComponentRef Id="ServiceComponent" />
+      <ComponentRef Id="ConfigScript" />
+    </Feature>
+
+    <!-- Service Component -->
+    <Component Id="ServiceComponent" Directory="INSTALLFOLDER" Guid="B2C3D4E5-F6A7-4890-B123-4567890ABCDE">
+      <File Id="MainExe" Source="$(var.PublishDir)DatabaseMetricsService.exe" KeyPath="yes" />
+      <ServiceInstall Id="ServiceInstall"
+                      Type="ownProcess"
+                      Name="DatabaseMetricsService"
+                      DisplayName="Database Metrics Service"
+                      Description="Collects SQL Server database metrics."
+                      Start="auto"
+                      Account="NT SERVICE\DatabaseMetricsService"
+                      ErrorControl="normal">
+        <util:ServiceConfig FirstFailureActionType="restart"
+                            SecondFailureActionType="restart"
+                            ThirdFailureActionType="restart"
+                            RestartServiceDelayInSeconds="60" />
+      </ServiceInstall>
+      <ServiceControl Id="ServiceControl" Name="DatabaseMetricsService" Stop="both" Remove="uninstall" Wait="yes" />
+    </Component>
+
+    <!-- Config Script Component -->
+    <Component Id="ConfigScript" Directory="INSTALLFOLDER" Guid="D4E5F6A7-B8C9-4012-D345-6789012CDEF0">
+      <File Id="ConfigureScript" Name="Configure-Service.ps1" Source="$(var.ScriptsDir)Configure-Service.ps1" KeyPath="yes" />
+    </Component>
+
+    <!-- Custom Action to Run Configuration Script -->
+    <SetProperty Id="RunConfigScript"
+                 Value="&quot;[SystemFolder]WindowsPowerShell\v1.0\powershell.exe&quot; -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLFOLDER]Configure-Service.ps1&quot; -InstallFolder &quot;[INSTALLFOLDER].&quot; -SqlServer &quot;[SQL_SERVER]&quot; -DatabaseName &quot;[DATABASE_NAME]&quot;"
+                 Before="RunConfigScript" Sequence="execute" />
+    <CustomAction Id="RunConfigScript" BinaryRef="Wix4UtilCA_X64" DllEntry="WixQuietExec64" Execute="deferred" Impersonate="no" Return="check" />
+
+    <InstallExecuteSequence>
+      <Custom Action="RunConfigScript" Before="InstallFinalize" Condition="NOT Installed" />
+    </InstallExecuteSequence>
+
+    <!-- Use Standard WixUI with Custom SQL Dialog -->
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+
+    <!-- Custom SQL Configuration Dialog -->
+    <UI>
+      <Dialog Id="SqlConfigDlg" Width="370" Height="270" Title="[ProductName] Setup">
+        <!-- Banner -->
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        
+        <!-- Title -->
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}SQL Server Configuration" />
+        <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Configure the SQL Server connection for the service." />
+        
+        <!-- SQL Server Input -->
+        <Control Id="ServerLabel" Type="Text" X="20" Y="60" Width="330" Height="15" NoPrefix="yes" Text="SQL Server Instance (e.g., localhost, .\SQLEXPRESS, or server\instance):" />
+        <Control Id="ServerEdit" Type="Edit" X="20" Y="76" Width="330" Height="18" Property="SQL_SERVER" />
+        
+        <!-- Database Name Input -->
+        <Control Id="DatabaseLabel" Type="Text" X="20" Y="105" Width="330" Height="15" NoPrefix="yes" Text="Database Name:" />
+        <Control Id="DatabaseEdit" Type="Edit" X="20" Y="121" Width="330" Height="18" Property="DATABASE_NAME" />
+        
+        <!-- Info Text -->
+        <Control Id="InfoText" Type="Text" X="20" Y="155" Width="330" Height="45" NoPrefix="yes" Text="The service runs as a Virtual Service Account (NT SERVICE\DatabaseMetricsService) and connects using Windows Integrated Security. Run the provided SQL scripts to configure database access." />
+        
+        <!-- Bottom Line and Buttons -->
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+          <Publish Event="NewDialog" Value="InstallDirDlg" />
+        </Control>
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+          <Publish Event="NewDialog" Value="VerifyReadyDlg" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg" />
+        </Control>
+      </Dialog>
+
+      <!-- Override WixUI dialog navigation to insert SqlConfigDlg -->
+      <!-- Redirect InstallDirDlg Next to SqlConfigDlg instead of VerifyReadyDlg -->
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="SqlConfigDlg" Order="5" Condition="WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID=&quot;1&quot;" />
+      
+      <!-- Override VerifyReadyDlg Back to go to SqlConfigDlg -->
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="SqlConfigDlg" Order="5" Condition="NOT Installed" />
+    </UI>
+
+  </Package>
+
+</Wix>

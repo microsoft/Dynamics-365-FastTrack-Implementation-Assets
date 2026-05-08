@@ -1,0 +1,54 @@
+// Parse Retail Server Request errors from Application Event Log
+// Extracts Request ID and Request URL from error messages
+Event 
+| where EventLog == "Application" 
+| where EventLevelName in ("Error", "Critical") 
+| extend DeviceName = Computer, ErrorMessage = RenderedDescription 
+| extend ParsedXml = parse_xml(EventData)
+| extend EventDataXml = ParsedXml.DataItem.EventData
+| extend DataNodes = EventDataXml.Data
+| mv-expand DataNode = DataNodes
+| extend DataValue = tostring(DataNode)
+| summarize DataValues = make_list(DataValue), arg_max(TimeGenerated, *) by EventData
+| extend 
+    EventSummary = tostring(DataValues[0]),
+    EventId = trim_start("EventId: ", tostring(DataValues[1])),
+    LogLevel = trim_start("LogLevel: ", tostring(DataValues[3])),
+    Name = trim_start("name: ", tostring(DataValues[4])),
+    Message = trim_start("message: ", tostring(DataValues[5])),
+    ActivityId = trim_start("ActivityId: ", tostring(DataValues[7])),
+    AppSessionId = trim_start("AppSessionId: ", tostring(DataValues[8])),
+    UserSessionId = trim_start("UserSessionId: ", tostring(DataValues[9])),
+    UserId = trim_start("UserId: ", tostring(DataValues[10])),
+    TenantId = trim_start("TenantId: ", tostring(DataValues[11])),
+    DeviceId = trim_start("DeviceId: ", tostring(DataValues[19])),
+    DeviceRecordId = trim_start("DeviceRecordId: ", tostring(DataValues[20])),
+    TerminalRecordId = trim_start("TerminalRecordId: ", tostring(DataValues[21]))
+// Filter for Retail Server Request errors and parse request details
+| where Message has "Retail Server Request" or EventId == "40101"
+| extend 
+    RequestId = extract(@"request id '([^']+)'", 1, Message),
+    RequestUrl = extract(@"request url '([^']+)'", 1, Message),
+    ErrorDetails = extract(@"Error: ([^,]+)", 1, Message),
+    StatusCode = extract(@"Status code (\d+)", 1, Message),
+    TimeElapsedMs = extract(@"Time elapsed ([\d.]+) ms", 1, Message)
+| project 
+    TimeGenerated,
+    DeviceName,
+    EventId,
+    LogLevel,
+    Name,
+    RequestId,
+    RequestUrl,
+    ErrorDetails,
+    StatusCode,
+    TimeElapsedMs,
+    Message,
+    ActivityId,
+    AppSessionId,
+    TenantId,
+    DeviceId,
+    DeviceRecordId,
+    TerminalRecordId
+| order by TimeGenerated desc 
+| limit 50

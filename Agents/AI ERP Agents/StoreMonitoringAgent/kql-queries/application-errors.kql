@@ -1,0 +1,80 @@
+// Application Error Query for Store Monitoring
+// Returns application errors and critical events from POS devices
+//
+// Parameters:
+// - TimeRange: Time range for the query (default: last 24 hours)
+// - Computer: Specific computer/device name (optional)
+// - MinimumSeverityLevel: Minimum event level (1=Critical, 2=Error, 3=Warning)
+
+let TimeRange = 24h;  // Adjust as needed
+let MinimumSeverityLevel = 2;  // 1=Critical, 2=Error
+
+Event
+| where TimeGenerated > ago(TimeRange)
+| where EventLog == "Application"
+| where EventLevelName in ("Error", "Critical")
+| where EventLevel <= MinimumSeverityLevel
+// Optional: Filter by specific computer
+// | where Computer == "STORE-POS-01"
+| extend 
+    DeviceName = Computer,
+    ErrorMessage = RenderedDescription,
+    Source = Source,
+    Severity = EventLevelName,
+    EventID = EventID
+| project 
+    TimeGenerated,
+    DeviceName,
+    Severity,
+    EventID,
+    Source,
+    ErrorMessage,
+    ParameterXml
+| order by TimeGenerated desc
+
+
+// Alternative: Group by error type
+/*
+Event
+| where TimeGenerated > ago(TimeRange)
+| where EventLog == "Application"
+| where EventLevelName in ("Error", "Critical")
+| summarize 
+    ErrorCount = count(),
+    LastOccurrence = max(TimeGenerated),
+    AffectedDevices = dcount(Computer),
+    Devices = make_set(Computer)
+    by EventID, Source, EventLevelName
+| order by ErrorCount desc
+| project 
+    EventID,
+    Source,
+    Severity = EventLevelName,
+    ErrorCount,
+    AffectedDevices,
+    LastOccurrence,
+    Devices
+*/
+
+
+// Trend analysis: Errors over time
+/*
+Event
+| where TimeGenerated > ago(TimeRange)
+| where EventLog == "Application"
+| where EventLevelName in ("Error", "Critical")
+| summarize ErrorCount = count() by bin(TimeGenerated, 1h), Computer
+| render timechart
+*/
+
+
+// Top error sources
+/*
+Event
+| where TimeGenerated > ago(TimeRange)
+| where EventLog == "Application"
+| where EventLevelName in ("Error", "Critical")
+| summarize ErrorCount = count() by Source, EventID
+| top 10 by ErrorCount desc
+| project Source, EventID, ErrorCount
+*/
