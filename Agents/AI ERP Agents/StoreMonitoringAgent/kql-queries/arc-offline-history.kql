@@ -1,0 +1,83 @@
+// Azure Arc Device Offline History
+// Detects offline periods based on heartbeat gaps
+// NOTE: Devices with NO heartbeat at all are treated as offline.
+//       The "Current Status" query (below) finds ALL devices that ever sent a heartbeat
+//       but are not sending one now — regardless of how long ago they stopped.
+let HeartbeatThresholdMinutes = 5; // Consider offline if no heartbeat for 5 minutes
+let TimeRange = 7d; // Look back period for gap analysis
+Heartbeat
+| where TimeGenerated > ago(TimeRange)
+| where ResourceProvider == "Microsoft.HybridCompute" // Azure Arc machines
+| summarize 
+    LastHeartbeat = max(TimeGenerated),
+    FirstHeartbeat = min(TimeGenerated),
+    HeartbeatCount = count()
+    by Computer, bin(TimeGenerated, 1m)
+| order by Computer asc, TimeGenerated asc
+| serialize
+| extend PreviousHeartbeat = prev(TimeGenerated, 1), PreviousComputer = prev(Computer, 1)
+| where Computer == PreviousComputer
+| extend HeartbeatGap = datetime_diff('minute', TimeGenerated, PreviousHeartbeat)
+| where HeartbeatGap > HeartbeatThresholdMinutes
+| extend 
+    OfflineStart = PreviousHeartbeat,
+    OfflineEnd = TimeGenerated,
+    OfflineDurationMinutes = HeartbeatGap
+| project 
+    Computer,
+    OfflineStart,
+    OfflineEnd,
+    OfflineDurationMinutes,
+    OfflineDuration = strcat(
+        iff(OfflineDurationMinutes >= 60, strcat(OfflineDurationMinutes / 60, "h "), ""),
+        OfflineDurationMinutes % 60, "m"
+    )
+| order by OfflineStart desc
+
+// --- Current Status: All devices not producing heartbeat (recommended for offline detection) ---
+// No time window on source — any device that EVER sent a heartbeat but isn't sending now is offline.
+let HeartbeatThreshold = 5m;
+Heartbeat
+| where ResourceProvider == "Microsoft.HybridCompute"
+| summarize LastHeartbeat = max(TimeGenerated) by Computer, OSType, OSName, ComputerEnvironment
+| where now() - LastHeartbeat > HeartbeatThreshold
+| extend 
+    MinutesSinceLastHeartbeat = datetime_diff('minute', now(), LastHeartbeat),
+    Status = "Offline"
+| project 
+    Computer,
+    Status,
+    LastHeartbeat,
+    MinutesSinceLastHeartbeat,
+    OSType,
+    OSName
+| order by Status desc, MinutesSinceLastHeartbeat desc
+*/
+
+// --- Alternative: Offline Events Timeline ---
+// Uncomment below for a timeline view of offline events per device
+/*
+let HeartbeatThreshold = 5m;
+let TimeRange = 7d;
+Heartbeat
+| where TimeGenerated > ago(TimeRange)
+| where ResourceProvider == "Microsoft.HybridCompute"
+| summarize LastHeartbeat = max(TimeGenerated) by Computer, bin(TimeGenerated, 5m)
+| order by Computer, TimeGenerated asc
+| serialize
+| extend 
+    PreviousHeartbeat = prev(TimeGenerated, 1),
+    PreviousComputer = prev(Computer, 1)
+| where Computer == PreviousComputer
+| extend GapMinutes = datetime_diff('minute', TimeGenerated, PreviousHeartbeat)
+| where GapMinutes > 5
+| summarize 
+    OfflineEvents = count(),
+    TotalOfflineMinutes = sum(GapMinutes),
+    LongestOfflineMinutes = max(GapMinutes),
+    FirstOffline = min(PreviousHeartbeat),
+    LastOffline = max(TimeGenerated)
+    by Computer
+| extend AvgOfflineMinutes = TotalOfflineMinutes / OfflineEvents
+| order by TotalOfflineMinutes desc
+*/

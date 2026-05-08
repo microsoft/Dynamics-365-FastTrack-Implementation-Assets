@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+
+  <Package Name="EventLog Sink Config Service"
+           Manufacturer="Store Monitoring"
+           Version="1.0.0.0"
+           UpgradeCode="F1E2D3C4-B5A6-4978-9012-FEDCBA987654"
+           Scope="perMachine"
+           InstallerVersion="500">
+
+    <SummaryInformation Description="EventLog Sink Config Service Installer" Manufacturer="Store Monitoring" />
+    <Launch Condition="Privileged" Message="Administrator privileges required." />
+    <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- Check if the service is already installed via registry -->
+    <Property Id="SERVICEALREADYINSTALLED" Secure="yes">
+      <RegistrySearch Id="ServiceRegistrySearch" 
+                      Root="HKLM" 
+                      Key="SYSTEM\CurrentControlSet\Services\EventLogSinkConfigService" 
+                      Type="raw" />
+    </Property>
+
+    <!-- If service exists but product not registered, treat as installed to show Repair/Remove dialog -->
+    <SetProperty Id="Installed" Value="1" Before="LaunchConditions" Sequence="ui" Condition="SERVICEALREADYINSTALLED AND NOT Installed" />
+
+    <!-- License File for WixUI -->
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+
+    <!-- Directory Structure -->
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="CompanyFolder" Name="StoreMonitoring">
+        <Directory Id="INSTALLFOLDER" Name="EventLogSinkConfigService" />
+      </Directory>
+    </StandardDirectory>
+
+    <!-- Feature -->
+    <Feature Id="Main" Title="EventLog Sink Config Service" Level="1">
+      <ComponentGroupRef Id="PublishFiles" />
+      <ComponentRef Id="ServiceComponent" />
+      <ComponentRef Id="ConfigScript" />
+    </Feature>
+
+    <!-- Service Component -->
+    <Component Id="ServiceComponent" Directory="INSTALLFOLDER" Guid="C3D4E5F6-A7B8-4901-C234-567890ABCDEF">
+      <File Id="MainExe" Source="$(var.PublishDir)EventLogSinkConfigService.exe" KeyPath="yes" />
+      <ServiceInstall Id="ServiceInstall"
+                      Type="ownProcess"
+                      Name="EventLogSinkConfigService"
+                      DisplayName="EventLog Sink Config Service"
+                      Description="Validates and configures the EventLog sink in the Store Commerce config."
+                      Start="auto"
+                      Account="NT SERVICE\EventLogSinkConfigService"
+                      ErrorControl="normal">
+        <util:ServiceConfig FirstFailureActionType="restart"
+                            SecondFailureActionType="restart"
+                            ThirdFailureActionType="restart"
+                            RestartServiceDelayInSeconds="60" />
+      </ServiceInstall>
+      <ServiceControl Id="ServiceControl" Name="EventLogSinkConfigService" Start="install" Stop="both" Remove="uninstall" Wait="yes" />
+    </Component>
+
+    <!-- Config Script Component -->
+    <Component Id="ConfigScript" Directory="INSTALLFOLDER" Guid="E5F6A7B8-C9D0-4123-E456-7890123ABCDE">
+      <File Id="ConfigureScript" Name="Configure-Service.ps1" Source="$(var.ScriptsDir)Configure-Service.ps1" KeyPath="yes" />
+    </Component>
+
+    <!-- Grant the Virtual Service Account modify permission on the Store Commerce config.json file only -->
+    <SetProperty Id="GrantConfigFilePermission" Before="GrantConfigFilePermission" Sequence="execute"
+                 Value="&quot;icacls&quot; &quot;C:\Program Files\Microsoft Dynamics 365\10.0\Store Commerce\Microsoft\contentFiles\Pos\config.json&quot; /grant &quot;NT SERVICE\EventLogSinkConfigService:M&quot; /Q" />
+    <CustomAction Id="GrantConfigFilePermission" BinaryRef="Wix4UtilCA_X64" DllEntry="WixQuietExec64" Execute="deferred" Impersonate="no" Return="check" />
+
+    <!-- Schedule the permission grant after InstallFiles -->
+    <InstallExecuteSequence>
+      <Custom Action="GrantConfigFilePermission" After="InstallFiles" Condition="NOT REMOVE" />
+    </InstallExecuteSequence>
+
+    <!-- Use Standard WixUI -->
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+
+  </Package>
+
+</Wix>

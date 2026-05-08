@@ -1,0 +1,23 @@
+// Count of Retail Server Errors by Machine Name - Last 24 Hours
+Event 
+| where TimeGenerated > ago(24h)
+| where EventLog == "Application" 
+| where EventLevelName in ("Error", "Critical") 
+| extend DeviceName = Computer
+| extend ParsedXml = parse_xml(EventData)
+| extend EventDataXml = ParsedXml.DataItem.EventData
+| extend DataNodes = EventDataXml.Data
+| mv-expand DataNode = DataNodes
+| extend DataValue = tostring(DataNode)
+| summarize DataValues = make_list(DataValue), arg_max(TimeGenerated, *) by EventData
+| extend 
+    EventId = trim_start("EventId: ", tostring(DataValues[1])),
+    Message = trim_start("message: ", tostring(DataValues[5]))
+| where Message has "Retail Server Request" or EventId == "40101"
+| summarize 
+    ErrorCount = count(),
+    FirstError = min(TimeGenerated),
+    LastError = max(TimeGenerated)
+    by DeviceName
+| extend ErrorsPerHour = round(ErrorCount / 24.0, 2)
+| order by ErrorCount desc

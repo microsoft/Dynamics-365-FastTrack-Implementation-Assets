@@ -1,0 +1,13 @@
+// Count of Hardware Station Errors by Device (Last 24 Hours)
+Event 
+| where TimeGenerated > ago(1d)
+| where EventLog == "Application" 
+| where EventLevelName in ("Error", "Critical") 
+| where EventID == 40450
+| extend DeviceName = Computer
+| summarize 
+    ErrorCount = count(),
+    FirstError = min(TimeGenerated),
+    LastError = max(TimeGenerated)
+    by DeviceName
+| order by ErrorCount desc

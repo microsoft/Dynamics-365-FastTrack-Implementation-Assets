@@ -1,0 +1,10 @@
+// Hardware Station Errors - All Devices (Last 24 Hours)
+Event 
+| where TimeGenerated > ago(1d)
+| where EventLog == "Application" 
+| where EventLevelName in ("Error", "Critical") 
+| where EventID == 40450
+| extend DeviceName = Computer, ErrorMessage = RenderedDescription 
+| project TimeGenerated, DeviceName, EventID, Source, ErrorMessage 
+| order by TimeGenerated desc 
+| limit 100

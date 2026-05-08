@@ -1,0 +1,30 @@
+// Count of Retail Server Errors by Request URL - Last 24 Hours
+Event 
+| where TimeGenerated > ago(24h)
+| where EventLog == "Application" 
+| where EventLevelName in ("Error", "Critical") 
+| extend DeviceName = Computer
+| extend ParsedXml = parse_xml(EventData)
+| extend EventDataXml = ParsedXml.DataItem.EventData
+| extend DataNodes = EventDataXml.Data
+| mv-expand DataNode = DataNodes
+| extend DataValue = tostring(DataNode)
+| summarize DataValues = make_list(DataValue), arg_max(TimeGenerated, *) by EventData
+| extend 
+    EventId = trim_start("EventId: ", tostring(DataValues[1])),
+    Message = trim_start("message: ", tostring(DataValues[5]))
+| where Message has "Retail Server Request" or EventId == "40101"
+| extend 
+    RequestUrl = extract(@"request url '([^']+)'", 1, Message),
+    StatusCode = extract(@"Status code (\d+)", 1, Message)
+// Extract just the endpoint path without query parameters for better grouping
+| extend Endpoint = extract(@"https?://[^/]+(/[^?']+)", 1, RequestUrl)
+| summarize 
+    ErrorCount = count(),
+    AffectedDevices = dcount(DeviceName),
+    DeviceList = make_set(DeviceName, 10),
+    StatusCodes = make_set(StatusCode),
+    FirstError = min(TimeGenerated),
+    LastError = max(TimeGenerated)
+    by Endpoint
+| order by ErrorCount desc

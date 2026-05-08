@@ -1,0 +1,14 @@
+// Application Errors - Grouped by Machine Name and Event ID (Last 24 Hours)
+Event 
+| where TimeGenerated > ago(1d)
+| where EventLog == "Application" 
+| where EventLevelName in ("Error", "Critical") 
+| extend DeviceName = Computer
+| summarize 
+    ErrorCount = count(),
+    FirstError = min(TimeGenerated),
+    LastError = max(TimeGenerated),
+    Sources = make_set(Source, 5),
+    SampleMessage = take_any(RenderedDescription)
+    by DeviceName, EventID, EventLevelName
+| order by DeviceName asc, ErrorCount desc
