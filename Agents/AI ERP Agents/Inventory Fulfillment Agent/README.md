@@ -1,4 +1,4 @@
-# Inventory Fulfilment Agent — Installation Playbook
+# Inventory Fulfillment Agent — Installation Playbook
 
 > **Document:** Installation playbook
 > **Audience:** Customer implementation teams, Power Platform admins, F&O admins, and solution owners
@@ -28,7 +28,7 @@
 
 ## 🎯 Purpose
 
-This playbook describes how to get the **Inventory Fulfilment Agent (IFA)** running in a customer Power Platform environment.
+This playbook describes how to get the **Inventory Fulfillment Agent (IFA)** running in a customer Power Platform environment.
 
 IFA is delivered as a managed Power Platform solution containing:
 
@@ -60,12 +60,12 @@ Environment-specific values are supplied after import through environment variab
 
 | Component area | Included items |
 | --- | --- |
-| **Copilot Studio agent** | Inventory Fulfilment Agent and child agents for order workflows. |
+| **Copilot Studio agent** | Inventory Fulfillment Agent and child agents for order workflows. |
 | **Agent actions** | IVS inventory actions and Dynamics 365 F&O MCP actions. |
 | **Cloud flows** | IVS token, inventory, product search, reservation, and unreservation flows. |
 | **Environment variables** | IVS tenant, app registration, endpoint, scope, and environment values. |
 | **Connection references** | Dynamics 365 Finance and Operations connector reference. |
-| **Knowledge** | Fulfilment proposal knowledge file, where included in the package. |
+| **Knowledge** | Fulfillment proposal knowledge file, where included in the package. |
 
 ---
 
@@ -180,7 +180,7 @@ Complete these checks before import. Treat any failed prerequisite as a deployme
 | 9 | Enter required environment variable values if prompted. |
 | 10 | Start the import and wait for completion. |
 
-> ✅ **Exit check —** The Inventory Fulfilment Agent solution appears in the target environment.
+> ✅ **Exit check —** The Inventory Fulfillment Agent solution appears in the target environment.
 
 ---
 
@@ -253,7 +253,7 @@ Turn on **Get IVS Access Token** first. Then turn on the dependent IVS flows in 
 | :-: | --- |
 | 1 | Open Copilot Studio. |
 | 2 | Select the target environment. |
-| 3 | Open **Inventory Fulfilment Agent**. |
+| 3 | Open **Inventory Fulfillment Agent**. |
 | 4 | Confirm the imported actions, child agents, topics, and knowledge are present. |
 | 5 | Use test chat to confirm the agent can select IVS actions and F&O child agents. |
 
