@@ -2,7 +2,7 @@
 
 ## Overview
 
-Welcome to the Inventory Fulfilment Agent template. To get started, follow the instructions as described [here.](../readme.md)
+Welcome to the Inventory Fulfillment Agent template. To get started, follow the instructions as described [here.](../readme.md)
 
 ## Support
 
