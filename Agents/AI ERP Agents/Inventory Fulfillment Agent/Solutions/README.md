@@ -8,4 +8,4 @@ Welcome to the Inventory Fulfilment Agent template. To get started, follow the i
 
 This solution is provided as-is. Bugs, feature addition/modification requests, and other changes are the responsibility of the end-user.
 
- Always thoroughly test components in a non-prod environment.
+Always thoroughly test components in a non-prod environment.
