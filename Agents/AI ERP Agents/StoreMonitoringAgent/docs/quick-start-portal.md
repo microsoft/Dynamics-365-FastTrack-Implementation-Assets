@@ -327,7 +327,7 @@ Default settings in `appsettings.json`:
 3. Go to [Copilot Studio](https://copilotstudio.microsoft.com)
 4. Click **Solutions** in the left menu
 5. Click **Import solution**
-6. Browse to the `StoreMonitoringAgent_1_0_0_14.zip` file provided in the root of this repository.
+6. Browse to the `StoreMonitoringAgent_1_0_0_17.zip` file provided in the root of this repository.
 7. Click **Next** → **Import**
 8. After import completes, open the **Store Monitor Agent**
 9. Configure connection references:
