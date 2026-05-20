@@ -44,7 +44,6 @@
   - [Functional Limitations](#functional-limitations)
   - [Security Constraints](#security-constraints)
 - [Roadmap](#roadmap)
-- [Return on Investment (ROI)](#return-on-investment-roi)
 
 ## Use Case
 
@@ -323,7 +322,7 @@ For each of the 17 tools:
 
 **Step 6.1 — D365 F&O Model Deployment Options**
 
-The deployable package (`SA_ERPComplianceAdvisorAgent.axpp`) creates a separate model called **`SA_ERPCompliance`** in D365 F&O. Customers have two options for managing this model in production:
+The deployable package ([`SA_ERPComplianceAdvisorAgent.axpp`](https://github.com/ankur198015/Dynamics-365-FastTrack-Implementation-Assets/blob/add-erp-compliance-advisor-agent-folder/Agents/AI%20ERP%20Agents/ERP%20Compliance%20Advisor%20Agent/SA_ERPComplianceAdvisorAgent.axpp)) creates a separate model called **`SA_ERPCompliance`** in D365 F&O. Customers have two options for managing this model in production:
 
 | Option | Description | When to Use |
 |---|---|---|
@@ -337,7 +336,7 @@ The deployable package (`SA_ERPComplianceAdvisorAgent.axpp`) creates a separate 
 
 | Step | Action |
 |---|---|
-| 6.2.1 | Build and deploy the `SA_ERPComplianceAdvisorAgent.axpp` package (Option A) or your consolidated model (Option B) to the **production** D365 F&O environment through your standard LCS / release pipeline. |
+| 6.2.1 | Build and deploy the [`SA_ERPComplianceAdvisorAgent.axpp`](https://github.com/ankur198015/Dynamics-365-FastTrack-Implementation-Assets/blob/add-erp-compliance-advisor-agent-folder/Agents/AI%20ERP%20Agents/ERP%20Compliance%20Advisor%20Agent/SA_ERPComplianceAdvisorAgent.axpp) package (Option A) or your consolidated model (Option B) to the **production** D365 F&O environment through your standard LCS / release pipeline. |
 | 6.2.2 | Validate entity deployment: navigate to **System Administration → Data Management → Data Entities** and confirm all 17 entities show **Is Public = Yes**. |
 | 6.2.3 | Test OData access: open `https://<prod-env>.operations.dynamics.com/data/AuditAgentInvalidUsers` in a browser and verify JSON is returned. |
 | 6.2.4 | Assign the `AuditAgentReader` security role to the designated Agent Operator in the production environment. |
@@ -402,14 +401,3 @@ The deployable package (`SA_ERPComplianceAdvisorAgent.axpp`) creates a separate 
 - Single-solution packaging
 - Teams and web channel deployment
 - Knowledge integration (security policies)
-
-## Return on Investment (ROI)
-
-| Metric | Before (Manual) | After (Agent) | Savings |
-|---|---|---|---|
-| Time per user access review | 40–80 hours | 2–4 hours | 90–95% reduction |
-| Time to gather audit evidence | 4–8 hours per request | 2–5 minutes per question | 97% reduction |
-| Audit cycle frequency | Quarterly (4×/year) | On demand / continuous | Real-time compliance |
-| Time to detect SoD violations | Weeks (next audit cycle) | Seconds (ask the agent) | Near-instant detection |
-| Time to investigate security incidents | 2–5 days (manual data collection) | 15–30 minutes (multi-entity queries) | 95% reduction |
-| Full IT audit labour | 500–1,000 hours/year | 50–100 hours/year | 80–90% reduction |
