@@ -198,12 +198,12 @@ The agent is operated by a designated Agent Operator — a person from the custo
 
 | Step | Action |
 |---|---|
-| 2.1 | Obtain the solution file `AI ERP IT and Security Audit Solution` (`.zip` file) from your organization's distribution channel (e.g., SharePoint, email, or internal portal). |
+| 2.1 | Obtain the solution file `ERPComplianceAdvisorAgentSolution_1_0_0_1.zip` from your organization's distribution channel (e.g., SharePoint, email, or internal portal). |
 | 2.2 | Save the `.zip` file to your local machine — **do not extract/unzip it**. |
 
 #### Solution Package Structure
 
-`AI ERP IT and Security Audit Solution.zip` contains:
+`ERPComplianceAdvisorAgentSolution_1_0_0_1.zip` contains:
 
 - ERP Compliance Advisor Agent (preconfigured agent with instructions)
 - 19 Connector Tools (Fin & Ops Apps → *List items present in table*)
@@ -229,7 +229,7 @@ The agent is operated by a designated Agent Operator — a person from the custo
 **Step 3.3 — Import the Solution**
 
 1. Click **Import solution** (top command bar).
-2. Click **Browse** → select the `AI ERP IT and Security Audit Solution.zip` file from your local machine.
+2. Click **Browse** → select the `ERPComplianceAdvisorAgentSolution_1_0_0_1.zip` file from your local machine.
 3. Click **Next**.
 4. The import wizard shows the solution details:
    - **Display name:** AI ERP IT and Security Audit Solution
@@ -355,13 +355,20 @@ For each of the 19 tools:
 
 ## Roadmap
 
-**Foundation (Current Release)**
+**Phase 1 — Foundation (Current Release)**
 
 - 19 connector-based tools covering 5 audit domains
 - Natural language querying with generative orchestration
 - Single-solution packaging
 - Teams and web channel deployment
 - Knowledge integration (security policies)
+
+**Phase 2 — Proactive Monitoring (Next)**
+
+- Scheduled audit checks — Power Automate flows run daily/weekly to detect anomalies and send email/Teams alerts
+- Dashboard integration — embed agent findings into Power BI dashboards
+- Audit report generation — export formatted audit reports as PDF/Word documents
+- Anomaly detection — AI-driven pattern analysis to flag unusual login times, sudden role changes, bulk data exports
 
 ## Return on Investment (ROI)
 
