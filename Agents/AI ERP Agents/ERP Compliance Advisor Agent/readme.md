@@ -335,20 +335,13 @@ For each of the 19 tools:
 
 ## Roadmap
 
-**Phase 1 — Foundation (Current Release)**
+**Foundation (Current Release)**
 
 - 19 connector-based tools covering 5 audit domains
 - Natural language querying with generative orchestration
 - Single-solution packaging
 - Teams and web channel deployment
 - Knowledge integration (security policies)
-
-**Phase 2 — Proactive Monitoring (Next)**
-
-- Scheduled audit checks — Power Automate flows run daily/weekly to detect anomalies and send email/Teams alerts
-- Dashboard integration — embed agent findings into Power BI dashboards
-- Audit report generation — export formatted audit reports as PDF/Word documents
-- Anomaly detection — AI-driven pattern analysis to flag unusual login times, sudden role changes, bulk data exports
 
 ## Return on Investment (ROI)
 
