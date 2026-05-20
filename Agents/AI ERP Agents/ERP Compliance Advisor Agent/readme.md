@@ -2,6 +2,42 @@
 
 > AI-powered Security & IT Audit assistant for Dynamics 365 Finance & Operations, built on Microsoft Copilot Studio.
 
+> [!WARNING]
+> **Security note** — Do not store client secrets in this document. The IVS client secret must be entered directly into the relevant Power Platform environment variable. Do not paste, screenshot, email, or record the secret in this playbook or in implementation notes.
+
+## Table of Contents
+
+- [Use Case](#use-case)
+  - [Overview](#overview)
+  - [Target Users](#target-users)
+  - [Key Scenarios](#key-scenarios)
+- [Problem Statement](#problem-statement)
+  - [Current Challenges](#current-challenges)
+- [Solution Capabilities](#solution-capabilities)
+  - [Core Capabilities](#core-capabilities)
+- [Architecture](#architecture)
+  - [High-Level Architecture](#high-level-architecture)
+  - [Data Flow](#data-flow)
+- [Pre-Requisites](#pre-requisites)
+  - [Licensing](#licensing)
+  - [D365 F&O Environment](#d365-fo-environment)
+  - [Connectivity & Authentication](#connectivity--authentication)
+  - [Administrative Access](#administrative-access)
+- [Installation Process](#installation-process)
+  - [Phase 1 — D365 F&O Preparation (F&O Developer)](#phase-1--d365-fo-preparation-fo-developer)
+  - [Phase 2 — Download the Solution Package](#phase-2--download-the-solution-package)
+  - [Phase 3 — Import the Solution into Your Environment](#phase-3--import-the-solution-into-your-environment)
+  - [Phase 4 — Verify the Imported Solution](#phase-4--verify-the-imported-solution)
+  - [Phase 5 — Test the Agent](#phase-5--test-the-agent)
+  - [Phase 6 — Publish & Deploy to Channels](#phase-6--publish--deploy-to-channels)
+  - [Phase 7 — Configure Security & Access Control](#phase-7--configure-security--access-control)
+- [Limitations & Constraints](#limitations--constraints)
+  - [Technical Limitations](#technical-limitations)
+  - [Functional Limitations](#functional-limitations)
+  - [Security Constraints](#security-constraints)
+- [Roadmap](#roadmap)
+- [Return on Investment (ROI)](#return-on-investment-roi)
+
 ## Use Case
 
 ### Overview
@@ -302,13 +338,20 @@ For each of the 19 tools:
 
 ## Roadmap
 
-**Foundation (Current Release)**
+**Phase 1 — Foundation (Current Release)**
 
 - 19 connector-based tools covering 5 audit domains
 - Natural language querying with generative orchestration
 - Single-solution packaging
 - Teams and web channel deployment
 - Knowledge integration (security policies)
+
+**Phase 2 — Proactive Monitoring (Next)**
+
+- Scheduled audit checks — Power Automate flows run daily/weekly to detect anomalies and send email/Teams alerts
+- Dashboard integration — embed agent findings into Power BI dashboards
+- Audit report generation — export formatted audit reports as PDF/Word documents
+- Anomaly detection — AI-driven pattern analysis to flag unusual login times, sudden role changes, bulk data exports
 
 ## Return on Investment (ROI)
 
