@@ -36,8 +36,9 @@
   - [Phase 3 — Import the Solution into Your Environment](#phase-3--import-the-solution-into-your-environment)
   - [Phase 4 — Verify the Imported Solution](#phase-4--verify-the-imported-solution)
   - [Phase 5 — Test the Agent](#phase-5--test-the-agent)
-  - [Phase 6 — Publish & Deploy to Channels](#phase-6--publish--deploy-to-channels)
-  - [Phase 7 — Configure Security & Access Control](#phase-7--configure-security--access-control)
+  - [Phase 6 — Production Deployment](#phase-6--production-deployment)
+  - [Phase 7 — Publish & Deploy to Channels](#phase-7--publish--deploy-to-channels)
+  - [Phase 8 — Configure Security & Access Control](#phase-8--configure-security--access-control)
 - [Limitations & Constraints](#limitations--constraints)
   - [Technical Limitations](#technical-limitations)
   - [Functional Limitations](#functional-limitations)
@@ -315,23 +316,52 @@ For each of the 17 tools:
 | 5.6 | Test at least one prompt per audit domain:<br>• *"Show me all users with System Administrator role"* (User Access)<br>• *"Who has privileged access right now?"* (Security Governance)<br>• *"Show database log entries from today"* (Change Tracking)<br>• *"List all failed batch jobs this week"* (IT Operations) |
 | 5.7 | If any tool fails, check: entity name spelling, F&O instance URL, connection status, user permissions in F&O. |
 
-### Phase 6 — Publish & Deploy to Channels
+### Phase 6 — Production Deployment
+
+> [!IMPORTANT]
+> Complete Phase 5 testing in a **sandbox / UAT environment** before proceeding. Production deployment should only begin after full validation.
+
+**Step 6.1 — D365 F&O Model Deployment Options**
+
+The deployable package (`SA_ERPComplianceAdvisorAgent.axpp`) creates a separate model called **`SA_ERPCompliance`** in D365 F&O. Customers have two options for managing this model in production:
+
+| Option | Description | When to Use |
+|---|---|---|
+| **Option A — Deploy as-is** | Deploy the `SA_ERPCompliance` model directly to production as a standalone model. It will sit alongside your existing models with no changes required. | Recommended for fastest deployment; suitable when you do not need to modify the custom entities. |
+| **Option B — Merge into your own model** | Move all custom objects (10 `AuditAgent*` data entities and the `AuditAgentReader` security role) from the `SA_ERPCompliance` model into your organization's own model/solution. Delete or decommission the `SA_ERPCompliance` model after migration. | Recommended when your ALM process requires a single consolidated model, or when you plan to extend/modify the entities. |
+
+> [!NOTE]
+> Both options are functionally equivalent — the custom entities and security role work identically regardless of which model hosts them. Choose based on your organization's ALM and release management standards.
+
+**Step 6.2 — Deploy to Production**
 
 | Step | Action |
 |---|---|
-| 6.1 | Once testing passes, click **Publish** (top right in Copilot Studio). |
-| 6.2 | **Deploy to Microsoft Teams:** Go to **Channels → Microsoft Teams** → click **Turn on Teams** → **Submit for admin approval** (if required) or **Open in Teams**. |
-| 6.3 | *(Optional)* **Deploy to SharePoint:** **Channels → SharePoint** → follow the embed steps. |
-| 6.4 | *(Optional)* **Deploy to custom website:** **Channels → Custom website** → copy the embed code. |
+| 6.2.1 | Build and deploy the `SA_ERPComplianceAdvisorAgent.axpp` package (Option A) or your consolidated model (Option B) to the **production** D365 F&O environment through your standard LCS / release pipeline. |
+| 6.2.2 | Validate entity deployment: navigate to **System Administration → Data Management → Data Entities** and confirm all 17 entities show **Is Public = Yes**. |
+| 6.2.3 | Test OData access: open `https://<prod-env>.operations.dynamics.com/data/AuditAgentInvalidUsers` in a browser and verify JSON is returned. |
+| 6.2.4 | Assign the `AuditAgentReader` security role to the designated Agent Operator in the production environment. |
+| 6.2.5 | In Copilot Studio, update the **Instance** URL in all 17 tools to point to the production F&O URL (`https://<prod-env>.operations.dynamics.com`). |
+| 6.2.6 | Re-authenticate the **Fin & Ops Apps (Dynamics 365)** connection reference to use production credentials. |
+| 6.2.7 | Run a smoke test — repeat the Phase 5 test prompts against production data to confirm end-to-end connectivity. |
 
-### Phase 7 — Configure Security & Access Control
+### Phase 7 — Publish & Deploy to Channels
 
 | Step | Action |
 |---|---|
-| 7.1 | Go to **Settings → Security → Authentication**. |
-| 7.2 | Select **Authenticate with Microsoft (Entra ID)**. |
-| 7.3 | Under **Access**, restrict to specific Security Groups (e.g., *Agent Operators* group — the team members designated to respond to audit questionnaires). |
-| 7.4 | Click **Save**. |
+| 7.1 | Once testing passes, click **Publish** (top right in Copilot Studio). |
+| 7.2 | **Deploy to Microsoft Teams:** Go to **Channels → Microsoft Teams** → click **Turn on Teams** → **Submit for admin approval** (if required) or **Open in Teams**. |
+| 7.3 | *(Optional)* **Deploy to SharePoint:** **Channels → SharePoint** → follow the embed steps. |
+| 7.4 | *(Optional)* **Deploy to custom website:** **Channels → Custom website** → copy the embed code. |
+
+### Phase 8 — Configure Security & Access Control
+
+| Step | Action |
+|---|---|
+| 8.1 | Go to **Settings → Security → Authentication**. |
+| 8.2 | Select **Authenticate with Microsoft (Entra ID)**. |
+| 8.3 | Under **Access**, restrict to specific Security Groups (e.g., *Agent Operators* group — the team members designated to respond to audit questionnaires). |
+| 8.4 | Click **Save**. |
 
 ## Limitations & Constraints
 
