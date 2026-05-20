@@ -114,13 +114,11 @@ An AI-driven ERP Compliance Advisor Agent for D365 Finance & Operations that ena
 
 ### High-Level Architecture
 
-<img width="659" height="308" alt="image" src="https://github.com/user-attachments/assets/90e5a38f-41d7-4bc1-ac73-c138dc7b1d60" />
-
+<img width="541" height="313" alt="image" src="https://github.com/user-attachments/assets/6df1b905-e3fd-48cb-aa4d-3c4b3f193422" />
 
 ### Data Flow
 
 <img width="975" height="731" alt="image" src="https://github.com/user-attachments/assets/5ea707b8-8122-44ad-b559-7b8dce470fb8" />
-
 
 ## Extensibility
 
