@@ -2,6 +2,15 @@
 
 > AI-powered Security & IT Audit assistant for Dynamics 365 Finance & Operations, built on Microsoft Copilot Studio.
 
+> [!WARNING]
+> **Security & responsible use — ERP Compliance Advisor Agent**
+>
+> - **Do not store or share credentials, client secrets, or tenant identifiers** in this README, in the agent's conversation history, in screenshots, or in any derived audit report. Authentication is performed by the connector via the signed-in user's Microsoft Entra ID identity — no secret should ever be entered into the agent.
+> - **Audit responses may contain sensitive data** (user lists, role assignments, login history, SoD exceptions). Treat all agent output as confidential and share only with authorized auditors, compliance officers, and security personnel.
+> - **The agent runs with the signed-in user's F&O permissions.** Operate the agent only under an account assigned the least-privilege `AuditAgentReader` role; do **not** use a System Administrator account for routine queries.
+> - **Read-only by design.** The 19 built-in tools issue only OData `GET` requests. Do not modify the solution to add write actions without a fresh security review.
+> - **Do not paste, screenshot, email, or record** audit output containing PII, security configuration, or vulnerability indicators in non-secure channels.
+
 ## Table of Contents
 
 - [Use Case](#use-case)
@@ -355,20 +364,13 @@ For each of the 19 tools:
 
 ## Roadmap
 
-**Phase 1 — Foundation (Current Release)**
+**Foundation (Current Release)**
 
 - 19 connector-based tools covering 5 audit domains
 - Natural language querying with generative orchestration
 - Single-solution packaging
 - Teams and web channel deployment
 - Knowledge integration (security policies)
-
-**Phase 2 — Proactive Monitoring (Next)**
-
-- Scheduled audit checks — Power Automate flows run daily/weekly to detect anomalies and send email/Teams alerts
-- Dashboard integration — embed agent findings into Power BI dashboards
-- Audit report generation — export formatted audit reports as PDF/Word documents
-- Anomaly detection — AI-driven pattern analysis to flag unusual login times, sudden role changes, bulk data exports
 
 ## Return on Investment (ROI)
 
