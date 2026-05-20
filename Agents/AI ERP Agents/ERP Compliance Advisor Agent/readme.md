@@ -44,6 +44,7 @@
   - [Functional Limitations](#functional-limitations)
   - [Security Constraints](#security-constraints)
 - [Roadmap](#roadmap)
+- [Contact Us](#contact-us)
 
 ## Use Case
 
@@ -401,3 +402,16 @@ The deployable package ([`SA_ERPComplianceAdvisorAgent.axpp`](https://github.com
 - Single-solution packaging
 - Teams and web channel deployment
 - Knowledge integration (security policies)
+
+## Contact Us
+
+Have questions, feedback, or want to learn more about the ERP Compliance Advisor Agent? We'd love to connect.
+
+> **[Share your feedback or ask a question](https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR4t-FmhpleVDuVdTYo1qcYxUQzc3SkRMWlJYS1IyTVRSN1pESThWWlMzOC4u)**
+
+Whether you're evaluating the agent for your organization, planning a deployment, or already using it in production — your input helps us improve. Use the form above to:
+
+- Ask questions about setup, extensibility, or security
+- Share feedback or feature suggestions
+- Report issues or request guidance
+- Stay informed about future releases and enhancements
