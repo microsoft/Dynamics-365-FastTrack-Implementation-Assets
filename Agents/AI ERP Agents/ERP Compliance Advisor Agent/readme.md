@@ -136,6 +136,7 @@ The ERP Compliance Advisor Agent is designed to be **fully extensible** so custo
 - Industry-specific compliance (e.g., FDA 21 CFR Part 11, SOX ITGC, GDPR DSAR evidence) backed by custom entities.
 - Customer-specific SoD rules or sensitive-duty combinations that go beyond the standard USG output.
 - Integration with non-F&O audit data (via Dataverse or other connectors) added as additional tools.
+- **Extend with your own compliance knowledge** — Beyond the 19 built-in OData connector tools, customers can extend the agent with their own ERP compliance knowledge by attaching additional knowledge sources in Copilot Studio — for example, a SharePoint site or document library containing internal audit policies, SoD matrices, control narratives, regulatory mappings (SOX, GDPR, ISO 27001), prior audit reports, or company-specific compliance playbooks. Once added, users can ask questions that blend live D365 F&O telemetry with their own documentation in a single response (e.g., *"List users with the System Administrator role and cross-check them against our SOX privileged-access policy"*). Supported sources include SharePoint sites/files, OneDrive documents, public websites, Dataverse tables, Graph connectors, and uploaded files (PDF, DOCX, XLSX, TXT, etc.). Configure these under **Copilot Studio → your agent → Knowledge → + Add knowledge**.
 
 Because the agent is read-only by design, extensions inherit the same security posture — they should also be limited to read operations against entities the connecting account is authorized to view.
 
