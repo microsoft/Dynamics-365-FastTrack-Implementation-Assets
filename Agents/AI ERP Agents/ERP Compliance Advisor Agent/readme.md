@@ -2,9 +2,6 @@
 
 > AI-powered Security & IT Audit assistant for Dynamics 365 Finance & Operations, built on Microsoft Copilot Studio.
 
-> [!WARNING]
-> **Security note** — Do not store credentials, access tokens, or screenshots of authenticated sessions in this document. The Fin & Ops (Dynamics 365) connection authenticates via Microsoft Entra ID using user-delegated OAuth 2.0 — sign in directly in Power Platform when creating the connection. Do not paste, email, or record the `AuditAgentReader` account's password (or any service account credentials) in this playbook or in implementation notes.
-
 ## Table of Contents
 
 - [Use Case](#use-case)
