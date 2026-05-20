@@ -15,6 +15,7 @@
 - [Architecture](#architecture)
   - [High-Level Architecture](#high-level-architecture)
   - [Data Flow](#data-flow)
+- [Extensibility](#extensibility)
 - [Pre-Requisites](#pre-requisites)
   - [Licensing](#licensing)
   - [D365 F&O Environment](#d365-fo-environment)
@@ -109,6 +110,25 @@ An AI-driven ERP Compliance Advisor Agent for D365 Finance & Operations that ena
 ### Data Flow
 
 *See data flow diagram in the release documentation.*
+
+## Extensibility
+
+The ERP Compliance Advisor Agent is designed to be **fully extensible** so customers can adapt it to their own audit, security, and IT governance scenarios without modifying the base solution.
+
+**What you can extend**
+
+- **Add your own D365 F&O data entities** — Create a new custom data entity (or expose an existing standard entity) in your F&O environment that surfaces any table, view, or aggregated data relevant to your compliance scenario (for example: custom approval logs, vendor onboarding checklists, segregation-of-duties exceptions specific to your industry, or regulator-mandated audit trails).
+- **Publish the entity** — Build, publish, and refresh the data entity list in F&O so it is available over OData with the appropriate read permissions granted to the `AuditAgentReader` role (or your own equivalent role).
+- **Hook it into the Copilot agent** — In Copilot Studio, add a new tool to the agent using the same **Fin & Ops Apps (Dynamics 365) → List items present in table** action used by the 19 built-in tools. Point it at your new entity, set the **Instance** to your F&O environment URL, and add a clear natural-language description of when the agent should use the tool.
+- **Maintain it yourself** — Because every tool is just a connector action plus a description, customers own the full lifecycle of their extensions: add, modify, version, or retire tools at any time from Copilot Studio without depending on Microsoft or the original publisher. Standard Power Platform ALM (solutions, environments, pipelines) applies.
+
+**Typical extension patterns**
+
+- Industry-specific compliance (e.g., FDA 21 CFR Part 11, SOX ITGC, GDPR DSAR evidence) backed by custom entities.
+- Customer-specific SoD rules or sensitive-duty combinations that go beyond the standard USG output.
+- Integration with non-F&O audit data (via Dataverse or other connectors) added as additional tools.
+
+Because the agent is read-only by design, extensions inherit the same security posture — they should also be limited to read operations against entities the connecting account is authorized to view.
 
 ## Pre-Requisites
 
@@ -335,13 +355,20 @@ For each of the 19 tools:
 
 ## Roadmap
 
-**Foundation (Current Release)**
+**Phase 1 — Foundation (Current Release)**
 
 - 19 connector-based tools covering 5 audit domains
 - Natural language querying with generative orchestration
 - Single-solution packaging
 - Teams and web channel deployment
 - Knowledge integration (security policies)
+
+**Phase 2 — Proactive Monitoring (Next)**
+
+- Scheduled audit checks — Power Automate flows run daily/weekly to detect anomalies and send email/Teams alerts
+- Dashboard integration — embed agent findings into Power BI dashboards
+- Audit report generation — export formatted audit reports as PDF/Word documents
+- Anomaly detection — AI-driven pattern analysis to flag unusual login times, sudden role changes, bulk data exports
 
 ## Return on Investment (ROI)
 
