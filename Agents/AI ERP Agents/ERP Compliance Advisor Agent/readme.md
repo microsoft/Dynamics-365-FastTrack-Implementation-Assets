@@ -186,7 +186,7 @@ These steps must be completed before importing the solution into Copilot Studio.
 
 | Step | Action | Details |
 |---|---|---|
-| 1.1 | Deploy Custom Data Entities | Import `SA_ERPComplianceAdvisorAgent.axpp` and deploy the 10 custom `AuditAgent*` data entities into your D365 F&O environment via a deployable package. |
+| 1.1 | Deploy Custom Data Entities | Import [`SA_ERPComplianceAdvisorAgent.axpp`](https://github.com/ankur198015/Dynamics-365-FastTrack-Implementation-Assets/blob/add-erp-compliance-advisor-agent-folder/Agents/AI%20ERP%20Agents/ERP%20Compliance%20Advisor%20Agent/SA_ERPComplianceAdvisorAgent.axpp) and deploy the 10 custom `AuditAgent*` data entities into your D365 F&O environment via a deployable package. |
 | 1.2 | Validate Entity Visibility | Go to **System Administration → Data Management → Data Entities** → confirm all 17 entities have **Is Public = Yes**. |
 | 1.3 | Test OData Access | Open a browser and navigate to `https://<your-env>.operations.dynamics.com/data/AuditAgentInvalidUsers` — verify JSON data is returned. |
 | 1.4 | Enable Database Logging | Go to **System Administration → Database log setup** → configure logging on required tables. |
@@ -208,12 +208,12 @@ The agent is operated by a designated Agent Operator — a person from the custo
 
 | Step | Action |
 |---|---|
-| 2.1 | Obtain the solution file `ERPComplianceAdvisorAgentSolution_1_0_0_1.zip` from your organization's distribution channel (e.g., SharePoint, email, or internal portal). |
+| 2.1 | Obtain the solution file [`ERPComplianceAdvisorAgentSolution_1_0_0_1.zip`](https://github.com/ankur198015/Dynamics-365-FastTrack-Implementation-Assets/blob/add-erp-compliance-advisor-agent-folder/Agents/AI%20ERP%20Agents/ERP%20Compliance%20Advisor%20Agent/ERPComplianceAdvisorAgentSolution_1_0_0_1.zip) from your organization's distribution channel (e.g., SharePoint, email, or internal portal). |
 | 2.2 | Save the `.zip` file to your local machine — **do not extract/unzip it**. |
 
 #### Solution Package Structure
 
-`ERPComplianceAdvisorAgentSolution_1_0_0_1.zip` contains:
+[`ERPComplianceAdvisorAgentSolution_1_0_0_1.zip`](https://github.com/ankur198015/Dynamics-365-FastTrack-Implementation-Assets/blob/add-erp-compliance-advisor-agent-folder/Agents/AI%20ERP%20Agents/ERP%20Compliance%20Advisor%20Agent/ERPComplianceAdvisorAgentSolution_1_0_0_1.zip) contains:
 
 - ERP Compliance Advisor Agent (preconfigured agent with instructions)
 - 17 Connector Tools (Fin & Ops Apps → *List items present in table*)
@@ -239,7 +239,7 @@ The agent is operated by a designated Agent Operator — a person from the custo
 **Step 3.3 — Import the Solution**
 
 1. Click **Import solution** (top command bar).
-2. Click **Browse** → select the `ERPComplianceAdvisorAgentSolution_1_0_0_1.zip` file from your local machine.
+2. Click **Browse** → select the [`ERPComplianceAdvisorAgentSolution_1_0_0_1.zip`](https://github.com/ankur198015/Dynamics-365-FastTrack-Implementation-Assets/blob/add-erp-compliance-advisor-agent-folder/Agents/AI%20ERP%20Agents/ERP%20Compliance%20Advisor%20Agent/ERPComplianceAdvisorAgentSolution_1_0_0_1.zip) file from your local machine.
 3. Click **Next**.
 4. The import wizard shows the solution details:
    - **Display name:** AI ERP IT and Security Audit Solution
