@@ -24,8 +24,9 @@
 6. [Azure Data Factory (ADF)](#6-azure-data-factory-adf)
 7. [Update Linked Service Configuration](#7-update-linked-service-configuration)
 8. [Deploy PaymentRecon Agent Application](#8-deploy-paymentrecon-agent-application)
-9. [Validate and Publish](#9-validate-and-publish)
-10. [Support](#10-support)
+9. [Optional — Automate Payment Transaction Data Export from D365 F&O](#9-optional--automate-payment-transaction-data-export-from-d365-fo)
+10. [Validate and Publish](#10-validate-and-publish)
+11. [Support](#11-support)
 
 ---
 
@@ -266,41 +267,59 @@ The solution contains the following components:
 
 ---
 
-## 9. Validate and Publish
+## 9. Optional — Automate Payment Transaction Data Export from D365 F&O
+
+This step is **optional** and applies only when the customer wants Dynamics 365 Finance & Operations (Commerce) to **automatically export payment transaction data** into the Azure Blob Storage container provisioned in Step 5, so that the ADF pipelines and the Payment Recon Agent can process it without manual file uploads.
+
+If the customer chooses to enable this automation:
+
+1. Open the dedicated guide: [PaymentTransactionDataExport — Deployment Instruction Guide](./PaymentTransactionDataExport/README.md).
+2. Follow it end-to-end to:
+   - Import the `PaymentRecon_TransexportRecon.axpp` project on a Tier‑1 dev environment.
+   - Build, sync, and create a deployable package.
+   - Apply the deployable package to Sandbox / Production through Lifecycle Services (LCS).
+   - Configure the **Payment Reconciliation Integration Parameters** form (Blob connection string, container, entity, payment methods, etc.) to point at the Storage Account from Step 5.
+   - Trigger and validate the first automated export.
+
+> **NOTE:** Skip this step if payment transaction files will be delivered to the Blob container by another mechanism (manual upload, third-party integration, or an existing export job).
+
+---
+
+## 10. Validate and Publish
 
 Carry out end-to-end validation to confirm the full deployment is working correctly before going live.
 
-### 9.1 Upload Sample Files
+### 10.1 Upload Sample Files
 
 1. Open the **PaymentReconAgent-V4** Power App.
 2. Upload the sample commerce file (`Sample_Commerce Transactions.csv`) using the app's file upload interface.
 3. Upload the sample payments file (`Sample_payments_accounting_report.csv`).
 
-### 9.2 Trigger Reconciliation
+### 10.2 Trigger Reconciliation
 
 1. Initiate a reconciliation run from within the Power App.
 2. Confirm the **PaymentReconIntegration_V4** Cloud Flow is triggered — verify it shows a successful run in **Power Automate > My Flows > Run history**.
 3. Confirm the ADF pipeline is triggered — open **ADF Studio > Monitor > Pipeline runs** and verify the run completes successfully.
 
-### 9.3 Verify Agent Activity
+### 10.3 Verify Agent Activity
 
 1. Open the **Payment Recon V5** agent and confirm it processes the reconciliation request without errors.
 2. Check the agent conversation log for any rule execution failures or warnings.
 
-### 9.4 Confirm Reconciliation Results
+### 10.4 Confirm Reconciliation Results
 
 1. Return to the **PaymentReconAgent-V4** Power App.
 2. Verify reconciliation results are displayed correctly — matched, unmatched, and exception records should be visible.
 3. Query the Azure SQL Database to confirm records are written to the expected tables (`ReconciliationExecution`, history tables).
 
-### 9.5 Publish ADF Resources
+### 10.5 Publish ADF Resources
 
 1. In **ADF Studio**, click **Publish all** to publish any pending changes.
 2. Confirm the publish completes without errors.
 
 ---
 
-## 10. Support
+## 11. Support
 
 For deployment issues or technical inquiries, contact the **Dynamics 365 Commerce Fasttrack P-Crew**.
 
