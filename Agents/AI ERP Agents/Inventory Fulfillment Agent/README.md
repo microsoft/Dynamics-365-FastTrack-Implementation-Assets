@@ -62,7 +62,7 @@ During import, enter the values for the target environment. The table below expl
 | IVS Client ID | Application/client ID from the Entra app registration. | Microsoft Entra app registration overview. |
 | IVS Client Secret | Client secret **value** from the app registration (not the secret ID). Enter directly into the variable; do not record elsewhere. | Microsoft Entra app registration secret created for IVS. |
 | IVS_EnvironmentId | IVS/F&O environment GUID used by the Inventory Visibility API route. | Dynamics 365 / IVS environment details. |
-| IVS Default Legal Entity *(verify this exists as a variable)* | Default company/legal entity code, for example `usrt` or `usmf`. | Dynamics 365 Finance and Operations legal entity setup. |
+| IVS Default Legal Entity | Default company/legal entity code, for example `usrt` or `usmf`. | Dynamics 365 Finance and Operations legal entity setup. |
 
 ## Turn On the Cloud Flows
 
@@ -126,8 +126,8 @@ You can modify the agent after import to match the capabilities you want to expo
 | --- | --- | --- |
 | `AADSTS7000222` in Get IVS Access Token | Entra client secret is expired. | Create a new app credential, update the client secret variable, publish, and rerun Get IVS Access Token. |
 | `401 invalid_client` in token flow | Wrong client secret, client ID, tenant, or expired credential. | Validate tenant ID, client ID, secret value, and credential expiry in Entra. |
-| Access token succeeds but IVS token fails | Wrong IVS security scope, environment ID, or service principal access. | Validate the security scope, environment ID, IVS setup, and app permissions. |
-| IVS HTTP call reached but inventory call fails | Wrong base URL / environment ID, IVS not installed, or item/dimension data missing. | Confirm endpoint values and test with known IVS data. |
+| Access token succeeds but IVS token fails | Wrong environment ID, or service principal access. | Validate the environment ID, IVS setup, and app permissions. |
+| IVS HTTP call reached but inventory call fails | Wrong endpoint URL / environment ID, IVS not installed, or item/dimension data missing. | Confirm endpoint values and test with known IVS data. |
 | A flow cannot be turned on | Missing connection, missing environment variable, or insufficient permission. | Fix connection references and variables, then turn on Get IVS Access Token before the dependent flows. |
 | F&O MCP calls fail with access denied | Connection user lacks F&O security permissions, or the MCP client is not allowed. | Validate F&O security roles and the Allowed MCP Clients configuration. |
 | Solution import fails | Missing dependency or insufficient import privilege. | Download the import log, resolve the dependency, and retry with sufficient permissions. |
