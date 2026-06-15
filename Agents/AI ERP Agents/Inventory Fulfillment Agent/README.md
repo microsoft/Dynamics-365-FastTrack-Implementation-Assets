@@ -62,7 +62,6 @@ During import, enter the values for the target environment. The table below expl
 | IVS Client ID | Application/client ID from the Entra app registration. | Microsoft Entra app registration overview. |
 | IVS Client Secret | Client secret **value** from the app registration (not the secret ID). Enter directly into the variable; do not record elsewhere. | Microsoft Entra app registration secret created for IVS. |
 | IVS_EnvironmentId | IVS/F&O environment GUID used by the Inventory Visibility API route. | Dynamics 365 / IVS environment details. |
-| IVS_SecurityScope *(if present in the package)* | IVS security token exchange scope, for example `https://inventoryservice.operations365.dynamics.com/.default`. | Provided with the IVS setup; confirm against the solution. |
 | IVS Default Legal Entity *(verify this exists as a variable)* | Default company/legal entity code, for example `usrt` or `usmf`. | Dynamics 365 Finance and Operations legal entity setup. |
 
 ## Turn On the Cloud Flows
