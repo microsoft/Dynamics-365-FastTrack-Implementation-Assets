@@ -55,8 +55,6 @@ Reference: [Import solutions in Power Platform](https://learn.microsoft.com/en-u
 
 During import, enter the values for the target environment. The table below explains what each value is and where it normally comes from.
 
-> **Verify against the solution package.** The display names below are descriptive. Match them to the actual environment variable display/logical names in the imported solution (logical names are typically prefixed `ftc_` or `new_`) before entering values.
-
 | Environment variable | What to enter | Where to get it |
 | --- | --- | --- |
 | IVS_TenantId | Microsoft Entra tenant ID used by the IVS app registration. | Microsoft Entra app registration or Azure tenant overview. |
