@@ -3,7 +3,7 @@
 > **Document:** Installation playbook
 > **Audience:** Customer implementation teams, Power Platform admins, F&O admins, and solution owners
 > **Status:** Deployment-ready working version
-> **Last updated:** 06 May 2026
+> **Last updated:** 15 June 2026
 
 > **Before you start:** This guide assumes Inventory Visibility is being configured in a new environment. Save the Entra app registration values, IVS endpoint, environment ID, and default legal entity because they are required during solution import.
 
