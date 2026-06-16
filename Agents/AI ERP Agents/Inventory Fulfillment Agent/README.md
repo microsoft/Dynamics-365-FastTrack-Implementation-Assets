@@ -11,7 +11,7 @@
 
 1. **Set up a Microsoft Entra app registration for Inventory Visibility.**
    Create the app registration and client secret used by Inventory Visibility. Save the Application/client ID, client secret value, and tenant ID. Use a separate app registration for each IVS environment.
-   References: [Register an application](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app) · [Add app credentials](https://learn.microsoft.com/entra/identity-platform/how-to-add-credentials)
+   References: [Register an application](https://learn.microsoft.com/entra/identity-platform/quickstart-register-app) · [Add app credentials](https://learn.microsoft.com/entra/identity-platform/how-to-add-credentials)
 
 2. **Install and set up Inventory Visibility.**
    Install the Dynamics 365 Inventory Visibility add-in and complete the Supply Chain Management setup. Confirm Inventory Visibility is installed, the integration is enabled, and inventory data is syncing.
@@ -33,7 +33,7 @@
 
 Download the latest version of Inventory Fulfillment Agent solution ZIP from the FastTrack implementation assets repository.
 
-[Inventory Fulfillment Agent on GitHub](Solutions/README.md)
+[Inventory Fulfillment Agent on GitHub](Solutions/)
 
 Download the solution `.zip` file. **Do not extract it before importing.**
 
