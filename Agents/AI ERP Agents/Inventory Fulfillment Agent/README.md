@@ -11,29 +11,29 @@
 
 1. **Set up a Microsoft Entra app registration for Inventory Visibility.**
    Create the app registration and client secret used by Inventory Visibility. Save the Application/client ID, client secret value, and tenant ID. Use a separate app registration for each IVS environment.
-   References: [Register an application](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app) · [Add app credentials](https://learn.microsoft.com/en-us/entra/identity-platform/how-to-add-credentials)
+   References: [Register an application](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app) · [Add app credentials](https://learn.microsoft.com/entra/identity-platform/how-to-add-credentials)
 
 2. **Install and set up Inventory Visibility.**
    Install the Dynamics 365 Inventory Visibility add-in and complete the Supply Chain Management setup. Confirm Inventory Visibility is installed, the integration is enabled, and inventory data is syncing.
-   Reference: [Install and set up Inventory Visibility](https://learn.microsoft.com/en-us/dynamics365/supply-chain/inventory/inventory-visibility-setup)
+   Reference: [Install and set up Inventory Visibility](https://learn.microsoft.com/dynamics365/supply-chain/inventory/inventory-visibility-setup)
 
 3. **Set up Product Search for Inventory Visibility.**
    Product search must be installed and configured before the agent can search for products. Confirm the required product data has synced and the product search API can return results.
-   Reference: [Set up product search for Inventory Visibility](https://learn.microsoft.com/en-us/dynamics365/supply-chain/inventory/inventory-visibility-product-search)
+   Reference: [Set up product search for Inventory Visibility](https://learn.microsoft.com/dynamics365/supply-chain/inventory/inventory-visibility-product-search)
 
 4. **Optional: set up ATP.**
    If users need Available-to-Promise responses, configure Inventory Visibility ATP. If ATP is not needed, disable the ATP tool after import and adjust the agent instructions.
-   Reference: [Inventory Visibility on-hand change schedules and ATP](https://learn.microsoft.com/en-us/dynamics365/supply-chain/inventory/inventory-visibility-available-to-promise)
+   Reference: [Inventory Visibility on-hand change schedules and ATP](https://learn.microsoft.com/dynamics365/supply-chain/inventory/inventory-visibility-available-to-promise)
 
 5. **Enable the Finance and Operations MCP (required for transfer orders and sales orders).**
    The transfer order and sales order child agents call Dynamics 365 F&O through the Model Context Protocol (MCP). Make sure the F&O MCP is enabled before testing these workflows.
-   Reference: [Dynamics 365 F&O Model Context Protocol](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/copilot/copilot-mcp)
+   Reference: [Dynamics 365 F&O Model Context Protocol](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/copilot/copilot-mcp)
 
 ## Download the Solution
 
-Download the Inventory Fulfillment Agent solution ZIP from the FastTrack implementation assets repository.
+Download the latest version of Inventory Fulfillment Agent solution ZIP from the FastTrack implementation assets repository.
 
-[Inventory Fulfillment Agent on GitHub](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Agents/AI%20ERP%20Agents/Inventory%20Fulfillment%20Agent)
+[Inventory Fulfillment Agent on GitHub](Solutions/README.md)
 
 Download the solution `.zip` file. **Do not extract it before importing.**
 
@@ -49,7 +49,7 @@ Download the solution `.zip` file. **Do not extract it before importing.**
 8. Enter the environment variable values listed below.
 9. Select **Import**.
 
-Reference: [Import solutions in Power Platform](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/import-update-export-solutions)
+Reference: [Import solutions in Power Platform](https://learn.microsoft.com/power-apps/maker/data-platform/import-update-export-solutions)
 
 ## Environment Variables
 
@@ -150,11 +150,11 @@ You can modify the agent after import to match the capabilities you want to expo
 
 | Area | Reference |
 | --- | --- |
-| Copilot Studio licensing and access | https://learn.microsoft.com/en-us/microsoft-copilot-studio/requirements-licensing-subscriptions |
-| Power Platform solution import | https://learn.microsoft.com/en-us/power-apps/maker/data-platform/import-update-export-solutions |
-| Environment variables | https://learn.microsoft.com/en-us/power-apps/maker/data-platform/environmentvariables |
-| Connection references | https://learn.microsoft.com/en-us/power-apps/maker/data-platform/create-connection-reference |
-| Inventory Visibility setup | https://learn.microsoft.com/en-us/dynamics365/supply-chain/inventory/inventory-visibility-setup |
-| Microsoft Entra app registration | https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app |
-| Microsoft Entra app credentials | https://learn.microsoft.com/en-us/entra/identity-platform/how-to-add-credentials |
-| Dynamics 365 F&O MCP | https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/copilot/copilot-mcp |
+| Copilot Studio licensing and access | https://learn.microsoft.com/microsoft-copilot-studio/requirements-licensing-subscriptions |
+| Power Platform solution import | https://learn.microsoft.com/power-apps/maker/data-platform/import-update-export-solutions |
+| Environment variables | https://learn.microsoft.com/power-apps/maker/data-platform/environmentvariables |
+| Connection references | https://learn.microsoft.com/power-apps/maker/data-platform/create-connection-reference |
+| Inventory Visibility setup | https://learn.microsoft.com/dynamics365/supply-chain/inventory/inventory-visibility-setup |
+| Microsoft Entra app registration | https://learn.microsoft.com/entra/identity-platform/quickstart-register-app |
+| Microsoft Entra app credentials | https://learn.microsoft.com/entra/identity-platform/how-to-add-credentials |
+| Dynamics 365 F&O MCP | https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/copilot/copilot-mcp |
