@@ -1,0 +1,49 @@
+{
+  "EnvironmentVariables": [
+    {
+      "SchemaName": "cap_PaymentReconAzureSubscriptionId",
+      "Value": "<azure-subscription-id>"
+    },
+    {
+      "SchemaName": "cap_PaymentReconAzureResourceGroupName",
+      "Value": "<resource-group-name>"
+    },
+    {
+      "SchemaName": "cap_PaymentReconDataFactoryName",
+      "Value": "<data-factory-name>"
+    },
+    {
+      "SchemaName": "cap_PaymentReconStorageAccountName",
+      "Value": "<storage-account-name>"
+    },
+    {
+      "SchemaName": "cap_PaymentReconSqlServerFqdn",
+      "Value": "<sql-server>.database.windows.net"
+    },
+    {
+      "SchemaName": "cap_PaymentReconSqlDatabaseName",
+      "Value": "<sql-database-name>"
+    },
+    {
+      "SchemaName": "cap_PaymentReconCommercePipelineName",
+      "Value": "ProcessAllCommercePaymentTransV4_PaymentAccountingReport"
+    },
+    {
+      "SchemaName": "cap_PaymentReconPaymentProcessorPipelineName",
+      "Value": "ProcessAllPaymentProcessorV4_PaymentAccountingReport"
+    }
+  ],
+  "SqlBinding": {
+    "ServerFqdn": "<sql-server>.database.windows.net",
+    "Database": "<sql-database-name>"
+  },
+  "Connections": {
+    "_comment": "Optional. Connection Ids (GUIDs) of existing Power Platform connections in the target environment. SqlConnectionId maps the canvas app and both Copilot agents. BlobConnectionId maps app file upload. AzureDataFactoryConnectionId and MicrosoftCopilotStudioConnectionId map the PaymentReconIntegration_V4 flow. A365McpServersConnectionId maps the agent MCP server connector. DataverseConnectionId maps the code app Reconcile button (auto-resolved from the environment when omitted).",
+    "SqlConnectionId": "",
+    "BlobConnectionId": "",
+    "AzureDataFactoryConnectionId": "",
+    "MicrosoftCopilotStudioConnectionId": "",
+    "A365McpServersConnectionId": "",
+    "DataverseConnectionId": ""
+  }
+}
