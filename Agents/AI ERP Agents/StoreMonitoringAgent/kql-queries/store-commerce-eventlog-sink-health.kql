@@ -1,0 +1,16 @@
+// Store Commerce EventLog Sink Health
+// Summarizes EventLogSinkConfigService status events by device.
+
+let WindowStart = ago(24h);
+let WindowEnd = now();
+Event
+| where TimeGenerated between (WindowStart .. WindowEnd)
+| where Source == "EventLogSinkConfigService"
+| summarize arg_max(TimeGenerated, EventID, EventLevelName, RenderedDescription), ValidCount = countif(EventID == 3000), InvalidOrErrorCount = countif(EventID in (3001, 3003, 4000, 4001, 4002)), UpdateCount = countif(EventID == 3002) by DeviceName = Computer
+| extend SinkHealth = case(
+    EventID == 3000, "Valid",
+    EventID == 3002, "Updated to expected level",
+    EventID in (3001, 3003, 4000, 4001, 4002), "Needs attention",
+    "Informational")
+| project DeviceName, SinkHealth, LastEventTime = TimeGenerated, LastEventID = EventID, LastLevel = EventLevelName, ValidCount, InvalidOrErrorCount, UpdateCount, LastMessage = RenderedDescription
+| order by InvalidOrErrorCount desc, LastEventTime desc

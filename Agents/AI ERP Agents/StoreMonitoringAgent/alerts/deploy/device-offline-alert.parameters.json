@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workspaceResourceId": {
+      "value": "/subscriptions/<subscription-id>/resourceGroups/rg-store-monitoring/providers/Microsoft.OperationalInsights/workspaces/law-store-monitoring"
+    },
+    "offlineThresholdMinutes": {
+      "value": 5
+    },
+    "activeDeviceLookbackDays": {
+      "value": 7
+    },
+    "businessHoursOnly": {
+      "value": true
+    },
+    "businessHoursStartHourUtc": {
+      "value": 8
+    },
+    "businessHoursEndHourUtc": {
+      "value": 17
+    },
+    "evaluationFrequency": {
+      "value": "PT5M"
+    },
+    "windowSize": {
+      "value": "PT5M"
+    },
+    "severity": {
+      "value": 3
+    },
+    "actionGroupResourceIds": {
+      "value": []
+    },
+    "alertFunctionWebhookUri": {
+      "value": ""
+    }
+  }
+}

@@ -1,0 +1,15 @@
+// Explain This Error - Recent Occurrences
+// The topic also contains a fixed Event ID explanation map; this query finds recent context for the selected Event ID.
+
+let WindowStart = ago(24h);
+let WindowEnd = now();
+let EventIdParam = "40201"; // Required: set to the Event ID to explain.
+let DeviceNameParam = ""; // Optional: set to a POS device name.
+Event
+| where TimeGenerated between (WindowStart .. WindowEnd)
+| where EventLog == "Application"
+| where tostring(EventID) == EventIdParam
+| where isempty(DeviceNameParam) or Computer == DeviceNameParam
+| extend DeviceName = Computer, ErrorMessage = RenderedDescription
+| summarize Occurrences = count(), FirstSeen = min(TimeGenerated), LastSeen = max(TimeGenerated), Devices = make_set(DeviceName), Sources = make_set(Source), SampleMessage = take_any(ErrorMessage) by EventID, EventLevelName
+| order by Occurrences desc

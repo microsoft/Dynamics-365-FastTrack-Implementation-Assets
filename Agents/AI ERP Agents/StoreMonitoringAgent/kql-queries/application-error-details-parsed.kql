@@ -1,0 +1,43 @@
+// Parsed Application Error Details for Store Commerce
+// Parses EventData XML to return user, session, activity, offline mode, and device context.
+
+let WindowStart = ago(24h);
+let WindowEnd = now();
+let DeviceNameParam = "STORE-POS-01"; // Required: set to the POS device name.
+Event
+| where TimeGenerated between (WindowStart .. WindowEnd)
+| where EventLog == "Application"
+| extend EventProvider = tostring(column_ifexists("ProviderName", Source))
+| where EventProvider == "Microsoft Dynamics - Store Commerce" or Source == "Microsoft Dynamics - Store Commerce"
+| where EventLevelName in ("Error", "Critical")
+| where Computer == DeviceNameParam
+| order by TimeGenerated desc
+| serialize EventRowId = row_number()
+| extend DeviceName = Computer, ErrorMessage = RenderedDescription
+| extend ParsedXml = parse_xml(EventData)
+| extend EventDataXml = ParsedXml.DataItem.EventData
+| extend DataNodes = EventDataXml.Data
+| extend DataNodes = iff(isnull(DataNodes) or array_length(DataNodes) == 0, dynamic([null]), DataNodes)
+| mv-expand DataNode = DataNodes
+| extend DataValue = tostring(DataNode)
+| summarize DataValues = make_list(DataValue), arg_max(TimeGenerated, *) by EventRowId
+| extend
+    ParsedEventId = trim_start("EventId: ", tostring(DataValues[1])),
+    ParsedName = trim_start("name: ", tostring(DataValues[4])),
+    ParsedMessage = trim_start("message: ", tostring(DataValues[5])),
+    Scope = tostring(DataValues[7])
+| extend
+    EventId = iff(isempty(ParsedEventId), tostring(EventID), ParsedEventId),
+    Name = iff(isempty(ParsedName), Source, ParsedName),
+    Message = iff(isempty(ParsedMessage), ErrorMessage, ParsedMessage)
+| extend
+    ActivityId = extract("Activity ID: ([^;]+)", 1, Scope),
+    AppSessionId = extract("App Session ID: ([^;]+)", 1, Scope),
+    UserSessionId = extract("User Session ID: ([^;]+)", 1, Scope),
+    UserId = extract("User ID: ([^;]+)", 1, Scope),
+    ScaleUnitName = extract("Scale Unit Name: ([^;]+)", 1, Scope),
+    OfflineAvailability = extract("Offline Availability: ([^;]+)", 1, Scope),
+    OfflineCurrentMode = extract("Current Offline Mode: ([^;]+)", 1, Scope),
+    DeviceId = extract("Device ID: ([^;]+)", 1, Scope)
+| project TimeGenerated, DeviceName, EventId, EventID, Source, EventLevelName, Name, Message, ActivityId, AppSessionId, UserSessionId, UserId, ScaleUnitName, OfflineAvailability, OfflineCurrentMode, DeviceId
+| order by TimeGenerated desc

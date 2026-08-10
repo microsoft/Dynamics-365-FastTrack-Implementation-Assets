@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workspaceResourceId": {
+      "value": "/subscriptions/<subscription-id>/resourceGroups/rg-store-monitoring/providers/Microsoft.OperationalInsights/workspaces/law-store-monitoring"
+    },
+    "performanceThresholdMs": {
+      "value": 10000
+    },
+    "queryLookback": {
+      "value": "10m"
+    },
+    "evaluationFrequency": {
+      "value": "PT5M"
+    },
+    "windowSize": {
+      "value": "PT10M"
+    },
+    "severity": {
+      "value": 3
+    },
+    "actionGroupResourceIds": {
+      "value": []
+    },
+    "alertFunctionWebhookUri": {
+      "value": ""
+    }
+  }
+}

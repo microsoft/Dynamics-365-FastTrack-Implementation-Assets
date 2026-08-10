@@ -1,0 +1,16 @@
+// Flapping Devices
+// Finds devices with heartbeat gaps greater than 5 minutes in the selected window.
+
+let WindowStart = ago(24h);
+let WindowEnd = now();
+Heartbeat
+| where TimeGenerated between (WindowStart .. WindowEnd)
+| project TimeGenerated, Computer
+| order by Computer asc, TimeGenerated asc
+| serialize
+| extend PreviousComputer = prev(Computer), PreviousHeartbeat = prev(TimeGenerated)
+| where Computer == PreviousComputer
+| extend GapMinutes = datetime_diff('minute', TimeGenerated, PreviousHeartbeat)
+| where GapMinutes > 5
+| summarize OfflineTransitions = count(), MaxGapMinutes = max(GapMinutes), AvgGapMinutes = round(avg(GapMinutes), 2), FirstGapAfter = min(TimeGenerated), LastGapAfter = max(TimeGenerated) by DeviceName = Computer
+| order by OfflineTransitions desc, MaxGapMinutes desc

@@ -1,0 +1,44 @@
+// Recent Change Regression Detector
+// Compares application error signals before and after a selected UTC change time.
+
+let WindowStart = ago(24h);
+let WindowEnd = now();
+let ChangeTime = ago(12h); // Set to the UTC deployment/change timestamp to compare around.
+let ClassifiedEvents =
+    Event
+    | where TimeGenerated between (WindowStart .. WindowEnd)
+    | where EventLog == "Application"
+    | where EventLevelName in ("Error", "Critical")
+    | extend DeviceName = Computer
+    | extend Signal = case(
+        EventID == 40450, "Hardware Station",
+        EventID == 40201 or RenderedDescription has "InvalidAuthenticationCredentials", "Login Failure",
+        EventID == 40101 or RenderedDescription has "ModelManagersRetailServerRequestError" or RenderedDescription has "Retail Server Request", "Retail Server Error",
+        "Application Error")
+    | extend Period = iff(TimeGenerated < ChangeTime, "Before", "After");
+let Counts = ClassifiedEvents | summarize ErrorCount = count(), FirstSeen = min(TimeGenerated), LastSeen = max(TimeGenerated), EventIDs = make_set(EventID), Sources = make_set(Source), SampleMessage = take_any(RenderedDescription) by DeviceName, Signal, Period;
+let BeforeCounts = Counts | where Period == "Before" | project DeviceName, Signal, BeforeCount = ErrorCount, BeforeFirstSeen = FirstSeen, BeforeLastSeen = LastSeen;
+let AfterCounts = Counts | where Period == "After" | project DeviceName, Signal, AfterCount = ErrorCount, AfterFirstSeen = FirstSeen, AfterLastSeen = LastSeen, EventIDs, Sources, SampleMessage;
+let Keys = union (BeforeCounts | project DeviceName, Signal), (AfterCounts | project DeviceName, Signal) | distinct DeviceName, Signal;
+Keys
+| join kind=leftouter BeforeCounts on DeviceName, Signal
+| join kind=leftouter AfterCounts on DeviceName, Signal
+| extend BeforeCount = iff(isnull(BeforeCount), 0, BeforeCount), AfterCount = iff(isnull(AfterCount), 0, AfterCount)
+| extend IncreaseCount = AfterCount - BeforeCount
+| extend GrowthRatio = iff(BeforeCount == 0, real(null), round(todouble(AfterCount) / todouble(BeforeCount), 2))
+| where AfterCount > 0 or BeforeCount > 0
+| project DeviceName, Signal, BeforeCount, AfterCount, IncreaseCount, GrowthRatio, AfterFirstSeen, AfterLastSeen, EventIDs, Sources, SampleMessage
+| order by IncreaseCount desc, AfterCount desc;
+
+// Failure Start Timeline for Impact Analysis
+// Shows hourly failure onset and affected devices using the same window and change timestamp.
+
+ClassifiedEvents
+| extend FailureHour = bin(TimeGenerated, 1h)
+| summarize FailureCount = count(), ImpactedDeviceCount = dcount(DeviceName), ImpactedDevices = make_set(DeviceName), FirstFailure = min(TimeGenerated), LastFailure = max(TimeGenerated), EventIDs = make_set(EventID), Sources = make_set(Source), SampleMessage = take_any(RenderedDescription) by FailureHour, Period, Signal
+| extend TimelineFinding = case(
+    FirstFailure >= ChangeTime and FailureHour == bin(ChangeTime, 1h), "Started in the same hour as the change",
+    FirstFailure >= ChangeTime, "Observed after the change",
+    "Observed before the change")
+| project FailureHour, Period, Signal, TimelineFinding, FailureCount, ImpactedDeviceCount, ImpactedDevices, FirstFailure, LastFailure, EventIDs, Sources, SampleMessage
+| order by FailureHour asc, FailureCount desc

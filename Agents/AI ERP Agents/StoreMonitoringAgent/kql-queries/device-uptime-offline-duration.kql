@@ -1,0 +1,20 @@
+// Device Uptime and Offline Duration
+// Estimates uptime from 5-minute heartbeat bins in the selected window.
+
+let WindowStart = ago(24h);
+let WindowEnd = now();
+let BinSizeMinutes = 5;
+let ExpectedBins = toint(ceiling(todouble(datetime_diff('minute', WindowEnd, WindowStart)) / todouble(BinSizeMinutes))) + 1;
+let KnownDevices = Heartbeat | where TimeGenerated between ((WindowEnd - 7d) .. WindowEnd) | distinct Computer;
+let SeenInRange =
+    Heartbeat
+    | where TimeGenerated between (WindowStart .. WindowEnd)
+    | summarize SeenBins = dcount(bin(TimeGenerated, 5m)), FirstHeartbeat = min(TimeGenerated), LastHeartbeat = max(TimeGenerated) by Computer;
+KnownDevices
+| join kind=leftouter SeenInRange on Computer
+| extend SeenBins = iff(isnull(SeenBins), 0, SeenBins)
+| extend MissingBins = iff(ExpectedBins - SeenBins < 0, 0, ExpectedBins - SeenBins)
+| extend UptimePercent = round(100.0 * todouble(SeenBins) / todouble(ExpectedBins), 2)
+| extend EstimatedOfflineMinutes = MissingBins * BinSizeMinutes
+| project DeviceName = Computer, UptimePercent, EstimatedOfflineMinutes, SeenHeartbeatBins = SeenBins, ExpectedHeartbeatBins = ExpectedBins, FirstHeartbeat, LastHeartbeat
+| order by UptimePercent asc, EstimatedOfflineMinutes desc

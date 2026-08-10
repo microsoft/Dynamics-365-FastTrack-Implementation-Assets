@@ -1,0 +1,91 @@
+// Application Error Trend - 7-Day Comparison
+// Compares the current 24 hours of application errors with the previous 7 daily counts.
+// Use this to detect devices where current errors are above a minimum count
+// and significantly higher than the 7-day daily average, grouped by error kind.
+
+let CurrentWindow = 1d;
+let BaselineWindow = 7d;
+let MinimumCurrentErrors = 10;
+let GrowthMultiplier = 2.0;
+let CurrentClassifiedEvents =
+    Event
+    | where TimeGenerated > ago(CurrentWindow)
+    | where EventLog == "Application"
+    | where EventLevelName in ("Error", "Critical")
+    | extend DeviceName = Computer
+    | extend ErrorKind = case(
+        EventID in (1000, 1001, 1309, 40102) or Source has "Retail" or RenderedDescription has "RetailServer" or RenderedDescription has "Retail Server" or RenderedDescription has "ModelManagersRetailServer", "Retail Server Error",
+        EventID == 40450, "Hardware Station Error",
+        EventID in (40201) or RenderedDescription has "InvalidAuthenticationCredentials", "Login Failure",
+        Source has "Database" or RenderedDescription has "database" or RenderedDescription has "SQL", "Database Error",
+        "Other Error"
+    );
+let CurrentErrors =
+    CurrentClassifiedEvents
+    | summarize
+        CurrentErrorCount = count(),
+        FirstCurrentError = min(TimeGenerated),
+        LastCurrentError = max(TimeGenerated),
+        EventIDs = make_set(EventID, 20),
+        EventLevels = make_set(EventLevelName, 5),
+        Sources = make_set(Source, 5),
+        SampleMessage = take_any(RenderedDescription)
+        by DeviceName, ErrorKind;
+let BaselineClassifiedEvents =
+    Event
+    | where TimeGenerated between (ago(BaselineWindow + CurrentWindow) .. ago(CurrentWindow))
+    | where EventLog == "Application"
+    | where EventLevelName in ("Error", "Critical")
+    | extend DeviceName = Computer
+    | extend BaselineDay = startofday(TimeGenerated)
+    | extend ErrorKind = case(
+        EventID in (1000, 1001, 1309, 40102) or Source has "Retail" or RenderedDescription has "RetailServer" or RenderedDescription has "Retail Server" or RenderedDescription has "ModelManagersRetailServer", "Retail Server Error",
+        EventID == 40450, "Hardware Station Error",
+        EventID in (40201) or RenderedDescription has "InvalidAuthenticationCredentials", "Login Failure",
+        Source has "Database" or RenderedDescription has "database" or RenderedDescription has "SQL", "Database Error",
+        "Other Error"
+    );
+let BaselineDailyErrors =
+    BaselineClassifiedEvents
+    | summarize
+        DailyErrorCount = count()
+        by DeviceName, ErrorKind, BaselineDay;
+let BaselineSummary =
+    BaselineDailyErrors
+    | summarize
+        SevenDayAverageErrorCount = round(avg(DailyErrorCount), 2),
+        SevenDayMaxErrorCount = max(DailyErrorCount),
+        SevenDayTotalErrorCount = sum(DailyErrorCount),
+        BaselineDaysWithErrors = dcount(BaselineDay),
+        BaselineDailyCounts = make_list(pack("Day", BaselineDay, "ErrorCount", DailyErrorCount), 7)
+        by DeviceName, ErrorKind;
+CurrentErrors
+| join kind=leftouter BaselineSummary on DeviceName, ErrorKind
+| extend
+    SevenDayAverageErrorCount = iff(isnull(SevenDayAverageErrorCount), 0.0, SevenDayAverageErrorCount),
+    SevenDayMaxErrorCount = iff(isnull(SevenDayMaxErrorCount), 0, SevenDayMaxErrorCount),
+    SevenDayTotalErrorCount = iff(isnull(SevenDayTotalErrorCount), 0, SevenDayTotalErrorCount),
+    BaselineDaysWithErrors = iff(isnull(BaselineDaysWithErrors), 0, BaselineDaysWithErrors)
+| extend
+    IncreaseVsSevenDayAverage = CurrentErrorCount - SevenDayAverageErrorCount,
+    GrowthVsSevenDayAverage = iff(SevenDayAverageErrorCount == 0.0, real(null), todouble(CurrentErrorCount) / SevenDayAverageErrorCount)
+| where CurrentErrorCount >= MinimumCurrentErrors
+| where SevenDayAverageErrorCount == 0.0 or CurrentErrorCount >= SevenDayAverageErrorCount * GrowthMultiplier
+| project
+    LastCurrentError,
+    FirstCurrentError,
+    DeviceName,
+    ErrorKind,
+    EventIDs,
+    EventLevels,
+    CurrentErrorCount,
+    SevenDayAverageErrorCount,
+    SevenDayMaxErrorCount,
+    SevenDayTotalErrorCount,
+    BaselineDaysWithErrors,
+    IncreaseVsSevenDayAverage,
+    GrowthVsSevenDayAverage,
+    Sources,
+    SampleMessage,
+    BaselineDailyCounts
+| order by DeviceName asc, ErrorKind asc, GrowthVsSevenDayAverage desc, CurrentErrorCount desc

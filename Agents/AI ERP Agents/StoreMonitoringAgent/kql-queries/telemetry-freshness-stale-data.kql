@@ -1,0 +1,25 @@
+// Telemetry Freshness and Stale Data
+// Shows latest heartbeat, event, and performance telemetry timestamps per device.
+
+let WindowEnd = now();
+let OfflineThresholdMinutes = 5;
+let KnownDevices = Heartbeat | where TimeGenerated between ((WindowEnd - 7d) .. WindowEnd) | distinct Computer;
+let LatestHeartbeat = Heartbeat | where TimeGenerated <= WindowEnd | summarize LatestHeartbeat = max(TimeGenerated) by Computer;
+let LatestEvent = Event | where TimeGenerated <= WindowEnd | summarize LatestEvent = max(TimeGenerated) by Computer;
+let LatestPerf = Perf | where TimeGenerated <= WindowEnd | summarize LatestPerf = max(TimeGenerated) by Computer;
+KnownDevices
+| join kind=leftouter LatestHeartbeat on Computer
+| join kind=leftouter LatestEvent on Computer
+| join kind=leftouter LatestPerf on Computer
+| extend HeartbeatAgeMinutes = datetime_diff('minute', WindowEnd, LatestHeartbeat)
+| extend EventAgeMinutes = datetime_diff('minute', WindowEnd, LatestEvent)
+| extend PerfAgeMinutes = datetime_diff('minute', WindowEnd, LatestPerf)
+| extend FreshnessStatus = case(
+    isnull(LatestHeartbeat), "Offline",
+    HeartbeatAgeMinutes > OfflineThresholdMinutes, "Offline",
+    isnull(LatestEvent), "No event telemetry",
+    isnull(LatestPerf), "No performance telemetry",
+    EventAgeMinutes > 1440 and PerfAgeMinutes > 1440, "Event and performance telemetry stale",
+    "Telemetry present")
+| project DeviceName = Computer, FreshnessStatus, LatestHeartbeat, HeartbeatAgeMinutes, LatestEvent, EventAgeMinutes, LatestPerf, PerfAgeMinutes
+| order by HeartbeatAgeMinutes desc, EventAgeMinutes desc, PerfAgeMinutes desc

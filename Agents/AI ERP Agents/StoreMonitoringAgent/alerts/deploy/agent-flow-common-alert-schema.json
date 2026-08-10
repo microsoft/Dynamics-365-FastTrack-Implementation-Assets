@@ -1,0 +1,82 @@
+{
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": "object",
+      "properties": {
+        "essentials": {
+          "type": "object",
+          "properties": {
+            "alertRule": {
+              "type": "string"
+            },
+            "severity": {
+              "type": "string"
+            },
+            "monitorCondition": {
+              "type": "string"
+            },
+            "configurationItems": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "firedDateTime": {
+              "type": "string"
+            }
+          }
+        },
+        "alertContext": {
+          "type": "object",
+          "properties": {
+            "condition": {
+              "type": "object",
+              "properties": {
+                "allOf": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "dimensions": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "customProperties": {
+          "type": "object",
+          "properties": {
+            "alertType": {
+              "type": "string"
+            },
+            "offlineThresholdMinutes": {
+              "type": "string"
+            },
+            "performanceThresholdMs": {
+              "type": "string"
+            },
+            "databaseSizeThresholdMB": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

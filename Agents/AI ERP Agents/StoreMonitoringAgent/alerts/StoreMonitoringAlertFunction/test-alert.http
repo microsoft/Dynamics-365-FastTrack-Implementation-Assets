@@ -1,0 +1,116 @@
+### Store Monitoring Alert Function - Device Offline
+# @timeout = 60000
+POST http://localhost:7217/api/monitor-alert
+Content-Type: application/json
+
+{
+  "data": {
+    "essentials": {
+      "alertRule": "StoreMonitoring-Device Offline",
+      "severity": "Sev3",
+      "signalType": "Log",
+      "monitorCondition": "Fired",
+      "configurationItems": [
+        "POS1"
+      ],
+      "firedDateTime": "2026-06-22T12:00:00Z",
+      "description": "Device offline"
+    },
+    "alertContext": {
+      "condition": {
+        "allOf": [
+          {
+            "dimensions": [
+              {
+                "name": "DeviceName",
+                "value": "POS1"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "customProperties": {
+      "alertType": "DeviceOffline",
+      "offlineThresholdMinutes": "5"
+    }
+  }
+}
+
+### Store Monitoring Alert Function - Retail Server Performance
+# @timeout = 60000
+POST http://localhost:7217/api/monitor-alert
+Content-Type: application/json
+
+{
+  "data": {
+    "essentials": {
+      "alertRule": "StoreMonitoring-Retail Server Performance",
+      "severity": "Sev3",
+      "signalType": "Log",
+      "monitorCondition": "Fired",
+      "configurationItems": [
+        "POS1"
+      ],
+      "firedDateTime": "2026-06-22T12:05:00Z",
+      "description": "Retail Server request exceeded performance threshold"
+    },
+    "alertContext": {
+      "condition": {
+        "allOf": [
+          {
+            "dimensions": [
+              {
+                "name": "DeviceName",
+                "value": "POS1"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "customProperties": {
+      "alertType": "RetailServerPerformance",
+      "performanceThresholdMs": "10000"
+    }
+  }
+}
+
+### Store Monitoring Alert Function - Database Size
+# @timeout = 60000
+POST http://localhost:7217/api/monitor-alert
+Content-Type: application/json
+
+{
+  "data": {
+    "essentials": {
+      "alertRule": "StoreMonitoring-Database Size",
+      "severity": "Sev3",
+      "signalType": "Log",
+      "monitorCondition": "Fired",
+      "configurationItems": [
+        "POS1"
+      ],
+      "firedDateTime": "2026-06-22T12:10:00Z",
+      "description": "Offline database exceeded size threshold"
+    },
+    "alertContext": {
+      "condition": {
+        "allOf": [
+          {
+            "dimensions": [
+              {
+                "name": "DeviceName",
+                "value": "SrinathMSFT4"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "customProperties": {
+      "alertType": "DatabaseSize",
+      "databaseSizeThresholdMB": "8192"
+    }
+  }
+}

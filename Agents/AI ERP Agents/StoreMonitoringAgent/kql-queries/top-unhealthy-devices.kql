@@ -1,0 +1,30 @@
+// Top Unhealthy POS Devices
+// Ranks devices by offline/stale telemetry, error counts, CPU, and memory pressure.
+
+let WindowStart = ago(24h);
+let WindowEnd = now();
+let KnownDevices = union
+    (Heartbeat | where TimeGenerated between ((WindowEnd - 7d) .. WindowEnd) | project Computer),
+    (Event | where TimeGenerated between ((WindowEnd - 7d) .. WindowEnd) | project Computer),
+    (Perf | where TimeGenerated between ((WindowEnd - 7d) .. WindowEnd) | project Computer)
+    | distinct Computer;
+let LatestHeartbeat = Heartbeat | where TimeGenerated <= WindowEnd | summarize LatestHeartbeat = max(TimeGenerated) by Computer;
+let AppErrors = Event | where TimeGenerated between (WindowStart .. WindowEnd) | where EventLog == "Application" | where EventLevelName in ("Error", "Critical") | summarize AppErrorCount = count() by Computer;
+let HardwareErrors = Event | where TimeGenerated between (WindowStart .. WindowEnd) | where EventID == 40450 | summarize HardwareErrorCount = count() by Computer;
+let RetailErrors = Event | where TimeGenerated between (WindowStart .. WindowEnd) | where EventID == 40101 or RenderedDescription has "ModelManagersRetailServerRequestError" or RenderedDescription has "Retail Server Request" | summarize RetailErrorCount = count() by Computer;
+let CpuPressure = Perf | where TimeGenerated between (WindowStart .. WindowEnd) | where ObjectName == "Processor Information" and CounterName == "% Processor Time" and InstanceName == "_Total" | summarize AvgCpu = round(avg(CounterValue), 2), MaxCpu = round(max(CounterValue), 2) by Computer;
+let MemoryPressure = Perf | where TimeGenerated between (WindowStart .. WindowEnd) | where ObjectName == "Memory" and CounterName == "Available Bytes" | summarize MinAvailableMemoryMB = round(min(CounterValue) / 1024.0 / 1024.0, 2) by Computer;
+KnownDevices
+| join kind=leftouter LatestHeartbeat on Computer
+| join kind=leftouter AppErrors on Computer
+| join kind=leftouter HardwareErrors on Computer
+| join kind=leftouter RetailErrors on Computer
+| join kind=leftouter CpuPressure on Computer
+| join kind=leftouter MemoryPressure on Computer
+| extend HeartbeatAgeMinutes = datetime_diff('minute', WindowEnd, LatestHeartbeat)
+| extend AppErrorCount = iff(isnull(AppErrorCount), 0, AppErrorCount), HardwareErrorCount = iff(isnull(HardwareErrorCount), 0, HardwareErrorCount), RetailErrorCount = iff(isnull(RetailErrorCount), 0, RetailErrorCount)
+| extend OfflineScore = iff(isnull(LatestHeartbeat) or HeartbeatAgeMinutes > 5, 50, 0), StaleTelemetryScore = iff(isnull(LatestHeartbeat) or HeartbeatAgeMinutes > 15, 20, 0), CpuScore = iff(AvgCpu >= 80 or MaxCpu >= 95, 10, 0), MemoryScore = iff(MinAvailableMemoryMB <= 512, 10, 0)
+| extend HealthScore = OfflineScore + StaleTelemetryScore + AppErrorCount + (HardwareErrorCount * 5) + (RetailErrorCount * 3) + CpuScore + MemoryScore
+| where HealthScore > 0
+| project DeviceName = Computer, HealthScore, LatestHeartbeat, HeartbeatAgeMinutes, AppErrorCount, HardwareErrorCount, RetailErrorCount, AvgCpu, MaxCpu, MinAvailableMemoryMB
+| order by HealthScore desc, AppErrorCount desc

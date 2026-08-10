@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "StoreMonitoringAlertFunction": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7217",
+      "launchBrowser": false
+    }
+  }
+}

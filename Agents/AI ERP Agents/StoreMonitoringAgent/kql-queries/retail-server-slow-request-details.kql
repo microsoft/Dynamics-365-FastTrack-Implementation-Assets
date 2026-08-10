@@ -1,0 +1,24 @@
+// Retail Server Slow Request Details
+// Parses Store Commerce EventID 40102 request-duration payloads and orders by execution time.
+
+let WindowStart = ago(24h);
+let WindowEnd = now();
+Event
+| where TimeGenerated between (WindowStart .. WindowEnd)
+| where EventLog == "Application"
+| where EventID == 40102
+| where Source == "Microsoft Dynamics - Store Commerce"
+| where EventData has "ModelManagersRetailServerRequestFinished" or RenderedDescription has "ModelManagersRetailServerRequestFinished"
+| extend DeviceName = Computer
+| extend ParsedXml = parse_xml(EventData)
+| extend EventDataXml = ParsedXml.DataItem.EventData
+| extend DataNodes = EventDataXml.Data
+| mv-expand DataNode = DataNodes
+| extend DataValue = tostring(DataNode)
+| summarize DataValues = make_list(DataValue), arg_max(TimeGenerated, *) by EventData
+| extend PayloadText = trim_start("payload: ", tostring(DataValues[6]))
+| extend Payload = parse_json(PayloadText)
+| extend RequestId = tostring(Payload.requestId), RequestUrl = tostring(Payload.requestUrl), ResponseStatusCode = toint(Payload.responseStatusCode), RequestAction = tostring(Payload.requestAction), ExecutionTimeInMs = toint(Payload.executionTimeInMs)
+| where isnotnull(ExecutionTimeInMs)
+| project TimeGenerated, DeviceName, RequestAction, ResponseStatusCode, ExecutionTimeInMs, RequestId, RequestUrl
+| order by ExecutionTimeInMs desc

@@ -115,8 +115,8 @@ Steps:
    - Check **Enable Data Collection Endpoints**
    - Select your Arc-enabled machines (POS devices)
    - Click **Apply**
-   - Click **Next: Collect and deliver**
-6. **Collect and deliver** tab - Add Windows Event Logs:
+   - Click **Next: Data sources**
+6. **Data sources** tab - Add Windows Event Logs:
    - Click **+ Add data source**
    - Data source type: **Windows Event Logs**
    - **Custom** tab (for filtering specific providers):
@@ -127,6 +127,14 @@ Steps:
        ```
        _(This filters Critical (Level=1), Error (Level=2), and Warning (Level=3) from Store Commerce)_
      - Add additional XPath queries:
+       ```xpath
+       Application!*[System[Provider[@Name='Microsoft Dynamics - Store Commerce'] and EventID=40253]]
+       ```
+       _(Store Commerce Event ID 40253 — used for targeted Store Commerce diagnostics)_
+       ```xpath
+       Application!*[System[Provider[@Name='Microsoft Dynamics - Store Commerce'] and EventID=40102]]
+       ```
+       _(Store Commerce Event ID 40102 — used for Retail Server performance diagnostics)_
        ```xpath
        Application!*[System[Provider[@Name='DatabaseMetricsService'] and (EventID=3000)]]
        ```
@@ -140,7 +148,7 @@ Steps:
    - Subscription: Your subscription
    - Account or namespace: Select `law-store-monitoring`
    - Click **Add data source**
-7. **Collect and deliver** tab - Add Performance Counters:
+7. **Data sources** tab - Add Performance Counters:
    - Click **+ Add data source** (again)
    - Data source type: **Performance Counters**
    - Sample rate: **86400 seconds** _(once per day - use 60 for once per minute, 300 for 5 minutes)_
@@ -193,7 +201,7 @@ This policy automatically deploys AMA to all Arc-enabled devices and links them 
 
 6. **Remediation** tab:
 
-- Check ✅ **Create a remediation task** (fixes existing non-compliant resources)
+- Check ✅ **Create a remediation task** (deploys the policy action to Arc-enabled devices that already exist in the selected scope)
 - Click **Next**
 
 7. **Managed Identity** tab:
@@ -327,15 +335,39 @@ Default settings in `appsettings.json`:
 3. Go to [Copilot Studio](https://copilotstudio.microsoft.com)
 4. Click **Solutions** in the left menu
 5. Click **Import solution**
-6. Browse to the `StoreMonitoringAgent_1_0_0_17.zip` file provided in the root of this repository.
-7. Click **Next** → **Import**
-8. After import completes, open the **Store Monitor Agent**
-9. Configure connection references:
-   - Update Log Analytics workspace connection with your Workspace ID
-   - Authenticate with appropriate credentials
-10. Click **Publish** to activate the agent
+6. Browse to the `StoreMonitoringAgent_1_0_0_25.zip` file provided in the root of this repository.
+7. On the **Connections** page, map the **Azure Monitor Logs** connection reference to an existing connection or create one. Sign in with an account that has permission to query the Log Analytics workspace.
+8. If prompted for the optional `SMAAlertObjectId` environment variable, keep the imported value or enter a temporary GUID. This value is not a secret and is only used by the optional alert-triggered flows. Replace it with the correct object ID when completing [Step 8](#step-8-optional---enable-autonomous-alert-capabilities).
+9. Click **Next** → **Import** and wait for the import to complete.
+
+**Configure the Log Analytics cloud flow:**
+
+1. Open the imported solution, select **Cloud flows**, and open **RunLogAnalyticsQuery**.
+2. Select **Edit**, expand **Run query and list results**, and configure these fields for the workspace created in Step 1:
+
+| Field          | Value                                                                 |
+| -------------- | --------------------------------------------------------------------- |
+| Subscription   | Azure subscription containing the Log Analytics workspace             |
+| Resource group | Resource group containing the workspace                               |
+| Resource type  | `Log Analytics Workspace`                                             |
+| Resource name  | Log Analytics workspace resource name, such as `law-store-monitoring` |
+
+> **Note:** **Resource name** is the workspace name, not the Workspace ID saved in Step 1. The `query` and `timespan` inputs are supplied by the agent at runtime and do not require post-import values.
+
+3. Confirm that **Run query and list results** uses the imported **Azure Monitor Logs** connection reference.
+4. Click **Save**, run the flow checker, and turn on the flow if it is disabled.
+5. Return to Copilot Studio, open **Store Monitor Agent**, and use the test pane to submit a monitoring prompt. Confirm that the agent returns data, then check the **RunLogAnalyticsQuery** run history and verify that **Run query and list results** succeeded.
+6. Click **Publish** to activate the agent.
 
 > 💡 **Tip:** To capture Database Metrics Service events in Log Analytics, add a custom XPath filter to your DCR. See [Database Metrics Log Analytics Guide](database-metrics-log-analytics.md) for instructions.
+
+### Step 8: Optional - Enable Autonomous Alert Capabilities
+
+After the agent, Log Analytics workspace, and data collection are working, you can add autonomous alert-triggered investigations. This optional setup uses Azure Monitor scheduled query alerts to trigger the Store Monitoring Agent, generate an investigation summary, and post the result to Teams.
+
+Use the alert documentation for the full setup:
+
+- [Alert-Triggered Agent](alert-triggered-agent.md) - architecture, supported alert types, Agent Flow actions, prompt routing, Teams notification setup, deployment scripts, parameters, and validation checklist
 
 ## 🔧 Common Issues
 
@@ -353,7 +385,7 @@ Default settings in `appsettings.json`:
 
 ### Agent Not Returning Results
 
-- Check Log Analytics connection in Agent settings
-- Verify Workspace ID is correct
+- Check the **Azure Monitor Logs** connection reference in the imported solution
+- Verify the subscription, resource group, and workspace resource name in **RunLogAnalyticsQuery**
 - Test KQL query manually in Log Analytics portal
 - Ensure Agent has proper permissions to query workspace

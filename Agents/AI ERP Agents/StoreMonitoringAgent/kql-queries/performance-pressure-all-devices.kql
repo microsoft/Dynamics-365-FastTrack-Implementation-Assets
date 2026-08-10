@@ -1,0 +1,18 @@
+// Performance Pressure - All Devices
+// Summarizes CPU and memory pressure across POS devices.
+
+let WindowStart = ago(24h);
+let WindowEnd = now();
+let KnownDevices = Perf | where TimeGenerated between (WindowStart .. WindowEnd) | distinct Computer;
+let Cpu = Perf | where TimeGenerated between (WindowStart .. WindowEnd) | where ObjectName == "Processor Information" and CounterName == "% Processor Time" and InstanceName == "_Total" | summarize AvgCpuPercent = round(avg(CounterValue), 2), MaxCpuPercent = round(max(CounterValue), 2), CpuSamples = count() by Computer;
+let Memory = Perf | where TimeGenerated between (WindowStart .. WindowEnd) | where ObjectName == "Memory" and CounterName == "Available Bytes" | summarize AvgAvailableMemoryMB = round(avg(CounterValue) / 1024.0 / 1024.0, 2), MinAvailableMemoryMB = round(min(CounterValue) / 1024.0 / 1024.0, 2), MemorySamples = count() by Computer;
+KnownDevices
+| join kind=leftouter Cpu on Computer
+| join kind=leftouter Memory on Computer
+| extend PressureStatus = case(
+    AvgCpuPercent >= 80 or MaxCpuPercent >= 95, "High CPU",
+    MinAvailableMemoryMB <= 512, "Low memory",
+    isnull(AvgCpuPercent) and isnull(MinAvailableMemoryMB), "No CPU or memory samples",
+    "Normal or informational")
+| project DeviceName = Computer, PressureStatus, AvgCpuPercent, MaxCpuPercent, AvgAvailableMemoryMB, MinAvailableMemoryMB, CpuSamples, MemorySamples
+| order by MaxCpuPercent desc, MinAvailableMemoryMB asc

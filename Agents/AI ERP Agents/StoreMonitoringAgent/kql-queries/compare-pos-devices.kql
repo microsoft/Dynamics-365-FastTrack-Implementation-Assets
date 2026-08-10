@@ -1,0 +1,25 @@
+// Compare POS Devices
+// Compares two POS devices across heartbeat, errors, CPU, and memory.
+
+let WindowStart = ago(24h);
+let WindowEnd = now();
+let DeviceOne = ""; // Required: first POS device name.
+let DeviceTwo = ""; // Required: second POS device name.
+let Devices = union (print DeviceName = DeviceOne), (print DeviceName = DeviceTwo);
+let LatestHeartbeat = Heartbeat | where Computer in (DeviceOne, DeviceTwo) and TimeGenerated <= WindowEnd | summarize LatestHeartbeat = max(TimeGenerated) by DeviceName = Computer;
+let AppErrors = Event | where TimeGenerated between (WindowStart .. WindowEnd) | where Computer in (DeviceOne, DeviceTwo) | where EventLog == "Application" | where EventLevelName in ("Error", "Critical") | summarize AppErrorCount = count(), EventIDs = make_set(EventID) by DeviceName = Computer;
+let HardwareErrors = Event | where TimeGenerated between (WindowStart .. WindowEnd) | where Computer in (DeviceOne, DeviceTwo) | where EventID == 40450 | summarize HardwareErrorCount = count() by DeviceName = Computer;
+let RetailErrors = Event | where TimeGenerated between (WindowStart .. WindowEnd) | where Computer in (DeviceOne, DeviceTwo) | where EventID == 40101 or RenderedDescription has "ModelManagersRetailServerRequestError" or RenderedDescription has "Retail Server Request" | summarize RetailErrorCount = count() by DeviceName = Computer;
+let Cpu = Perf | where TimeGenerated between (WindowStart .. WindowEnd) | where Computer in (DeviceOne, DeviceTwo) | where ObjectName == "Processor Information" and CounterName == "% Processor Time" and InstanceName == "_Total" | summarize AvgCpu = round(avg(CounterValue), 2), MaxCpu = round(max(CounterValue), 2) by DeviceName = Computer;
+let Memory = Perf | where TimeGenerated between (WindowStart .. WindowEnd) | where Computer in (DeviceOne, DeviceTwo) | where ObjectName == "Memory" and CounterName == "Available Bytes" | summarize MinAvailableMemoryMB = round(min(CounterValue) / 1024.0 / 1024.0, 2) by DeviceName = Computer;
+Devices
+| join kind=leftouter LatestHeartbeat on DeviceName
+| join kind=leftouter AppErrors on DeviceName
+| join kind=leftouter HardwareErrors on DeviceName
+| join kind=leftouter RetailErrors on DeviceName
+| join kind=leftouter Cpu on DeviceName
+| join kind=leftouter Memory on DeviceName
+| extend HeartbeatAgeMinutes = datetime_diff('minute', WindowEnd, LatestHeartbeat)
+| extend AppErrorCount = iff(isnull(AppErrorCount), 0, AppErrorCount), HardwareErrorCount = iff(isnull(HardwareErrorCount), 0, HardwareErrorCount), RetailErrorCount = iff(isnull(RetailErrorCount), 0, RetailErrorCount)
+| project DeviceName, LatestHeartbeat, HeartbeatAgeMinutes, AppErrorCount, HardwareErrorCount, RetailErrorCount, AvgCpu, MaxCpu, MinAvailableMemoryMB, EventIDs
+| order by DeviceName asc

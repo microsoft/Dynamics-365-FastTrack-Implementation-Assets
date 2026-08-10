@@ -1,0 +1,19 @@
+let DatabaseSizeThresholdMB = 8192;
+let Lookback = 24h;
+Event
+| where TimeGenerated > ago(Lookback)
+| where Source == "DatabaseMetricsService"
+| where EventID == 3000
+| extend DeviceName = Computer
+| extend MetricsText = strcat(RenderedDescription, " ", ParameterXml)
+| extend
+    DatabaseName = extract(@"Database:\s*([^\r\n]+)", 1, MetricsText),
+    ServerName = extract(@"Server:\s*([^\r\n]+)", 1, MetricsText),
+    DatabaseSizeMB = todouble(extract(@"Total Database Size:\s*([0-9.]+)\s*MB", 1, MetricsText)),
+    DataFileSizeMB = todouble(extract(@"Data File Size:\s*([0-9.]+)\s*MB", 1, MetricsText)),
+    LogFileSizeMB = todouble(extract(@"Log File Size:\s*([0-9.]+)\s*MB", 1, MetricsText)),
+    UnallocatedSpaceMB = todouble(extract(@"Unallocated Space:\s*([0-9.]+)\s*MB", 1, MetricsText))
+| where isnotnull(DatabaseSizeMB)
+| summarize arg_max(TimeGenerated, DatabaseSizeMB, DataFileSizeMB, LogFileSizeMB, UnallocatedSpaceMB, ServerName) by DeviceName, DatabaseName
+| where DatabaseSizeMB > DatabaseSizeThresholdMB
+| distinct DeviceName

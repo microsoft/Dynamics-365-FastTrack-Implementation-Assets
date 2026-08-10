@@ -1,0 +1,15 @@
+// Database Metrics Trend
+// Summarizes DatabaseMetricsService EventID 3000 reports by device and day.
+
+let WindowStart = ago(7d);
+let WindowEnd = now();
+Event
+| where TimeGenerated between (WindowStart .. WindowEnd)
+| where Source == "DatabaseMetricsService"
+| where EventID == 3000
+| extend DeviceName = Computer
+| extend MetricsText = strcat(RenderedDescription, " ", ParameterXml)
+| extend DatabaseSizeMB = todouble(extract(@"Total Database Size:\s*([0-9.]+)\s*MB", 1, MetricsText))
+| summarize CollectionCount = count(), AvgDatabaseSizeMB = round(avg(DatabaseSizeMB), 2), MaxDatabaseSizeMB = round(max(DatabaseSizeMB), 2), FirstCollection = min(TimeGenerated), LastCollection = max(TimeGenerated) by DeviceName, Day = startofday(TimeGenerated)
+| project Day, DeviceName, CollectionCount, AvgDatabaseSizeMB, MaxDatabaseSizeMB, FirstCollection, LastCollection
+| order by Day asc, DeviceName asc

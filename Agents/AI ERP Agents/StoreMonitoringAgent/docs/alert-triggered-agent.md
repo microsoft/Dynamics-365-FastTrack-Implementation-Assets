@@ -1,404 +1,431 @@
 # Alert-Triggered Agent
 
-> ⚠️ **Status: In Progress (v2)**
+This guide describes the current alert-triggered investigation pattern. Azure Monitor sends Common Alert Schema payloads to the Store Monitoring Alert Function, the Function authenticates to the Copilot Studio Agent Flow with a dedicated Microsoft Entra service principal, the Agent Flow invokes the Store Monitoring Agent, and the result is posted to Teams.
 
-This guide covers how to set up Azure Monitor alert rules for **Hardware Station Errors** and **Device Offline Detection**, and route them through the **Copilot Studio Store Monitoring Agent** for AI-enriched analysis before posting to a Microsoft Teams channel.
+Scope clarification:
 
-Instead of forwarding raw alert data, this approach triggers the Copilot Studio agent to **investigate the issue**, correlate with other data, and post an **AI-generated summary with recommendations** to Teams.
+- This document applies only to alert-triggered automation.
+- Interactive and scheduled Kusto query execution remains in Copilot Studio Agent Flows.
+- The Store Monitoring Alert Function is the inbound alert relay and authentication boundary between Azure Monitor and the Copilot Studio Agent Flow.
+- The Agent Flow is used for alert payload parsing, routing, Copilot Studio invocation, and notification.
 
-## Architecture Overview
+## Current Architecture
 
+```mermaid
+flowchart TD
+  A[POS telemetry in Log Analytics] --> B[Azure Monitor scheduled query alerts]
+  B --> C[Azure Monitor action group]
+  C --> D[Store Monitoring Alert Function]
+  D --> E[Copilot Studio Agent Flow]
+  E --> F[Copilot Studio Store Monitoring Agent]
+  F --> G[Microsoft Teams notification]
+
+  H[Function App settings] -.-> D
+  I[Common Alert Schema] -.-> C
+  I -.-> E
 ```
-KQL Query matches condition
-        ↓
-Azure Monitor Alert Rule fires
-        ↓
-Action Group triggers Webhook
-        ↓
-Copilot Studio Agent Flow receives webhook (HTTP trigger)
-        ↓
-Flow parses alert → builds contextual prompt
-        ↓
-Copilot Studio Agent investigates
-  (queries Log Analytics, correlates data, generates summary)
-        ↓
-Posts AI-enriched report to Teams Channel
+
+## Request Flow
+
+1. Azure Monitor evaluates a scheduled query alert rule.
+2. The Azure Monitor action group sends the Common Alert Schema payload to the Store Monitoring Alert Function endpoint:
+
+```text
+https://<function-app-name>.azurewebsites.net/api/monitor-alert?code=<function-key>
 ```
 
-## Why Use the Agent for Alerts?
+3. The Function validates that the request body is JSON and detects whether it has the Common Alert Schema markers.
+4. The Function acquires a Microsoft Entra access token using `AgentFlow__TenantId`, `AgentFlow__ClientId`, `AgentFlow__ClientSecret`, and `AgentFlow__TokenScope`.
+5. The Function posts the original Azure Monitor alert body unchanged to `AgentFlow__FlowUrl` with `Authorization: Bearer <token>`.
+6. The Agent Flow parses the Common Alert Schema payload, extracts `DeviceName` and alert metadata, and routes by `data.customProperties.alertType`.
+7. The Agent Flow composes the matching investigation prompt and calls the Store Monitoring Agent using **Execute Agent and wait**.
+8. The Agent Flow posts the agent investigation output and alert metadata to Teams.
 
-| Capability        | Agent-Enhanced Alert                                 |
-| ----------------- | ---------------------------------------------------- |
-| **Detection**     | Azure Monitor (real-time)                            |
-| **Intelligence**  | AI analysis + context                                |
-| **Teams message** | Rich AI summary with recommendations                 |
-| **Correlation**   | Cross-references errors, offline status, performance |
-| **Actionability** | Agent provides next steps                            |
+## Supported Alert Types
+
+The current deploy artifacts support these alert-triggered investigations:
+
+- Device Offline
+- Retail Server Performance
+- Database Size
+
+Alert type routing is based on `data.customProperties.alertType`.
+
+The Device Offline deployment defaults to UTC business-hours evaluation from 8:00 AM UTC through 4:59 PM UTC. Use `BusinessHoursOnly`, `BusinessHoursStartHourUtc`, and `BusinessHoursEndHourUtc` in the Device Offline deployment artifacts to adjust or disable that window.
+
+## Alert Deployment Artifacts
+
+The [../alerts/deploy](../alerts/deploy) folder contains Azure deployment artifacts for Store Monitoring Agent Azure Monitor alerts. The current artifacts deploy Device Offline detection, Retail Server Performance detection, and Database Size detection.
+
+| File                                                                                                                | Purpose                                                                                                                         |
+| ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| [device-offline-alert.kql](../alerts/deploy/device-offline-alert.kql)                                               | Standalone KQL used by the alert rule.                                                                                          |
+| [device-offline-alert.bicep](../alerts/deploy/device-offline-alert.bicep)                                           | Creates an Azure Monitor scheduled query alert and, optionally, a webhook action group for the Alert Function relay.            |
+| [device-offline-alert.parameters.json](../alerts/deploy/device-offline-alert.parameters.json)                       | Example deployment parameters.                                                                                                  |
+| [Deploy-DeviceOfflineAlert.ps1](../alerts/deploy/Deploy-DeviceOfflineAlert.ps1)                                     | PowerShell wrapper around `az deployment group create`.                                                                         |
+| [retail-server-performance-alert.kql](../alerts/deploy/retail-server-performance-alert.kql)                         | Standalone KQL used by the Retail Server Performance alert rule.                                                                |
+| [retail-server-performance-alert.bicep](../alerts/deploy/retail-server-performance-alert.bicep)                     | Creates an Azure Monitor scheduled query alert for Retail Server requests over 10 seconds.                                      |
+| [retail-server-performance-alert.parameters.json](../alerts/deploy/retail-server-performance-alert.parameters.json) | Example Retail Server Performance deployment parameters.                                                                        |
+| [Deploy-RetailServerPerformanceAlert.ps1](../alerts/deploy/Deploy-RetailServerPerformanceAlert.ps1)                 | PowerShell wrapper around `az deployment group create` for the Retail Server Performance alert.                                 |
+| [database-size-alert.kql](../alerts/deploy/database-size-alert.kql)                                                 | Standalone KQL used by the Database Size alert rule.                                                                            |
+| [database-size-alert.bicep](../alerts/deploy/database-size-alert.bicep)                                             | Creates an Azure Monitor scheduled query alert for POS offline database size over 8 GB.                                         |
+| [database-size-alert.parameters.json](../alerts/deploy/database-size-alert.parameters.json)                         | Example Database Size deployment parameters.                                                                                    |
+| [Deploy-DatabaseSizeAlert.ps1](../alerts/deploy/Deploy-DatabaseSizeAlert.ps1)                                       | PowerShell wrapper around `az deployment group create` for the Database Size alert.                                             |
+| [agent-flow-common-alert-schema.json](../alerts/deploy/agent-flow-common-alert-schema.json)                         | Request body JSON schema for the Agent Flow HTTP trigger. The Alert Function relays this Common Alert Schema payload unchanged. |
+
+## What Gets Created
+
+- Azure Monitor scheduled query alert: `Store Monitoring - Device Offline`
+- Azure Monitor scheduled query alert: `Store Monitoring - Retail Server Performance`
+- Azure Monitor scheduled query alert: `Store Monitoring - Database Size`
+- Optional Azure Monitor webhook action group with Common Alert Schema enabled when `-AlertFunctionWebhookUri` is supplied. Use the Store Monitoring Alert Function endpoint for this URI.
+- Device Offline dimensions split by `DeviceName`, so each offline device can be tracked independently
+- Retail Server Performance dimensions split by `DeviceName`, so each affected device can be tracked independently
+- Database Size dimensions split by `DeviceName`, so each affected device can be tracked independently
 
 ## Prerequisites
 
-- Azure subscription with a Log Analytics workspace
-- Azure Arc-connected store devices sending heartbeat and event data
-- Microsoft Copilot Studio
-- Microsoft Teams channel for receiving alerts
-- **Store Monitoring Agent** imported and published in Copilot Studio (see [Quick Start](quick-start-portal.md))
-- **RunLogAnalyticsQuery** flow configured as an agent skill (see [Autonomous Proactive Monitoring](autonomous-proactive-monitoring.md))
+- Azure CLI installed and authenticated with `az login`
+- Permission to deploy resources into the target resource group
+- Log Analytics workspace receiving Azure Arc `Heartbeat` records from POS devices
+- Optional: deployed Store Monitoring Alert Function from `alerts/StoreMonitoringAlertFunction`. The function receives Azure Monitor alert webhooks and calls the Agent Flow with service principal authentication.
 
----
+## Store Monitoring Alert Function
 
-## Step 1 — Create the Agent Flow in Copilot Studio
+The Store Monitoring Alert Function is a .NET 8 Azure Functions app that receives Azure Monitor alert HTTP POSTs and relays them to a Copilot Studio Agent Flow using service principal authentication.
 
-Agent Flows are created directly inside Copilot Studio and run in the context of your agent.
+Runtime:
 
-### 1.1 Create a New Agent Flow
+- Azure Functions v4
+- .NET isolated worker
+- Target framework: `net8.0`
+- Trigger: HTTP POST at `api/monitor-alert`
 
-1. Go to [copilotstudio.microsoft.com](https://copilotstudio.microsoft.com)
-2. Open your **Store Monitoring Agent**
-3. In the left navigation, click **Flows**
-4. Click **+ Add a flow** → **Create new flow**
-5. Name it: `Alert Triggered Agent`
-6. For the trigger, select **When an HTTP request is received**
+### Function App Configuration
 
-### 1.2 Configure the HTTP Trigger
+Configure these app settings in Azure. For local development, copy `local.settings.json.sample` to `local.settings.json` and fill in local values.
 
-Click on the trigger step and paste the following **Request Body JSON Schema**:
+| Setting                   | Description                                                                                                                                                                                        |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AgentFlow__FlowUrl`      | HTTP endpoint for the Agent Flow.                                                                                                                                                                  |
+| `AgentFlow__TenantId`     | Microsoft Entra tenant ID for the service principal.                                                                                                                                               |
+| `AgentFlow__ClientId`     | Application/client ID for the service principal.                                                                                                                                                   |
+| `AgentFlow__ClientSecret` | Client secret for the service principal. Prefer a Key Vault reference in Azure instead of a plaintext app setting.                                                                                 |
+| `AgentFlow__TokenScope`   | OAuth scope used when requesting the bearer token. Defaults to `https://service.flow.microsoft.com//.default` if not set. Adjust this if the flow endpoint is protected with a different audience. |
 
-```json
+### Configure Function App Settings After Deployment
+
+After deploying the Function App, configure the relay settings in Azure before connecting Azure Monitor alerts to the endpoint.
+
+1. In the Azure portal, open the deployed Function App.
+2. Go to **Settings** -> **Environment variables**. In some portal layouts this page is named **Configuration**.
+3. Under **App settings**, add or update these settings:
+
+- `AgentFlow__FlowUrl`
+- `AgentFlow__TenantId`
+- `AgentFlow__ClientId`
+- `AgentFlow__ClientSecret`
+- `AgentFlow__TokenScope`
+
+4. Set `AgentFlow__TokenScope` to `https://service.flow.microsoft.com//.default` unless the flow endpoint is protected with a different audience.
+5. Save the changes.
+6. Restart the Function App so the worker process reads the updated settings.
+
+Best practice: store secret values in Azure Key Vault and use Key Vault references in Function App app settings instead of storing plaintext secrets directly in environment variables. Keep non-secret values, such as `AgentFlow__TenantId`, `AgentFlow__ClientId`, `AgentFlow__FlowUrl`, and `AgentFlow__TokenScope`, as regular app settings. Store `AgentFlow__ClientSecret` in Key Vault.
+
+To use a Key Vault reference for `AgentFlow__ClientSecret`:
+
+1. Create or choose an Azure Key Vault in the same tenant as the Function App.
+2. Add the Agent Flow caller client secret as a Key Vault secret.
+3. Enable a system-assigned managed identity on the Function App.
+4. Grant the Function App managed identity permission to read the secret. For role-based access control, assign **Key Vault Secrets User** scoped to the vault or the specific secret.
+5. In the Function App app settings, set `AgentFlow__ClientSecret` to a Key Vault reference value:
+
+```text
+@Microsoft.KeyVault(SecretUri=https://<key-vault-name>.vault.azure.net/secrets/<secret-name>/<secret-version>)
+```
+
+Use a versionless secret URI if your rotation process should let the Function App pick up newer secret versions automatically:
+
+```text
+@Microsoft.KeyVault(SecretUri=https://<key-vault-name>.vault.azure.net/secrets/<secret-name>)
+```
+
+For local development only, copy `local.settings.json.sample` to `local.settings.json` and use the same `AgentFlow__*` values there. Do not commit `local.settings.json`; it can contain the Agent Flow URL and client secret.
+
+### Create The Agent Flow Caller Service Principal
+
+Create a dedicated Microsoft Entra app registration for the Function App to call the Agent Flow HTTP trigger.
+
+1. In the Azure portal, open **Microsoft Entra ID**.
+2. Go to **App registrations** -> **New registration**.
+3. Name the app registration, for example `sp-store-monitoring-alert-flow`.
+4. Set **Supported account types** to **Accounts in this organizational directory only**.
+5. Select **Register**.
+6. On the app registration **Overview** page, copy these values:
+
+- **Application (client) ID** -> `AgentFlow__ClientId`
+- **Directory (tenant) ID** -> `AgentFlow__TenantId`
+
+7. Go to **Certificates & secrets** -> **Client secrets** -> **New client secret**.
+8. Add a description, choose an expiration that matches your credential rotation policy, and select **Add**.
+9. Copy the client secret **Value** immediately. Store it in Key Vault and reference it from `AgentFlow__ClientSecret`; it is not shown again after you leave the page.
+10. Open **Enterprise applications**, find the same application, and copy its **Object ID**. Use this object ID in the Agent Flow HTTP trigger when the trigger asks which service principal is allowed to call it.
+
+### Azure Monitor Action Group
+
+Create or update an Azure Monitor action group with a webhook action that posts to:
+
+```text
+https://<function-app-name>.azurewebsites.net/api/monitor-alert?code=<function-key>
+```
+
+Enable the Azure Monitor common alert schema on the action group so the function and flow can read standard fields such as alert rule, severity, monitor condition, configuration items, fired time, dimensions, and custom properties. Use `data.customProperties` for the stable automation contract, such as `alertType` and thresholds. Use dimensions or `configurationItems` for dynamic alert target values emitted by Azure Monitor, such as the affected device.
+
+### Restrict Inbound Access To Azure Monitor
+
+The HTTP trigger uses a Function key. For Azure Monitor alert webhooks, use a key scoped to the `MonitorAlertRelay` function, not the Function App master key.
+
+1. In the Azure portal, open the deployed Function App.
+2. Go to **Functions** -> **MonitorAlertRelay** -> **Function Keys**.
+3. Create a dedicated key, for example `azure-monitor-alerts`, or use the function-level `default` key.
+4. Select **Get function URL** and choose that function-level key.
+5. Use the copied URL as the action group webhook URL.
+
+Add Function App access restrictions so only Azure Monitor Action Group infrastructure can reach the endpoint:
+
+1. In the Azure portal, open the deployed Function App.
+2. In the Function App left menu, go to **Settings** -> **Networking**.
+3. Under the inbound or public network access section, set public access to allow selected sources only. In some portal layouts this appears as **Public network access** -> **Enabled from selected virtual networks and IP addresses**.
+4. Add an inbound site access rule:
+   - **Action**: `Allow`
+   - **Priority**: `100`
+   - **Type**: `Service Tag`
+   - **Service Tag**: `ActionGroup`
+   - **Name**: `Allow-AzureMonitor-ActionGroup`
+5. Confirm unmatched inbound traffic is denied.
+6. Save the networking changes.
+
+### Local Test
+
+Start the function app:
+
+```powershell
+func start
+```
+
+Send a sample alert:
+
+```powershell
+Invoke-RestMethod -Method Post `
+  -Uri "http://localhost:7071/api/monitor-alert" `
+  -ContentType "application/json" `
+  -Body @'
 {
-  "type": "object",
-  "properties": {
-    "schemaId": { "type": "string" },
-    "data": {
-      "type": "object",
-      "properties": {
-        "essentials": {
-          "type": "object",
-          "properties": {
-            "alertId": { "type": "string" },
-            "alertRule": { "type": "string" },
-            "severity": { "type": "string" },
-            "signalType": { "type": "string" },
-            "monitorCondition": { "type": "string" },
-            "monitoringService": { "type": "string" },
-            "alertTargetIDs": {
-              "type": "array",
-              "items": { "type": "string" }
-            },
-            "firedDateTime": { "type": "string" },
-            "description": { "type": "string" }
+  "data": {
+    "essentials": {
+      "alertRule": "StoreMonitoring-TestAlert",
+      "severity": "Sev3",
+      "signalType": "Metric",
+      "monitorCondition": "Fired",
+      "configurationItems": [
+        "POS1"
+      ],
+      "firedDateTime": "2026-06-22T12:00:00Z",
+      "description": "Sample Store Monitoring alert"
+    },
+    "alertContext": {
+      "condition": {
+        "allOf": [
+          {
+            "dimensions": [
+              {
+                "name": "Computer",
+                "value": "POS1"
+              }
+            ]
           }
-        },
-        "alertContext": { "type": "object" }
+        ]
       }
+    },
+    "customProperties": {
+      "alertType": "DeviceOffline",
+      "offlineThresholdMinutes": "5",
+      "performanceThresholdMs": "10000",
+      "databaseSizeThresholdMB": "10240"
     }
   }
 }
+'@
 ```
 
-**Save** the flow — this generates the **HTTP POST URL**. Copy it for use in the Action Group.
+### Build The Function App
 
-### 1.3 Add a Condition to Build the Agent Prompt
-
-Add a **Condition** step in the agent flow to generate the right prompt based on which alert fired:
-
-1. Click **+ New step** → search **Condition**
-2. Set the condition:
-   - `triggerBody()?['data']?['essentials']?['alertRule']` **contains** `Hardware Station`
-
-**If yes** (Hardware Station Errors):
-
-1. Add a **Compose** action
-2. Set **Inputs** to:
-
-```
-A hardware station error (EventID 40450) was detected at @{triggerBody()?['data']?['essentials']?['firedDateTime']}. Investigate hardware station errors across all devices in the last 15 minutes. Include error counts per device, error details, and recommendations to resolve the issues.
+```powershell
+dotnet restore
+dotnet build
 ```
 
-**If no** (Device Offline):
+## Agent Flow Setup For Alert-Triggered Monitoring
 
-1. Add a **Compose** action
-2. Set **Inputs** to:
+This runbook configures one Copilot Studio Agent Flow to handle all three Azure Monitor alerts:
 
-```
-A store device has been detected as offline for more than 5 minutes at @{triggerBody()?['data']?['essentials']?['firedDateTime']}. Check which devices are currently offline, how long they have been offline, and check for any related application or hardware station errors on those devices.
-```
+- Device Offline
+- Retail Server Performance
+- Database Size
 
-### 1.4 Execute the Copilot Studio Agent
+The Agent Flow receives Azure Monitor Common Alert Schema payloads from the Store Monitoring Alert Function relay, calls Copilot Studio (`Execute Agent and wait`), and posts to Teams.
 
-After each branch of the condition, add the agent execution step:
+### 1. Gather Required Values
 
-1. Click **+ New step** → search **Microsoft Copilot Studio**
-2. Select **Execute Agent and wait** (`ExecuteCopilotAsyncV2`)
-3. Configure:
-   - **Copilot**: `cr91d_storeMonitoringAgent`
-   - **Message**: Select the **Output** from the Compose step (dynamic content)
+- Copilot Studio environment with permission to create or update Agent Flows
+- Copilot Studio agent name: `Store Monitoring Agent`
+- Teams target (team and channel)
+- Log Analytics workspace resource ID
+- Store Monitoring Alert Function endpoint for Azure Monitor action groups
 
-The agent will use its existing topics (Hardware Station Errors, Application Errors, etc.) to query Log Analytics, correlate data across multiple signals, and generate a comprehensive summary.
+### 2. Create The Agent Flow
 
-### 1.5 Post the Agent Response to Teams
+Note:Flow is already available in the Power platform solution.You can use that and skip this step.
 
-After the **Execute Agent and wait** step:
+### What The Alert Investigation Topics Do
 
-1. Click **+ New step** → search **Microsoft Teams**
-2. Select **Post message in a chat or channel**
-3. Configure:
-   - **Post as**: Flow bot
-   - **Post in**: Channel
-   - **Team**: Select your team
-   - **Channel**: Select your alert channel
-   - **Message**:
+The Azure Monitor alert rules decide when a condition is severe enough to fire. The Copilot Studio alert investigation topics retrieve supporting evidence for the affected device and alert window so the Teams notification includes useful diagnostic context.
 
-```html
-<h3>🚨 Store Monitoring Alert</h3>
-<b>Alert Rule:</b> @{triggerBody()?['data']?['essentials']?['alertRule']}<br />
-<b>Severity:</b> @{triggerBody()?['data']?['essentials']?['severity']}<br />
-<b>Fired at:</b>
-@{triggerBody()?['data']?['essentials']?['firedDateTime']}<br />
-<hr />
-<h4>🤖 Agent Investigation Report</h4>
-@{outputs('Execute_Agent_and_wait')?['body/lastResponse']}
-```
+| Topic                                       | Triggered by              | Evidence retrieved                                                                                                                                                                                                               | Purpose                                                                                                     |
+| ------------------------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `DeviceOfflineAlertInvestigation`           | `DeviceOffline`           | Queries `Heartbeat` for the affected POS device, using the agent topic's 7-day heartbeat history window. Returns last heartbeat time, minutes since last heartbeat, formatted offline duration, and heartbeat count.             | Confirms whether the device stopped reporting heartbeat and shows how long it has been offline.             |
+| `RetailServerPerformanceAlertInvestigation` | `RetailServerPerformance` | Queries recent Store Commerce Application events where `EventID == 40102` and the payload contains `ModelManagersRetailServerRequestFinished`. Returns request action, status code, execution time, request ID, and request URL. | Identifies which Retail Server request was slow and provides concrete request evidence for troubleshooting. |
+| `DatabaseSizeAlertInvestigation`            | `DatabaseSize`            | Queries `DatabaseMetricsService` Application events where `EventID == 3000`. Extracts database name, server name, total database size, data file size, log file size, and unallocated space.                                     | Shows which offline database is large and which tables are contributing.                                    |
 
-4. **Save** the agent flow
+If a topic receives no rows from Log Analytics, it returns a no-evidence message instead of giving troubleshooting recommendations. The recommendations in the prompt should stay grounded in the returned data.
 
-### Complete Agent Flow Summary
+## Deploy Action Group And Alert Rules
 
-```
-┌──────────────────────────────────────────┐
-│  Copilot Studio Agent Flow               │
-├──────────────────────────────────────────┤
-│                                          │
-│  ┌────────────────────────────────────┐  │
-│  │  When an HTTP request is received  │  │
-│  │  (Webhook from Azure Monitor)      │  │
-│  └──────────────┬─────────────────────┘  │
-│                 ↓                         │
-│  ┌────────────────────────────────────┐  │
-│  │  Condition: alertRule contains     │  │
-│  │  "Hardware Station"?               │  │
-│  └──────┬──────────────────┬──────────┘  │
-│         ↓ Yes              ↓ No          │
-│  ┌──────────────┐   ┌────────────────┐   │
-│  │ Compose:     │   │ Compose:       │   │
-│  │ HW error     │   │ Device offline │   │
-│  │ prompt       │   │ prompt         │   │
-│  └──────┬───────┘   └───────┬────────┘   │
-│         ↓                   ↓            │
-│  ┌────────────────────────────────────┐  │
-│  │  Execute Agent and wait            │  │
-│  │  (Agent investigates via topics)   │  │
-│  └──────────────┬─────────────────────┘  │
-│                 ↓                         │
-│  ┌────────────────────────────────────┐  │
-│  │  Post message in Teams channel     │  │
-│  │  (Alert header + Agent response)   │  │
-│  └────────────────────────────────────┘  │
-│                                          │
-└──────────────────────────────────────────┘
+Run the scripts below from repo root. Use the Store Monitoring Alert Function endpoint as the same webhook URL for all three alerts. For the default Function-key endpoint, do not pass AAD webhook parameters.
+
+### Deploy Device Offline With The Alert Function Relay
+
+Before deploying with `-AlertFunctionWebhookUri`, deploy the Store Monitoring Alert Function and configure its `AgentFlow__*` app settings. The Azure Monitor action group posts the Common Alert Schema payload to the function endpoint, and the function forwards the raw alert body unchanged to the Agent Flow with service principal authentication. The Agent Flow should use [agent-flow-common-alert-schema.json](../alerts/deploy/agent-flow-common-alert-schema.json) as its request schema.
+
+```powershell
+.\alerts\deploy\Deploy-DeviceOfflineAlert.ps1 `
+  -ResourceGroupName '<resource-group>' `
+  -WorkspaceResourceId '/subscriptions/<subscription-id>/resourceGroups/<workspace-resource-group>/providers/Microsoft.OperationalInsights/workspaces/<workspace-name>' `
+  -BusinessHoursOnly $true `
+  -BusinessHoursStartHourUtc 8 `
+  -BusinessHoursEndHourUtc 17 `
+  -AlertFunctionWebhookUri 'https://<function-app-name>.azurewebsites.net/api/monitor-alert?code=<function-key>'
 ```
 
----
+This creates an action group named `store-monitoring-agent-alerts` and sends Azure Monitor Common Alert Schema payloads to the Alert Function by using a webhook receiver. The Device Offline query returns results only from 8:00 AM UTC through 4:59 PM UTC unless `-BusinessHoursOnly $false` is supplied. The function then authenticates to the Agent Flow.
 
-## Step 2 — Create the Action Group
+### Deploy Retail Server Performance With The Same Alert Function Relay
 
-1. Go to **Azure portal** → **Monitor** → **Action groups** → **+ Create**
-2. **Basics**:
-   - **Resource group**: Your resource group
-   - **Action group name**: `StoreMonitoring-Teams`
-   - **Display name**: `SM-Teams`
-3. Go to **Actions** tab:
-   - **Action type**: Webhook
-   - **Name**: `CopilotStudio-AgentFlow`
-   - **URI**: Paste the **HTTP POST URL** from the Copilot Studio agent flow (Step 1.2)
-   - ✅ Enable **Common alert schema**
-4. Click **Review + create** → **Create**
-
----
-
-## Step 3 — Create Alert Rules
-
-### Alert Rule 1: Hardware Station Errors
-
-Detects hardware station errors (EventID 40450) on store devices.
-
-#### KQL Query
-
-```kusto
-Event
-| where TimeGenerated > ago(5m)
-| where EventLog == "Application"
-| where EventLevelName in ("Error", "Critical")
-| where EventID == 40450
-| extend DeviceName = Computer, ErrorMessage = RenderedDescription
-| project TimeGenerated, DeviceName, EventID, Source, ErrorMessage
+```powershell
+.\alerts\deploy\Deploy-RetailServerPerformanceAlert.ps1 `
+  -ResourceGroupName '<resource-group>' `
+  -WorkspaceResourceId '/subscriptions/<subscription-id>/resourceGroups/<workspace-resource-group>/providers/Microsoft.OperationalInsights/workspaces/<workspace-name>' `
+  -AlertFunctionWebhookUri 'https://<function-app-name>.azurewebsites.net/api/monitor-alert?code=<function-key>'
 ```
 
-#### Setup in Azure Portal
+This alert fires when a Store Commerce Retail Server `ModelManagersRetailServerRequestFinished` event has `executionTimeInMs` greater than `10000` ms for a device. It uses the same action group name by default, so the same Agent Flow can receive both alert types.
 
-1. **Log Analytics workspace** → **Logs** → paste the query → click **+ New alert rule**
-2. **Condition**:
-   - **Measure**: Table rows
-   - **Aggregation type**: Count
-   - **Aggregation granularity**: 5 minutes
-   - **Operator**: Greater than
-   - **Threshold value**: 0
-   - **Frequency of evaluation**: 5 minutes
-3. **Actions** → Select `StoreMonitoring-Teams` action group
-4. **Details**:
-   - **Alert rule name**: `Store Monitoring - Hardware Station Errors`
-   - **Severity**: Sev 1 - Error
-   - **Description**: `Hardware station error (EventID 40450) detected on a store device`
-   - ✅ Enable **common alert schema**
-5. Click **Review + create** → **Create**
+### Deploy Database Size With The Same Alert Function Relay
 
----
-
-### Alert Rule 2: Device Offline Detection
-
-Detects when an Arc-connected device has not sent a heartbeat for more than 5 minutes.
-
-#### KQL Query
-
-```kusto
-let HeartbeatThreshold = 5m;
-Heartbeat
-| where ResourceProvider == "Microsoft.HybridCompute"
-| summarize LastHeartbeat = max(TimeGenerated) by Computer, OSType
-| where now() - LastHeartbeat > HeartbeatThreshold
-| extend
-    MinutesSinceLastHeartbeat = datetime_diff('minute', now(), LastHeartbeat),
-    Status = "Offline"
-| project
-    Computer,
-    Status,
-    LastHeartbeat,
-    MinutesSinceLastHeartbeat,
-    OSType
+```powershell
+.\alerts\deploy\Deploy-DatabaseSizeAlert.ps1 `
+  -ResourceGroupName '<resource-group>' `
+  -WorkspaceResourceId '/subscriptions/<subscription-id>/resourceGroups/<workspace-resource-group>/providers/Microsoft.OperationalInsights/workspaces/<workspace-name>' `
+  -AlertFunctionWebhookUri 'https://<function-app-name>.azurewebsites.net/api/monitor-alert?code=<function-key>'
 ```
 
-#### Setup in Azure Portal
+This alert fires when the latest `DatabaseMetricsService` EventID `3000` report in the last 24 hours shows `Total Database Size` greater than `8192` MB. The default `DatabaseMetricsService` collection interval is 6 hours, so the alert evaluates hourly but looks back 24 hours for the latest metric.
 
-1. **Log Analytics workspace** → **Logs** → paste the query → click **+ New alert rule**
-2. **Condition**:
-   - **Measure**: Table rows
-   - **Aggregation type**: Count
-   - **Aggregation granularity**: 5 minutes
-   - **Operator**: Greater than
-   - **Threshold value**: 0
-   - **Frequency of evaluation**: 5 minutes
-3. **Actions** → Select `StoreMonitoring-Teams` action group
-4. **Details**:
-   - **Alert rule name**: `Store Monitoring - Device Offline`
-   - **Severity**: Sev 2 - Warning
-   - **Description**: `An Arc-connected store device has been offline for more than 5 minutes`
-   - ✅ Enable **common alert schema**
-5. Click **Review + create** → **Create**
+Notes:
 
----
+- Scripts/templates use `AlertFunctionWebhookUri` for the Store Monitoring Alert Function endpoint.
+- The Function App holds the Agent Flow URL and service principal settings.
 
-## Step 4 — Testing
+### Deploy With An Existing Action Group
 
-### Test the Action Group
-
-1. In the Azure portal, go to **Monitor** → **Action groups**
-2. Select `StoreMonitoring-Teams`
-3. Click **Test** from the top toolbar
-4. Select **Sample type**: Log search alert
-5. Check **Webhook** and click **Test**
-6. Verify the agent processes the alert and the AI-generated report appears in your Teams channel
-
-### Test the Agent Flow Manually
-
-1. In Copilot Studio, open the **Store Monitoring Agent** → **Flows** → `Alert Triggered Agent`
-2. Click **Test** → **Manually** → **Test**
-3. Send a sample payload using a tool like Postman or curl:
-
-```json
-{
-  "schemaId": "azureMonitorCommonAlertSchema",
-  "data": {
-    "essentials": {
-      "alertId": "/subscriptions/xxx/providers/Microsoft.AlertsManagement/alerts/test-001",
-      "alertRule": "Store Monitoring - Hardware Station Errors",
-      "severity": "Sev1",
-      "signalType": "Log",
-      "monitorCondition": "Fired",
-      "monitoringService": "Log Alerts V2",
-      "alertTargetIDs": [
-        "/subscriptions/xxx/resourcegroups/rg-store-monitoring/providers/microsoft.operationalinsights/workspaces/law-store-monitoring"
-      ],
-      "firedDateTime": "2026-02-11T14:30:00.000Z",
-      "description": "Hardware station error (EventID 40450) detected on a store device"
-    },
-    "alertContext": {}
-  }
-}
+```powershell
+.\alerts\deploy\Deploy-DeviceOfflineAlert.ps1 `
+  -ResourceGroupName '<resource-group>' `
+  -WorkspaceResourceId '/subscriptions/<subscription-id>/resourceGroups/<workspace-resource-group>/providers/Microsoft.OperationalInsights/workspaces/<workspace-name>' `
+  -ActionGroupResourceIds '/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.Insights/actionGroups/<action-group-name>'
 ```
 
-4. Verify the agent is triggered, investigates the issue, and posts the report to Teams
+For Retail Server Performance, use `Deploy-RetailServerPerformanceAlert.ps1` with the same `-ActionGroupResourceIds` parameter. For Database Size, use `Deploy-DatabaseSizeAlert.ps1`.
 
-### Expected Teams Message
+## Tune The Detection Window
 
-The Teams message will include:
+The Device Offline alert checks every 5 minutes and returns devices whose last heartbeat is more than 5 minutes old. Its scheduled query alert lookback window is 5 minutes, and it scans 7 days to identify active devices:
 
-- **Alert header**: Rule name, severity, and timestamp
-- **Agent investigation report**: AI-generated summary including:
-  - Which devices are affected
-  - Error details and counts
-  - Correlated issues (e.g., device also showing offline)
-  - Recommendations for resolution
+```powershell
+.\alerts\deploy\Deploy-DeviceOfflineAlert.ps1 `
+  -ResourceGroupName '<resource-group>' `
+  -WorkspaceResourceId '/subscriptions/<subscription-id>/resourceGroups/<workspace-resource-group>/providers/Microsoft.OperationalInsights/workspaces/<workspace-name>' `
+  -OfflineThresholdMinutes 5 `
+  -BusinessHoursOnly $true `
+  -BusinessHoursStartHourUtc 8 `
+  -BusinessHoursEndHourUtc 17 `
+  -EvaluationFrequency 'PT5M' `
+  -WindowSize 'PT5M'
+```
 
----
+`-ActiveDeviceLookbackDays` defaults to 7. Reduce it if retired devices should age out faster, or increase it if devices are expected to report less frequently. `-BusinessHoursOnly` defaults to `$true`, with an inclusive UTC start hour of `8` and an exclusive UTC end hour of `17`, so the default Device Offline alert returns results only from 8:00 AM UTC through 4:59 PM UTC. Set `-BusinessHoursOnly $false` to evaluate all day.
 
-## Alert Rules Summary
+The Retail Server Performance alert evaluates every 5 minutes with a 10-minute trigger lookback:
 
-| Alert Rule              | Triggers When           | Severity        | Frequency   |
-| ----------------------- | ----------------------- | --------------- | ----------- |
-| Hardware Station Errors | EventID 40450 detected  | Sev 1 (Error)   | Every 5 min |
-| Device Offline          | No heartbeat for >5 min | Sev 2 (Warning) | Every 5 min |
+```powershell
+.\alerts\deploy\Deploy-RetailServerPerformanceAlert.ps1 `
+  -ResourceGroupName '<resource-group>' `
+  -WorkspaceResourceId '/subscriptions/<subscription-id>/resourceGroups/<workspace-resource-group>/providers/Microsoft.OperationalInsights/workspaces/<workspace-name>' `
+  -PerformanceThresholdMs 10000 `
+  -QueryLookback '10m' `
+  -EvaluationFrequency 'PT5M' `
+  -WindowSize 'PT10M'
+```
 
----
+The Database Size alert checks once per day with a 24-hour trigger lookback. This matches slower database metric collection and lets the query evaluate the latest metric per device/database:
 
-## Combined Monitoring Strategy
+```powershell
+.\alerts\deploy\Deploy-DatabaseSizeAlert.ps1 `
+  -ResourceGroupName '<resource-group>' `
+  -WorkspaceResourceId '/subscriptions/<subscription-id>/resourceGroups/<workspace-resource-group>/providers/Microsoft.OperationalInsights/workspaces/<workspace-name>' `
+  -DatabaseSizeThresholdMB 8192 `
+  -QueryLookback '24h' `
+  -EvaluationFrequency 'PT24H' `
+  -WindowSize 'PT24H'
+```
 
-This alert-triggered agent works alongside the existing daily proactive monitoring flow:
+## Webhook Requirements
 
-| Flow                                                                          | Purpose                                      | Trigger                                    | Teams Output              |
-| ----------------------------------------------------------------------------- | -------------------------------------------- | ------------------------------------------ | ------------------------- |
-| **Alert-Triggered Agent** (this guide)                                        | Real-time issue detection + AI investigation | On-demand (when Azure Monitor alerts fire) | AI investigation report   |
-| **Daily Recurring Agent** ([setup guide](autonomous-proactive-monitoring.md)) | Daily health summary for the team            | Scheduled (daily at 17:00 UTC)             | Full device health report |
+When deploying alerts with the Store Monitoring Alert Function relay:
 
-Together these provide:
+- Use the Function endpoint as `AlertFunctionWebhookUri` in deployment scripts.
+- Use an Azure Monitor action group **Webhook** receiver with Common Alert Schema enabled.
+- Include a function-level key in the webhook URL, for example `https://<function-app-name>.azurewebsites.net/api/monitor-alert?code=<function-key>`.
+- Restrict Function App inbound access to Azure Monitor Action Group infrastructure with the `ActionGroup` service tag.
+- Store the Agent Flow HTTP trigger URL and service principal settings in the Function App configuration.
 
-- **Real-time alerting** — immediate notification when hardware errors occur or devices go offline
-- **AI-powered investigation** — the agent automatically correlates data and provides actionable insights
-- **Daily health visibility** — proactive reporting even when no alerts fire
+The deployment templates and scripts use `alertFunctionWebhookUri` for the Alert Function endpoint.
 
----
+## Validation Checklist
 
-## Adding More Alert Rules
+- Store Monitoring Alert Function is deployed and has the `AgentFlow__*` app settings configured.
+- Agent Flow HTTP trigger is saved and has a generated HTTP POST URL stored in `AgentFlow__FlowUrl`.
+- Agent Flow trigger schema matches [alerts/deploy/agent-flow-common-alert-schema.json](../alerts/deploy/agent-flow-common-alert-schema.json).
+- Agent Flow trigger authentication allows the service principal used by the Function App.
+- Action group receiver is **Webhook** with Common Alert Schema enabled.
+- Action group webhook URL uses the Store Monitoring Alert Function endpoint and a function-level key.
+- If inbound restrictions are enabled, the Function App allows Azure Monitor Action Groups to call the endpoint.
+- A test alert posts a Teams message with:
+  - Alert metadata (rule, severity, fired time)
+  - Agent investigation output from Execute Agent and wait
 
-To add new alert types (e.g., Application Errors, Retail Server Errors):
+## Related Docs
 
-1. Create a new **alert rule** in the Log Analytics workspace with the appropriate KQL query
-2. Attach the same `StoreMonitoring-Teams` **action group**
-3. Update the **Condition** step in the agent flow to handle the new alert type with a contextual prompt
-4. The agent will use its existing topics to investigate — no additional changes needed in Copilot Studio
-
-### Example Prompts for Additional Alert Types
-
-| Alert Rule           | Agent Prompt                                                                                                                                                                              |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Application Errors   | `"Application errors were detected at {firedDateTime}. Investigate application errors across all devices in the last 15 minutes. Include error sources, event IDs, and recommendations."` |
-| Retail Server Errors | `"Retail server errors were detected at {firedDateTime}. Investigate retail server errors in the last 15 minutes, including error URLs and affected devices."`                            |
-| Database Metrics     | `"Database performance issues were detected at {firedDateTime}. Check database metrics for the last 15 minutes and identify any bottlenecks."`                                            |
-
----
-
-## Related Resources
-
-- [hardware-station-errors.kql](../kql-queries/hardware-station-errors.kql) — Full hardware station error query
-- [hardware-station-errors-count.kql](../kql-queries/hardware-station-errors-count.kql) — Error counts by device
-- [arc-offline-history.kql](../kql-queries/arc-offline-history.kql) — Offline history and timeline
-- [autonomous-proactive-monitoring.md](autonomous-proactive-monitoring.md) — Daily scheduled agent monitoring
-- [quick-start-portal.md](quick-start-portal.md) — Copilot Studio agent setup
+- [docs/autonomous-proactive-monitoring.md](autonomous-proactive-monitoring.md)
+- [docs/architecture.md](architecture.md)

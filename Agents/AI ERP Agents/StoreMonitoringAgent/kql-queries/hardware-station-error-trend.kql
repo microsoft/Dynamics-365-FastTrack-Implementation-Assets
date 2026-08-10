@@ -1,0 +1,13 @@
+// Hardware Station Error Trend
+// Shows hourly hardware station related error counts by device.
+
+let WindowStart = ago(24h);
+let WindowEnd = now();
+Event
+| where TimeGenerated between (WindowStart .. WindowEnd)
+| where EventLog == "Application"
+| where EventID == 40450
+| extend DeviceName = Computer
+| summarize ErrorCount = count(), CriticalCount = countif(EventLevelName == "Critical"), ErrorCountOnly = countif(EventLevelName == "Error"), Sources = make_set(Source), SampleMessage = take_any(RenderedDescription) by TimeBucket = bin(TimeGenerated, 1h), DeviceName
+| project Hour = format_datetime(TimeBucket, "yyyy-MM-dd HH:mm"), DeviceName, ErrorCount, CriticalCount, ErrorCountOnly, Sources, SampleMessage
+| order by Hour asc, ErrorCount desc

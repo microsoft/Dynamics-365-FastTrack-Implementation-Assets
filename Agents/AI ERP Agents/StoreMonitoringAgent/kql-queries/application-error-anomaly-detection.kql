@@ -1,0 +1,121 @@
+// POS Device Anomaly Detection
+// Cross-device anomaly scan for the selected/current window.
+// Devices are flagged when their metric stands out from peer devices in the same period.
+
+let WindowStart = ago(24h);
+let WindowEnd = now();
+let KnownDevices = materialize(
+    Heartbeat
+    | where TimeGenerated between ((WindowStart - 30d) .. WindowEnd)
+    | where isnotempty(Computer)
+    | project DeviceName = Computer
+    | distinct DeviceName);
+let ApplicationErrorValues = materialize(
+    Event
+    | where TimeGenerated between (WindowStart .. WindowEnd)
+    | where EventLog == "Application"
+    | where EventLevelName in ("Error", "Critical")
+    | where not(EventID == 40450)
+    | extend DeviceName = Computer
+    | extend Signal = case(
+        EventID in (1000, 1001, 1309, 40101, 40102) or Source has "Retail" or RenderedDescription has "RetailServer" or RenderedDescription has "Retail Server" or RenderedDescription has "ModelManagersRetailServer", "Application/Retail Server errors",
+        EventID == 40201 or RenderedDescription has "InvalidAuthenticationCredentials", "Login failure errors",
+        Source has "Database" or RenderedDescription has "database" or RenderedDescription has "SQL", "Application database errors",
+        "Other application errors")
+    | summarize CurrentValue = todouble(count()), FirstSeen = min(TimeGenerated), LastSeen = max(TimeGenerated), EventIDs = make_set(EventID, 8), Sources = make_set(Source, 8) by DeviceName, Signal);
+let ApplicationSignals = ApplicationErrorValues | distinct Signal | extend JoinKey = 1;
+let ApplicationCurrentValues = KnownDevices
+    | extend JoinKey = 1
+    | join kind=inner ApplicationSignals on JoinKey
+    | project DeviceName, Signal
+    | join kind=leftouter ApplicationErrorValues on DeviceName, Signal
+    | extend CurrentValue = coalesce(CurrentValue, 0.0);
+let ApplicationFleetStats = ApplicationCurrentValues | summarize FleetAverage = round(avg(CurrentValue), 2), FleetMax = max(CurrentValue), DeviceCount = dcount(DeviceName) by Signal;
+let ApplicationErrorAnomalies = ApplicationCurrentValues
+    | join kind=inner ApplicationFleetStats on Signal
+    | where DeviceCount > 1
+    | extend AnomalyCategory = "Application Errors", DifferenceFromFleetAverage = round(CurrentValue - FleetAverage, 2), AnomalyStatus = iff(CurrentValue > 0 and CurrentValue > FleetAverage, "Above fleet average", iff(CurrentValue == 0, "No matching errors", "At or below fleet average")), DetectionRule = "Cross-device application error count comparison in selected period", CurrentWindowStart = WindowStart, CurrentWindowEnd = WindowEnd
+    | project AnomalyCategory, DeviceName, Signal, CurrentValue, FleetAverage, FleetMax, DeviceCount, DifferenceFromFleetAverage, AnomalyStatus, DetectionRule, FirstSeen, LastSeen, Evidence = strcat("EventIDs=", tostring(EventIDs), "; Sources=", tostring(Sources)), CurrentWindowStart, CurrentWindowEnd;
+let HardwareErrorValues = materialize(
+    Event
+    | where TimeGenerated between (WindowStart .. WindowEnd)
+    | where EventLog == "Application"
+    | where EventLevelName in ("Error", "Critical")
+    | where EventID == 40450
+    | summarize CurrentValue = todouble(count()), FirstSeen = min(TimeGenerated), LastSeen = max(TimeGenerated), EventIDs = make_set(EventID, 8), Sources = make_set(Source, 8) by DeviceName = Computer);
+let HardwareCurrentValues = KnownDevices
+    | join kind=leftouter HardwareErrorValues on DeviceName
+    | extend CurrentValue = coalesce(CurrentValue, 0.0);
+let HardwareFleetStats = HardwareCurrentValues | summarize FleetAverage = round(avg(CurrentValue), 2), FleetMax = max(CurrentValue), DeviceCount = dcount(DeviceName);
+let HardwareStationAnomalies = HardwareCurrentValues
+    | extend JoinKey = 1
+    | join kind=inner (HardwareFleetStats | extend JoinKey = 1) on JoinKey
+    | where DeviceCount > 1
+    | extend AnomalyCategory = "Hardware Station Errors", Signal = "Hardware station errors", DifferenceFromFleetAverage = round(CurrentValue - FleetAverage, 2), AnomalyStatus = iff(CurrentValue > 0 and CurrentValue > FleetAverage, "Above fleet average", iff(CurrentValue == 0, "No matching errors", "At or below fleet average")), DetectionRule = "Cross-device hardware station error count comparison in selected period", CurrentWindowStart = WindowStart, CurrentWindowEnd = WindowEnd
+    | project AnomalyCategory, DeviceName, Signal, CurrentValue, FleetAverage, FleetMax, DeviceCount, DifferenceFromFleetAverage, AnomalyStatus, DetectionRule, FirstSeen, LastSeen, Evidence = strcat("EventIDs=", tostring(EventIDs), "; Sources=", tostring(Sources)), CurrentWindowStart, CurrentWindowEnd;
+let CpuValues = materialize(
+    Perf
+    | where TimeGenerated between (WindowStart .. WindowEnd)
+    | where ObjectName == "Processor Information" and CounterName == "% Processor Time" and InstanceName == "_Total"
+    | summarize CurrentValue = round(avg(CounterValue), 2), CurrentMax = round(max(CounterValue), 2), FirstSeen = min(TimeGenerated), LastSeen = max(TimeGenerated) by DeviceName = Computer
+    | extend Signal = "CPU average percent");
+let CpuFleetStats = CpuValues | summarize FleetAverage = round(avg(CurrentValue), 2), FleetMax = max(CurrentValue), FleetAverageMax = round(avg(CurrentMax), 2), FleetMaxObserved = max(CurrentMax), DeviceCount = dcount(DeviceName);
+let CpuAnomalies = CpuValues
+    | extend JoinKey = 1
+    | join kind=inner (CpuFleetStats | extend JoinKey = 1) on JoinKey
+    | where DeviceCount > 1
+    | extend AnomalyCategory = "CPU Performance", DifferenceFromFleetAverage = round(CurrentValue - FleetAverage, 2), AnomalyStatus = iff(CurrentValue > FleetAverage or CurrentMax > FleetAverageMax, "Above fleet average", "At or below fleet average"), DetectionRule = "Cross-device CPU utilization comparison in selected period", CurrentWindowStart = WindowStart, CurrentWindowEnd = WindowEnd
+    | project AnomalyCategory, DeviceName, Signal, CurrentValue, FleetAverage, FleetMax, DeviceCount, DifferenceFromFleetAverage, AnomalyStatus, DetectionRule, FirstSeen, LastSeen, Evidence = strcat("CurrentMax=", tostring(CurrentMax)), CurrentWindowStart, CurrentWindowEnd;
+let MemoryValues = materialize(
+    Perf
+    | where TimeGenerated between (WindowStart .. WindowEnd)
+    | where ObjectName == "Memory" and CounterName == "Available Bytes"
+    | summarize CurrentValue = round(min(CounterValue / 1024.0 / 1024.0), 2), CurrentAverageMB = round(avg(CounterValue / 1024.0 / 1024.0), 2), FirstSeen = min(TimeGenerated), LastSeen = max(TimeGenerated) by DeviceName = Computer
+    | extend Signal = "Minimum available memory MB");
+let MemoryFleetStats = MemoryValues | summarize FleetAverage = round(avg(CurrentValue), 2), FleetMin = min(CurrentValue), DeviceCount = dcount(DeviceName);
+let MemoryAnomalies = MemoryValues
+    | extend JoinKey = 1
+    | join kind=inner (MemoryFleetStats | extend JoinKey = 1) on JoinKey
+    | where DeviceCount > 1
+    | extend AnomalyCategory = "Memory Availability", DifferenceFromFleetAverage = round(FleetAverage - CurrentValue, 2), AnomalyStatus = iff(CurrentValue < FleetAverage, "Below fleet average", "At or above fleet average"), DetectionRule = "Cross-device available memory comparison in selected period", CurrentWindowStart = WindowStart, CurrentWindowEnd = WindowEnd
+    | project AnomalyCategory, DeviceName, Signal, CurrentValue, FleetAverage, FleetMin, DeviceCount, DifferenceFromFleetAverage, AnomalyStatus, DetectionRule, FirstSeen, LastSeen, Evidence = strcat("CurrentAverageMB=", tostring(CurrentAverageMB)), CurrentWindowStart, CurrentWindowEnd;
+let DatabaseValues = materialize(
+    Event
+    | where TimeGenerated between (WindowStart .. WindowEnd)
+    | where Source == "DatabaseMetricsService"
+    | where EventID == 3000
+    | extend DeviceName = Computer, MetricsText = strcat(RenderedDescription, " ", ParameterXml)
+    | extend DatabaseName = extract(@"Database:\s*([^\r\n]+)", 1, MetricsText), DatabaseSizeMB = todouble(extract(@"Total Database Size:\s*([0-9.]+)\s*MB", 1, MetricsText))
+    | where isnotnull(DatabaseSizeMB)
+    | extend Signal = strcat("Offline database size MB - ", iff(isempty(DatabaseName), "Unknown database", DatabaseName))
+    | summarize CurrentValue = round(max(DatabaseSizeMB), 2), FirstSeen = min(TimeGenerated), LastSeen = max(TimeGenerated) by DeviceName, Signal);
+let DatabaseFleetStats = DatabaseValues | summarize FleetAverage = round(avg(CurrentValue), 2), FleetMax = max(CurrentValue), DeviceCount = dcount(DeviceName) by Signal;
+let DatabaseAnomalies = DatabaseValues
+    | join kind=inner DatabaseFleetStats on Signal
+    | where DeviceCount > 1
+    | extend AnomalyCategory = "Offline Database Size", DifferenceFromFleetAverage = round(CurrentValue - FleetAverage, 2), AnomalyStatus = iff(CurrentValue > FleetAverage, "Above fleet average", "At or below fleet average"), DetectionRule = "Cross-device offline database size comparison in selected period", CurrentWindowStart = WindowStart, CurrentWindowEnd = WindowEnd
+    | project AnomalyCategory, DeviceName, Signal, CurrentValue, FleetAverage, FleetMax, DeviceCount, DifferenceFromFleetAverage, AnomalyStatus, DetectionRule, FirstSeen, LastSeen, Evidence = "", CurrentWindowStart, CurrentWindowEnd;
+let RetailValues = materialize(
+    Event
+    | where TimeGenerated between (WindowStart .. WindowEnd)
+    | where EventLog == "Application"
+    | where EventID == 40102
+    | where Source == "Microsoft Dynamics - Store Commerce"
+    | where EventData has "ModelManagersRetailServerRequestFinished" or RenderedDescription has "ModelManagersRetailServerRequestFinished"
+    | project TimeGenerated, DeviceName = Computer, EventText = strcat(tostring(EventData), " ", tostring(RenderedDescription))
+    | where EventText has "executionTimeInMs"
+    | extend RequestAction = extract("requestAction[^A-Za-z0-9_/.-]*([A-Za-z0-9_/.-]+)", 1, EventText), ExecutionTimeInMs = todouble(extract("executionTimeInMs[^0-9.]*([0-9.]+)", 1, EventText))
+    | where isnotnull(ExecutionTimeInMs)
+    | extend Signal = strcat("Retail Server p95 duration ms - ", iff(isempty(RequestAction), "Unknown request", RequestAction))
+    | summarize CurrentValue = round(percentile(ExecutionTimeInMs, 95), 0), RequestCount = count(), AvgExecutionTimeInMs = round(avg(ExecutionTimeInMs), 0), MaxExecutionTimeInMs = max(ExecutionTimeInMs), FirstSeen = min(TimeGenerated), LastSeen = max(TimeGenerated) by DeviceName, Signal
+    | where RequestCount >= 10
+    | extend Evidence = strcat("RequestCount=", tostring(RequestCount), "; AvgExecutionTimeInMs=", tostring(AvgExecutionTimeInMs), "; MaxExecutionTimeInMs=", tostring(MaxExecutionTimeInMs)));
+let RetailFleetStats = RetailValues | summarize FleetAverage = round(avg(CurrentValue), 2), FleetMax = max(CurrentValue), DeviceCount = dcount(DeviceName) by Signal;
+let RetailPerformanceAnomalies = RetailValues
+    | join kind=inner RetailFleetStats on Signal
+    | where DeviceCount > 1
+    | extend AnomalyCategory = "Retail Server Performance", DifferenceFromFleetAverage = round(CurrentValue - FleetAverage, 2), AnomalyStatus = iff(CurrentValue > 10000 and CurrentValue > FleetAverage, "Above fleet average and over 10 seconds", iff(CurrentValue > 10000, "Over 10 seconds", "At or below 10 seconds")), DetectionRule = "Cross-device Retail Server p95 duration comparison in selected period", CurrentWindowStart = WindowStart, CurrentWindowEnd = WindowEnd
+    | project AnomalyCategory, DeviceName, Signal, CurrentValue, FleetAverage, FleetMax, DeviceCount, DifferenceFromFleetAverage, AnomalyStatus, DetectionRule, FirstSeen, LastSeen, Evidence, CurrentWindowStart, CurrentWindowEnd;
+ApplicationErrorAnomalies
+| union HardwareStationAnomalies, CpuAnomalies, MemoryAnomalies, DatabaseAnomalies, RetailPerformanceAnomalies
+| order by AnomalyCategory asc, DifferenceFromFleetAverage desc, CurrentValue desc

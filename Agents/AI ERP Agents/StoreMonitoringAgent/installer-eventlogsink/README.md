@@ -48,12 +48,24 @@ Double-click the `.msi` file or run:
 msiexec /i EventLogSinkConfigService.Installer.msi
 ```
 
+To capture an MSI install log:
+
+```powershell
+msiexec /i EventLogSinkConfigService.Installer.msi /L*V "%TEMP%\EventLogSinkConfigService-install.log"
+```
+
 The installer prompts for an install directory. Configuration settings (`ConfigFilePath`, `CollectionIntervalMinutes`) are defined in the service's `appsettings.json` and can be edited after installation.
 
 ### Silent install
 
 ```powershell
 msiexec /i EventLogSinkConfigService.Installer.msi /qn
+```
+
+Silent install with an MSI install log:
+
+```powershell
+msiexec /i EventLogSinkConfigService.Installer.msi /qn /L*V "%TEMP%\EventLogSinkConfigService-install.log"
 ```
 
 ## Uninstalling
@@ -66,6 +78,12 @@ Go to **Settings > Apps > Installed apps**, find "EventLog Sink Config Service",
 
 ```powershell
 msiexec /x EventLogSinkConfigService.Installer.msi /qn
+```
+
+Uninstall with an MSI log:
+
+```powershell
+msiexec /x EventLogSinkConfigService.Installer.msi /qn /L*V "%TEMP%\EventLogSinkConfigService-uninstall.log"
 ```
 
 ## Post-Install Configuration
@@ -104,6 +122,7 @@ Restart-Service EventLogSinkConfigService
 
 ### Installation issues
 
+- Check the MSI install log if you installed with `/L*V`, for example `%TEMP%\EventLogSinkConfigService-install.log`
 - Check `configure-service.log` in the installation directory for configuration errors
 - Verify the service is registered: `Get-Service EventLogSinkConfigService`
 - Check Windows Event Log for service startup errors

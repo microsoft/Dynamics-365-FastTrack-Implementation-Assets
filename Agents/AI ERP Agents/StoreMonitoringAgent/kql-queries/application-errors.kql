@@ -12,6 +12,8 @@ let MinimumSeverityLevel = 2;  // 1=Critical, 2=Error
 Event
 | where TimeGenerated > ago(TimeRange)
 | where EventLog == "Application"
+| extend EventProvider = tostring(column_ifexists("ProviderName", Source))
+| where EventProvider == "Microsoft Dynamics - Store Commerce" or Source == "Microsoft Dynamics - Store Commerce"
 | where EventLevelName in ("Error", "Critical")
 | where EventLevel <= MinimumSeverityLevel
 // Optional: Filter by specific computer

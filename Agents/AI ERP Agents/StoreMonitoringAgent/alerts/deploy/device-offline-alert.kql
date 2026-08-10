@@ -1,0 +1,21 @@
+let OfflineThresholdMinutes = 5;
+let ActiveDeviceLookback = 7d;
+let BusinessHoursOnly = true;
+let BusinessHoursStartHourUtc = 8;
+let BusinessHoursEndHourUtc = 17;
+let WindowEnd = now();
+let CurrentHourUtc = datetime_part("hour", WindowEnd);
+let IsInsideBusinessHoursUtc =
+	not(BusinessHoursOnly)
+	or BusinessHoursStartHourUtc == BusinessHoursEndHourUtc
+	or (BusinessHoursStartHourUtc < BusinessHoursEndHourUtc and CurrentHourUtc >= BusinessHoursStartHourUtc and CurrentHourUtc < BusinessHoursEndHourUtc)
+	or (BusinessHoursStartHourUtc > BusinessHoursEndHourUtc and (CurrentHourUtc >= BusinessHoursStartHourUtc or CurrentHourUtc < BusinessHoursEndHourUtc));
+Heartbeat
+| where IsInsideBusinessHoursUtc
+| where TimeGenerated between ((WindowEnd - ActiveDeviceLookback) .. WindowEnd)
+| where ResourceProvider =~ "Microsoft.HybridCompute"
+| summarize LastHeartbeat = max(TimeGenerated) by Computer
+| extend MinutesSinceLastHeartbeat = datetime_diff("minute", WindowEnd, LastHeartbeat)
+| where MinutesSinceLastHeartbeat > OfflineThresholdMinutes
+| project DeviceName = Computer
+| distinct DeviceName

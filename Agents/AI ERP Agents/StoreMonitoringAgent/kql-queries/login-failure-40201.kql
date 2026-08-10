@@ -1,0 +1,140 @@
+// Login Failure Query for Store Monitoring
+// Returns login failure events (EventID 40201) from POS devices
+// Source: Microsoft Dynamics - Store Commerce
+// Error: Microsoft_Dynamics_Commerce_Runtime_InvalidAuthenticationCredentials
+Event
+| where TimeGenerated > ago(5m)
+| where EventLog == "Application"
+| where EventLevelName in ("Error", "Critical")
+| where EventID == 40201
+| where Source == "Microsoft Dynamics - Store Commerce"
+| where RenderedDescription has "InvalidAuthenticationCredentials"
+| extend DeviceName = Computer
+| extend ParsedXml = parse_xml(EventData)
+| extend EventDataXml = ParsedXml.DataItem.EventData
+| extend DataNodes = EventDataXml.Data
+| mv-expand DataNode = DataNodes
+| extend DataValue = tostring(DataNode)
+| summarize DataValues = make_list(DataValue), arg_max(TimeGenerated, *) by EventData
+| extend
+    ErrorCode = tostring(parse_json(tostring(DataValues[0])).errorCode),
+    Scope = tostring(DataValues[7])
+| extend
+    DeviceId = extract("Device ID: ([^;]+)", 1, Scope),
+    DeviceRecordId = extract("Device Record ID: ([^;]+)", 1, Scope),
+    TerminalRecordId = extract("Terminal Record ID: ([^;]+)", 1, Scope)
+| summarize
+    FailureCount = count(),
+    FirstFailure = min(TimeGenerated),
+    LastFailure = max(TimeGenerated),
+    TerminalRecordIds = make_set(TerminalRecordId, 10)
+    by DeviceName, EventID, ErrorCode, DeviceId, DeviceRecordId
+| where FailureCount >= 8
+| extend EstimatedLoginAttempts = toint(ceiling(todouble(FailureCount) / 8.0))
+| project LastFailure, FirstFailure, DeviceName, EventID, ErrorCode, DeviceId, DeviceRecordId, FailureCount, EstimatedLoginAttempts, TerminalRecordIds
+| order by LastFailure desc
+
+// Detailed query with parsed fields for investigation
+/*
+Event
+| where TimeGenerated > ago(24h)
+| where EventLog == "Application"
+| where EventLevelName in ("Error", "Critical")
+| where EventID == 40201
+| where Source == "Microsoft Dynamics - Store Commerce"
+| where RenderedDescription has "InvalidAuthenticationCredentials"
+| extend DeviceName = Computer
+| extend ParsedXml = parse_xml(EventData)
+| extend EventDataXml = ParsedXml.DataItem.EventData
+| extend DataNodes = EventDataXml.Data
+| mv-expand DataNode = DataNodes
+| extend DataValue = tostring(DataNode)
+| summarize DataValues = make_list(DataValue), arg_max(TimeGenerated, *) by EventData
+| extend
+    ErrorCode = extract("errorCode\":\"([^\"]+)", 1, tostring(DataValues[0])),
+    EventName = trim_start("EventName: ", tostring(DataValues[2])),
+    Name = trim_start("name: ", tostring(DataValues[4])),
+    Message = trim_start("message: ", tostring(DataValues[5])),
+    Scope = tostring(DataValues[7])
+| extend
+    ActivityId = extract("Activity ID: ([^;]+)", 1, Scope),
+    AppSessionId = extract("App Session ID: ([^;]+)", 1, Scope),
+    UserSessionId = extract("User Session ID: ([^;]+)", 1, Scope),
+    DeviceId = extract("Device ID: ([^;]+)", 1, Scope),
+    TenantId = extract("Tenant ID: ([^;]+)", 1, Scope),
+    OfflineAvailability = extract("Offline Availability: ([^;]+)", 1, Scope),
+    OfflineCurrentMode = extract("Current Offline Mode: ([^;]+)", 1, Scope),
+    DeviceRecordId = extract("Device Record ID: ([^;]+)", 1, Scope),
+    TerminalRecordId = extract("Terminal Record ID: ([^;]+)", 1, Scope)
+| project
+    TimeGenerated,
+    DeviceName,
+    EventID,
+    ErrorCode,
+    Name,
+    Message,
+    ActivityId,
+    AppSessionId,
+    UserSessionId,
+    DeviceId,
+    TenantId,
+    OfflineCurrentMode,
+    OfflineAvailability,
+    DeviceRecordId,
+    TerminalRecordId
+| order by TimeGenerated desc
+*/
+
+// Alert rule query (use this in Azure Monitor alert rule)
+/*
+Event
+| where TimeGenerated > ago(5m)
+| where EventLog == "Application"
+| where EventLevelName in ("Error", "Critical")
+| where EventID == 40201
+| where Source == "Microsoft Dynamics - Store Commerce"
+| where RenderedDescription has "InvalidAuthenticationCredentials"
+| extend DeviceName = Computer
+| extend ParsedXml = parse_xml(EventData)
+| extend EventDataXml = ParsedXml.DataItem.EventData
+| extend DataNodes = EventDataXml.Data
+| mv-expand DataNode = DataNodes
+| extend DataValue = tostring(DataNode)
+| summarize DataValues = make_list(DataValue), arg_max(TimeGenerated, *) by EventData
+| extend
+    ErrorCode = tostring(parse_json(tostring(DataValues[0])).errorCode),
+    Scope = tostring(DataValues[7])
+| extend
+    DeviceId = extract("Device ID: ([^;]+)", 1, Scope),
+    DeviceRecordId = extract("Device Record ID: ([^;]+)", 1, Scope),
+    TerminalRecordId = extract("Terminal Record ID: ([^;]+)", 1, Scope)
+| summarize
+    FailureCount = count(),
+    FirstFailure = min(TimeGenerated),
+    LastFailure = max(TimeGenerated),
+    TerminalRecordIds = make_set(TerminalRecordId, 10)
+    by DeviceName, EventID, ErrorCode, DeviceId, DeviceRecordId
+| where FailureCount >= 8
+| extend EstimatedLoginAttempts = toint(ceiling(todouble(FailureCount) / 8.0))
+| project LastFailure, FirstFailure, DeviceName, EventID, ErrorCode, DeviceId, DeviceRecordId, FailureCount, EstimatedLoginAttempts, TerminalRecordIds
+*/
+
+// Summary query across all devices (used by agent topic)
+/*
+Event
+| where TimeGenerated > ago(24h)
+| where EventLog == "Application"
+| where EventLevelName in ("Error", "Critical")
+| where EventID == 40201
+| where Source == "Microsoft Dynamics - Store Commerce"
+| where RenderedDescription has "InvalidAuthenticationCredentials"
+| extend DeviceName = Computer
+| summarize
+    FailureCount = count(),
+    FirstFailure = min(TimeGenerated),
+    LastFailure = max(TimeGenerated),
+    SampleMessage = take_any(RenderedDescription)
+    by DeviceName
+| order by FailureCount desc
+| limit 50
+*/

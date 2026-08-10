@@ -1,0 +1,77 @@
+// Retail Server Request Duration by Device
+// Summarizes ModelManagersRetailServerRequestFinished events (EventID 40102) by request action for the last 1 hour.
+//
+// Optional filters:
+// - Set DeviceRecordIdParam to a device record id such as "68719485004".
+// - Set DeviceNameParam to a computer/device name such as "SrinathMSFT4".
+//
+// DCR Windows event XPath:
+// Application!*[System[Provider[@Name='Microsoft Dynamics - Store Commerce'] and EventID=40102]]
+//
+let Lookback = 1h;
+let DeviceRecordIdParam = "";
+let DeviceNameParam = "";
+Event
+| where TimeGenerated > ago(Lookback)
+| where EventLog == "Application"
+| where EventID == 40102
+| where Source == "Microsoft Dynamics - Store Commerce"
+| where EventData has "ModelManagersRetailServerRequestFinished" or RenderedDescription has "ModelManagersRetailServerRequestFinished"
+| extend DeviceName = Computer
+| extend ParsedXml = parse_xml(EventData)
+| extend EventDataXml = ParsedXml.DataItem.EventData
+| extend DataNodes = EventDataXml.Data
+| mv-expand DataNode = DataNodes
+| extend DataValue = tostring(DataNode)
+| summarize DataValues = make_list(DataValue), arg_max(TimeGenerated, *) by EventData
+| extend
+    EventSummary = tostring(DataValues[0]),
+    EventIdText = trim_start("EventId: ", tostring(DataValues[1])),
+    EventName = trim_start("EventName: ", tostring(DataValues[2])),
+    LogLevel = trim_start("LogLevel: ", tostring(DataValues[3])),
+    Name = trim_start("name: ", tostring(DataValues[4])),
+    Message = trim_start("message: ", tostring(DataValues[5])),
+    PayloadText = trim_start("payload: ", tostring(DataValues[6])),
+    Scope = tostring(DataValues[7])
+| extend Payload = parse_json(PayloadText)
+| extend
+    RequestId = tostring(Payload.requestId),
+    RequestUrl = tostring(Payload.requestUrl),
+    ResponseStatusCode = toint(Payload.responseStatusCode),
+    RequestEntity = tostring(Payload.requestEntity),
+    RequestAction = tostring(Payload.requestAction),
+    ExecutionTimeInMs = toint(Payload.executionTimeInMs)
+| extend
+    ActivityId = extract("Activity ID: ([^;]+)", 1, Scope),
+    AppSessionId = extract("App Session ID: ([^;]+)", 1, Scope),
+    UserSessionId = extract("User Session ID: ([^;]+)", 1, Scope),
+    DeviceId = extract("Device ID: ([^;]+)", 1, Scope),
+    UserId = extract("User ID: ([^;]+)", 1, Scope),
+    TenantId = extract("Tenant ID: ([^;]+)", 1, Scope),
+    OfflineAvailability = extract("Offline Availability: ([^;]+)", 1, Scope),
+    OfflineCurrentMode = extract("Current Offline Mode: ([^;]+)", 1, Scope),
+    DeviceRecordId = extract("Device Record ID: ([^;]+)", 1, Scope),
+    TerminalRecordId = extract("Terminal Record ID: ([^;]+)", 1, Scope)
+| where isempty(DeviceRecordIdParam) or DeviceRecordId == DeviceRecordIdParam
+| where isempty(DeviceNameParam) or DeviceName == DeviceNameParam
+| summarize
+    RequestCount = count(),
+    RequestUrls = make_set(RequestUrl, 10),
+    ResponseStatusCodes = make_set(ResponseStatusCode, 10),
+    AvgExecutionTimeInMs = round(avg(ExecutionTimeInMs), 0),
+    P95ExecutionTimeInMs = percentile(ExecutionTimeInMs, 95),
+    MaxExecutionTimeInMs = max(ExecutionTimeInMs),
+    FirstSeen = min(TimeGenerated),
+    LastSeen = max(TimeGenerated)
+    by RequestAction
+| project
+    RequestAction,
+    RequestCount,
+    RequestUrls,
+    ResponseStatusCodes,
+    AvgExecutionTimeInMs,
+    P95ExecutionTimeInMs,
+    MaxExecutionTimeInMs,
+    FirstSeen,
+    LastSeen
+| order by AvgExecutionTimeInMs desc

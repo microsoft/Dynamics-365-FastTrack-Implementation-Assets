@@ -7,7 +7,7 @@ appsettings.local.json
 *.ps1.bak
 
 # IDE
-.vscode/
+
 .vs/
 *.suo
 *.user
@@ -68,3 +68,34 @@ docs/agent-analytics.md
 kql-queries/agent-telemetry-dashboard.kql
 agent/
 docs/setup-landing-zone.md
+services/DatabaseMetricsService/DatabaseMetricsService.csproj.lscache
+services/EventLogSinkConfigService/EventLogSinkConfigService.csproj.lscache
+scripts/OnboardingScript.ps1
+scripts/Onboardserver.ps1
+kql-queries/guided-device-triage-summary.kql
+kql-queries/incident-summary.kql
+kql-queries/no-data-explanation.kql
+CHANGELOG.md
+docs/EventId/RetailLoggerEventIds-ByLevel-summary.txt
+docs/EventId/RetailLoggerEventIds-Critical.csv
+docs/EventId/RetailLoggerEventIds-Error.csv
+docs/EventId/RetailLoggerEventIds-Informational.csv
+docs/EventId/RetailLoggerEventIds-LogAlways.csv
+docs/EventId/RetailLoggerEventIds-Verbose.csv
+docs/EventId/RetailLoggerEventIds-Warning.csv
+docs/EventId/RetailLoggerEventIds.csv
+docs/azure-arc-setup.md
+docs/copilot-studio-agent-log-analytics-access.md
+docs/roadmap.md
+docs/topic-reference.md
+alerts/StoreMonitoringAlertFunction/.github/copilot-instructions.md
+.vscode/settings.json
+docs/EventId/RetailLoggerEventMetadata.md
+docs/prompts.md
+docs/store-monitoring-agent-test-prompts.md
+docs/cost-estimate.md
+docs/cost-estimate.docx
+docs/SMA V2 cost estimate.html
+docs/copilot-studio-agent-review.md
+docs/cost-estimate-v2.md
+docs/auto-mitigation-with-azure-arc.md

@@ -1,0 +1,12 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "AgentFlow__FlowUrl": "https://<agent-flow-http-trigger-url>",
+    "AgentFlow__TenantId": "<tenant-id>",
+    "AgentFlow__ClientId": "<application-client-id>",
+    "AgentFlow__ClientSecret": "<client-secret>",
+    "AgentFlow__TokenScope": "https://service.flow.microsoft.com//.default"
+  }
+}
