@@ -10,30 +10,34 @@ The solution connects POS devices to Azure via **Azure Arc** and **Azure Monitor
 
 ### Capabilities
 
-| Category                    | Description                                                               |
-| --------------------------- | ------------------------------------------------------------------------- |
-| **Device status**           | List online/offline POS devices, view offline history and event timelines |
-| **Application errors**      | Errors for a single device or grouped counts across all devices           |
-| **Hardware station errors** | Errors for a single device or counts/details across all devices           |
-| **Retail server errors**    | Errors per device, grouped by request URL, counts by machine name         |
-| **Performance**             | CPU % and available memory for a POS device                               |
-| **Offline database**        | SQL offline database metrics and health                                   |
-| **Reports**                 | Comprehensive health report for a single device or all devices            |
-| **Utilities**               | Find machine names, change selected device, set/view query time range     |
+| Category                         | Description                                                                                                                         |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **Device availability**          | List online and offline devices, inspect status history and timelines, calculate uptime and downtime, and identify flapping devices |
+| **Application diagnostics**      | Analyze Store Commerce errors by device or Event ID, parse diagnostic context, view trends, and explain known RetailLogger events   |
+| **Hardware station diagnostics** | Review hardware station errors, counts, details, and trends for individual devices or the full estate                               |
+| **Retail Server diagnostics**    | Analyze errors by device or request URL, request duration, slow-request evidence, and performance trends                            |
+| **Performance and telemetry**    | Review CPU, available memory, performance pressure, telemetry freshness, and Store Commerce event-log sink health                   |
+| **Offline database health**      | Inspect SQL offline database size, table and index metrics, health details, and trends                                              |
+| **Operational diagnostics**      | Review completed POS operations, login failures, and card-payment failures                                                          |
+| **Fleet analysis and reports**   | Rank unhealthy devices, compare devices, detect anomalies and regressions, and generate single-device or estate-wide reports        |
+| **Alerts**                       | Investigate device-offline, database-size, and Retail Server performance alerts and deliver findings for operator review            |
+| **Conversation utilities**       | Discover and select devices, configure preset or custom query time ranges, and explain missing or stale data                        |
 
 ### Key Design Points
 
 - **Conversational + focused**: Strictly scoped to POS/Store Commerce diagnostics — declines off-topic questions
 - **KQL-backed**: All queries run against Log Analytics via a `RunLogAnalyticsQuery` workflow
 - **AI disclosure**: Always ends responses with a summary noting content is AI-generated
-- **Autonomous monitoring**: Supports an alert-triggered mode for proactive, autonomous monitoring without user prompts
+- **Alert investigation**: Supports alert-driven diagnostic investigation and notification for operator review
+- **No automatic mitigation**: The solution does not automatically run remediation or device-changing actions
 
 ## Solution Components
 
 ### 1. Device Onboarding
 
-- **Azure Arc Onboarding**: Connect Windows 10/11 and Server devices using portal-generated scripts or Server 2022 Arc Setup wizard
+- **Azure Arc Onboarding**: Connect Windows 10/11 and Server devices using portal-generated scripts.
 - **AzCM Agent**: Registers devices as Arc-enabled resources
+- **Azure Monitor Agent (AMA)**: Collects configured telemetry from each Arc-enabled POS device
 
 ### 2. Governance at Scale
 
@@ -43,7 +47,7 @@ The solution connects POS devices to Azure via **Azure Arc** and **Azure Monitor
 ### 3. Data Collection
 
 - **Data Collection Rules (DCR)**: Define what data to collect and route to Log Analytics
-  - **Windows Event Logs**: Application, System, and Security logs; custom XPath filters for Store Commerce-specific events
+  - **Windows Event Logs**: Application logs with custom XPath filters for Store Commerce-specific events
   - **Performance Counters**: CPU (`% Processor Time`) and memory (`Available Bytes`) sampled at a configurable interval
   - **Heartbeat**: Azure Arc agent heartbeat signals used to detect device online/offline status
   - **Custom Event Log entries**: Offline SQL database metrics written to the Windows Event Log by the `DatabaseMetricsService` (Event ID 3000)
@@ -51,11 +55,25 @@ The solution connects POS devices to Azure via **Azure Arc** and **Azure Monitor
 
 ### 4. Query & Insights
 
-- **Copilot Studio Agent**: Natural language interface for querying
-- **Agent Flow**: Middleware for KQL execution with managed identity authentication
-- **Log Analytics**: Stores and analyzes collected data
+- **Copilot Studio Agent**: Natural language interface with monitoring, diagnostics, comparison, anomaly detection, triage, and reporting topics
+- **RunLogAnalyticsQuery Agent Flow**: Executes KQL against Log Analytics using the configured Azure Monitor Logs connection
+- **KQL Query Library**: Reusable queries for device availability, errors, performance, database health, telemetry freshness, trends, and reports
+- **Log Analytics Workspace**: Stores collected events, performance counters, and heartbeat data and provides the KQL query engine
 
-### 5. Networking
+### 5. Optional Alerting
+
+- **Azure Monitor Scheduled Query Alerts**: Evaluate Log Analytics telemetry for conditions such as device availability, database growth, and Retail Server performance
+- **Alert Investigation Topics**: Gather diagnostic evidence and summarize likely causes for operator review
+- **Notifications**: Deliver alert context and investigation findings to configured operational channels
+- **Operator-Controlled Response**: Alerts do not initiate automatic mitigation or device-changing actions
+
+### 6. Device-Side Services and Installers
+
+- **DatabaseMetricsService**: Collects Store Commerce offline SQL database metrics and writes Event ID 3000 records for AMA ingestion
+- **EventLogSinkConfigService**: Monitors Store Commerce `config.json` and keeps informational event-log telemetry enabled
+- **MSI Installer Projects**: WiX-based installers and deployment scripts for both Windows services
+
+### 7. Networking
 
 - **Outbound HTTPS only**: All device-to-Azure traffic uses port 443
 - **No inbound ports required**: Secure by design for POS environments
@@ -72,7 +90,7 @@ The solution connects POS devices to Azure via **Azure Arc** and **Azure Monitor
    - See [Quick start](docs/quick-start-portal.md)
 
 3. **Import the Agent**
-   - Import the Copilot Studio agent into your Power Platform environment using the solution zip file `StoreMonitoringAgent_1_0_0_17.zip` provided in the root of this repository. See [Step 7 in the Quick Start guide](docs/quick-start-portal.md#step-7-setup-copilot-studio-agent-5-minutes) for detailed instructions.
+   - Import the Copilot Studio agent into your Power Platform environment using the solution zip file `StoreMonitoringAgent_1_0_0_25.zip` provided in the root of this repository. See [Step 7 in the Quick Start guide](docs/quick-start-portal.md#step-7-setup-copilot-studio-agent-5-minutes) for detailed instructions.
 
 ## Documentation
 
@@ -83,7 +101,6 @@ The solution connects POS devices to Azure via **Azure Arc** and **Azure Monitor
 | [Device Onboarding Guide](docs/device-onboarding.md)                                  | Connect POS devices to Azure Arc and configure AMA                   |
 | [Capturing Database Metrics to Log Analytics](docs/database-metrics-log-analytics.md) | Configure offline SQL database metrics collection                    |
 | [Store Commerce App Update Procedure](docs/store-commerce-update.md)                  | Procedure for updating Store Commerce on monitored devices           |
-| [Autonomous / Proactive Monitoring Setup](docs/autonomous-proactive-monitoring.md)    | Configure alert-triggered autonomous monitoring                      |
-| [Alert-Triggered Agent](docs/alert-triggered-agent.md)                                | How the alert-triggered agent mode works                             |
+| [Model Support](docs/model-support.md)                                                 | Supported generative AI models for the Copilot Studio agent           |
 | [Known Limitations](docs/known-limitations.md)                                        | Current known limitations and workarounds                            |
 | [Periodic Maintenance Guide](docs/periodic-maintenance.md)                            | Periodic rotation and expiration checks for secrets and certificates |
