@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="620" viewBox="0 0 960 620" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 z" fill="#5b5b5b"/>
+    </marker>
+    <style>
+      .box { rx: 10; ry: 10; stroke-width: 1.5; }
+      .title { font-size: 15px; font-weight: 700; }
+      .sub { font-size: 11.5px; fill: #444; }
+      .lbl { font-size: 11px; fill: #333; }
+      .flow { stroke: #5b5b5b; stroke-width: 1.6; fill: none; marker-end: url(#arrow); }
+      .flow-dash { stroke-dasharray: 5 4; }
+      .icon { font-size: 12px; font-weight: 700; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="960" height="620" fill="#ffffff"/>
+  <text x="480" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#1a1a1a">AI Product Search – Deployment Components</text>
+
+  <!-- Azure boundary -->
+  <rect x="30" y="70" width="900" height="450" fill="#f4f9fd" stroke="#cfe2f3" stroke-width="1.5" rx="14"/>
+  <text x="48" y="95" font-size="13" font-weight="700" fill="#0a6fbf">Microsoft Azure (per environment: UAT / Prod)</text>
+
+  <!-- D365 F&O -->
+  <g>
+    <rect x="360" y="120" width="240" height="86" class="box" fill="#eef4ff" stroke="#3b6fd4"/>
+    <text x="480" y="150" text-anchor="middle" class="title" fill="#22448f">Dynamics 365 F&amp;O</text>
+    <text x="480" y="170" text-anchor="middle" class="sub">Sales Order ▸ "AI Product Search"</text>
+    <text x="480" y="188" text-anchor="middle" class="sub">FTA_CCAISearch model (X++)</text>
+  </g>
+
+  <!-- Function App -->
+  <g>
+    <rect x="80" y="300" width="240" height="96" class="box" fill="#fff3e6" stroke="#e08a2b"/>
+    <text x="200" y="330" text-anchor="middle" class="title" fill="#a85e12">Function App</text>
+    <text x="200" y="350" text-anchor="middle" class="sub">ProductListStorageWriter</text>
+    <text x="200" y="368" text-anchor="middle" class="sub">.NET 8 isolated · v4</text>
+    <text x="200" y="384" text-anchor="middle" class="sub">CSV ▸ chunked JSON</text>
+  </g>
+
+  <!-- Source blob -->
+  <g>
+    <rect x="80" y="140" width="200" height="80" class="box" fill="#eafaf1" stroke="#2fa66a"/>
+    <text x="180" y="168" text-anchor="middle" class="title" fill="#1c7a4a">Blob Storage</text>
+    <text x="180" y="188" text-anchor="middle" class="sub">Source CSV</text>
+    <text x="180" y="205" text-anchor="middle" class="sub">(DMF export)</text>
+  </g>
+
+  <!-- JSON blob -->
+  <g>
+    <rect x="400" y="300" width="200" height="96" class="box" fill="#eafaf1" stroke="#2fa66a"/>
+    <text x="500" y="330" text-anchor="middle" class="title" fill="#1c7a4a">Blob Storage</text>
+    <text x="500" y="350" text-anchor="middle" class="sub">JSON chunks</text>
+    <text x="500" y="368" text-anchor="middle" class="sub">(index container)</text>
+  </g>
+
+  <!-- AI Search -->
+  <g>
+    <rect x="690" y="300" width="200" height="96" class="box" fill="#f3ecfb" stroke="#7b3fc4"/>
+    <text x="790" y="330" text-anchor="middle" class="title" fill="#5a2a94">Azure AI Search</text>
+    <text x="790" y="350" text-anchor="middle" class="sub">Index + Indexer</text>
+    <text x="790" y="368" text-anchor="middle" class="sub">Semantic Ranker</text>
+  </g>
+
+  <!-- Key Vault -->
+  <g>
+    <rect x="360" y="440" width="240" height="66" class="box" fill="#fdeef0" stroke="#cf3b52"/>
+    <text x="480" y="467" text-anchor="middle" class="title" fill="#a3283c">Azure Key Vault</text>
+    <text x="480" y="487" text-anchor="middle" class="sub">AI Search key · Storage conn · Fn key</text>
+  </g>
+
+  <!-- Flows -->
+  <!-- DMF export: D365 -> source blob -->
+  <path class="flow" d="M360,175 L282,178"/>
+  <text x="300" y="130" class="lbl">1 · DMF export (CSV)</text>
+
+  <!-- source blob -> function -->
+  <path class="flow" d="M180,220 L200,298"/>
+  <text x="120" y="262" class="lbl">2 · HTTP trigger</text>
+
+  <!-- function -> json blob -->
+  <path class="flow" d="M320,350 L398,350"/>
+  <text x="322" y="342" class="lbl">3 · upload</text>
+
+  <!-- json blob -> AI search (indexes) -->
+  <path class="flow" d="M600,348 L688,348"/>
+  <text x="612" y="340" class="lbl">4 · indexes</text>
+
+  <!-- AI search -> D365 (query results) -->
+  <path class="flow" d="M790,300 C790,230 660,175 602,168"/>
+  <text x="690" y="230" class="lbl">5 · query / ranked results</text>
+
+  <!-- D365 -> function (invoke to generate data) -->
+  <path class="flow flow-dash" d="M360,196 C250,240 210,270 200,298"/>
+  <text x="238" y="286" class="lbl">invoke</text>
+
+  <!-- Key Vault references -->
+  <path class="flow flow-dash" d="M480,440 L480,208"/>
+  <text x="488" y="430" class="lbl">secrets referenced by F&amp;O Key Vault params</text>
+  <path class="flow flow-dash" d="M400,470 C300,455 210,430 200,398"/>
+  <path class="flow flow-dash" d="M600,466 C700,440 790,430 790,398"/>
+
+  <!-- Legend -->
+  <g transform="translate(48,548)">
+    <text x="0" y="0" font-size="12" font-weight="700" fill="#333">Legend:</text>
+    <line x1="58" y1="-4" x2="98" y2="-4" class="flow"/>
+    <text x="104" y="0" class="lbl">data / request flow</text>
+    <line x1="230" y1="-4" x2="270" y2="-4" class="flow flow-dash"/>
+    <text x="276" y="0" class="lbl">secret reference / invoke</text>
+    <text x="470" y="0" class="lbl">Deployables: Function App (src/CCAISearch-Deploy) · X++ package (src/Dynamics365)</text>
+  </g>
+</svg>
