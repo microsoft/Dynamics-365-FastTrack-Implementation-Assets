@@ -1,8 +1,7 @@
 # Dynamics 365 F&O – X++ source (FTA_CCAISearch)
 
 This folder contains the extracted X++ source of the **AI Product Search** D365 Finance &
-Operations model, as shipped in `FTA_CCAISearch_V7.axpp`. It is committed here so the code is
-browsable and diffable in Git.
+Operations model, as shipped in `FTA_CCAISearch_V7.axpp`.
 
 ## Structure
 
