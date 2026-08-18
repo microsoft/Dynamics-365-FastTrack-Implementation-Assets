@@ -90,7 +90,7 @@ The solution connects POS devices to Azure via **Azure Arc** and **Azure Monitor
    - See [Quick start](docs/quick-start-portal.md)
 
 3. **Import the Agent**
-   - Import the Copilot Studio agent into your Power Platform environment using the solution zip file `StoreMonitoringAgent_1_0_0_25.zip` provided in the root of this repository. See [Step 7 in the Quick Start guide](docs/quick-start-portal.md#step-7-setup-copilot-studio-agent-5-minutes) for detailed instructions.
+   - Import the Copilot Studio agent into your Power Platform environment using the solution zip file `StoreMonitoringAgent_1_0_0_26.zip` provided in the root of this repository. See [Step 7 in the Quick Start guide](docs/quick-start-portal.md#step-7-setup-copilot-studio-agent-5-minutes) for detailed instructions.
 
 ## Documentation
 
@@ -101,7 +101,8 @@ The solution connects POS devices to Azure via **Azure Arc** and **Azure Monitor
 | [Device Onboarding Guide](docs/device-onboarding.md)                                  | Connect POS devices to Azure Arc and configure AMA                   |
 | [Capturing Database Metrics to Log Analytics](docs/database-metrics-log-analytics.md) | Configure offline SQL database metrics collection                    |
 | [Store Commerce App Update Procedure](docs/store-commerce-update.md)                  | Procedure for updating Store Commerce on monitored devices           |
-| [Alert-Triggered Agent](docs/alert-triggered-agent.md)                                | Alert-triggered investigation pattern using Azure Monitor and Teams   |
-| [Autonomous / Proactive Monitoring Setup](docs/autonomous-proactive-monitoring.md)     | Configure the Recurring Store Monitoring Agent Flow                  |
+| [Model Support](docs/model-support.md)                                                | Supported generative AI models for the Copilot Studio agent          |
+| [Alert-Triggered Agent](docs/alert-triggered-agent.md)                                | Alert-triggered investigation pattern using Azure Monitor and Teams  |
+| [Autonomous / Proactive Monitoring Setup](docs/autonomous-proactive-monitoring.md)    | Configure the Recurring Store Monitoring Agent Flow                  |
 | [Known Limitations](docs/known-limitations.md)                                        | Current known limitations and workarounds                            |
 | [Periodic Maintenance Guide](docs/periodic-maintenance.md)                            | Periodic rotation and expiration checks for secrets and certificates |

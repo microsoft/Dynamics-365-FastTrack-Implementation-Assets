@@ -21,6 +21,7 @@
 ## Copilot Studio Agent
 
 - **Non-deterministic response generation** — the AI may produce inaccurate summaries or miss relevant details for complex or ambiguous questions.
+- **Large telemetry result sets may produce a no-information response** — when the selected time range returns a large volume of telemetry data, the agent may return "No information was found that could help answer this." Restrict the time range and run the query again to reduce the number of returned records.
 - **Predefined topics only** — queries outside Application Errors, Hardware Station Errors, Retail Server Errors, Database Metrics, and Device Online/Offline require custom topic authoring.
 - **Single Log Analytics workspace** — cross-workspace queries are not supported.
 

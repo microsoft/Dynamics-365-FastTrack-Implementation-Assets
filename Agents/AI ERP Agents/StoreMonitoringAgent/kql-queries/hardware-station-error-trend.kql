@@ -6,7 +6,7 @@ let WindowEnd = now();
 Event
 | where TimeGenerated between (WindowStart .. WindowEnd)
 | where EventLog == "Application"
-| where EventID == 40450
+| where EventID == 40450 or (EventID == 7103 and Source =~ "Microsoft Dynamics - Retail Hardware Station")
 | extend DeviceName = Computer
 | summarize ErrorCount = count(), CriticalCount = countif(EventLevelName == "Critical"), ErrorCountOnly = countif(EventLevelName == "Error"), Sources = make_set(Source), SampleMessage = take_any(RenderedDescription) by TimeBucket = bin(TimeGenerated, 1h), DeviceName
 | project Hour = format_datetime(TimeBucket, "yyyy-MM-dd HH:mm"), DeviceName, ErrorCount, CriticalCount, ErrorCountOnly, Sources, SampleMessage

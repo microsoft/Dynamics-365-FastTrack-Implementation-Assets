@@ -3,8 +3,14 @@ Event
 | where TimeGenerated > ago(1d)
 | where EventLog == "Application" 
 | where EventLevelName in ("Error", "Critical") 
-| where EventID == 40450
-| extend DeviceName = Computer, ErrorMessage = RenderedDescription 
-| project TimeGenerated, DeviceName, EventID, Source, ErrorMessage 
+| where EventID == 40450 or (EventID == 7103 and Source =~ "Microsoft Dynamics - Retail Hardware Station")
+| extend SplitMarker = iff(EventID == 7103, "ExceptionMessage", "The activityId")
+| extend SplitStart = indexof(tolower(RenderedDescription), tolower(SplitMarker))
+| extend StackStart = iff(EventID == 7103, SplitStart + strlen(SplitMarker), SplitStart)
+| extend RawStackTrace = iff(SplitStart >= 0, trim_start(@'[\s:=''\.]+', substring(RenderedDescription, StackStart)), "")
+| extend StackTrace = replace_string(replace_string(replace_string(replace_string(replace_string(RawStackTrace, "\\\\r\\\\n", "\n"), "\\\\n", "\n"), "\\r\\n", "\n"), "\\n", "\n"), "\\t", "\t")
+| extend DeviceName = Computer,
+	ErrorMessage = iff(SplitStart >= 0, trim_end(@'[\s,;:\.]+', substring(RenderedDescription, 0, SplitStart)), RenderedDescription)
+| project TimeGenerated, DeviceName, EventID, Source, ErrorMessage, StackTrace
 | order by TimeGenerated desc 
 | limit 100

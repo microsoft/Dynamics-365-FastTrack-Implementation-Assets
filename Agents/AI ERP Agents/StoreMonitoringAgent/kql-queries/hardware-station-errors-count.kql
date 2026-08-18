@@ -3,7 +3,7 @@ Event
 | where TimeGenerated > ago(1d)
 | where EventLog == "Application" 
 | where EventLevelName in ("Error", "Critical") 
-| where EventID == 40450
+| where EventID == 40450 or (EventID == 7103 and Source =~ "Microsoft Dynamics - Retail Hardware Station")
 | extend DeviceName = Computer
 | summarize 
     ErrorCount = count(),

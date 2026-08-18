@@ -99,3 +99,12 @@ docs/SMA V2 cost estimate.html
 docs/copilot-studio-agent-review.md
 docs/cost-estimate-v2.md
 docs/auto-mitigation-with-azure-arc.md
+docs/pos-business-process-catalog.md
+scripts/auto-mitigation-actions.ps1
+scripts/invoke-arc-clear-store-commerce-event-log.ps1
+scripts/invoke-arc-run-command-pilot.ps1
+scripts/invoke-arc-store-commerce-version.ps1
+kql-queries/pos-all-user-sessions-process-mining.kql
+kql-queries/pos-user-session-process-mining.kql
+kql-queries/pos-user-sessions-by-device.kql
+scripts/New-RetailHardwareStationCertificate.ps1

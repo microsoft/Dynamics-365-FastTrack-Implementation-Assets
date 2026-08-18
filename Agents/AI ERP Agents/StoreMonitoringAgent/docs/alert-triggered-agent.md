@@ -23,6 +23,20 @@ flowchart TD
   H[Function App settings] -.-> D
   I[Common Alert Schema] -.-> C
   I -.-> E
+
+  classDef telemetry fill:#DFF3FF,stroke:#0078D4,color:#0B2942,stroke-width:2px
+  classDef monitor fill:#FFF4CE,stroke:#C19C00,color:#3B3000,stroke-width:2px
+  classDef compute fill:#F3E8FF,stroke:#7B2CBF,color:#2D123F,stroke-width:2px
+  classDef copilot fill:#E8F5E9,stroke:#2E7D32,color:#173A19,stroke-width:2px
+  classDef notification fill:#E8EAFD,stroke:#4F5BD5,color:#20265C,stroke-width:2px
+  classDef supporting fill:#F2F2F2,stroke:#616161,color:#242424,stroke-width:1.5px,stroke-dasharray:5 3
+
+  class A telemetry
+  class B,C monitor
+  class D compute
+  class E,F copilot
+  class G notification
+  class H,I supporting
 ```
 
 ## Request Flow

@@ -26,6 +26,7 @@
       <DirectoryRefId>INSTALLFOLDER</DirectoryRefId>
       <SuppressRootDirectory>true</SuppressRootDirectory>
       <PreprocessorVariable>var.PublishDir</PreprocessorVariable>
+      <Transforms>ExcludeServiceExecutable.xsl</Transforms>
     </HarvestDirectory>
   </ItemGroup>
 </Project>

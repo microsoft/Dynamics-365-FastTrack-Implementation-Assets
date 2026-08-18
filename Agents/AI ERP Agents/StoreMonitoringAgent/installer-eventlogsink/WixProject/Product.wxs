@@ -72,9 +72,9 @@
                  Value="&quot;icacls&quot; &quot;C:\Program Files\Microsoft Dynamics 365\10.0\Store Commerce\Microsoft\contentFiles\Pos\config.json&quot; /grant &quot;NT SERVICE\EventLogSinkConfigService:M&quot; /Q" />
     <CustomAction Id="GrantConfigFilePermission" BinaryRef="Wix4UtilCA_X64" DllEntry="WixQuietExec64" Execute="deferred" Impersonate="no" Return="check" />
 
-    <!-- Schedule the permission grant after InstallFiles -->
+    <!-- Schedule the permission grant after the virtual service account is registered -->
     <InstallExecuteSequence>
-      <Custom Action="GrantConfigFilePermission" After="InstallFiles" Condition="NOT REMOVE" />
+      <Custom Action="GrantConfigFilePermission" After="InstallServices" Condition="NOT REMOVE" />
     </InstallExecuteSequence>
 
     <!-- Use Standard WixUI -->

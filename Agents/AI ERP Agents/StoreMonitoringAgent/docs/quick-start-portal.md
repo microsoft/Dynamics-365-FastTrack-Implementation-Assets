@@ -136,6 +136,10 @@ Steps:
        ```
        _(Store Commerce Event ID 40102 — used for Retail Server performance diagnostics)_
        ```xpath
+       Application!*[System[Provider[@Name='Microsoft Dynamics - Retail Hardware Station'] and EventID=7103]]
+       ```
+       _(Retail Hardware Station Event ID 7103 — shared Hardware Station errors)_
+       ```xpath
        Application!*[System[Provider[@Name='DatabaseMetricsService'] and (EventID=3000)]]
        ```
        _(Database Metrics Service — used by DatabaseMetrics topic)_
@@ -335,7 +339,7 @@ Default settings in `appsettings.json`:
 3. Go to [Copilot Studio](https://copilotstudio.microsoft.com)
 4. Click **Solutions** in the left menu
 5. Click **Import solution**
-6. Browse to the `StoreMonitoringAgent_1_0_0_25.zip` file provided in the root of this repository.
+6. Browse to the `StoreMonitoringAgent_1_0_0_26.zip` file provided in the root of this repository.
 7. On the **Connections** page, map the **Azure Monitor Logs** connection reference to an existing connection or create one. Sign in with an account that has permission to query the Log Analytics workspace.
 8. If prompted for the optional `SMAAlertObjectId` environment variable, keep the imported value or enter a temporary GUID. This value is not a secret and is only used by the optional alert-triggered flows. Replace it with the correct object ID when completing [Step 8](#step-8-optional---enable-autonomous-alert-capabilities).
 9. Click **Next** → **Import** and wait for the import to complete.
