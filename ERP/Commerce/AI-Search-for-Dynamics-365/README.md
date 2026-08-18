@@ -101,7 +101,7 @@ Follow these guides **in order** to deploy the solution:
 
 ## Downloads
 
-All deployment packages are available on the [GitHub Releases][releases] page:
+All deployment packages are available in the [`src/`][releases] folder of this repository:
 
 - **Function App deployment package** – `CCAISearch-Deploy-v1.0.zip` (.NET 8 source code)
 - **Dynamics 365 model package** – `FTA_CCAISearch_V7_20260815.axpp` (pre-built X++ model)
@@ -130,4 +130,4 @@ product warranty and is **outside the scope of D365 support services**.
 Released under the [MIT License](LICENSE).
 
 <!-- Link shortcuts - update here if URLs change -->
-[releases]: https://github.com/fechiram_microsoft/AI-Search-for-Dynamics365/releases
+[releases]: src
