@@ -236,6 +236,14 @@ It should clearly say that the required data was not returned, the needed tool i
 
 The agent can calculate summaries from the records returned to it. Those calculations are constrained by connector response limits, platform context limits, timeouts, and source completeness. For recurring or very large reporting workloads, use a reviewed reporting architecture designed for aggregation and reconciliation.
 
+### Can the agent guarantee complete counts for large entities?
+
+Not solely through its instructions. Counts are based on the records returned by the connector. Where completeness is required for formal audit evidence, validate totals against D365 F&O or an approved reporting platform.
+
+### Is the agent a bulk-export tool?
+
+No. The agent does not offer export options, export to SharePoint, or automatically re-query data. It is intended for scoped compliance analysis and audit interpretation, not bulk extraction.
+
 ### What is the human's role?
 
 Humans remain responsible for:
