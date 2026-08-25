@@ -16,7 +16,7 @@
 >
 > - 19 read-only tools: 10 custom `AuditAgent*` entities and 9 standard F&O entities.
 > - This export does not include Duty-Privilege Mapping, Batch Jobs, Batch History, or Data Management tools.
-> - `$select`, `$filter`, and `$top` are not configured in the exported connector actions. Limiting the agent's presentation to 20 rows does not limit the amount of data initially retrieved from F&O.
+> - `$select` is updated across all 19 exported connector actions to retrieve only the required columns. `$filter` and `$top` are handled through agent instructions rather than fixed values in the exported actions. The 20-row rule limits presentation only; it does not limit the amount of data initially retrieved from F&O.
 
 ## Table of Contents
 
@@ -28,6 +28,7 @@
   - [Current Challenges](#current-challenges)
 - [Solution Capabilities](#solution-capabilities)
   - [Core Capabilities](#core-capabilities)
+  - [Response Handling](#response-handling)
 - [Architecture](#architecture)
   - [High-Level Architecture](#high-level-architecture)
   - [Data Flow](#data-flow)
@@ -117,6 +118,18 @@ An AI-driven ERP Compliance Advisor Agent for D365 Finance & Operations that ena
 | Structured Output | Results presented as formatted tables, summaries, or audit-report style narratives |
 | Risk Flagging | Agent proactively highlights anomalies and compliance risks in query results |
 | Audit Data Sources | Covers user access, license compliance, security governance, role structure |
+
+### Response Handling
+
+The agent instructions require analysis of all records returned by a tool before the response is generated. Summaries reference the full returned dataset, including totals, breakdowns, date ranges, patterns, anomalies, risks, suspicious activity, and policy violations relevant to the request.
+
+- For 100 or fewer returned records, the agent displays every record in a Markdown table and states: *"Showing [total] of [total] records."*
+- For more than 100 returned records, the agent analyzes the full returned dataset, displays the 20 most relevant records, and states both *"Showing 20 of [total] records"* and *"Total records: [N] | Displaying: 20 most relevant records. Full dataset has been analyzed and summarized."*
+- When no records are returned, the agent states: **"Showing 0 of 0 returned records."** and explains that no matching records were returned.
+- The agent asks clarifying questions only for genuinely ambiguous requests. It determines filters, entity names, and technical parameters without asking the user.
+- The agent does not offer exports, export to SharePoint, or re-query the data while formatting the response.
+
+These instructions govern analysis and presentation. In particular, displaying 20 records is not equivalent to applying an OData `$top=20`; the connector may initially retrieve more records for the agent to analyze.
 
 ## Architecture
 
@@ -374,8 +387,8 @@ The deployable package ([`SA_ERPComplianceAdvisorAgent.axpp`](https://github.com
 | Limitation | Details | Mitigation |
 |---|---|---|
 | Tool limit | Max 128 tools per agent; recommended ≤ 25–30 for best performance | Current design uses 19 tools — within optimal range |
-| OData query options | `$select`, `$filter`, and `$top` are not configured in the exported connector actions, so F&O may initially return more data than the agent presents | Configure and validate query options in a future revision; showing only 20 rows affects presentation, not initial retrieval size |
-| Token limits | AI response context window has limits; very large result sets may be truncated | Add validated `$select` and `$top` settings to reduce retrieved fields and rows |
+| OData query options | `$select` is updated across all 19 tools. `$filter` and `$top` are handled through agent instructions rather than fixed values in the exported connector actions | Validate runtime retrieval for large datasets; showing only 20 rows affects presentation, not initial retrieval size |
+| Token limits | `$select` reduces retrieved columns, but AI response context limits still apply to large result sets because the instruction-based 20-row display rule is not a server-side `$top` | Monitor large-result behavior and add a validated server-side `$top` only if the retrieval requirements change |
 | Single environment | Each tool is hardcoded to one F&O instance URL | For multi-environment audits, create separate agents or parameterize the instance |
 | Read-only | Agent can only read data via *List items present in table* — cannot write, update, or delete | By design — audit agents should not modify data |
 | No real-time alerts | Agent is conversational (pull-based); does not push alerts or notifications | Roadmap: add Power Automate scheduled triggers for proactive monitoring |
@@ -386,7 +399,7 @@ The deployable package ([`SA_ERPComplianceAdvisorAgent.axpp`](https://github.com
 |---|---|
 | No drill-down to F&O forms | Agent returns data but cannot link directly to F&O screens |
 | No chart/visualization | Responses are text/table only — no embedded charts |
-| Filter complexity | `$filter` is not configured in the exported connector actions; filtering requires a reviewed connector update |
+| Filter complexity | The agent instructions direct the agent to determine filters without asking users for technical parameters; complex or ambiguous requests may still require clarification |
 | No data aggregation | OData doesn't support `GROUP BY` or `SUM` — the AI can summarize returned rows but cannot do server-side aggregation |
 | SoD analysis depth | SoD tool shows existing configured conflicts; it does not compute new SoD rules dynamically |
 
@@ -404,7 +417,7 @@ The deployable package ([`SA_ERPComplianceAdvisorAgent.axpp`](https://github.com
 
 - Reviewed solution version 1.0.1.0
 - 19 read-only connector tools backed by 10 custom `AuditAgent*` entities and 9 standard F&O entities
-- Current update: 19 tools plus guidance for `$select` improvements; `$select`, `$filter`, and `$top` are not configured in this export
+- Current update: `$select` is updated across all 19 tools; `$filter` and `$top` behavior is handled through agent instructions
 - Duty-Privilege Mapping, Batch Jobs, Batch History, and Data Management tools are not included in this export
 - Natural language querying with generative orchestration
 - Single-solution packaging
