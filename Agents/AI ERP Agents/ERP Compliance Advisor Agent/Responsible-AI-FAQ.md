@@ -177,7 +177,27 @@ The agent can retrieve and analyze data exposed by the 19 configured tools. Typi
 - "Show database-log changes for a specified date range."
 - "Summarize configured SoD conflicts returned by the included tools."
 
-The agent should flag relevant anomalies, suspicious patterns, risks, excessive licenses, expired temporary roles, privileged access without recordings, and policy violations found in the full returned dataset.
+The agent should flag relevant anomalies, suspicious patterns, risks, excessive licenses, expired temporary roles, privileged access without recordings, and policy violations found in all records returned by the connector.
+
+### Can the agent verify which tables and fields are configured for database logging?
+
+No. The current **Get Database Log** tool reads recorded changes from the standard `DatabaseLogs` entity, but the reviewed release has no tool that exposes **Database log setup**. The agent can analyze available log evidence, but it cannot confirm which tables, fields, and change operations are configured for logging or identify configuration gaps where logging was never enabled.
+
+For control-design assurance, review **System administration > Setup > Database log > Database log setup** directly. The setup form exposes the configured table, optional field, type of change, and signature-control status. Database-log findings remain dependent on the completeness and correctness of that F&O configuration.
+
+### Can database-log setup visibility be added to the agent?
+
+Yes. An F&O developer can explore the data sources used by the **Database log setup** form and create a read-only custom data entity that exposes the required configuration fields, such as table, optional field, change operation, and signature-control status. The exact backing setup tables and supported fields must be confirmed for the target F&O version before implementation.
+
+After the custom entity is developed and deployed:
+
+1. Make the entity public through OData.
+2. Grant read access through `AuditAgentReader` or an equivalent reviewed least-privilege role.
+3. Add a new **Fin & Ops Apps (Dynamics 365)** tool in the agent's **Tools** section.
+4. Configure `$select` so the tool retrieves only the required fields.
+5. Test authorization, payload size, source completeness, and audit responses before production use.
+
+This extension would close the control-design-versus-control-evidence gap by pairing database-log configuration with the existing recorded-change evidence. Adding it changes the reviewed 19-tool scope and requires solution ALM, security, privacy, and Responsible AI review.
 
 ### What is the agent not designed to do?
 
