@@ -62,19 +62,61 @@ This export does **not** include Duty-Privilege Mapping, Batch Jobs, Batch Histo
 
 ### How are OData query options and responses handled?
 
-`$select` is updated across all 19 connector actions to retrieve only the required columns. `$filter` and `$top` behavior is handled through agent instructions rather than fixed values in the exported connector actions.
+`$select` is updated across all 19 connector actions to retrieve only the required columns. The current connector actions do not configure `$filter` or `$top`. Agent instructions govern how returned records are analyzed and displayed; they do not add server-side filters or row limits to the OData request.
+
+### How does the updated release reduce payload size?
+
+The updated release configures `$select` on all 19 read-only connector tools. Each tool retrieves only the fields required for its audit scenario instead of returning every column exposed by the D365 F&O entity.
+
+This reduces JSON payload size and unnecessary exposure of data. However, `$select` reduces columns, not the number of records returned.
+
+### Does the updated release apply `$filter` or `$top`?
+
+No. The current tools do not configure `$filter` or `$top`. Therefore, they may retrieve every record made available by the connector for the selected entity.
+
+The agent's response-handling instructions determine how returned records are analyzed and displayed. They do not apply server-side filtering or row limits to the OData request.
+
+### How are returned records displayed?
+
+The agent is instructed to analyze all records returned by the connector.
+
+- For 100 or fewer records, it displays all records.
+- For more than 100 records, it displays the 20 most relevant records and summarizes the complete returned result.
+- When no records are returned, it states: **"Showing 0 of 0 returned records."**
+
+The agent also reports the displayed and returned record counts and flags relevant risks, anomalies, suspicious patterns, and policy violations.
 
 The response instructions require the agent to analyze all records returned by a tool before responding:
 
 - For 100 or fewer returned records, display every record and state: **"Showing [total] of [total] records."**
 - For more than 100 returned records, analyze the full returned dataset, display the 20 most relevant records, and state: **"Showing 20 of [total] records."**
-- For more than 100 returned records, also state: **"Total records: [N] | Displaying: 20 most relevant records. Full dataset has been analyzed and summarized."**
+- For more than 100 returned records, also state: **"Total records returned by the connector: [N] | Displaying: 20 most relevant records. All records returned by the connector have been analyzed and summarized."**
 - When no records are returned, state: **"Showing 0 of 0 returned records."** and clearly explain that no matching records were returned.
 - Summaries should use the full returned dataset for totals, breakdowns, date ranges, patterns, anomalies, risk flags, and policy-violation findings.
 - The agent should ask a clarifying question only when the business request is genuinely ambiguous. It should determine entity names, filters, and technical parameters without asking the user.
 - The agent should not offer exports, export to SharePoint, or re-query data while formatting a response.
 
 The 20-record rule controls presentation only. It is not equivalent to applying OData `$top=20` and does not reduce the number of records initially retrieved by the connector.
+
+### Does displaying only 20 records reduce the OData payload?
+
+No. The 20-record rule affects only the generated response. It does not prevent the connector from retrieving a larger result set.
+
+The complete returned payload must first reach the agent before it can analyze the records and select the 20 most relevant ones.
+
+### What does "the full dataset has been analyzed" mean?
+
+It means all records successfully returned to the agent by the connector were considered when generating totals, breakdowns, distributions, anomalies, and risk findings.
+
+It does not guarantee that every record in the underlying D365 F&O entity was returned. Connector pagination, response-size limits, timeouts, service-protection limits, or model-context limits may affect completeness.
+
+For greater precision, use:
+
+> "All records returned by the connector have been analyzed and summarized."
+
+Avoid claiming:
+
+> "The entire F&O dataset has been analyzed."
 
 ### Is the agent read-only?
 
@@ -83,7 +125,7 @@ Yes. The 19 built-in tools issue only OData `GET` requests. They cannot create, 
 ### What are the known limitations?
 
 - The quality of findings depends on the completeness and accuracy of source data and configuration in D365 F&O.
-- Agent-determined filtering may be incorrect for complex or ambiguous requests.
+- Because the connector actions do not apply `$filter`, broad entity queries may retrieve more records than needed for the audit question.
 - `$top` is not fixed in the exported connector actions; large initial result sets can encounter connector, context-window, latency, or timeout limits.
 - The 20-record display rule does not reduce initial retrieval volume.
 - OData does not provide all reporting-style aggregation capabilities at the source; the agent summarizes records returned to it.
@@ -207,6 +249,12 @@ Availability depends on the enabled Copilot Studio channels and tenant policies.
 
 ## 5. Accuracy, Limitations, and Human Oversight
 
+### Can the ERP Compliance Advisor Agent analyze millions of records or complete ERP tables?
+
+No. The agent is designed for interactive compliance questions over relevant, reasonably sized datasets. It is not a replacement for a data warehouse, SQL query layer, reporting engine, Power BI, or Microsoft Fabric.
+
+For large datasets, filtering, joins, calculations, and aggregation should be performed upstream before data reaches the agent.
+
 ### How accurate are responses?
 
 Retrieval reflects the source data and permissions available at query time, but errors can still occur:
@@ -243,6 +291,27 @@ Not solely through its instructions. Counts are based on the records returned by
 ### Is the agent a bulk-export tool?
 
 No. The agent does not offer export options, export to SharePoint, or automatically re-query data. It is intended for scoped compliance analysis and audit interpretation, not bulk extraction.
+
+### Why can token or response-size limits still occur?
+
+Although `$select` reduces the number of columns, an entity may still return a large number of rows. The model context also contains agent instructions, tool definitions, connector schemas, conversation history, orchestration information, and response content.
+
+A result containing thousands of narrowly projected records can therefore still exceed connector, response-size, or model-context limits.
+
+### Will switching models resolve large-result problems?
+
+A model with a larger context window may help, but it does not remove the underlying retrieval limitation. The recommended solution is server-side filtering, aggregation, pagination, and enforced row limits before records reach the model.
+
+### What is recommended when an entity contains many records?
+
+Create a bounded retrieval layer using one or more of the following:
+
+- A purpose-built filtered or aggregated D365 F&O data entity.
+- A Power Automate flow that applies `$filter`, `$top`, and controlled pagination.
+- A custom API that validates and applies supported query parameters.
+- SQL, Microsoft Fabric, Data Lake, or Power BI for large-scale analysis.
+
+The agent should receive only the records needed to answer the specific audit question.
 
 ### What is the human's role?
 
@@ -336,7 +405,7 @@ Yes, with appropriate controls. State that AI-assisted tooling was used, documen
 - Restrict agent access to approved security groups.
 - Use the `AuditAgentReader` role or an equivalent least-privilege role.
 - Review all 19 tool instance URLs, connections, `$select` values, descriptions, and permissions after import.
-- Treat `$filter` and `$top` as instruction-driven behavior in this export and test large-result scenarios.
+- Confirm that `$filter` and `$top` are not configured in this export, and test large-result scenarios accordingly.
 - Configure and periodically review transcript, analytics, and audit-log access and retention.
 - Use a designated least-privilege connection identity, not a broadly privileged personal account.
 - Monitor tool, instruction, channel, and authentication changes through formal ALM and change control.

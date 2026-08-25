@@ -16,7 +16,7 @@
 >
 > - 19 read-only tools: 10 custom `AuditAgent*` entities and 9 standard F&O entities.
 > - This export does not include Duty-Privilege Mapping, Batch Jobs, Batch History, or Data Management tools.
-> - `$select` is updated across all 19 exported connector actions to retrieve only the required columns. `$filter` and `$top` are handled through agent instructions rather than fixed values in the exported actions. The 20-row rule limits presentation only; it does not limit the amount of data initially retrieved from F&O.
+> - `$select` is updated across all 19 exported connector actions to retrieve only the required columns. The actions do not configure `$filter` or `$top`; agent instructions govern analysis and display but do not apply server-side filters or row limits. The 20-row rule limits presentation only; it does not limit the amount of data initially retrieved from F&O.
 
 ## Table of Contents
 
@@ -125,7 +125,7 @@ An AI-driven ERP Compliance Advisor Agent for D365 Finance & Operations that ena
 The agent instructions require analysis of all records returned by a tool before the response is generated. Summaries reference the full returned dataset, including totals, breakdowns, date ranges, patterns, anomalies, risks, suspicious activity, and policy violations relevant to the request.
 
 - For 100 or fewer returned records, the agent displays every record in a Markdown table and states: *"Showing [total] of [total] records."*
-- For more than 100 returned records, the agent analyzes the full returned dataset, displays the 20 most relevant records, and states both *"Showing 20 of [total] records"* and *"Total records: [N] | Displaying: 20 most relevant records. Full dataset has been analyzed and summarized."*
+- For more than 100 returned records, the agent analyzes all records returned by the connector, displays the 20 most relevant records, and states both *"Showing 20 of [total returned] records"* and *"Total records returned by the connector: [N] | Displaying: 20 most relevant records. All records returned by the connector have been analyzed and summarized."*
 - When no records are returned, the agent states: **"Showing 0 of 0 returned records."** and explains that no matching records were returned.
 - The agent asks clarifying questions only for genuinely ambiguous requests. It determines filters, entity names, and technical parameters without asking the user.
 - The agent does not offer exports, export to SharePoint, or re-query the data while formatting the response.
@@ -388,7 +388,7 @@ The deployable package ([`SA_ERPComplianceAdvisorAgent.axpp`](https://github.com
 | Limitation | Details | Mitigation |
 |---|---|---|
 | Tool limit | Max 128 tools per agent; recommended ≤ 25–30 for best performance | Current design uses 19 tools — within optimal range |
-| OData query options | `$select` is updated across all 19 tools. `$filter` and `$top` are handled through agent instructions rather than fixed values in the exported connector actions | Validate runtime retrieval for large datasets; showing only 20 rows affects presentation, not initial retrieval size |
+| OData query options | `$select` is updated across all 19 tools. The exported connector actions do not configure `$filter` or `$top`; agent instructions affect analysis and display only | Use a bounded retrieval layer for large entities; showing only 20 rows affects presentation, not initial retrieval size |
 | Token limits | `$select` reduces retrieved columns, but AI response context limits still apply to large result sets because the instruction-based 20-row display rule is not a server-side `$top` | Monitor large-result behavior and add a validated server-side `$top` only if the retrieval requirements change |
 | Single environment | Each tool is hardcoded to one F&O instance URL | For multi-environment audits, create separate agents or parameterize the instance |
 | Read-only | Agent can only read data via *List items present in table* — cannot write, update, or delete | By design — audit agents should not modify data |
@@ -418,7 +418,7 @@ The deployable package ([`SA_ERPComplianceAdvisorAgent.axpp`](https://github.com
 
 - Reviewed solution version 1.0.1.0
 - 19 read-only connector tools backed by 10 custom `AuditAgent*` entities and 9 standard F&O entities
-- Current update: `$select` is updated across all 19 tools; `$filter` and `$top` behavior is handled through agent instructions
+- Current update: `$select` is updated across all 19 tools; `$filter` and `$top` are not configured in the connector actions, and agent instructions govern analysis and display only
 - Duty-Privilege Mapping, Batch Jobs, Batch History, and Data Management tools are not included in this export
 - Natural language querying with generative orchestration
 - Single-solution packaging
