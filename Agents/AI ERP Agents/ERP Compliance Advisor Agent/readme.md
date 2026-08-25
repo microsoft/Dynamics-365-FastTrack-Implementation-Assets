@@ -427,7 +427,7 @@ The deployable package ([`SA_ERPComplianceAdvisorAgent.axpp`](https://github.com
 
 ## Responsible AI FAQ
 
-Review the [Transparency Note and Responsible AI FAQ](RESPONSIBLE-AI-FAQ.md) before production deployment. It documents intended use, current tool and data scope, response handling, privacy and transcript considerations, accuracy limitations, human oversight, access control, audit readiness, risks, and responsible-use guidelines for reviewed solution version 1.0.1.0.
+Review the [Transparency Note and Responsible AI FAQ](Responsible-AI-FAQ.md) before production deployment. It documents intended use, current tool and data scope, response handling, privacy and transcript considerations, accuracy limitations, human oversight, access control, audit readiness, risks, and responsible-use guidelines for reviewed solution version 1.0.1.0.
 
 ## Contact Us
 
