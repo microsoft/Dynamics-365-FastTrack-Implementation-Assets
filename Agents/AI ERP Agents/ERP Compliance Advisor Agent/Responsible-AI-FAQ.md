@@ -318,6 +318,17 @@ Although `$select` reduces the number of columns, an entity may still return a l
 
 A result containing thousands of narrowly projected records can therefore still exceed connector, response-size, or model-context limits.
 
+### What should I do if a large-data or timeout error occurs?
+
+Errors such as `TooMuchDataToHandle`, `ExecutionTimeout`, or another context-limit error indicate that the request, connector output, conversation history, or execution path exceeded a platform limit.
+
+1. Start a new chat to remove accumulated conversation history.
+2. Ask a narrower question using a specific date range, user, table, role, or company.
+3. Retry once in case the timeout was transient.
+4. If the error persists, provide the error code and timestamp to the agent administrator.
+
+A narrower prompt does **not guarantee** a smaller OData payload in this release because `$filter` and `$top` are not configured in the connector actions. Persistent errors require server-side filtering, pagination, row limits, or another bounded retrieval layer.
+
 ### Will switching models resolve large-result problems?
 
 A model with a larger context window may help, but it does not remove the underlying retrieval limitation. The recommended solution is server-side filtering, aggregation, pagination, and enforced row limits before records reach the model.
