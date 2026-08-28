@@ -7,9 +7,9 @@
 
 ## Platform Support
 
-- **Windows-only** — Linux, Android, and iOS POS devices are not supported.
+- **Windows-only**
 - **Browser-based Store Commerce for web is not supported** — only the installed Windows application (Store Commerce app) is monitored.
-- **SQL Server-only** for database metrics — PostgreSQL, MySQL, and other engines are not supported.
+- **SQL Server-only** for database metrics
 
 ## Data Collection & Latency
 
@@ -22,7 +22,7 @@
 
 - **Non-deterministic response generation** — the AI may produce inaccurate summaries or miss relevant details for complex or ambiguous questions.
 - **Large telemetry result sets may produce a no-information response** — when the selected time range returns a large volume of telemetry data, the agent may return "No information was found that could help answer this." Restrict the time range and run the query again to reduce the number of returned records.
-- **Predefined topics only** — queries outside Application Errors, Hardware Station Errors, Retail Server Errors, Database Metrics, and Device Online/Offline require custom topic authoring.
+- **Predefined topics only** — queries outside predefined topics require custom topic authoring.
 - **Single Log Analytics workspace** — cross-workspace queries are not supported.
 
 ## DatabaseMetricsService
@@ -36,7 +36,6 @@
 
 - **Azure Policy remediation takes 10–15 minutes** — newly onboarded devices are unmonitored during this window.
 - **Service principal secrets expire** (default 24 months) — onboarding fails silently if not rotated.
-- **No built-in multi-store segmentation** — all devices across all stores are queried together
 - **No automated deployment for Copilot Studio** — the agent solution must be manually imported and configured.
 
 ## Security

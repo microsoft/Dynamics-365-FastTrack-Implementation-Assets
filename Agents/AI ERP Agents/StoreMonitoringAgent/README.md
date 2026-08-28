@@ -1,6 +1,6 @@
-# Store Monitoring Agent
+# Store Monitoring Agent(SMA)
 
-A comprehensive solution for monitoring Windows-based Point-of-Sale (POS) devices using Azure Arc, Azure Monitor Agent (AMA), and Microsoft Copilot Studio.
+An AI agent for monitoring Windows-based Point-of-Sale (POS) devices, built with Azure Arc, Azure Monitor Agent (AMA), and Microsoft Copilot Studio.
 
 ## Introduction
 
@@ -16,7 +16,7 @@ The solution connects POS devices to Azure via **Azure Arc** and **Azure Monitor
 | **Application diagnostics**      | Analyze Store Commerce errors by device or Event ID, parse diagnostic context, view trends, and explain known RetailLogger events   |
 | **Hardware station diagnostics** | Review hardware station errors, counts, details, and trends for individual devices or the full estate                               |
 | **Retail Server diagnostics**    | Analyze errors by device or request URL, request duration, slow-request evidence, and performance trends                            |
-| **Performance and telemetry**    | Review CPU, available memory, performance pressure, telemetry freshness, and Store Commerce event-log sink health                   |
+| **Performance and telemetry**    | Review POS device CPU, available memory, performance pressure, telemetry freshness, and Store Commerce event-log sink health        |
 | **Offline database health**      | Inspect SQL offline database size, table and index metrics, health details, and trends                                              |
 | **Operational diagnostics**      | Review completed POS operations, login failures, and card-payment failures                                                          |
 | **Fleet analysis and reports**   | Rank unhealthy devices, compare devices, detect anomalies and regressions, and generate single-device or estate-wide reports        |
@@ -94,15 +94,16 @@ The solution connects POS devices to Azure via **Azure Arc** and **Azure Monitor
 
 ## Documentation
 
-| Document                                                                              | Description                                                          |
-| ------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| [Quick Start Guide - Azure Portal](docs/quick-start-portal.md)                        | Step-by-step deployment guide using the Azure portal                 |
-| [Architecture Documentation](docs/architecture.md)                                    | Solution architecture and component overview                         |
-| [Device Onboarding Guide](docs/device-onboarding.md)                                  | Connect POS devices to Azure Arc and configure AMA                   |
-| [Capturing Database Metrics to Log Analytics](docs/database-metrics-log-analytics.md) | Configure offline SQL database metrics collection                    |
-| [Store Commerce App Update Procedure](docs/store-commerce-update.md)                  | Procedure for updating Store Commerce on monitored devices           |
-| [Model Support](docs/model-support.md)                                                | Supported generative AI models for the Copilot Studio agent          |
-| [Alert-Triggered Agent](docs/alert-triggered-agent.md)                                | Alert-triggered investigation pattern using Azure Monitor and Teams  |
-| [Autonomous / Proactive Monitoring Setup](docs/autonomous-proactive-monitoring.md)    | Configure the Recurring Store Monitoring Agent Flow                  |
-| [Known Limitations](docs/known-limitations.md)                                        | Current known limitations and workarounds                            |
-| [Periodic Maintenance Guide](docs/periodic-maintenance.md)                            | Periodic rotation and expiration checks for secrets and certificates |
+| Document                                                                               | Description                                                          |
+| -------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| [Quick Start Guide - Azure Portal](docs/quick-start-portal.md)                         | Step-by-step deployment guide using the Azure portal                 |
+| [Architecture Documentation](docs/architecture.md)                                     | Solution architecture and component overview                         |
+| [Multi-Agent Deployment for Store Segments](docs/multi-instance-store-segmentation.md) | Deploy isolated instances and workspaces for store segments          |
+| [Device Onboarding Guide](docs/device-onboarding.md)                                   | Connect POS devices to Azure Arc and configure AMA                   |
+| [Capturing Database Metrics to Log Analytics](docs/database-metrics-log-analytics.md)  | Configure offline SQL database metrics collection                    |
+| [Store Commerce App Update Procedure](docs/store-commerce-update.md)                   | Procedure for updating Store Commerce on monitored devices           |
+| [Model Support](docs/model-support.md)                                                 | Supported generative AI models for the Copilot Studio agent          |
+| [Alert-Triggered Agent](docs/alert-triggered-agent.md)                                 | Alert-triggered investigation pattern using Azure Monitor and Teams  |
+| [Autonomous / Proactive Monitoring Setup](docs/autonomous-proactive-monitoring.md)     | Configure the Recurring Store Monitoring Agent Flow                  |
+| [Known Limitations](docs/known-limitations.md)                                         | Current known limitations and workarounds                            |
+| [Periodic Maintenance Guide](docs/periodic-maintenance.md)                             | Periodic rotation and expiration checks for secrets and certificates |
