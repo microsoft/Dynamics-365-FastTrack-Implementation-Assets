@@ -9,6 +9,7 @@ This document explains how the ERP Compliance Advisor Agent works, what it can a
 | Document version | 1.1 |
 | Effective date | August 25, 2026 |
 | Latest reviewed solution | 1.0.1.0 |
+| Reviewed package | [`ERPComplianceAdvisorAgentSolution_1_0_1_0.zip`](ERPComplianceAdvisorAgentSolution_1_0_1_0.zip) (unmanaged) |
 | Classification | Public |
 | Platform | Microsoft Copilot Studio and Dynamics 365 Finance & Operations |
 

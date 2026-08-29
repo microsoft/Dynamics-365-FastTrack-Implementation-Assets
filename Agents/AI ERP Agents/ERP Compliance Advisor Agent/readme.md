@@ -227,12 +227,12 @@ The agent is operated by a designated Agent Operator — a person from the custo
 
 | Step | Action |
 |---|---|
-| 2.1 | Obtain the reviewed solution package, version **1.0.1.0**, from your organization's distribution channel (e.g., SharePoint, email, or internal portal). |
+| 2.1 | Download the reviewed unmanaged solution package: [`ERPComplianceAdvisorAgentSolution_1_0_1_0.zip`](ERPComplianceAdvisorAgentSolution_1_0_1_0.zip). |
 | 2.2 | Save the `.zip` file to your local machine — **do not extract/unzip it**. |
 
 #### Solution Package Structure
 
-The reviewed version 1.0.1.0 solution package contains:
+The reviewed version 1.0.1.0 unmanaged solution package contains:
 
 - ERP Compliance Advisor Agent (preconfigured agent with instructions)
 - 19 read-only Connector Tools (Fin & Ops Apps → *List items present in table*)
@@ -258,7 +258,7 @@ The reviewed version 1.0.1.0 solution package contains:
 **Step 3.3 — Import the Solution**
 
 1. Click **Import solution** (top command bar).
-2. Click **Browse** → select the version 1.0.1.0 solution package from your local machine.
+2. Click **Browse** → select `ERPComplianceAdvisorAgentSolution_1_0_1_0.zip` from your local machine.
 3. Click **Next**.
 4. The import wizard shows the solution details:
    - **Display name:** AI ERP IT and Security Audit Solution
