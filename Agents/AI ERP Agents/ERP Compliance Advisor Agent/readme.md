@@ -8,8 +8,15 @@
 > - **Do not store or share credentials, client secrets, or tenant identifiers** in this README, in the agent's conversation history, in screenshots, or in any derived audit report. Authentication is performed by the connector via the signed-in user's Microsoft Entra ID identity — no secret should ever be entered into the agent.
 > - **Audit responses may contain sensitive data** (user lists, role assignments, login history, SoD exceptions). Treat all agent output as confidential and share only with authorized auditors, compliance officers, and security personnel.
 > - **The agent runs with the signed-in user's F&O permissions.** Operate the agent only under an account assigned the least-privilege `AuditAgentReader` role; do **not** use a System Administrator account for routine queries.
-> - **Read-only by design.** The 17 built-in tools issue only OData `GET` requests. Do not modify the solution to add write actions without a fresh security review.
+> - **Read-only by design.** The 19 built-in tools issue only OData `GET` requests. Do not modify the solution to add write actions without a fresh security review.
 > - **Do not paste, screenshot, email, or record** audit output containing PII, security configuration, or vulnerability indicators in non-secure channels.
+
+> [!NOTE]
+> **Release facts — latest reviewed solution: version 1.0.1.0**
+>
+> - 19 read-only tools: 10 custom `AuditAgent*` entities and 9 standard F&O entities.
+> - This export does not include Duty-Privilege Mapping, Batch Jobs, Batch History, or Data Management tools.
+> - `$select` is updated across all 19 exported connector actions to retrieve only the required columns. The actions do not configure `$filter` or `$top`; agent instructions govern analysis and display but do not apply server-side filters or row limits. The 20-row rule limits presentation only; it does not limit the amount of data initially retrieved from F&O.
 
 ## Table of Contents
 
@@ -21,6 +28,7 @@
   - [Current Challenges](#current-challenges)
 - [Solution Capabilities](#solution-capabilities)
   - [Core Capabilities](#core-capabilities)
+  - [Response Handling](#response-handling)
 - [Architecture](#architecture)
   - [High-Level Architecture](#high-level-architecture)
   - [Data Flow](#data-flow)
@@ -44,6 +52,7 @@
   - [Functional Limitations](#functional-limitations)
   - [Security Constraints](#security-constraints)
 - [Roadmap](#roadmap)
+- [Responsible AI FAQ](#responsible-ai-faq)
 - [Contact Us](#contact-us)
 
 ## Use Case
@@ -60,7 +69,7 @@ The ERP Compliance Advisor Agent is an AI-powered Security & IT Audit assistant 
 | IT Security Teams | Privileged access monitoring, login anomaly detection, role change tracking |
 | Compliance Officers | License compliance, policy violation identification, audit trail review |
 | External Auditors | Submit evidence requests to the Agent Operator. Receive on-demand evidence. |
-| IT Managers | Batch job oversight, data export monitoring, user administration audit |
+| IT Managers | User administration and compliance audit oversight |
 | CISOs / Risk Officers | Executive security health summaries, risk dashboards |
 | Agent Operator — System Administrator (Option 1) | The System Administrator on the customer's project team collects audit questionnaires, uses the agent to query D365 F&O, and returns structured responses to auditors. No additional role needed. Suitable for initial deployment or small teams. |
 | Agent Operator — AuditAgentReader User (Option 2 — Recommended) | A dedicated person assigned only the `AuditAgentReader` role. Collects audit questionnaires, queries the agent, and returns responses — without holding full admin privileges. Best practice for SoD compliance. |
@@ -90,7 +99,7 @@ Typical audit and compliance requests include:
 | Challenge | Impact |
 |---|---|
 | Manual Audit Processes | When auditors request compliance evidence, a project team member with System Administrator access manually navigates multiple D365 F&O forms, exports data, consolidates it in Excel, and shares it back — taking days or weeks per audit cycle, with the auditors themselves having no direct ERP access. |
-| Fragmented Data Sources | Security data is spread across tables/forms in F&O (User security, role assignments, audit logs, batch jobs, database logs, SoD rules) — no single view. |
+| Fragmented Data Sources | Security data is spread across tables/forms in F&O (user security, role assignments, audit logs, database logs, and SoD rules) — no single view. |
 | Reactive Auditing | Security reviews happen quarterly or annually; issues go undetected for months. |
 | Skill Gap | Not all users understand D365 F&O's complex security model (Role → Duty → Privilege hierarchy) or know which forms to check. |
 | Slow Evidence Gathering | External auditors request evidence (user lists, role assignments, change logs) and IT teams spend hours manually extracting it. |
@@ -98,7 +107,7 @@ Typical audit and compliance requests include:
 
 ## Solution Capabilities
 
-An AI-driven ERP Compliance Advisor Agent for D365 Finance & Operations that enables plain-English compliance queries without technical navigation. It automatically correlates real-time data across entities to produce structured, audit-ready insights while proactively flagging risks. The solution delivers end-to-end compliance visibility across security, access, change tracking, and IT operations, and is extensible to support customer-specific audit scenarios and rules.
+An AI-driven ERP Compliance Advisor Agent for D365 Finance & Operations that enables plain-English compliance queries without technical navigation. It automatically correlates real-time data across entities to produce structured, audit-ready insights while proactively flagging risks. The solution delivers compliance visibility across security, access, and change tracking, and is extensible to support customer-specific audit scenarios and rules.
 
 ### Core Capabilities
 
@@ -110,6 +119,18 @@ An AI-driven ERP Compliance Advisor Agent for D365 Finance & Operations that ena
 | Structured Output | Results presented as formatted tables, summaries, or audit-report style narratives |
 | Risk Flagging | Agent proactively highlights anomalies and compliance risks in query results |
 | Audit Data Sources | Covers user access, license compliance, security governance, role structure |
+
+### Response Handling
+
+The agent instructions require analysis of all records returned by a tool before the response is generated. Summaries reference the full returned dataset, including totals, breakdowns, date ranges, patterns, anomalies, risks, suspicious activity, and policy violations relevant to the request.
+
+- For 100 or fewer returned records, the agent displays every record in a Markdown table and states: *"Showing [total] of [total] records."*
+- For more than 100 returned records, the agent analyzes all records returned by the connector, displays the 20 most relevant records, and states both *"Showing 20 of [total returned] records"* and *"Total records returned by the connector: [N] | Displaying: 20 most relevant records. All records returned by the connector have been analyzed and summarized."*
+- When no records are returned, the agent states: **"Showing 0 of 0 returned records."** and explains that no matching records were returned.
+- The agent asks clarifying questions only for genuinely ambiguous requests. It determines filters, entity names, and technical parameters without asking the user.
+- The agent does not offer exports, export to SharePoint, or re-query the data while formatting the response.
+
+These instructions govern analysis and presentation. In particular, displaying 20 records is not equivalent to applying an OData `$top=20`; the connector may initially retrieve more records for the agent to analyze.
 
 ## Architecture
 
@@ -129,14 +150,14 @@ The ERP Compliance Advisor Agent is designed to be **fully extensible** so custo
 
 - **Add your own D365 F&O data entities** — Create a new custom data entity (or expose an existing standard entity) in your F&O environment that surfaces any table, view, or aggregated data relevant to your compliance scenario (for example: custom approval logs, vendor onboarding checklists, segregation-of-duties exceptions specific to your industry, or regulator-mandated audit trails).
 - **Publish the entity** — Build, publish, and refresh the data entity list in F&O so it is available over OData with the appropriate read permissions granted to the `AuditAgentReader` role (or your own equivalent role).
-- **Hook it into the Copilot agent** — In Copilot Studio, add a new tool to the agent using the same **Fin & Ops Apps (Dynamics 365) → List items present in table** action used by the 17 built-in tools. Point it at your new entity, set the **Instance** to your F&O environment URL, and add a clear natural-language description of when the agent should use the tool.
+- **Hook it into the Copilot agent** — In Copilot Studio, add a new tool to the agent using the same **Fin & Ops Apps (Dynamics 365) → List items present in table** action used by the 19 built-in tools. Point it at your new entity, set the **Instance** to your F&O environment URL, and add a clear natural-language description of when the agent should use the tool.
 - **Maintain it yourself** — Because every tool is just a connector action plus a description, customers own the full lifecycle of their extensions: add, modify, version, or retire tools at any time from Copilot Studio without depending on Microsoft or the original publisher. Standard Power Platform ALM (solutions, environments, pipelines) applies.
 
 **Typical extension patterns**
 
 - Customer-specific SoD rules or sensitive-duty combinations that go beyond the standard USG output.
 - Integration with non-F&O audit data (via Dataverse or other connectors) added as additional tools.
-- **Extend with your own compliance knowledge** — Beyond the 17 built-in OData connector tools, customers can extend the agent with their own ERP compliance knowledge by attaching additional knowledge sources in Copilot Studio — for example, a SharePoint site or document library containing internal audit policies, SoD matrices, control narratives, regulatory mappings (SOX, GDPR, ISO 27001), prior audit reports, or company-specific compliance playbooks. Once added, users can ask questions that blend live D365 F&O telemetry with their own documentation in a single response (e.g., *"List users with the System Administrator role and cross-check them against our SOX privileged-access policy"*). Supported sources include SharePoint sites/files, OneDrive documents, public websites, Dataverse tables, Graph connectors, and uploaded files (PDF, DOCX, XLSX, TXT, etc.). Configure these under **Copilot Studio → your agent → Knowledge → + Add knowledge**.
+- **Extend with your own compliance knowledge** — Beyond the 19 built-in OData connector tools, customers can extend the agent with their own ERP compliance knowledge by attaching additional knowledge sources in Copilot Studio — for example, a SharePoint site or document library containing internal audit policies, SoD matrices, control narratives, regulatory mappings (SOX, GDPR, ISO 27001), prior audit reports, or company-specific compliance playbooks. Once added, users can ask questions that blend live D365 F&O telemetry with their own documentation in a single response (e.g., *"List users with the System Administrator role and cross-check them against our SOX privileged-access policy"*). Supported sources include SharePoint sites/files, OneDrive documents, public websites, Dataverse tables, Graph connectors, and uploaded files (PDF, DOCX, XLSX, TXT, etc.). Configure these under **Copilot Studio → your agent → Knowledge → + Add knowledge**.
 
 Because the agent is read-only by design, extensions inherit the same security posture — they should also be limited to read operations against entities the connecting account is authorized to view.
 
@@ -156,7 +177,7 @@ Because the agent is read-only by design, extensions inherit the same security p
 | Requirement | Details |
 |---|---|
 | Platform version | Platform update 45+ |
-| Data entities | 10 custom entities (`AuditAgent*`) must be deployed to F&O |
+| Data entities | 10 custom `AuditAgent*` entities must be deployed to F&O; the solution also uses 9 standard F&O entities |
 | OData access | OData v4 endpoints must be accessible (`/data/EntityName`) |
 | User Security Governance | D365 User Security Governance module must be enabled (for governance entities) |
 
@@ -187,9 +208,9 @@ These steps must be completed before importing the solution into Copilot Studio.
 | Step | Action | Details |
 |---|---|---|
 | 1.1 | Deploy Custom Data Entities | Import [`SA_ERPComplianceAdvisorAgent.axpp`](https://github.com/ankur198015/Dynamics-365-FastTrack-Implementation-Assets/blob/add-erp-compliance-advisor-agent-folder/Agents/AI%20ERP%20Agents/ERP%20Compliance%20Advisor%20Agent/SA_ERPComplianceAdvisorAgent.axpp) and deploy the 10 custom `AuditAgent*` data entities into your D365 F&O environment via a deployable package. |
-| 1.2 | Validate Entity Visibility | Go to **System Administration → Data Management → Data Entities** → confirm all 17 entities have **Is Public = Yes**. |
+| 1.2 | Validate Entity Visibility | Go to **System Administration → Data Management → Data Entities** → confirm the 10 custom and 9 standard entities used by the 19 tools have **Is Public = Yes**. |
 | 1.3 | Test OData Access | Open a browser and navigate to `https://<your-env>.operations.dynamics.com/data/AuditAgentInvalidUsers` — verify JSON data is returned. |
-| 1.4 | Create Read-Only Security Role | Create a custom security role `AuditAgentReader` with Read permission on all 17 data entities. |
+| 1.4 | Create Read-Only Security Role | Create a custom security role `AuditAgentReader` with Read permission on all 19 data entities used by the tools. |
 | 1.5 | Assign Security Role to Agent Users | **Option 2 only:** Assign the `AuditAgentReader` role to the designated Agent Operator in D365 F&O. If using Option 1 (System Administrator), skip this step — the System Administrator account already has the required access. |
 
 **Recommendation: AuditAgentReader Role — Two Options for Agent Operators**
@@ -206,15 +227,15 @@ The agent is operated by a designated Agent Operator — a person from the custo
 
 | Step | Action |
 |---|---|
-| 2.1 | Obtain the solution file [`ERPComplianceAdvisorAgentSolution_1_0_0_1.zip`](https://github.com/ankur198015/Dynamics-365-FastTrack-Implementation-Assets/blob/add-erp-compliance-advisor-agent-folder/Agents/AI%20ERP%20Agents/ERP%20Compliance%20Advisor%20Agent/ERPComplianceAdvisorAgentSolution_1_0_0_1.zip) from your organization's distribution channel (e.g., SharePoint, email, or internal portal). |
+| 2.1 | Download the reviewed unmanaged solution package: [`ERPComplianceAdvisorAgentSolution_1_0_1_0.zip`](ERPComplianceAdvisorAgentSolution_1_0_1_0.zip). |
 | 2.2 | Save the `.zip` file to your local machine — **do not extract/unzip it**. |
 
 #### Solution Package Structure
 
-[`ERPComplianceAdvisorAgentSolution_1_0_0_1.zip`](https://github.com/ankur198015/Dynamics-365-FastTrack-Implementation-Assets/blob/add-erp-compliance-advisor-agent-folder/Agents/AI%20ERP%20Agents/ERP%20Compliance%20Advisor%20Agent/ERPComplianceAdvisorAgentSolution_1_0_0_1.zip) contains:
+The reviewed version 1.0.1.0 unmanaged solution package contains:
 
 - ERP Compliance Advisor Agent (preconfigured agent with instructions)
-- 17 Connector Tools (Fin & Ops Apps → *List items present in table*)
+- 19 read-only Connector Tools (Fin & Ops Apps → *List items present in table*)
 - Connection Reference – Fin & Ops Apps (Dynamics 365)
 - Knowledge Sources (if included)
 
@@ -237,7 +258,7 @@ The agent is operated by a designated Agent Operator — a person from the custo
 **Step 3.3 — Import the Solution**
 
 1. Click **Import solution** (top command bar).
-2. Click **Browse** → select the [`ERPComplianceAdvisorAgentSolution_1_0_0_1.zip`](https://github.com/ankur198015/Dynamics-365-FastTrack-Implementation-Assets/blob/add-erp-compliance-advisor-agent-folder/Agents/AI%20ERP%20Agents/ERP%20Compliance%20Advisor%20Agent/ERPComplianceAdvisorAgentSolution_1_0_0_1.zip) file from your local machine.
+2. Click **Browse** → select `ERPComplianceAdvisorAgentSolution_1_0_1_0.zip` from your local machine.
 3. Click **Next**.
 4. The import wizard shows the solution details:
    - **Display name:** AI ERP IT and Security Audit Solution
@@ -280,21 +301,21 @@ During import, you will be asked to set up the **Fin & Ops Apps (Dynamics 365)**
 | Component Type | Name | Count |
 |---|---|---|
 | Agent | ERP Compliance Advisor Agent | 1 |
-| Agent Tools | Get Invalid Users, Get System User Log, etc. | 17 |
+| Agent Tools | Get Invalid Users, Get System User Log, etc. | 19 |
 | Connection Reference | Fin & Ops Apps (Dynamics 365) | 1 |
 
 **Step 4.2 — Update the F&O Instance URL in Tools**
 
 > **Critical Step:** The tools in the imported solution contain a placeholder or original maker's F&O URL. You must update them to point to your F&O environment.
 
-For each of the 17 tools:
+For each of the 19 tools:
 
 1. In the solution, click on the agent → go to **Tools**.
 2. Click on a tool (e.g., *Get Invalid Users*).
 3. Under **Inputs**, find the **Instance** field.
 4. Change the value from the existing URL to your F&O environment URL: `https://<your-environment>.operations.dynamics.com`
 5. Click **Save**.
-6. Repeat for all 17 tools.
+6. Repeat for all 19 tools.
 
 **Step 4.3 — Verify Connection Is Working**
 
@@ -310,7 +331,7 @@ For each of the 17 tools:
 | 5.3 | Type a test prompt: *Show me all invalid users*. |
 | 5.4 | Verify the agent calls the *Get Invalid Users* tool and returns data from your F&O. |
 | 5.5 | Check the **Activity Map** (below the test chat) to confirm correct tool selection. |
-| 5.6 | Test at least one prompt per audit domain:<br>• *"Show me all users with System Administrator role"* (User Access)<br>• *"Who has privileged access right now?"* (Security Governance)<br>• *"Show database log entries from today"* (Change Tracking)<br>• *"List all failed batch jobs this week"* (IT Operations) |
+| 5.6 | Test at least one prompt per included audit domain:<br>• *"Show me all users with System Administrator role"* (User Access)<br>• *"Who has privileged access right now?"* (Security Governance)<br>• *"Show database log entries from today"* (Change Tracking) |
 | 5.7 | If any tool fails, check: entity name spelling, F&O instance URL, connection status, user permissions in F&O. |
 
 ### Phase 6 — Production Deployment
@@ -335,10 +356,10 @@ The deployable package ([`SA_ERPComplianceAdvisorAgent.axpp`](https://github.com
 | Step | Action |
 |---|---|
 | 6.2.1 | Build and deploy the [`SA_ERPComplianceAdvisorAgent.axpp`](https://github.com/ankur198015/Dynamics-365-FastTrack-Implementation-Assets/blob/add-erp-compliance-advisor-agent-folder/Agents/AI%20ERP%20Agents/ERP%20Compliance%20Advisor%20Agent/SA_ERPComplianceAdvisorAgent.axpp) package (Option A) or your consolidated model (Option B) to the **production** D365 F&O environment through your standard LCS / release pipeline. |
-| 6.2.2 | Validate entity deployment: navigate to **System Administration → Data Management → Data Entities** and confirm all 17 entities show **Is Public = Yes**. |
+| 6.2.2 | Validate entity deployment: navigate to **System Administration → Data Management → Data Entities** and confirm the 10 custom and 9 standard entities used by the 19 tools show **Is Public = Yes**. |
 | 6.2.3 | Test OData access: open `https://<prod-env>.operations.dynamics.com/data/AuditAgentInvalidUsers` in a browser and verify JSON is returned. |
 | 6.2.4 | Assign the `AuditAgentReader` security role to the designated Agent Operator in the production environment. |
-| 6.2.5 | In Copilot Studio, update the **Instance** URL in all 17 tools to point to the production F&O URL (`https://<prod-env>.operations.dynamics.com`). |
+| 6.2.5 | In Copilot Studio, update the **Instance** URL in all 19 tools to point to the production F&O URL (`https://<prod-env>.operations.dynamics.com`). |
 | 6.2.6 | Re-authenticate the **Fin & Ops Apps (Dynamics 365)** connection reference to use production credentials. |
 | 6.2.7 | Run a smoke test — repeat the Phase 5 test prompts against production data to confirm end-to-end connectivity. |
 
@@ -366,8 +387,9 @@ The deployable package ([`SA_ERPComplianceAdvisorAgent.axpp`](https://github.com
 
 | Limitation | Details | Mitigation |
 |---|---|---|
-| Tool limit | Max 128 tools per agent; recommended ≤ 25–30 for best performance | Current design uses 17 tools — within optimal range |
-| Token limits | AI response context window has limits; very large result sets may be truncated | `$select` is hardcoded to return only relevant columns; `$top` limits row count |
+| Tool limit | Max 128 tools per agent; recommended ≤ 25–30 for best performance | Current design uses 19 tools — within optimal range |
+| OData query options | `$select` is updated across all 19 tools. The exported connector actions do not configure `$filter` or `$top`; agent instructions affect analysis and display only | Use a bounded retrieval layer for large entities; showing only 20 rows affects presentation, not initial retrieval size |
+| Token limits | `$select` reduces retrieved columns, but AI response context limits still apply to large result sets because the instruction-based 20-row display rule is not a server-side `$top` | Monitor large-result behavior and add a validated server-side `$top` only if the retrieval requirements change |
 | Single environment | Each tool is hardcoded to one F&O instance URL | For multi-environment audits, create separate agents or parameterize the instance |
 | Read-only | Agent can only read data via *List items present in table* — cannot write, update, or delete | By design — audit agents should not modify data |
 | No real-time alerts | Agent is conversational (pull-based); does not push alerts or notifications | Roadmap: add Power Automate scheduled triggers for proactive monitoring |
@@ -378,7 +400,7 @@ The deployable package ([`SA_ERPComplianceAdvisorAgent.axpp`](https://github.com
 |---|---|
 | No drill-down to F&O forms | Agent returns data but cannot link directly to F&O screens |
 | No chart/visualization | Responses are text/table only — no embedded charts |
-| Filter complexity | AI-generated OData filters work for common scenarios but may struggle with highly complex nested filter logic |
+| Filter complexity | The agent instructions direct the agent to determine filters without asking users for technical parameters; complex or ambiguous requests may still require clarification |
 | No data aggregation | OData doesn't support `GROUP BY` or `SUM` — the AI can summarize returned rows but cannot do server-side aggregation |
 | SoD analysis depth | SoD tool shows existing configured conflicts; it does not compute new SoD rules dynamically |
 
@@ -387,18 +409,25 @@ The deployable package ([`SA_ERPComplianceAdvisorAgent.axpp`](https://github.com
 | Constraint | Details |
 |---|---|
 | Data access = user's access | Connector runs with the signed-in user's credentials; they only see data their F&O security role permits |
-| No data caching | Data is not stored in Copilot Studio or Power Platform — queried and returned in real time |
-| Audit of the agent itself | Agent conversations are logged in Copilot Studio analytics but not in F&O audit trail |
+| Conversation data | Retrieved data may appear in Copilot Studio conversation transcripts according to tenant settings; treat transcripts as sensitive audit data |
+| Audit of the agent itself | Agent conversations may be logged according to Copilot Studio and tenant settings but are not part of the F&O audit trail |
 
 ## Roadmap
 
 **Foundation (Current Release)**
 
-- 17 connector-based tools covering 5 audit domains
+- Reviewed solution version 1.0.1.0
+- 19 read-only connector tools backed by 10 custom `AuditAgent*` entities and 9 standard F&O entities
+- Current update: `$select` is updated across all 19 tools; `$filter` and `$top` are not configured in the connector actions, and agent instructions govern analysis and display only
+- Duty-Privilege Mapping, Batch Jobs, Batch History, and Data Management tools are not included in this export
 - Natural language querying with generative orchestration
 - Single-solution packaging
 - Teams and web channel deployment
 - Knowledge integration (security policies)
+
+## Responsible AI FAQ
+
+Review the [Transparency Note and Responsible AI FAQ](Responsible-AI-FAQ.md) before production deployment. It documents intended use, current tool and data scope, response handling, privacy and transcript considerations, accuracy limitations, human oversight, access control, audit readiness, risks, and responsible-use guidelines for reviewed solution version 1.0.1.0.
 
 ## Contact Us
 
