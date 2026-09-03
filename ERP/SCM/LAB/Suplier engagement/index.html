@@ -1,0 +1,2212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supplier Engagement Lab Guide – D365 SCM (Preview)</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sb:#0f1f2e;--sb-hov:#1a3248;--sb-act-bg:#0078D4;
+  --sb-txt:#8daec8;--sb-act-txt:#fff;
+  --acc:#0078D4;--acc-d:#005a9e;--acc-l:#eff6ff;
+  --txt:#1a1f2e;--muted:#6b7280;--bg:#fff;--bg-alt:#f7f9fb;--border:#d1d9e0;
+  --res-bg:#ecfdf5;--res-b:#16a34a;
+  --note-bg:#eff6ff;--note-b:#0078D4;
+  --warn-bg:#fffbeb;--warn-b:#d97706;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;font-size:15px;line-height:1.65;
+     color:var(--txt);background:var(--bg-alt);
+     display:flex;flex-direction:column;height:100vh;overflow:hidden}
+/* topbar */
+.topbar{background:var(--sb);color:#fff;padding:0 24px;height:54px;
+        display:flex;align-items:center;gap:16px;flex-shrink:0;
+        box-shadow:0 2px 8px rgba(0,0,0,.35);z-index:10}
+.topbar .brand{font-size:16px;font-weight:700}
+.topbar .sub{font-size:11px;color:#6da3c4;margin-top:2px}
+.preview-pill{margin-left:auto;background:#d97706;color:#fff;font-size:10px;
+              font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.6px}
+/* layout */
+.layout{display:flex;flex:1;overflow:hidden}
+.sidebar{width:238px;background:var(--sb);overflow-y:auto;flex-shrink:0;padding:12px 0}
+.nav-sec{font-size:9.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;
+         color:#3d6a8a;padding:14px 18px 5px}
+.sidebar a{display:block;padding:7px 18px;font-size:13px;color:var(--sb-txt);
+           text-decoration:none;cursor:pointer;border-left:3px solid transparent;
+           transition:background .12s,color .12s}
+.sidebar a:hover{background:var(--sb-hov);color:#fff}
+.sidebar a.active{background:var(--sb-hov);color:var(--sb-act-txt);
+                  border-left-color:var(--sb-act-bg);font-weight:600}
+.content{flex:1;overflow-y:auto;padding:28px 32px}
+.lab-section{display:none;max-width:860px;margin:0 auto;animation:fi .2s ease}
+.lab-section.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* lab header */
+.lab-hdr{background:var(--bg);border:1px solid var(--border);border-top:4px solid var(--acc);
+         border-radius:8px;padding:24px 28px;margin-bottom:20px}
+.lab-meta{display:flex;gap:12px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.lab-num{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--acc)}
+.lab-time{font-size:12px;color:var(--muted)}
+.badge{font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px}
+.b-dep{background:#dbeafe;color:#1d4ed8}
+.b-cfg{background:#fce7f3;color:#9d174d}
+.b-dat{background:#d1fae5;color:#065f46}
+.b-prc{background:#fef3c7;color:#92400e}
+.b-scn{background:#ede9fe;color:#5b21b6}
+.lab-hdr h1{font-size:22px;font-weight:700;margin-bottom:8px}
+.lab-goal{font-size:14.5px;color:var(--muted);line-height:1.75}
+/* prereq */
+.prereq{background:var(--bg);border:1px solid var(--border);border-radius:8px;
+        padding:16px 20px;margin-bottom:20px}
+.prereq h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;
+           color:var(--muted);margin-bottom:10px}
+.chk{list-style:none;display:flex;flex-direction:column;gap:7px}
+.chk li{display:flex;align-items:flex-start;gap:9px;font-size:14px}
+.chk input{margin-top:3px;flex-shrink:0;accent-color:var(--acc);width:15px;height:15px;cursor:pointer}
+/* section label */
+.slbl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+      color:var(--acc);padding-bottom:7px;border-bottom:2px solid var(--acc);margin:24px 0 0}
+/* steps */
+.steps{display:flex;flex-direction:column}
+.step{display:flex;gap:0;padding:18px 0;border-bottom:1px solid var(--border)}
+.step:last-child{border-bottom:none}
+.step-n{flex-shrink:0;width:42px;display:flex;flex-direction:column;align-items:center;padding-top:2px}
+.step-n span{width:30px;height:30px;border-radius:50%;background:var(--acc);color:#fff;
+             font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.step-body{flex:1;min-width:0;padding-left:6px}
+.step-body h3{font-size:15.5px;font-weight:600;margin-bottom:7px}
+.step-body p{font-size:14px;margin-bottom:8px;color:var(--txt)}
+.step-body p:last-child{margin-bottom:0}
+/* where */
+.where{display:flex;flex-wrap:wrap;align-items:center;gap:4px;
+       background:#f0f4f8;border-radius:6px;padding:6px 12px;
+       margin-bottom:11px;font-size:13px}
+.where .mod{font-weight:700;color:var(--acc-d)}
+.where .sep{color:var(--muted)}
+/* field table */
+.ft{width:100%;border-collapse:collapse;margin:8px 0 12px;font-size:14px}
+.ft th{background:#f0f4f8;font-weight:700;padding:7px 13px;text-align:left;
+       font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);
+       border-bottom:2px solid var(--border)}
+.ft td{padding:7px 13px;border-bottom:1px solid var(--border);vertical-align:top}
+.ft tr:last-child td{border-bottom:none}
+.ft tr:nth-child(even) td{background:var(--bg-alt)}
+/* value pill */
+.v{background:#dbeafe;color:#1e3a8a;font-family:Consolas,monospace;font-size:13px;
+   padding:2px 7px;border-radius:4px;font-weight:600;white-space:nowrap}
+/* callouts */
+.result{background:var(--res-bg);border-left:4px solid var(--res-b);
+        border-radius:0 6px 6px 0;padding:11px 15px;margin-top:11px;font-size:14px;color:#14532d}
+.note{background:var(--note-bg);border-left:4px solid var(--note-b);
+      border-radius:0 6px 6px 0;padding:11px 15px;margin:9px 0;font-size:14px;color:#1e3a5f}
+.warn{background:var(--warn-bg);border-left:4px solid var(--warn-b);
+      border-radius:0 6px 6px 0;padding:11px 15px;margin:9px 0;font-size:14px;color:#78350f}
+.shot{margin:14px 0 16px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px}
+.shot img{display:block;width:100%;height:auto;border:1px solid var(--border);border-radius:6px;background:#fff}
+.shot figcaption{font-size:12px;color:var(--muted);line-height:1.45;margin-top:7px;text-align:center}
+/* story */
+.card{background:var(--bg);border:1px solid var(--border);border-radius:8px;
+      padding:22px 26px;margin-bottom:16px}
+.card h2{font-size:17px;font-weight:700;border-bottom:2px solid var(--acc);
+         padding-bottom:8px;margin-bottom:14px}
+.card h3{font-size:14px;font-weight:700;color:var(--acc);margin:14px 0 7px}
+.card p{font-size:14px;line-height:1.75;margin-bottom:10px}
+.dt{width:100%;border-collapse:collapse;margin:8px 0;font-size:14px}
+.dt th{background:var(--acc);color:#fff;padding:8px 13px;text-align:left;font-size:13px}
+.dt td{padding:7px 13px;border-bottom:1px solid var(--border)}
+.dt tr:nth-child(even) td{background:var(--bg-alt)}
+/* personas */
+.prow{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0}
+.pc{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;
+    padding:12px 16px;flex:1;min-width:190px}
+.pc .ico{font-size:22px;margin-bottom:6px}
+.pc .pn{font-weight:700;font-size:14px}
+.pc .pr{font-size:12px;color:var(--muted);margin-bottom:3px}
+.pc .pe{font-size:12px;color:var(--acc);font-family:Consolas,monospace}
+.ptag{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;
+      border-radius:10px;margin-bottom:5px}
+.pt-int{background:#dbeafe;color:#1d4ed8}
+.pt-ext{background:#fce7f3;color:#9d174d}
+/* placeholder */
+.ph{background:var(--bg);border:2px dashed var(--border);border-radius:10px;
+    padding:48px 32px;text-align:center;color:var(--muted)}
+.ph h3{font-size:18px;margin-bottom:8px}
+/* misc */
+code{background:#f0f4f8;border:1px solid var(--border);border-radius:4px;
+     padding:1px 6px;font-family:Consolas,monospace;font-size:13px}
+ol.sl{padding-left:22px}
+ol.sl li{margin-bottom:7px;font-size:14px;line-height:1.7}
+ul.sl{padding-left:22px}
+ul.sl li{margin-bottom:7px;font-size:14px;line-height:1.7;list-style:disc}
+.sidebar::-webkit-scrollbar,.content::-webkit-scrollbar{width:5px}
+.sidebar::-webkit-scrollbar-thumb{background:#2d4a66;border-radius:3px}
+.content::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+/* on-this-page right rail */
+.rightbar{width:212px;flex-shrink:0;padding:28px 16px 28px 4px;overflow-y:auto}
+.rightbar.hidden{display:none}
+.onpage-box{position:sticky;top:0}
+.onpage-title{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+              color:var(--muted);padding:0 10px 8px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.onpage-list{list-style:none}
+.onpage-list a{display:block;padding:5px 10px;font-size:12.5px;color:var(--muted);
+               text-decoration:none;cursor:pointer;border-left:2px solid transparent;line-height:1.4;
+               transition:color .12s,border-color .12s}
+.onpage-list a:hover{color:var(--acc)}
+.onpage-list a.active{color:var(--acc);border-left-color:var(--acc);font-weight:600}
+@media(max-width:1200px){.rightbar{display:none}}
+/* prev / next page navigation */
+.page-nav{max-width:860px;margin:32px auto 8px;display:flex;gap:12px;
+          border-top:1px solid var(--border);padding-top:20px}
+.page-nav button{flex:1;display:flex;flex-direction:column;gap:2px;cursor:pointer;
+                 background:var(--bg);border:1px solid var(--border);border-radius:8px;
+                 padding:12px 16px;font-family:inherit;color:var(--txt);
+                 transition:border-color .12s,box-shadow .12s}
+.page-nav button:hover{border-color:var(--acc);box-shadow:0 2px 8px rgba(0,120,212,.12)}
+.page-nav button:disabled{opacity:0;pointer-events:none}
+.page-nav .pn-dir{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--acc)}
+.page-nav .pn-title{font-size:14px;font-weight:600}
+.page-nav .pn-next{text-align:right}
+.page-nav .pn-next .pn-dir{color:var(--acc)}
+/* concept infographic */
+.ig{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px;margin:18px 0 8px}
+.ig-stage{flex:1 1 118px;min-width:118px;background:var(--bg);border:1px solid var(--border);
+          border-radius:10px;padding:14px 10px 12px;position:relative;text-align:center;
+          display:flex;flex-direction:column;gap:6px}
+.ig-stage .ig-badge{width:30px;height:30px;border-radius:50%;background:var(--acc);color:#fff;
+          font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;margin:0 auto}
+.ig-stage .ig-t{font-size:13px;font-weight:700}
+.ig-stage .ig-c{font-size:11px;color:var(--muted);line-height:1.45}
+.ig-arrow{display:flex;align-items:center;justify-content:center;color:var(--acc);
+          font-size:20px;font-weight:700;flex:0 0 auto}
+.ig-s-origin .ig-badge{background:#6b7280}
+.ig-s-prospect .ig-badge{background:#d97706}
+.ig-s-onboard .ig-badge{background:#0ea5e9}
+.ig-s-qual .ig-badge{background:#0078D4}
+.ig-s-appr .ig-badge{background:#7c3aed}
+.ig-s-rel .ig-badge{background:#0f766e}
+.ig-s-active .ig-badge{background:#16a34a}
+.ig-legend{display:flex;flex-wrap:wrap;gap:18px;margin:8px 0 2px;font-size:12px;color:var(--muted)}
+.ig-legend .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.ig-legend .d5{background:#16a34a}
+.ig-legend .d6{background:#1d4ed8}
+.ig-flag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.3px;
+         padding:1px 6px;border-radius:20px;margin-top:2px}
+.ig-f5{background:#d1fae5;color:#065f46}
+.ig-f6{background:#dbeafe;color:#1d4ed8}
+@media(max-width:760px){.ig-arrow{transform:rotate(90deg);width:100%;flex-basis:100%}}
+/* one-profile / many-entities fan-out */
+.ig-fan{margin:16px 0 4px;border:1px dashed var(--border);border-radius:10px;padding:18px 16px;text-align:center;background:var(--bg-alt)}
+.ig-hub{display:inline-block;background:var(--acc);color:#fff;font-weight:700;font-size:13px;padding:10px 18px;border-radius:10px}
+.ig-hub small{display:block;font-weight:500;font-size:10.5px;opacity:.9;margin-top:2px}
+.ig-fanline{font-size:11.5px;font-weight:700;color:var(--acc);letter-spacing:.3px;margin:12px 0}
+.ig-locals{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.ig-local{flex:0 1 210px;background:var(--bg);border:1px solid var(--border);border-top:3px solid #0f766e;
+          border-radius:8px;padding:10px 14px;font-weight:700;font-size:12.5px}
+.ig-local small{display:block;font-weight:500;color:var(--muted);font-size:11px;margin-top:3px}
+.ig-fannote{font-size:11.5px;color:var(--muted);margin-top:14px;line-height:1.55}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div>
+    <div class="brand">D365 SCM — Supplier Engagement Lab Guide</div>
+    <div class="sub">Preview Feature · SCM 10.0.48+ · Based on official Microsoft documentation (July 2026)</div>
+  </div>
+  <span class="preview-pill">PREVIEW</span>
+</header>
+<div class="layout">
+  <nav class="sidebar" id="sidebar">
+    <div class="nav-sec">Overview</div>
+    <a onclick="show('story')" id="nav-story">📖 Scenario &amp; Data</a>
+    <a onclick="show('concept')" id="nav-concept">🧩 Global Vendor Model</a>
+    <div class="nav-sec">Setup Labs</div>
+    <a onclick="show('lab0')" id="nav-lab0">Lab 0 · Prerequisites</a>
+    <a onclick="show('lab1')" id="nav-lab1">Lab 1 · Install on Power Platform</a>
+    <a onclick="show('lab2')" id="nav-lab2">Lab 2 · Configure Power Platform</a>
+    <a onclick="show('lab3')" id="nav-lab3">Lab 3 · Configure SCM</a>
+    <div class="nav-sec">Reference Data</div>
+    <a onclick="show('lab4')" id="nav-lab4">Lab 4 · Reference Data Setup</a>
+    <div class="nav-sec">Onboarding Labs</div>
+    <a onclick="show('lab5')" id="nav-lab5">Lab 5 · Self-Registration Flow</a>
+    <a onclick="show('lab6')" id="nav-lab6">Lab 6 · Internal Invitation &amp; Lifecycle</a>
+    <a onclick="show('lab7')" id="nav-lab7">Lab 7 · Migrate Existing Vendor</a>
+    <div class="nav-sec">Document Processing</div>
+    <a onclick="show('lab8')" id="nav-lab8">Lab 8 · RFQ via Supplier Portal</a>
+    <a onclick="show('lab9')" id="nav-lab9">Lab 9 · PO Collaboration &amp; Invoice</a>
+  </nav>
+  <main class="content" id="main-content">
+
+    <!-- ========== STORY ========== -->
+    <section id="story" class="lab-section">
+      <div class="card">
+        <h2>🏭 Technova Industries — Lab Scenario</h2>
+        <p>Technova Industries is a mid-size precision electronics manufacturer operating in the <strong>USMF</strong> legal entity (Contoso US Manufacturing). The company has just stood up a fresh Dynamics 365 SCM 10.0.48 instance and is rolling out the <strong>Supplier Engagement</strong> preview module to replace manual email-based supplier interactions.</p>
+        <p>The immediate driver is the <strong>TX-500 Smart Controller Board</strong> — a new product line requiring three new strategic suppliers to be onboarded before the Q4 2026 production run. Procurement Manager <strong>Alex Chen</strong> will own all internal steps. The three suppliers will engage exclusively through the new Supplier Portal.</p>
+
+        <h3>Key Suppliers to Onboard</h3>
+        <table class="dt">
+          <thead><tr><th>Global Vendor</th><th>Company</th><th>Country</th><th>Category</th><th>Onboarding Path</th></tr></thead>
+          <tbody>
+            <tr><td><span class="v">GV-001</span></td><td><strong>Pacific Components Ltd.</strong></td><td>United States</td><td>Electronic Components / PCB</td><td>Supplier self-registration</td></tr>
+            <tr><td><span class="v">GV-002</span></td><td><strong>Alps Sensors GmbH</strong></td><td>Germany</td><td>Sensors &amp; Transducers</td><td>Internal invitation</td></tr>
+            <tr><td><span class="v">GV-003</span></td><td><strong>Acme Office Supplies</strong></td><td>United States</td><td>Office Supplies</td><td>Existing vendor migration</td></tr>
+          </tbody>
+        </table>
+        <div class="note"><strong>About "GV-001 / GV-002 / GV-003":</strong> these are friendly labels used throughout this guide to refer to the three suppliers. They are <em>not</em> the literal Global Vendor Number — the system assigns that automatically from your environment's number sequence (e.g., a value like <code>GV-000001</code> or a plain running number), so the actual numbers you see will differ. Identify each record by its <strong>company name</strong>, not the GV-00x label.</div>
+
+        <h3>Personas</h3>
+        <div class="prow">
+          <div class="pc">
+            <div class="ico">👤</div>
+            <span class="ptag pt-int">INTERNAL</span>
+            <div class="pn">Alex Chen</div>
+            <div class="pr">Procurement Manager, Technova Industries</div>
+            <div class="pe">alex.chen@technova.com</div>
+          </div>
+          <div class="pc">
+            <div class="ico">🌐</div>
+            <span class="ptag pt-ext">SUPPLIER</span>
+            <div class="pn">Maria Santos</div>
+            <div class="pr">Supplier Admin, Pacific Components Ltd.</div>
+            <div class="pe">m.santos@pacificcomponents.com</div>
+          </div>
+          <div class="pc">
+            <div class="ico">🌐</div>
+            <span class="ptag pt-ext">SUPPLIER</span>
+            <div class="pn">Klaus Weber</div>
+            <div class="pr">Supplier Admin, Alps Sensors GmbH</div>
+            <div class="pe">k.weber@alps-sensors.de</div>
+          </div>
+        </div>
+
+        <h3>Lab Reference Data — Use these values throughout all labs</h3>
+        <table class="dt">
+          <thead><tr><th>Entity</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Legal entity</td><td><span class="v">USMF</span></td></tr>
+            <tr><td>Min SCM version</td><td><span class="v">10.0.48 build 10.0.2645.52</span></td></tr>
+            <tr><td>RFQ item</td><td><span class="v">PCB-CON-M12</span> — M12 PCB Connector</td></tr>
+            <tr><td>RFQ quantity</td><td><span class="v">500 ea</span>, needed by <span class="v">2026-09-15</span></td></tr>
+            <tr><td>Awarded unit price</td><td><span class="v">USD 2.45</span></td></tr>
+            <tr><td>PO total</td><td><span class="v">USD 1,225.00</span> (500 × 2.45)</td></tr>
+            <tr><td>PO Invoice number</td><td><span class="v">INV-PC-2026-001</span></td></tr>
+            <tr><td>Certificate types</td><td>ISO 9001:2015 · RoHS 2015/863/EU · IATF 16949</td></tr>
+            <tr><td>Certifying organizations</td><td>Bureau Veritas · SGS Group · TÜV Rheinland</td></tr>
+            <tr><td>Supplier segments</td><td>Tier 1 Strategic · Tier 2 Preferred · Tier 3 Spot</td></tr>
+          </tbody>
+        </table>
+
+        <div class="warn"><strong>Preview disclaimer:</strong> Supplier Engagement is a preview feature in D365 SCM 10.0.48. It is not intended for production use and is subject to supplemental terms of use. All lab steps are grounded in official Microsoft documentation dated July 27, 2026 and rechecked on September 3, 2026.</div>
+      </div>
+    </section>
+
+    <!-- ========== CONCEPT: GLOBAL VENDOR MODEL ========== -->
+    <section id="concept" class="lab-section">
+      <div class="card">
+        <h2>🧩 The Global Vendor Model</h2>
+        <p>The <strong>global vendor</strong> is the central idea that Supplier Engagement is built on. Instead of maintaining the same supplier separately in every legal entity, you keep <strong>one master profile</strong> — the global vendor — and connect it to the operational <strong>local (released) vendors</strong> in Supply Chain Management. Understanding this model makes the rest of the labs (creation, lifecycle, release, collaboration) click into place.</p>
+        <p>A global vendor is the <strong>governing record for supplier identity</strong>: company details, contacts, addresses, agreements, certifications, and ownership. It is <strong>not transactional</strong> — you don't raise purchase orders or invoices against it. Transactions always run against the local vendor in a specific legal entity.</p>
+
+        <h3>Global vendor vs. local (released) vendor</h3>
+        <table class="dt">
+          <thead><tr><th>Aspect</th><th>Global vendor</th><th>Local (released) vendor</th></tr></thead>
+          <tbody>
+            <tr><td>Scope</td><td>Shared across all legal entities</td><td>Specific to one legal entity (e.g., USMF)</td></tr>
+            <tr><td>Purpose</td><td>Master profile &amp; data consolidation</td><td>Day-to-day transaction processing</td></tr>
+            <tr><td>Transactions</td><td>None (non-transactional)</td><td>Purchase orders, receipts, invoices, payments</td></tr>
+            <tr><td>Holds identity data</td><td>Company details, contacts, addresses, certificates, agreements, ownership</td><td>Legal entity–specific settings: vendor group, currency, bank accounts, tax IDs</td></tr>
+            <tr><td>Managed in</td><td>Supplier Engagement app</td><td>Supply Chain Management (synced from the global vendor)</td></tr>
+            <tr><td>Relationship</td><td>One global vendor →</td><td>can link to many local vendors (one per legal entity it is released to)</td></tr>
+          </tbody>
+        </table>
+        <div class="note"><strong>Key rule:</strong> Only vendors associated with a global vendor are accessible through the Supplier Engagement app or the supplier portal. A plain local vendor with no global vendor link cannot use the portal — which is exactly why Lab 7 migrates an existing vendor into a global vendor.</div>
+
+        <h3>How a global vendor is created — three origins</h3>
+        <p>Every global vendor records the <strong>origin</strong> of how the relationship started. This lab series exercises all three:</p>
+        <table class="dt">
+          <thead><tr><th>Creation method</th><th>Origin value</th><th>In this lab</th></tr></thead>
+          <tbody>
+            <tr><td>Supplier submits a portal registration that you approve</td><td><span class="v">Supplier portal</span></td><td>Lab 5 — Pacific Components (GV-001)</td></tr>
+            <tr><td>Internal user creates it manually in the Supplier Engagement app</td><td><span class="v">Supplier Engagement</span></td><td>Lab 6 — Alps Sensors (GV-002)</td></tr>
+            <tr><td>Created from existing vendor data via the wizard in SCM</td><td><span class="v">Supply Chain Management</span></td><td>Lab 7 — Acme Office Supplies (GV-003)</td></tr>
+          </tbody>
+        </table>
+
+        <h3>The onboarding lifecycle</h3>
+        <p>A global vendor moves through a status lifecycle. Release to a legal entity becomes possible once the vendor is <strong>Qualified</strong>.</p>
+        <table class="dt">
+          <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><span class="v">Prospect</span></td><td>Newly created and under review (self-registered and manually created vendors start here)</td></tr>
+            <tr><td><span class="v">Qualified</span></td><td>Passed initial validation and can be released to legal entities (wizard-migrated vendors start here directly)</td></tr>
+            <tr><td><span class="v">Approved</span></td><td>Fully approved for business use</td></tr>
+            <tr><td><span class="v">Disqualified / Disapproved / Terminated</span></td><td>Did not meet requirements, or is no longer active</td></tr>
+          </tbody>
+        </table>
+        <div class="note"><strong>Release creates the local vendor:</strong> When a qualified/approved global vendor is released to a legal entity (Lab 6, using the <strong>Release vendor</strong> command), the system creates a local vendor account in that company, linked to the same party. From then on, updates sync automatically between the Supplier Engagement app and SCM.</div>
+
+        <h3>Infographic — the global vendor journey (Labs 5 &amp; 6)</h3>
+        <p>The two onboarding labs trace the same lifecycle from opposite starting points. Follow the pipeline below:</p>
+        <div class="ig">
+          <div class="ig-stage ig-s-origin">
+            <div class="ig-badge">1</div>
+            <div class="ig-t">Origin</div>
+            <div class="ig-c">Self-registration (GV-001) or internal invitation (GV-002)</div>
+          </div>
+          <div class="ig-arrow">→</div>
+          <div class="ig-stage ig-s-prospect">
+            <div class="ig-badge">2</div>
+            <div class="ig-t">Prospect</div>
+            <div class="ig-c">Created &amp; under review</div>
+          </div>
+          <div class="ig-arrow">→</div>
+          <div class="ig-stage ig-s-onboard">
+            <div class="ig-badge">3</div>
+            <div class="ig-t">Onboarding</div>
+            <div class="ig-c">Supplier completes company profile in the portal</div>
+          </div>
+          <div class="ig-arrow">→</div>
+          <div class="ig-stage ig-s-qual">
+            <div class="ig-badge">4</div>
+            <div class="ig-t">Qualified</div>
+            <div class="ig-c">Passed validation — eligible for release</div>
+            <span class="ig-flag ig-f5">GV-001 stops here · Lab 5</span>
+          </div>
+          <div class="ig-arrow">→</div>
+          <div class="ig-stage ig-s-appr">
+            <div class="ig-badge">5</div>
+            <div class="ig-t">Approved</div>
+            <div class="ig-c">Approved for business use</div>
+            <span class="ig-flag ig-f6">Lab 6</span>
+          </div>
+          <div class="ig-arrow">→</div>
+          <div class="ig-stage ig-s-rel">
+            <div class="ig-badge">6</div>
+            <div class="ig-t">Released to USMF</div>
+            <div class="ig-c"><strong>Release vendor</strong> → creates the local vendor account</div>
+            <span class="ig-flag ig-f6">Lab 6</span>
+          </div>
+          <div class="ig-arrow">→</div>
+          <div class="ig-stage ig-s-active">
+            <div class="ig-badge">7</div>
+            <div class="ig-t">Collaboration active</div>
+            <div class="ig-c">Local vendor set Active — ready for PO / RFQ / invoice (Labs 8–9)</div>
+            <span class="ig-flag ig-f6">GV-002 · Lab 6</span>
+          </div>
+        </div>
+        <div class="ig-legend">
+          <span><span class="dot d5"></span> <strong>GV-001 · Pacific Components</strong> (Lab 5) — self-registers, onboards, and stops at <em>Qualified</em></span>
+          <span><span class="dot d6"></span> <strong>GV-002 · Alps Sensors</strong> (Lab 6) — full lifecycle through <em>Approved → Released → Active</em></span>
+        </div>
+
+        <h3>One profile, many legal entities</h3>
+        <p>This is the essence of “global.” A single global vendor profile can be <strong>released to more than one legal entity</strong> — each release produces its own local vendor without re-entering the supplier's identity data. Alps Sensors GmbH (GV-002) is a German supplier that Technova buys from in both its US and German companies:</p>
+        <div class="ig-fan">
+          <div class="ig-hub">GV-002 · Alps Sensors GmbH<small>One global vendor — shared identity, contacts &amp; certificates</small></div>
+          <div class="ig-fanline">⇓ released to multiple legal entities ⇓</div>
+          <div class="ig-locals">
+            <div class="ig-local">USMF local vendor<small>US company · USD · US vendor group</small></div>
+            <div class="ig-local">DEMF local vendor<small>German company · EUR · DE vendor group</small></div>
+          </div>
+          <div class="ig-fannote"><strong>Shared</strong> (maintained once on the global vendor): company name, addresses, contacts, certificates, agreements, ownership. &nbsp;<strong>Per‑entity</strong> (kept on each local vendor): currency, vendor group, bank accounts, tax IDs, holds.</div>
+        </div>
+        <div class="note">You practice this in <strong>Lab 6, Part D (optional)</strong> — after releasing GV-002 to USMF, you release the <em>same</em> global vendor to <span class="v">DEMF</span> and get a second local vendor, with no duplicate identity entry.</div>
+
+        <h3>The global vendor record — key tabs</h3>
+        <p>The global vendor form in the Supplier Engagement app organizes supplier data across several tabs:</p>
+        <table class="dt">
+          <thead><tr><th>Tab</th><th>What it holds</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Summary / General</strong></td><td>Core company data: name, type, parent, origin, primary contact, profile, ownership, contact methods, addresses, certificates, rating</td></tr>
+            <tr><td><strong>Lifecycle</strong></td><td>Status &amp; readiness, agreements (NDA, T&amp;Cs, code of conduct), and the related <strong>released (local) vendor</strong> records</td></tr>
+            <tr><td><strong>Capabilities</strong></td><td>Non-transactional attributes: products, market segments, quality standards, process capabilities</td></tr>
+            <tr><td><strong>Risks</strong></td><td>Documented supplier risks and corrective actions</td></tr>
+            <tr><td><strong>Assessment</strong></td><td>Onboarding questionnaire responses and evaluation data</td></tr>
+            <tr><td><strong>Portal</strong></td><td>Onboarding invitations, portal access status, active users, notifications</td></tr>
+            <tr><td><strong>Related</strong></td><td>Menu to view other records related to the vendor</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Duplicate detection</h3>
+        <p>Because the global vendor is a shared identity, the system checks for existing matches whenever you create or validate one. The Supplier Engagement app applies Dataverse duplicate detection rules during manual creation, and SCM validates against existing vendor party records during qualification. These checks surface possible matches so you can <strong>merge, keep, or cancel</strong> — they don't hard-block you. This is why Lab 2 configures duplicate detection rules and Lab 7 includes a duplicate check step.</p>
+
+        <div class="note"><strong>How this maps to the labs:</strong> You create three global vendors through all three origins (Labs 5–7), walk GV-002 through the full <em>Prospect → Qualified → Approved → Released → Active</em> lifecycle (Lab 6), and then transact against the resulting <em>local</em> vendors via RFQ, PO, and invoice (Labs 8–9).</div>
+        <p style="margin-top:14px;font-size:13px;color:var(--muted)">Grounded in the official <a href="https://learn.microsoft.com/en-us/dynamics365/supply-chain/supplier-engagement/supplier-engagement-global-vendors-overview" target="_blank" rel="noopener">Global vendor management overview</a> and <a href="https://learn.microsoft.com/en-us/dynamics365/supply-chain/supplier-engagement/supplier-engagement-manage-local-vendors" target="_blank" rel="noopener">Manage local vendors</a> documentation.</p>
+      </div>
+    </section>
+
+    <!-- ========== LAB 0 ========== -->
+    <section id="lab0" class="lab-section">
+      <div class="lab-hdr">
+        <div class="lab-meta">
+          <span class="lab-num">Lab 0 of 9</span>
+          <span class="lab-time">⏱ ~25 min</span>
+          <span class="badge b-dep">Setup</span>
+        </div>
+        <h1>Prerequisites &amp; Environment Validation</h1>
+        <p class="lab-goal">Before installing Supplier Engagement, confirm that your SCM environment, Dataverse integration, and virtual entity solutions all meet the requirements. A clean pre-flight avoids installation failures later. You will also set up the dedicated service account that all cloud flows and automation run under.</p>
+      </div>
+
+      <div class="prereq">
+        <h4>Before you start</h4>
+        <ul class="chk">
+          <li><input type="checkbox"><span>System Administrator access to a D365 SCM environment.</span></li>
+          <li><input type="checkbox"><span>Access to Power Platform admin center (<code>admin.powerplatform.microsoft.com</code>).</span></li>
+          <li><input type="checkbox"><span>Access to Power Apps maker portal (<code>make.powerapps.com</code>).</span></li>
+          <li><input type="checkbox"><span>A dedicated Microsoft Entra ID service account is available (non-personal).</span></li>
+        </ul>
+      </div>
+
+      <div class="slbl">Part A — Verify SCM Version</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>1</span></div>
+          <div class="step-body">
+            <h3>Check the SCM build version</h3>
+            <div class="where"><span class="mod">Settings (gear icon)</span><span class="sep"> › </span><span>About</span></div>
+            <p>In the <strong>Version information</strong> section, locate <strong>Application version</strong>. Confirm it is <span class="v">10.0.48</span> with build <span class="v">10.0.2645.52</span> or later.</p>
+            <div class="result"><strong>Application version reads 10.0.48 (build 10.0.2645.52 or higher).</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>2</span></div>
+          <div class="step-body">
+            <h3>Confirm the SCM environment is linked to Dataverse</h3>
+            <div class="where"><span class="mod">admin.powerplatform.microsoft.com</span><span class="sep"> › </span><span>Manage</span><span class="sep"> › </span><span>Environments</span><span class="sep"> › </span><span>(your environment)</span></div>
+            <p>Supplier Engagement requires your Supply Chain Management environment to be connected to Dataverse. In the Power Platform admin center, open your environment and confirm it has a <strong>Dataverse database</strong> with an <strong>Environment URL</strong>. Learn more in the official <a href="https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/power-platform/overview" target="_blank" rel="noopener">Power Platform integration with finance and operations apps</a> documentation.</p>
+            <div class="note"><strong>Unified / merged environments:</strong> If you are on a unified (merged finance and operations + Dataverse) environment, Dataverse is co-located and this prerequisite is met automatically — there is no separate "Power Platform integration" page to enable inside the SCM client.</div>
+            <div class="result"><strong>The environment shows a Dataverse database and a resolvable environment URL.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part B — Verify Virtual Entity Solutions</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>3</span></div>
+          <div class="step-body">
+            <h3>Confirm four required solutions are installed in Power Apps</h3>
+            <p>Sign in to <code>make.powerapps.com</code>, select your environment → <strong>Solutions → Managed</strong> tab. Verify that all four solutions below are present:</p>
+            <table class="ft">
+              <thead><tr><th>Required Solution</th><th>Purpose</th></tr></thead>
+              <tbody>
+                <tr><td><span class="v">Dynamics 365 Company</span></td><td>Legal entity support</td></tr>
+                <tr><td><span class="v">Dynamics Operations Virtual Entity Support</span></td><td>Core virtual entity framework</td></tr>
+                <tr><td><span class="v">Microsoft Operations ERP Catalog</span></td><td>Entity catalog</td></tr>
+                <tr><td><span class="v">Dynamics 365 ERP Virtual Entities</span></td><td>Virtual entity definitions for SCM data</td></tr>
+              </tbody>
+            </table>
+            <p>If any are missing, install them via <em>Configure Dataverse virtual entities</em> on Microsoft Learn before continuing.</p>
+            <div class="result"><strong>All four solutions appear in the Managed tab with status Installed.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>4</span></div>
+          <div class="step-body">
+            <h3>Verify Finance and Operations Virtual Entity app version</h3>
+            <p>In the Power Platform admin center go to <strong>Manage → Environments</strong> → open your environment → <strong>Resources → Dynamics 365 apps</strong>. Find <strong>Finance and Operations Virtual Entity</strong> and confirm the version is <span class="v">2.20.3385.8</span> or later. If outdated, select the app and click <strong>Update</strong>.</p>
+            <div class="result"><strong>Finance and Operations Virtual Entity app shows version 2.20.3385.8 or higher.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part C — Service Account &amp; Licensing</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>5</span></div>
+          <div class="step-body">
+            <h3>Prepare the dedicated service account</h3>
+            <p>Supplier Engagement requires a <strong>dedicated Microsoft Entra ID service account</strong> (not an app registration) for cloud flows, notifications, and background automation. Grant the account these roles:</p>
+            <table class="ft">
+              <thead><tr><th>System</th><th>Required Role</th></tr></thead>
+              <tbody>
+                <tr><td>Dataverse</td><td><span class="v">System Administrator</span></td></tr>
+                <tr><td>Supply Chain Management</td><td><span class="v">System Administrator</span></td></tr>
+                <tr><td>Microsoft Entra ID</td><td><span class="v">Power Platform Administrator</span></td></tr>
+              </tbody>
+            </table>
+            <div class="note"><strong>Why these three roles?</strong> Deployment and the ongoing automation span three different planes, so the identity needs admin on each:
+              <ul class="sl" style="margin-top:8px">
+                <li><strong>Power Platform Administrator (Entra)</strong> — the "install &amp; provision" role: installs the Supplier Engagement app and supplier portal, installs/updates the Finance and Operations Virtual Entity app, and provisions/reactivates the Power Pages site. These are environment- and tenant-scoped operations that a Dataverse admin alone can't perform.</li>
+                <li><strong>Dataverse System Administrator</strong> — the "own the components &amp; run the flows" role: imports the solutions, creates connection references, turns on the cloud flows and duplicate detection rules, and owns those flows at runtime (they execute under this identity).</li>
+                <li><strong>SCM System Administrator</strong> — the "configure the ERP side" role: enables the feature, sets up workflows/batch jobs, security duties, and entity store refresh, generates the virtual entity metadata, and lets the SCM ↔ Dataverse data sync run under this identity.</li>
+              </ul>
+              A single account holds all three because a flow in Dataverse pushes data into SCM through virtual entities and sends email — if the identity is missing any one role, you hit permission failures either during install or silently at runtime.</div>
+            <p>Use a shared mailbox such as <code>svc-suppliereng@yourtenant.onmicrosoft.com</code>. This account must have a valid mailbox — cloud flows that send email run under this identity.</p>
+            <div class="warn"><strong>Do not use a personal mailbox as the service account.</strong> If the person leaves, all cloud flows stop. Use an IT-managed shared service account with a permanent mailbox.</div>
+            <div class="note"><strong>Addendum — MVP / single-tenant trial (alternate):</strong> For a proof-of-concept or MVP where no dedicated service account is available, you can use your own licensed admin account as the flow owner instead. The dedicated account is a <em>production best practice</em>, not a technical requirement — what actually matters is that the identity you use meets all of the following:
+              <ul class="sl" style="margin-top:8px">
+                <li><strong>Native member of the target tenant</strong> — use an account that lives in the same tenant as the SCM/Dataverse environment, not a guest (B2B) identity. If your personal account is a guest in this tenant, sign-in and flow ownership can behave unreliably; prefer a native member account, even a trial one.</li>
+                <li><strong>Has all three roles above</strong> — Dataverse <span class="v">System Administrator</span>, SCM <span class="v">System Administrator</span>, and Entra <span class="v">Power Platform Administrator</span>.</li>
+                <li><strong>Has a working mailbox in this tenant</strong> — outbound onboarding/notification emails are sent as this identity, so the mailbox must be able to send.</li>
+                <li><strong>One identity per tenant</strong> — because you are working across two tenants, keep a separate owner account in each. Do not try to share one flow-owner identity across both environments.</li>
+              </ul>
+              <strong>Trade-offs to accept for MVP:</strong> flows, notifications, and background automation all run under <em>your</em> account, so emails appear to come from you, and if your account is disabled or loses a role the automation stops. That is acceptable for a demo/MVP — just plan to swap in a real dedicated service account before any production or shared use.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>6</span></div>
+          <div class="step-body">
+            <h3>Confirm licensing expectations</h3>
+            <p>As of July 2026 the licensing model for Supplier Engagement is still under review for GA. For this preview:</p>
+            <ul class="sl">
+              <li>Your SCM environment needs a valid Dynamics 365 Supply Chain Management subscription.</li>
+              <li>The supplier portal runs on Power Pages — a <strong>30-day trial</strong> is available during the preview.</li>
+              <li>Dataverse capacity is consumed by global vendor and contact records.</li>
+            </ul>
+            <div class="note"><strong>Preview terms:</strong> These labs use a preview feature subject to supplemental terms of use. Do not configure in a production environment until the feature reaches general availability.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>7</span></div>
+          <div class="step-body">
+            <h3>Configure Microsoft Entra ID B2B for FSCM supplier users</h3>
+            <p>Supplier Engagement invites every external supplier contact (Maria Santos, Klaus Weber, and any future supplier) into your tenant as a Microsoft Entra <strong>B2B guest</strong> — this is what actually lets them sign in to the portal. Configure the tenant and FSCM B2B invitation service <em>before</em> you rely on supplier invitations in Labs 5–6.</p>
+            <p>The Finance and Operations article <a href="https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/sysadmin/implement-b2b" target="_blank" rel="noopener">Export business-to-business (B2B) users to Microsoft Entra ID</a> still describes the right high-level FSCM pattern: create an Entra app registration, store its client details in FSCM, and let the vendor user workflow provision B2B guests. However, the article uses older Azure portal labels such as <em>Web app / API</em>, <em>Required permissions</em>, and <em>Keys</em>. Use the current Microsoft Entra admin center labels below.</p>
+            <p><strong>A. Allow guest invitations in Microsoft Entra</strong></p>
+            <p><strong>Where:</strong> <code>entra.microsoft.com</code> › Identity › External Identities › External collaboration settings</p>
+            <ul class="sl">
+              <li><strong>Guest invite settings</strong> — confirm "who can invite guests" is not set to "No one". Members and admins should be able to invite.</li>
+              <li><strong>Collaboration restrictions</strong> — confirm invitations are allowed for the domains your test suppliers use (e.g., <span class="v">pacificcomponents.com</span>, <span class="v">alps-sensors.de</span>, or your own personal test inbox's domain). If restricted to an allow-list, add those domains; if a deny-list, make sure they're not on it.</li>
+            </ul>
+            <p><strong>B. Create the B2B invitation service app registration</strong></p>
+            <p><strong>Where:</strong> <code>entra.microsoft.com</code> › Identity › Applications › App registrations</p>
+            <ol class="sl">
+              <li>Select <strong>New registration</strong>.</li>
+              <li>Name the app registration, for example <span class="v">FSCM B2B Invitation Service</span>.</li>
+              <li>Set <strong>Supported account types</strong> to <strong>Accounts in this organizational directory only</strong>.</li>
+              <li>Leave <strong>Redirect URI</strong> blank unless your tenant policy requires one. If required, choose <strong>Web</strong> and enter your FSCM environment URL.</li>
+              <li>Select <strong>Register</strong>, then copy the <strong>Application (client) ID</strong> and <strong>Directory (tenant) ID</strong>.</li>
+              <li>Open <strong>API permissions</strong> › <strong>Add a permission</strong> › <strong>Microsoft Graph</strong>. Add the permissions below, using the <strong>Application permissions</strong> and <strong>Delegated permissions</strong> tabs as shown. Then select <strong>Grant admin consent</strong> so every permission shows as granted for the tenant.</li>
+            </ol>
+            <table class="ft">
+              <thead><tr><th>Permission</th><th>Type</th><th>Why it is needed</th></tr></thead>
+              <tbody>
+                <tr><td><span class="v">Directory.ReadWrite.All</span></td><td>Application</td><td>Lets the service write directory objects created by the invitation flow.</td></tr>
+                <tr><td><span class="v">User.Invite.All</span></td><td>Application</td><td>Lets the service invite guest users to the organization without an interactive user.</td></tr>
+                <tr><td><span class="v">User.ReadWrite.All</span></td><td>Application</td><td>Lets the service create and update user profile details required by the workflow.</td></tr>
+                <tr><td><span class="v">Directory.ReadWrite.All</span></td><td>Delegated</td><td>Matches the FSCM B2B invitation setup requirements for user-context operations.</td></tr>
+                <tr><td><span class="v">User.Invite.All</span></td><td>Delegated</td><td>Allows guest invitation operations when the workflow runs in delegated context.</td></tr>
+                <tr><td><span class="v">User.Read</span></td><td>Delegated</td><td>Allows sign-in and basic profile read for the configured app.</td></tr>
+                <tr><td><span class="v">User.ReadWrite.All</span></td><td>Delegated</td><td>Allows user profile updates when the workflow runs in delegated context.</td></tr>
+              </tbody>
+            </table>
+            <ol class="sl" start="7">
+              <li>Open <strong>Certificates &amp; secrets</strong> › <strong>Client secrets</strong> › <strong>New client secret</strong>. Create a secret and copy the <strong>Value</strong> immediately; you cannot retrieve it later.</li>
+            </ol>
+            <div class="warn"><strong>Security note:</strong> The client secret is equivalent to a password for this provisioning app. Store it in your organization's approved secret store, set an expiration that matches your security policy, and rotate it before expiry.</div>
+            <p><strong>C. Configure FSCM to use the B2B invitation service</strong></p>
+            <p><strong>Where:</strong> FSCM › System administration › Setup › Microsoft Entra ID › B2B Invitation Configuration</p>
+            <ol class="sl">
+              <li>Open <strong>B2B Invitation Configuration</strong> and select <strong>Edit</strong>.</li>
+              <li>Set <strong>Enabled</strong> to <strong>Yes</strong>.</li>
+              <li>Confirm <strong>Tenant ID</strong> matches the Entra <strong>Directory (tenant) ID</strong>.</li>
+              <li>Enter the app registration's <strong>Application (client) ID</strong> in <strong>Client ID</strong>.</li>
+              <li>Enter the copied client secret <strong>Value</strong> in <strong>Application Key</strong>.</li>
+              <li>Save the configuration.</li>
+            </ol>
+            <p><strong>D. Verify the vendor user workflow uses B2B provisioning</strong></p>
+            <p><strong>Where:</strong> FSCM › System administration › Workflow › User workflows</p>
+            <p>Open <strong>Vendor user request (new user or modify user)</strong> and confirm the workflow includes the <strong>Provision Microsoft Entra ID B2B user</strong> task before the request completes. If it is missing, add it from <strong>Automated tasks</strong>. Lab 3 configures the approval behavior and exact placement for supplier portal user requests; this prerequisite makes sure the workflow can create the Entra B2B guest when the request is approved.</p>
+            <div class="note"><strong>Why this matters:</strong> if guest invites are blocked at the tenant level, the portal's invitation email (Lab 5) and the Teams-invite workaround (Lab 6, Step 3) both silently fail to create a guest account — you only discover this later as a sign-in error. Checking it here avoids that troubleshooting path entirely.</div>
+            <div class="result"><strong>External collaboration settings permit guest invitations for your test supplier domains, and FSCM is configured to provision approved supplier users as Microsoft Entra B2B guests.</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== LAB 1 ========== -->
+    <section id="lab1" class="lab-section">
+      <!-- ##LAB1## -->
+      <div class="lab-hdr">
+        <div class="lab-meta">
+          <span class="lab-num">Lab 1 of 9</span>
+          <span class="lab-time">⏱ ~30 min</span>
+          <span class="badge b-dep">Deploy</span>
+        </div>
+        <h1>Install Supplier Engagement on Power Platform</h1>
+        <p class="lab-goal">Install the Supplier Engagement model-driven app and supplier portal into your Power Platform environment. Then reactivate the portal and configure the identity provider so that both internal admins and external suppliers can sign in correctly. Keep the portal hidden from the public until all configuration is complete.</p>
+      </div>
+
+      <div class="prereq">
+        <h4>Before you start</h4>
+        <ul class="chk">
+          <li><input type="checkbox"><span>Lab 0 complete — all prerequisites confirmed.</span></li>
+          <li><input type="checkbox"><span>Signed in to Power Platform admin center as the dedicated service account.</span></li>
+          <li><input type="checkbox"><span>Target Power Platform environment identified and selected.</span></li>
+        </ul>
+      </div>
+
+      <div class="slbl">Part A — Install the App</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>1</span></div>
+          <div class="step-body">
+            <h3>Install Supplier Engagement from Power Platform admin center</h3>
+            <p>Sign in to <code>admin.powerplatform.microsoft.com</code> and navigate to <strong>Manage → Environments</strong>. Open your target environment, then on the command bar click <strong>Resources → Dynamics 365 apps → Install app</strong>.</p>
+            <p>Search for <span class="v">Supplier Engagement in Dynamics 365 Supply Chain Management (Preview)</span>, select it, accept the terms of service, then click <strong>Install</strong>.</p>
+            <div class="result"><strong>Installation starts and the app appears in the Dynamics 365 apps list with status "Installing".</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>2</span></div>
+          <div class="step-body">
+            <h3>Track installation progress in Power Apps</h3>
+            <p>Sign in to <code>make.powerapps.com</code> and select your environment. On the left nav click <strong>Solutions</strong>, then on the command bar click <strong>See History</strong>. Watch for all Supplier Engagement solutions to show status <strong>Succeeded</strong>.</p>
+            <p>If the solution <span class="v">msdyn_SupplierEngagementVendorEntity</span> fails with a <em>"String or binary data would be truncated"</em> error — wait <strong>2 hours</strong> and repeat the import from Step 1. This is a known timing issue with metadata sync.</p>
+            <div class="result"><strong>All Supplier Engagement solutions show "Succeeded" in the solution history.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part B — Activate the Supplier Portal</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>3</span></div>
+          <div class="step-body">
+            <h3>Reactivate the supplier portal in Power Pages</h3>
+            <p>In <code>make.powerapps.com</code> go to <strong>Solutions → Supplier Engagement Portal Solution → Objects → Sites</strong>. Find <span class="v">Microsoft Dynamics 365 Supplier Portal</span>, open its three-dot <strong>Commands</strong> menu and select <strong>Open</strong>. The browser will redirect to <code>make.powerpages.microsoft.com</code>.</p>
+            <p>Open the <strong>Inactive sites</strong> tab, find the portal, and click <strong>Reactivate</strong>. Confirm the reactivation and wait for the site to go live.</p>
+            <div class="note"><strong>Give the site time to finish provisioning.</strong> Immediately after a reactivation (or after changing site visibility later), the SSL certificate and Azure Front Door routing are still being set up. During this window (typically <strong>15–30 minutes</strong>, occasionally up to an hour) the URL may show <code>ERR_CERT_COMMON_NAME_INVALID</code> / an HSTS block, or a <em>“We weren't able to find your Azure Front Door Service configuration”</em> page. This is expected — wait and retry. To test without waiting for browser caches to clear, open the URL in a fresh <strong>InPrivate</strong> window or a browser profile that hasn't visited the site.</div>
+            <div class="result"><strong>The supplier portal site status changes from Inactive to Active in Power Pages.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>4</span></div>
+          <div class="step-body">
+            <h3>Configure Microsoft Entra ID as the identity provider</h3>
+            <p>In Power Pages (<code>make.powerpages.microsoft.com</code>) open the <em>Microsoft Dynamics 365 Supplier Portal</em> site. On the left nav select <strong>Security → Identity providers</strong>. Find <span class="v">Microsoft Entra ID</span>, open its three-dot menu, and select <strong>Edit configuration</strong>.</p>
+            <p>Set <strong>Contact mapping with email</strong> to <span class="v">On</span>, then click <strong>Save</strong>.</p>
+            <div class="note"><strong>For the preview period</strong>, Microsoft Entra ID is the recommended identity provider. This ensures supplier contacts can be mapped to Dataverse contact records by email address, which is required for the onboarding flow.</div>
+            <div class="note"><strong>This is the B2B guest access wiring.</strong> Supplier sign-in works because each supplier contact becomes a Microsoft Entra B2B guest in your tenant (see Lab 0, Step 7 for the tenant-level guest settings this depends on), and this identity provider setting is what maps that guest's email back to the Dataverse contact record. Labs 5 and 6 walk through actually creating those guest accounts.</div>
+            <div class="result"><strong>"Contact mapping with email" is saved as On for the Entra ID provider.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>5</span></div>
+          <div class="step-body">
+            <h3>Set site visibility to private</h3>
+            <p>Keep the portal private while you complete Labs 2 and 3. In Power Pages, navigate to the site settings and set <strong>Site visibility</strong> to <strong>Private</strong> (accessible only to users with direct access). You will make it public after full configuration is validated.</p>
+            <div class="note"><strong>Trial / non-production option:</strong> Developer sites can't be made public, and some tenants block non-production sites from being switched to Public. In that case, keep the site <strong>Private</strong> and grant access to the supplier's redeemed Microsoft Entra B2B guest user: Power Pages › <strong>Security</strong> › <strong>Site visibility</strong> › <strong>Grant site access</strong>, enter the supplier user's email, then select <strong>Share</strong>. This only grants access to view the private site; the supplier still needs the Supplier Engagement contact, portal web role, and FSCM user provisioning steps later in the lab.</div>
+            <div class="warn"><strong>Do not make the portal public</strong> until email templates are customized with the correct URL (Lab 2, Step 8) and the vendor user workflow is configured (Lab 3, Step 6). Premature public access causes incomplete onboarding emails to be sent.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part C — Brand the Portal (Optional · company-compliant look)</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>6</span></div>
+          <div class="step-body">
+            <h3>(Optional) Open the Power Pages Management app</h3>
+            <p>Out of the box the portal ships with placeholder company name, logo, and banner image. You replace these using the <strong>Power Pages Management app</strong> — branding lives in two component types:</p>
+            <table class="ft">
+              <thead><tr><th>Component</th><th>Used for</th><th>Where</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Content snippets</strong></td><td>Text (company name, banner text)</td><td>Content → Content Snippets</td></tr>
+                <tr><td><strong>Web files</strong></td><td>Images (logo, banner image)</td><td>Content → Web Files</td></tr>
+              </tbody>
+            </table>
+            <p>In <code>make.powerpages.microsoft.com</code>, open your <em>Microsoft Dynamics 365 Supplier Portal</em> site. On the site overview page, click the <strong>…</strong> (ellipsis) next to the <strong>Edit</strong> / <strong>Preview</strong> buttons, then select <strong>Power Pages Management</strong>. This opens the model-driven management app where all branding lives.</p>
+            <div class="note"><strong>Other ways to open it, and a name caveat.</strong> The app is called <strong>Power Pages Management</strong> when the site uses the <em>enhanced data model</em> — on the standard data model it appears as <strong>Portal Management</strong>. You can also reach it from:
+              <ul class="sl">
+                <li><strong>Design studio</strong>: open the site → click the <strong>…</strong> on the tool belt → <strong>Power Pages Management</strong> / <strong>Portal Management</strong>.</li>
+                <li><strong>Power Apps</strong> (<code>make.powerapps.com</code>): left pane → <strong>Apps</strong> → <strong>Portal Management</strong> (opens in a new tab).</li>
+              </ul>
+              You need the <strong>System Administrator</strong> role in this Dataverse environment. If an ad-blocker is enabled you may see a script error — disable it for this app or use a clean browser.</div>
+            <div class="warn"><strong>Editing these components creates unmanaged customization layers</strong> in Dataverse, which can affect solution management. Keep track of what you change (see the Learn article <em>“Manage unmanaged customizations on the supplier portal”</em>).</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>7</span></div>
+          <div class="step-body">
+            <h3>(Optional) Update text — company name (content snippet)</h3>
+            <p>Go to <strong>Content → Content Snippets</strong>, open the snippet below, update the <strong>Value</strong> field, and click <strong>Save</strong>.</p>
+            <table class="ft">
+              <thead><tr><th>Snippet name</th><th>Controls</th></tr></thead>
+              <tbody>
+                <tr><td><span class="v">Home/CompanyName</span></td><td>Company name shown on the home page</td></tr>
+              </tbody>
+            </table>
+            <div class="note"><strong>The home-page banner text is <em>not</em> a snippet.</strong> It displays the <strong>Global vendor name</strong> field value for the signed-in supplier — so it is per-vendor, not a global setting. Keep that name under ~500 characters to avoid layout overflow.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>8</span></div>
+          <div class="step-body">
+            <h3>(Optional) Update images — home banner &amp; hero image (web files)</h3>
+            <p>Go to <strong>Content → Web Files</strong>. To replace an image: open the web file record, in the <strong>File Content</strong> field select <strong>Delete</strong> to remove the existing image, then <strong>Choose File</strong> to upload your new one, and click <strong>Save &amp; Close</strong>.</p>
+            <table class="ft">
+              <thead><tr><th>Web file</th><th>Controls</th></tr></thead>
+              <tbody>
+                <tr><td><span class="v">homepage-banner</span></td><td>Top banner image across the home page</td></tr>
+                <tr><td><span class="v">home-heroimage.jpg</span></td><td>Hero image on the home page</td></tr>
+              </tbody>
+            </table>
+            <p><strong>Banner image requirements:</strong></p>
+            <ul class="sl">
+              <li>Aspect ratio <span class="v">12:1</span> (width : height) — off-ratio images stretch or crop.</li>
+              <li>Recommended render size <span class="v">3758 × 308 px</span>.</li>
+              <li>Formats: <span class="v">.png</span>, <span class="v">.jpg</span>, <span class="v">.svg</span>, <span class="v">.webp</span>.</li>
+              <li>Max file size = Dataverse attachment limit (default <span class="v">5 MB</span>). Optimize for web to keep load times fast.</li>
+            </ul>
+            <div class="note"><strong>Advanced (optional):</strong> deeper styling — colors, fonts, banner height/positioning — is done through CSS (e.g. <code>dom.css</code>, the <code>.workspace-hero-banner</code> class). Test any CSS change across screen sizes.</div>
+            <div class="result"><strong>The supplier portal shows your company name, banner, and hero image instead of the default placeholders.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>9</span></div>
+          <div class="step-body">
+            <h3>(Optional) Update the placeholder links on the Help card</h3>
+            <p>The <strong>Help</strong> card on the home page shows four links — <em>Terms &amp; Condition</em>, <em>How to Respond to a Purchase Order</em>, <em>How to Add or Remove a User</em>, and <em>Contact Support</em>. Out of the box every one of them is a dead placeholder (<code>href="#"</code>), so clicking them does nothing. The link <em>text</em> comes from content snippets, but the <em>target URL</em> is hard-coded in a web template — so you fix the targets there, not in the snippet.</p>
+            <p>In <strong>Power Pages Management → Web Templates</strong>, open <span class="v">Essentials Help</span> and edit the <strong>Source</strong>. Replace each <code>href="#"</code> with a real target:</p>
+            <table class="ft">
+              <thead><tr><th>Help link</th><th>Set <code>href</code> to</th></tr></thead>
+              <tbody>
+                <tr><td>Terms &amp; Condition</td><td><span class="v">/terms-and-conditions</span> — the page you create (see note below), or your external terms URL</td></tr>
+                <tr><td>How to Respond to a Purchase Order</td><td><span class="v">/Purchase-order-workspace</span></td></tr>
+                <tr><td>How to Add or Remove a User</td><td><span class="v">/user-management</span></td></tr>
+                <tr><td>Contact Support</td><td><span class="v">mailto:support@yourcompany.com</span> — your support inbox</td></tr>
+              </tbody>
+            </table>
+            <p>For example, the Contact Support anchor becomes:</p>
+            <p><code>&lt;a href="mailto:support@yourcompany.com" class="vendor-link"&gt;{{ snippets['Home/Help/ContactSupport'] }}&lt;/a&gt;</code></p>
+            <div class="note"><strong>Creating a Terms &amp; Conditions page:</strong> in the Power Pages <strong>design studio → Pages</strong>, click <strong>+ Page</strong>, name it <em>Terms and Conditions</em>, add a <strong>Text</strong> component with your terms, and confirm its partial URL (e.g. <span class="v">terms-and-conditions</span>) in the page settings. Set its visibility (anonymous if terms must be readable before sign-in, otherwise authenticated). Then point the <em>Terms &amp; Condition</em> link at <span class="v">/terms-and-conditions</span>.</div>
+            <div class="warn">Editing a web template is an <strong>unmanaged customization</strong>, and the portal caches templates and pages — after saving, click <strong>Sync</strong> in the design studio (or clear the portal cache) or the old <code>#</code> links will persist.</div>
+            <div class="result"><strong>Each Help link navigates to the correct portal page or opens the support mailbox.</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== LAB 2 ========== -->
+    <section id="lab2" class="lab-section">
+      <!-- ##LAB2## -->
+      <div class="lab-hdr">
+        <div class="lab-meta">
+          <span class="lab-num">Lab 2 of 9</span>
+          <span class="lab-time">⏱ ~30 min</span>
+          <span class="badge b-cfg">Configure</span>
+        </div>
+        <h1>Configure Power Platform for Supplier Engagement</h1>
+        <p class="lab-goal">Activate email notifications, create service connections, turn on cloud flows, and enable duplicate detection. These steps connect the Supplier Engagement app and supplier portal with the automation layer that keeps suppliers and procurement staff in sync.</p>
+      </div>
+
+      <div class="prereq">
+        <h4>Before you start</h4>
+        <ul class="chk">
+          <li><input type="checkbox"><span>Lab 1 complete — app installed, portal activated, identity provider set.</span></li>
+          <li><input type="checkbox"><span>Supplier portal URL is known (copy it from Power Pages site settings).</span></li>
+          <li><input type="checkbox"><span>Signed in as the dedicated service account.</span></li>
+        </ul>
+      </div>
+
+      <div class="slbl">Part A — Mailbox &amp; Email Templates</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>1</span></div>
+          <div class="step-body">
+            <h3>Activate the service account mailbox for cloud flow notifications</h3>
+            <p><strong>Why this matters:</strong> the Supplier Engagement cloud flows send invitation and notification emails through a Dataverse mailbox. That mailbox must be activated, approved, and tested before any email will actually go out.</p>
+            <div class="where"><span class="mod">Power Platform admin center</span><span class="sep"> › </span><span>your environment</span><span class="sep"> › </span><span>Power Platform Environment Settings app</span><span class="sep"> › </span><span>Email Configuration</span><span class="sep"> › </span><span>Mailboxes</span></div>
+            <p><strong>1. Open the settings app.</strong> In the Power Platform admin center, open your environment and click the link under <strong>Environment URL</strong> to open it in a new tab. Then:</p>
+            <ul class="sl">
+              <li>If a <em>list of apps</em> opens, select <span class="v">Power Platform Environment Settings</span>.</li>
+              <li>If the environment opens <em>straight into an app</em>, click the app name on the header bar at the top to open the list of published apps, then select <span class="v">Power Platform Environment Settings</span>.</li>
+            </ul>
+            <p><strong>2. Find the right mailbox.</strong> On the nav pane go to <strong>Email Configuration → Mailboxes</strong>. Open the mailbox whose email address matches the <strong>account you used to install</strong> Supplier Engagement. Click the mailbox to open the record (or select its row).</p>
+            <div class="note"><strong>No service account? Use your own ID — that's fine for this lab.</strong> If you're running the lab signed in with your personal/work account and don't have a dedicated service account, activate <strong>your own user's mailbox</strong> (the same account you installed and signed in with). The steps are identical — just pick the mailbox that shows your email address. Everything below works the same way.</div>
+            <p><strong>3. Run these three command-bar actions in order</strong>, confirming each dialog as it appears:</p>
+            <ol class="sl">
+              <li>Click <strong>Activate</strong> → in the <span class="v">Confirm Mailbox Activation</span> dialog, click <strong>Activate</strong>.</li>
+              <li>Click <strong>Approve Email</strong> → in the <span class="v">Approve Primary Email</span> dialog, click <strong>OK</strong>.</li>
+              <li>Click <strong>Test &amp; Enable Mailboxes</strong> → in the <span class="v">Test Email Configuration</span> dialog, click <strong>OK</strong>.</li>
+            </ol>
+            <div class="note"><strong>Production best practice (not required for this lab):</strong> in a real deployment, point the flows at a permanent, non-personal service account or shared mailbox so automation doesn't break when a person leaves the org. For hands-on lab/trial purposes, your own account is perfectly fine.</div>
+            <div class="result"><strong>After Test &amp; Enable completes, the mailbox's incoming/outgoing email status shows "Success". Cloud flows can now send email.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>2</span></div>
+          <div class="step-body">
+            <h3>Customize email templates</h3>
+            <p>In the <strong>Power Platform Environment Settings</strong> app go to <strong>Templates → Email Templates</strong>. Locate and open each of the three Supplier Engagement templates:</p>
+            <ul class="sl">
+              <li><span class="v">Supplier Engagement invitation</span> — <strong>Must</strong> include the correct portal URL link before go-live.</li>
+              <li><span class="v">Supplier Engagement registration status</span></li>
+              <li><span class="v">Supplier Engagement contact portal access</span></li>
+            </ul>
+            <p>For the invitation template, replace the default portal URL placeholder with your actual portal URL (from the Power Pages site settings — see this lab's prerequisites). Update subject and body text to match your organization's branding. Save each template.</p>
+            <div class="warn"><strong>The invitation email template must include your real portal URL.</strong> Suppliers who receive the default placeholder link will not be able to sign in.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part B — Connections &amp; Cloud Flows</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>3</span></div>
+          <div class="step-body">
+            <h3>Create Dataverse and Teams connections</h3>
+            <p>In <code>make.powerapps.com</code> go to <strong>More → Connections → New connection</strong>. Add connections for:</p>
+            <table class="ft">
+              <thead><tr><th>Service</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td><span class="v">Microsoft Dataverse</span></td><td>Click <strong>+</strong> in Actions column, sign in as service account</td></tr>
+                <tr><td><span class="v">Microsoft Teams</span></td><td>Click <strong>+</strong> in Actions column, sign in as service account</td></tr>
+              </tbody>
+            </table>
+            <div class="result"><strong>Both connections appear in the Connections list with a green check (Connected).</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>4</span></div>
+          <div class="step-body">
+            <h3>Update the three SupplierEngagement connection references</h3>
+            <p>Go to <strong>Solutions → Default solution → Objects → Connection References</strong>. Find the entries containing <code>SupplierEngagement</code>. Three references should appear:</p>
+            <table class="ft">
+              <thead><tr><th>Connection Reference</th><th>Set "Connection" to</th></tr></thead>
+              <tbody>
+                <tr><td><span class="v">Microsoft Dataverse MicrosoftSupplierEngagement-77aa1</span></td><td>The Dataverse connection from Step 4</td></tr>
+                <tr><td><span class="v">Microsoft Dataverse msdyn_SupplierEngagementBase-abf2e</span></td><td>The Dataverse connection from Step 4</td></tr>
+                <tr><td><span class="v">Microsoft Teams MicrosoftSupplierEngagement-0e21b</span></td><td>The Teams connection from Step 4</td></tr>
+              </tbody>
+            </table>
+            <p>For each: open its three-dot menu → <strong>Edit</strong> → set <strong>Connection</strong> → <strong>Save</strong>.</p>
+            <div class="warn"><strong>Use the browser's Ctrl+F, not the list's built-in search box.</strong> The Connection References list's own search/filter does <em>not</em> reliably match these entries — this is a known quirk the docs call out. Press <strong>Ctrl+F</strong> and search for <code>SupplierEngagement</code>. Because Ctrl+F only finds rows that are already rendered, <strong>scroll down the list to load all rows first</strong> (or scroll as you search) so none of the three are missed.</div>
+            <div class="result"><strong>All three connection references show the correct connections without errors.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>5</span></div>
+          <div class="step-body">
+            <h3>Enable cloud flows in both Supplier Engagement solutions</h3>
+            <p>Go to <strong>Solutions → Managed tab</strong>. Open <span class="v">Supplier Engagement Core</span> → <strong>Objects → Cloud flows</strong>. For every flow showing <strong>Status: Off</strong>, select it and click <strong>Turn on</strong> on the command bar.</p>
+            <p>Return to the Managed solutions list, open <span class="v">Supplier Engagement Portal</span>, and repeat — turn on all flows that are Off.</p>
+            <div class="note"><strong>Cloud flows are installed but inactive by default.</strong> Until they are turned on, no notifications are sent, no user provisioning happens, and no data syncs between the app and portal.</div>
+            <div class="result"><strong>All cloud flows in both solutions show Status: On.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part C — Duplicate Detection</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>6</span></div>
+          <div class="step-body">
+            <h3>Publish four duplicate detection rules</h3>
+            <p>In the <strong>Power Platform Environment Settings</strong> app go to <strong>Data Management → Duplicate Detection Rules</strong>. Select the checkbox for each rule below and click <strong>Publish</strong> on the command bar:</p>
+            <table class="ft">
+              <thead><tr><th>Rule Name</th><th>Matching Field</th></tr></thead>
+              <tbody>
+                <tr><td><span class="v">Global vendor with same primary phone number</span></td><td>Exact match, include blanks</td></tr>
+                <tr><td><span class="v">Global vendor with same email address</span></td><td>Exact match, ignore blanks</td></tr>
+                <tr><td><span class="v">Global vendor with same name</span></td><td>Same first 5 characters, ignore blanks</td></tr>
+                <tr><td><span class="v">Global vendor with same primary URL</span></td><td>Exact match, ignore blanks</td></tr>
+              </tbody>
+            </table>
+            <div class="result"><strong>All four rules show "Status Reason: Published". Duplicate detection is now active for global vendor records.</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== LAB 3 ========== -->
+    <section id="lab3" class="lab-section">
+      <!-- ##LAB3## -->
+      <div class="lab-hdr">
+        <div class="lab-meta">
+          <span class="lab-num">Lab 3 of 9</span>
+          <span class="lab-time">⏱ ~35 min</span>
+          <span class="badge b-cfg">Configure</span>
+        </div>
+        <h1>Configure Supplier Engagement in Supply Chain Management</h1>
+        <p class="lab-goal">Enable the Supplier Engagement feature, configure batch jobs, adjust security roles, turn on entity store refresh for risk reporting, set up the vendor user request workflow for portal access approval, and generate localization metadata. This is the SCM-side counterpart to Lab 2.</p>
+      </div>
+
+      <div class="prereq">
+        <h4>Before you start</h4>
+        <ul class="chk">
+          <li><input type="checkbox"><span>Labs 1 and 2 complete — Power Platform fully configured.</span></li>
+          <li><input type="checkbox"><span>Signed in to SCM as System Administrator.</span></li>
+          <li><input type="checkbox"><span>Microsoft Edge browser available (workflow editor requires Edge).</span></li>
+        </ul>
+      </div>
+
+      <div class="slbl">Part A — Enable the Feature</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>1</span></div>
+          <div class="step-body">
+            <h3>Enable Supplier Engagement in Feature management</h3>
+            <div class="where"><span class="mod">Workspaces</span><span class="sep"> › </span><span>Feature management</span></div>
+            <p>If <em>(Preview) Supplier Engagement</em> is not visible, click <strong>Check for updates</strong>. Select the <strong>(Preview) Supplier Engagement</strong> feature and click <strong>Enable now</strong>. Confirm the dialog.</p>
+            <div class="warn"><strong>This is a preview (prerelease) feature.</strong> The feature is listed in Feature management as <span class="v">(Preview) Supplier Engagement</span>. Because it's prerelease, enable it only in a <strong>sandbox/non-production</strong> environment. If you don't see it, use the <strong>Module</strong>/status filters or search for "Supplier Engagement".</div>
+            <div class="result"><strong>The (Preview) Supplier Engagement feature shows status "Enabled". New menu items appear under Procurement and sourcing → Vendors → Supplier engagement.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>2</span></div>
+          <div class="step-body">
+            <h3>Enable workflow batch jobs</h3>
+            <div class="where"><span class="mod">System administration</span><span class="sep"> › </span><span>Inquiries</span><span class="sep"> › </span><span>Batch jobs</span></div>
+            <p>Filter the <strong>Job description</strong> column for <code>Workflow</code>. Select the checkbox for each of the four jobs below, then click <strong>Change status → Waiting</strong>:</p>
+            <table class="ft">
+              <thead><tr><th>Batch Job</th></tr></thead>
+              <tbody>
+                <tr><td><span class="v">Workflow message processing</span></td></tr>
+                <tr><td><span class="v">Workflow line-item notifications</span></td></tr>
+                <tr><td><span class="v">Workflow Maintenance</span></td></tr>
+                <tr><td><span class="v">Workflow due date processing</span></td></tr>
+              </tbody>
+            </table>
+            <div class="result"><strong>All four workflow batch jobs show status "Waiting".</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part B — Security Roles</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>3</span></div>
+          <div class="step-body">
+            <h3>Add duties to the Purchasing Manager and Purchasing Agent roles</h3>
+            <div class="where"><span class="mod">System administration</span><span class="sep"> › </span><span>Security</span><span class="sep"> › </span><span>Security roles</span></div>
+            <p>Open the <strong>Purchasing manager</strong> role. On the <strong>Duties</strong> tab, add the following five duties:</p>
+            <ul class="sl">
+              <li><span class="v">Maintain global address book master</span></li>
+              <li><span class="v">Maintain consignment replenishment orders</span></li>
+              <li><span class="v">Maintain inventory ownership change journals</span></li>
+              <li><span class="v">Maintain consignment product receipt</span></li>
+              <li><span class="v">Maintain purchase orders</span></li>
+            </ul>
+            <p>Open the <strong>Purchasing agent</strong> role and add these three duties:</p>
+            <ul class="sl">
+              <li><span class="v">Maintain consignment replenishment orders</span></li>
+              <li><span class="v">Maintain inventory ownership change journals</span></li>
+              <li><span class="v">Maintain consignment product receipt</span></li>
+            </ul>
+            <div class="note"><strong>Custom security roles:</strong> If your organization uses custom roles instead of the standard Purchasing manager / agent roles, add the same duties to your custom roles as needed.</div>
+            <div class="note"><strong>Signed in as System Administrator? You can skip this step for the lab.</strong> The System Administrator role already includes every privilege, so you don't need these duties added to complete any lab task. This setup only matters for real <strong>Purchasing manager</strong> / <strong>Purchasing agent</strong> users (non-admins), who otherwise can't create global vendors, purchase orders, replenishment orders, or ownership-change journals. Do it in production so your actual purchasers have the right access.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>4</span></div>
+          <div class="step-body">
+            <h3>(Optional) Enable entity store auto-refresh for risk reporting</h3>
+            <div class="where"><span class="mod">System administration</span><span class="sep"> › </span><span>Set up</span><span class="sep"> › </span><span>Entity store</span></div>
+            <p>Filter by <code>PurchaseCube</code>. Select the record, click <strong>Edit</strong>, expand the <strong>General</strong> FastTab, and set <strong>Automatic refresh enabled</strong> to <span class="v">Yes</span>. Set <strong>Recurrence interval</strong> to <span class="v">Every hour</span>. Click <strong>Refresh</strong> to schedule the batch job. Save.</p>
+            <p>Repeat for <span class="v">VRMPurchaseCube</span>.</p>
+            <div class="result"><strong>Both PurchaseCube and VRMPurchaseCube show Automatic refresh enabled = Yes.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part C — Vendor User Request Workflow</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>5</span></div>
+          <div class="step-body">
+            <h3>Configure the Vendor User Request workflow</h3>
+            <div class="where"><span class="mod">System administration</span><span class="sep"> › </span><span>Workflow</span><span class="sep"> › </span><span>User workflows</span></div>
+            <p>Open the workflow named <span class="v">Vendor user request (new user or modify user)</span>. The browser downloads the workflow editor app — open it in <strong>Microsoft Edge</strong>.</p>
+            <p>First, confirm the Entra provisioning task is in the approved new-user path. In the workflow editor, drag <strong>Automated tasks › Provision Microsoft Entra ID B2B user</strong> onto the canvas and place it after the new-user approval/creation step and before <strong>Automated provision user</strong> / <strong>Notify new user</strong>. Connect it into the main approved path, then open the task properties and set its assignment or execution context the same way your environment's existing automated provisioning tasks are configured.</p>
+            <figure class="shot"><img src="assets/workflow-entra-b2b-provisioning.png" alt="Workflow editor showing the Provision Microsoft Entra ID B2B user automated task placed in the approved new-user path"><figcaption>Provision Microsoft Entra ID B2B user task added to the approved new-user workflow path.</figcaption></figure>
+            <div class="note"><strong>Why this matters:</strong> When <strong>B2B Invitation Configuration</strong> is complete and this workflow task runs, FSCM provisions the supplier as a Microsoft Entra B2B guest and stores the same Entra <strong>Object ID</strong> on the contact created in the Supplier Engagement app. That matching Object ID is what lets the Power Pages sign-in bind back to the correct contact.</div>
+            <p>For the Technova scenario, configure <strong>auto-approve</strong> for supplier portal user requests. In the workflow editor, for each of the four highlighted approval steps:</p>
+            <ol class="sl">
+              <li>Select the step → click <strong>Automatic actions</strong> on the ribbon.</li>
+              <li>Click <strong>Add condition</strong> → set Condition to <span class="v">Where User requests.Request type is Value Supplier Portal user request</span>.</li>
+              <li>Set <strong>Automatic action</strong> to <span class="v">Approve</span>.</li>
+            </ol>
+            <p>Click <strong>Save and close</strong>. Back in SCM, go to the workflow → Action Pane → <strong>Workflow tab → Versions</strong>. Set the new version as <strong>Active</strong>.</p>
+            <div class="note"><strong>Alternative:</strong> If your organization requires human approval of portal users, set a specific approver user instead of auto-approve. The Microsoft documentation describes both patterns.</div>
+            <div class="result"><strong>The workflow is saved and the new version is set as active. Supplier portal user requests will now be auto-approved, the Entra B2B guest will be provisioned by the workflow, and the Supplier Engagement contact will reference the same Entra Object ID.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>6</span></div>
+          <div class="step-body">
+            <h3>Set up the Vendor Category Request workflow <span style="font-size:11px;font-weight:700;color:#fff;background:#6b7280;padding:2px 8px;border-radius:10px;letter-spacing:.5px;vertical-align:middle">OPTIONAL</span></h3>
+            <div class="where"><span class="mod">Procurement and sourcing</span><span class="sep"> › </span><span>Setup</span><span class="sep"> › </span><span>Procurement and sourcing workflows</span></div>
+            <p>Find or create the <span class="v">Vendor category request</span> workflow. Configure the approval steps (e.g., assign to Purchasing Manager role) and activate it. This workflow fires when a supplier requests a new procurement category from the portal.</p>
+            <div class="note"><strong>Optional — not required for this demo.</strong> Skip this step unless you specifically want to demonstrate suppliers requesting new procurement categories from the portal. The core onboarding, RFQ, PO, and invoice flows work without it.</div>
+            <div class="result"><strong>Vendor category request workflow exists and is in Active status.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part D — Localization Metadata</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>7</span></div>
+          <div class="step-body">
+            <h3>Generate entity field metadata for the supplier portal</h3>
+            <div class="where"><span class="mod">Procurement and sourcing</span><span class="sep"> › </span><span>Setup</span><span class="sep"> › </span><span>(Preview) Supplier Engagement</span><span class="sep"> › </span><span>Entity field metadata for supplier portal</span></div>
+            <p>On the Action Pane, click <strong>Generate entity field metadata</strong>. This process generates country/region-specific field visibility rules so the supplier portal displays the correct fields for each vendor's jurisdiction.</p>
+            <div class="result"><strong>Metadata generation completes without errors. The grid populates with entity field records.</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== LAB 4 ========== -->
+    <section id="lab4" class="lab-section">
+      <!-- ##LAB4## -->
+      <div class="lab-hdr">
+        <div class="lab-meta">
+          <span class="lab-num">Lab 4 of 9</span>
+          <span class="lab-time">⏱ ~30 min</span>
+          <span class="badge b-dat">Reference Data</span>
+        </div>
+        <h1>Reference Data Setup</h1>
+        <p class="lab-goal">Populate the lookup tables that drive onboarding, vendor qualification, and risk management. Without this data, procurement staff cannot assign certificates, segments, or risk scenarios to suppliers — and the self-assessment questionnaire will be empty. All steps are performed in the <strong>Supplier Engagement app</strong> (the model-driven app for internal users).</p>
+      </div>
+
+      <div class="prereq">
+        <h4>Before you start</h4>
+        <ul class="chk">
+          <li><input type="checkbox"><span>Lab 3 complete — Supplier Engagement feature enabled in SCM.</span></li>
+          <li><input type="checkbox"><span>Supplier Engagement app is accessible in your Power Platform environment.</span></li>
+          <li><input type="checkbox"><span>Signed in as a user with System Administrator or Supplier Engagement admin privileges in Dataverse.</span></li>
+        </ul>
+      </div>
+
+      <div class="slbl">Part A — Certificates &amp; Capabilities</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>1</span></div>
+          <div class="step-body">
+            <h3>Create certificate types</h3>
+            <p>In the Supplier Engagement app, at the bottom of the left nav select the <strong>Configuration</strong> area. Go to <strong>Certificate types → New</strong>. Create the following three certificate types:</p>
+            <div class="warn"><strong>Name field is limited to 10 characters.</strong> Use the abbreviated names below — the Description column carries the full meaning.</div>
+            <table class="ft">
+              <thead><tr><th>Name (max 10 chars)</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><span class="v">ISO9001:15</span></td><td>Quality Management System certification (ISO 9001:2015)</td></tr>
+                <tr><td><span class="v">RoHS863EU</span></td><td>Restriction of Hazardous Substances in electronics (RoHS 2015/863/EU)</td></tr>
+                <tr><td><span class="v">IATF16949</span></td><td>Automotive quality management standard (IATF 16949)</td></tr>
+              </tbody>
+            </table>
+            <div class="result"><strong>Three certificate types appear in the Certificate types list.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>2</span></div>
+          <div class="step-body">
+            <h3>Create certifying organizations</h3>
+            <p>Go to <strong>Configuration → Certifying organizations → New</strong>. Create three organizations:</p>
+            <table class="ft">
+              <thead><tr><th>Name</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><span class="v">Bureau Veritas</span></td><td>bureauveritas.com — global testing, inspection and certification</td></tr>
+                <tr><td><span class="v">SGS Group</span></td><td>sgs.com — inspection, verification, testing and certification</td></tr>
+                <tr><td><span class="v">TÜV Rheinland</span></td><td>tuv.com — technical services and certification</td></tr>
+              </tbody>
+            </table>
+            <div class="result"><strong>Three certifying organizations appear in the list.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>3</span></div>
+          <div class="step-body">
+            <h3>Create capability types</h3>
+            <p>Go to <strong>Configuration → Capability types → New</strong>. The capability type form has only a <strong>Name</strong> field (plus optional hierarchy fields — <em>Parent</em> and <em>Root item</em>); there is no Description field. Create these three:</p>
+            <table class="ft">
+              <thead><tr><th>Name</th><th>What it represents (for reference only)</th></tr></thead>
+              <tbody>
+                <tr><td><span class="v">PCB Assembly</span></td><td>Printed circuit board fabrication and assembly</td></tr>
+                <tr><td><span class="v">Surface Mount Technology</span></td><td>SMT component placement and soldering</td></tr>
+                <tr><td><span class="v">Electrical Testing &amp; Inspection</span></td><td>AOI, ICT, functional testing</td></tr>
+              </tbody>
+            </table>
+            <div class="result"><strong>Three capability types appear in the Capability types list.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part B — Segments, Types &amp; Holds</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>4</span></div>
+          <div class="step-body">
+            <h3>Create vendor segments</h3>
+            <p>Go to <strong>Configuration → Segments → New</strong>. The segment form has only a <strong>Name</strong> field (plus an optional <em>Parent</em> for hierarchy); there is no Description field. Create these three:</p>
+            <table class="ft">
+              <thead><tr><th>Name</th><th>What it represents (for reference only)</th></tr></thead>
+              <tbody>
+                <tr><td><span class="v">Tier 1 Strategic</span></td><td>Critical single-source or preferred suppliers with long-term contracts</td></tr>
+                <tr><td><span class="v">Tier 2 Preferred</span></td><td>Qualified suppliers with active relationships</td></tr>
+                <tr><td><span class="v">Tier 3 Spot</span></td><td>Spot-buy suppliers used on an ad-hoc basis</td></tr>
+              </tbody>
+            </table>
+            <div class="result"><strong>Three segments appear in the Segments list.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>5</span></div>
+          <div class="step-body">
+            <h3>Create global vendor types</h3>
+            <p>Go to <strong>Configuration → Global vendor types → New</strong>. This form has a <strong>Name</strong> and a <strong>Description</strong> field (Name max 100, Description max 200 characters). Create:</p>
+            <table class="ft">
+              <thead><tr><th>Name</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><span class="v">Direct Material</span></td><td>Materials that go directly into finished products</td></tr>
+                <tr><td><span class="v">Indirect / MRO</span></td><td>Maintenance, repair and operations supplies</td></tr>
+                <tr><td><span class="v">Services</span></td><td>Service-based suppliers (labor, consulting, logistics)</td></tr>
+              </tbody>
+            </table>
+            <div class="result"><strong>Three global vendor types appear in the list.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part C — Risk Management Data (Optional)</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>6</span></div>
+          <div class="step-body">
+            <h3>(Optional) Create risk scenarios</h3>
+            <p>Go to <strong>Configuration → Risk scenarios → New</strong>. The form has only a <strong>Name</strong> field (plus an optional <em>Parent</em> for hierarchy); there is no Description field. Create these three:</p>
+            <table class="ft">
+              <thead><tr><th>Name</th><th>What it represents (for reference only)</th></tr></thead>
+              <tbody>
+                <tr><td><span class="v">Single Source Dependency</span></td><td>Vendor is the sole qualified source for a critical component</td></tr>
+                <tr><td><span class="v">Financial Instability</span></td><td>Vendor shows signs of financial stress or credit risk</td></tr>
+                <tr><td><span class="v">Quality Escapes</span></td><td>Recurring quality non-conformances or field failures</td></tr>
+              </tbody>
+            </table>
+            <div class="result"><strong>Three risk scenarios appear in the list.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>7</span></div>
+          <div class="step-body">
+            <h3>(Optional) Create corrective action types</h3>
+            <p>Go to <strong>Configuration → Corrective action types → New</strong>. The form has only a <strong>Name</strong> field (plus an optional <em>Parent</em> for hierarchy); there is no Description field. Create these three:</p>
+            <table class="ft">
+              <thead><tr><th>Name</th><th>What it represents (for reference only)</th></tr></thead>
+              <tbody>
+                <tr><td><span class="v">Supplier Audit</span></td><td>On-site quality or process audit</td></tr>
+                <tr><td><span class="v">Quality Improvement Plan</span></td><td>Formal 8D or CAPA report required from vendor</td></tr>
+                <tr><td><span class="v">Dual Source Development</span></td><td>Qualify a second supplier for the component</td></tr>
+              </tbody>
+            </table>
+            <div class="result"><strong>Three corrective action types appear in the list.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part D — Self-Assessment Questionnaire</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>8</span></div>
+          <div class="step-body">
+            <h3>Create self-assessment questions</h3>
+            <p>Go to <strong>Configuration → Self-assessment questions → New</strong>. Each question has a <strong>Number</strong>, the <strong>Question</strong> text, an <strong>Answer type</strong> (only two choices: <em>Text</em> or <em>Yes/No</em>) and an <strong>Area</strong>. Create these four questions that suppliers will answer during onboarding:</p>
+            <table class="ft">
+              <thead><tr><th>#</th><th>Question Text</th><th>Answer type</th><th>Area</th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td>Does your organization hold a current ISO 9001 or equivalent quality certification?</td><td>Yes/No</td><td>QM – Quality Management</td></tr>
+                <tr><td>2</td><td>What is your organization's annual revenue range (USD)?</td><td>Text</td><td>SCM – Supply Chain Management</td></tr>
+                <tr><td>3</td><td>How many employees does your manufacturing facility employ?</td><td>Text</td><td>HR – Human Resource</td></tr>
+                <tr><td>4</td><td>Describe your conflict minerals compliance process (OECD Due Diligence Guidance).</td><td>Text</td><td>ESG – Environment, Social, Governance</td></tr>
+              </tbody>
+            </table>
+            <div class="result"><strong>Four self-assessment questions appear in the list. Suppliers will see these questions on the final onboarding step in the supplier portal.</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== LAB 5 ========== -->
+    <section id="lab5" class="lab-section">
+      <!-- ##LAB5## -->
+      <div class="lab-hdr">
+        <div class="lab-meta">
+          <span class="lab-num">Lab 5 of 9</span>
+          <span class="lab-time">⏱ ~45 min</span>
+          <span class="badge b-scn">Scenario</span>
+        </div>
+        <h1>Supplier Self-Registration &amp; Onboarding — Pacific Components Ltd.</h1>
+        <p class="lab-goal">Pacific Components Ltd. finds Technova's supplier portal through a public link and self-registers. Alex Chen reviews and approves the registration in the Supplier Engagement app, which triggers an onboarding invitation. Maria Santos then logs in and completes the onboarding form. Alex qualifies the vendor, synchronizing the global vendor (GV-001) party record to SCM.</p>
+      </div>
+
+      <div class="prereq">
+        <h4>Before you start</h4>
+        <ul class="chk">
+          <li><input type="checkbox"><span>Labs 0–4 complete. Reference data is populated.</span></li>
+          <li><input type="checkbox"><span>Supplier portal access is ready in Power Pages (<code>make.powerpages.microsoft.com</code>). For a normal external lab, set <strong>Site visibility = Public</strong>. For a trial/developer/non-production site that can't be public, keep <strong>Site visibility = Private</strong> and use <strong>Security › Site visibility › Grant site access</strong> to share the site with the supplier's redeemed Microsoft Entra B2B guest user.</span></li>
+          <li><input type="checkbox"><span>Cloud flows are turned on (Lab 2, Step 6) — invitation emails depend on them.</span></li>
+          <li><input type="checkbox"><span>Maria Santos test account (<code>m.santos@pacificcomponents.com</code>) has been invited as a <strong>Microsoft Entra guest</strong> in the portal's home tenant and has <strong>redeemed</strong> the invitation, so a guest identity exists for sign-in.</span></li>
+        </ul>
+      </div>
+
+      <div class="warn">
+        <strong>Admin fix — “Invalid sign-in attempt” (stale External Identity).</strong>
+        If a supplier who previously registered later fails to sign in with <em>“Invalid sign-in attempt”</em>, the portal contact is bound to a Microsoft Entra object ID that does not match the guest user who is signing in. This happens when the guest account was deleted and re-added, or when the supplier was manually invited through Teams/Entra instead of being provisioned by the FSCM <strong>Provision Microsoft Entra ID B2B user</strong> workflow task. A manually created guest can have a different Object ID than the one stored on the Supplier Engagement contact. Repoint the contact's <code>External Identity</code> record to the current object ID:
+        <ol>
+          <li><strong>Get the guest's current Object ID</strong> — <code>entra.microsoft.com</code> → <em>Identity › Users › All users</em>, search the supplier's email (it appears as a <em>Guest</em>; UPN looks like <code>name_gmail.com#EXT#@&lt;tenant&gt;.onmicrosoft.com</code>) and copy the <strong>Object ID</strong>. If no user is found, the guest was never re-created — re-invite via Teams/Entra instead (see Lab 6, Step 3).</li>
+          <li><strong>Open the Portal Management app</strong> — from the Power Pages site overview → <em>…</em> (ellipsis) → <em>Portal Management</em>. Go to <em>Security › Contacts</em> and open the contact with that email.</li>
+          <li>On the contact, open <em>Related › External Identities</em> (<code>adx_externalidentity</code>). <em>(Or Security › External Identities, filtered by that contact.)</em></li>
+          <li><strong>Repoint the binding:</strong> open the record and set <strong>Username</strong> (<code>adx_username</code>) = the Object ID from step 1, keep the existing Identity Provider / Issuer, and <strong>Save</strong>. <em>(Alternative: delete the stale External Identity record and have the supplier sign in again to re-bind — only if external sign-in re-registration is enabled; editing is safer.)</em></li>
+          <li><strong>Verify:</strong> confirm the contact is <em>Active</em> and still holds its web role (<em>Related › Web Roles</em>, e.g. <em>Global Vendor Administrator</em>). Have the supplier sign out, clear cache or use a fresh browser profile, and sign in again — it now matches on the updated object ID.</li>
+        </ol>
+        Always reuse the same guest account you registered with. (A shorter note also appears at Part A, Step 5.)
+      </div>
+
+      <div class="slbl">Part A — Supplier Self-Registration (Maria's perspective)</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>1</span></div>
+          <div class="step-body">
+            <h3>Maria opens the supplier portal and registers</h3>
+            <p>Maria browses to the supplier portal URL as an anonymous user. On the landing page she clicks <strong>Register as a supplier</strong>. She completes the registration form:</p>
+            <div class="warn"><strong>Placeholder identity — use a real email.</strong> <em>Maria Santos</em> and <code>m.santos@pacificcomponents.com</code> are placeholders for the demo persona. Because the portal sends the invitation to this address and it becomes the Microsoft Entra guest you sign in with, enter a <strong>real external inbox you control</strong> (for example a personal Gmail/Outlook address). Keep the display name if you like; only the email must be real, and use the <em>same</em> address every time you sign in.</div>
+            <table class="ft">
+              <thead><tr><th>Field</th><th>Value to Enter</th></tr></thead>
+              <tbody>
+                <tr><td>Company name</td><td><span class="v">Pacific Components Ltd.</span></td></tr>
+                <tr><td>Primary contact name</td><td><span class="v">Maria Santos</span></td></tr>
+                <tr><td>Primary contact email</td><td><span class="v">m.santos@pacificcomponents.com</span></td></tr>
+                <tr><td>Primary phone</td><td><span class="v">+1-503-555-0100</span></td></tr>
+                <tr><td>Industry / products</td><td><span class="v">Electronic Components, PCB Manufacturing</span></td></tr>
+                <tr><td>Website</td><td><span class="v">www.pacificcomponents.com</span></td></tr>
+              </tbody>
+            </table>
+            <p>In the <strong>Company Address</strong> section, fill in the following. <strong>Description</strong> is a <em>required</em> free-text field (max 250 chars) — the portal leaves it blank, so you must enter a value or the form won't submit:</p>
+            <table class="ft">
+              <thead><tr><th>Field</th><th>Value to Enter</th></tr></thead>
+              <tbody>
+                <tr><td>Country/Region <span style="color:#b00020">*</span></td><td><span class="v">United States</span></td></tr>
+                <tr><td>State</td><td><span class="v">Oregon</span></td></tr>
+                <tr><td>Description <span style="color:#b00020">*</span></td><td><span class="v">Headquarters — 4200 SE International Way, Portland, OR 97222</span></td></tr>
+              </tbody>
+            </table>
+            <p>Maria clicks <strong>Submit</strong>. The portal displays a confirmation message that the registration is received and under review.</p>
+            <div class="result"><strong>A new registration request appears in the Supplier Engagement app with Status Reason = New.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part B — Internal Review &amp; Approval (Alex's perspective)</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>2</span></div>
+          <div class="step-body">
+            <h3>Alex finds and starts reviewing the registration</h3>
+            <p>In the Supplier Engagement app, select the <strong>Menu</strong> area at the bottom of the nav. Go to <strong>Portal registrations → Registration requests</strong>. Find <strong>Pacific Components Ltd.</strong> with Status = <span class="v">New</span>.</p>
+            <p>Open the record, review the submitted details, then click <strong>Review</strong> on the command bar. Confirm the dialog. Status changes to <span class="v">In review</span>.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>3</span></div>
+          <div class="step-body">
+            <h3>Alex approves the registration</h3>
+            <p>With the request in <em>In review</em> status, click <strong>Approve</strong> on the command bar. Confirm the dialog. If the system detects a possible duplicate global vendor by name, email, or URL, review the existing record and decide whether to proceed or merge before confirming.</p>
+            <p>On successful approval, the system automatically:</p>
+            <ul class="sl">
+              <li>Creates a new global vendor record with Status = <span class="v">Prospect</span> (this will be GV-001)</li>
+              <li>Creates a Dataverse contact record for Maria Santos, linked to GV-001</li>
+              <li>Assigns Maria the <em>Global Vendor Admin</em> portal web role</li>
+              <li>Sends Maria an invitation email with a link to sign in and complete onboarding</li>
+            </ul>
+            <div class="result"><strong>Registration status = Approved. A new Prospect global vendor for Pacific Components Ltd. appears in General → Global vendors.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>4</span></div>
+          <div class="step-body">
+            <h3>Alex approves Maria's portal user request in SCM</h3>
+            <div class="where"><span class="mod">Procurement and sourcing</span><span class="sep"> › </span><span>Vendors</span><span class="sep"> › </span><span>Supplier Engagement</span><span class="sep"> › </span><span>Portal user requests</span></div>
+            <p>Find the pending request for Maria Santos. Review and click <strong>Approve</strong>. (If auto-approve was configured in Lab 3 Step 5, this may already be auto-approved.)</p>
+            <div class="result"><strong>Maria's portal user request is Approved. An external user account is created for her in SCM with the Supplier Portal Prospective User security role.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part C — Supplier Onboarding (Maria's perspective)</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>5</span></div>
+          <div class="step-body">
+            <h3>Maria receives invitation and signs in to the portal</h3>
+            <p>Maria opens the invitation email and clicks the portal link. She signs in using her Microsoft Entra identity (<code>m.santos@pacificcomponents.com</code>). The portal displays the <strong>Onboarding</strong> guide with multiple steps.</p>
+            <div class="warn"><strong>Troubleshooting portal sign-in.</strong> Supplier sign-in depends on three things being in place — portal visibility/access, an Entra <em>guest</em> identity for the supplier, and a Dataverse contact whose email matches that guest. Common errors and fixes:
+              <ul class="sl">
+                <li><strong>“You don't have access to this” (<code>/private-mode-access-denied</code>)</strong> — the site is still <em>Private</em> and this user hasn't been granted access. Either set <strong>Site visibility → Public</strong> in Power Pages (needs Power Platform Administrator / website owner), or keep it <strong>Private</strong> and grant access to the supplier's redeemed Entra B2B guest through <strong>Security → Site visibility → Grant site access</strong>. This private-site access path is useful for trial/developer/non-production instances where public visibility is unavailable or blocked by tenant policy.</li>
+                <li><strong>Certificate warning or “Azure Front Door configuration not found”</strong> — the site is still provisioning after going public. Wait 15–30 min and retry in a fresh InPrivate window.</li>
+                <li><strong>No invitation email arrived</strong> — the guest account was never created, so there is nothing to sign in with. In dev/trial environments the portal invitation email is usually never delivered (no Dataverse email server profile). The preferred fix is to complete Lab 0 Step 7 and Lab 3 Step 5 so FSCM provisions the Entra B2B guest through workflow and stores the matching Object ID on the Supplier Engagement contact. For a dev-only shortcut, add the supplier's email as a guest member of any team in Microsoft Teams — Teams raises the Entra B2B invite and sends an <em>Accept invitation</em> mail from <code>invites@microsoft.com</code> that redeems in seconds. (Alternative: <code>entra.microsoft.com</code> → <strong>Users → Invite external user</strong>, enter <code>m.santos@pacificcomponents.com</code>, then redeem the invite.) If you use the manual path, verify or patch the contact's External Identity Object ID as described above.</li>
+                <li><strong>“Invalid sign-in attempt”</strong> (with <em>“Registration has been disabled”</em> shown) — the identity provider maps sign-ins to a contact <em>by email</em>, but the signed-in guest's object ID doesn't match the identity stored on the contact. This happens when the guest was <strong>deleted and re-added</strong> or manually created through Teams/Entra outside the FSCM provisioning workflow. Fix: use the workflow-created guest where possible, or have an admin re-point the contact's stored <em>External Identity</em> record to the current guest's object ID. Always reuse the <em>same</em> guest account you registered with.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>6</span></div>
+          <div class="step-body">
+            <h3>Maria completes the onboarding form</h3>
+            <p>Maria works through the onboarding steps, providing the following data:</p>
+            <table class="ft">
+              <thead><tr><th>Onboarding Section</th><th>Data to Enter</th></tr></thead>
+              <tbody>
+                <tr><td>Company details</td><td>Full legal name, tax ID / organization number, DUNS number, number of employees: <span class="v">280</span></td></tr>
+                <tr><td>Address</td><td><span class="v">4200 SE International Way, Portland, OR 97222, US</span></td></tr>
+                <tr><td>Contact information</td><td>Phone <span class="v">+1-503-555-0100</span>, website <span class="v">www.pacificcomponents.com</span></td></tr>
+                <tr><td>Certificates</td><td>Add <span class="v">ISO 9001:2015</span>, certifying org = <span class="v">Bureau Veritas</span>, <strong>certification number</strong> = <span class="v">BV-9001-2025-4711</span>, valid from <span class="v">2025-03-01</span>, valid to <span class="v">2028-02-28</span> <em>(Certification number, type, certifying org, and both dates are all required.)</em></td></tr>
+                <tr><td>Capabilities</td><td>Select <span class="v">PCB Assembly</span> and <span class="v">Surface Mount Technology</span></td></tr>
+                <tr><td>Self-assessment</td><td>Answer all four questions (Yes to ISO 9001; select revenue range; 280 employees; describe OECD process)</td></tr>
+              </tbody>
+            </table>
+            <p>On the final step Maria clicks <strong>Submit</strong>. The portal confirms that onboarding data has been submitted for review.</p>
+            <div class="result"><strong>Onboarding status in the Supplier Engagement app updates to indicate data submitted. Alex can now see the submitted information on the GV-001 record.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part D — Qualification (Alex's perspective)</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>7</span></div>
+          <div class="step-body">
+            <h3>Alex qualifies Pacific Components as a global vendor</h3>
+            <p>In the Supplier Engagement app, go to <strong>General → Global vendors</strong> and open the <strong>Pacific Components Ltd.</strong> record. Review all tabs (Summary, Certificates, Capabilities, Contacts, Self-assessment answers).</p>
+            <p>On the command bar click <strong>Qualify</strong>. In the dialog enter comment: <span class="v">Onboarding reviewed — ISO 9001 verified, capabilities confirmed. Passed initial qualification.</span> Click <strong>OK</strong>.</p>
+            <p>The system:</p>
+            <ul class="sl">
+              <li>Changes status to <span class="v">Qualified</span></li>
+              <li>Creates a global vendor party record in SCM</li>
+              <li>Synchronizes addresses, contacts, and contact methods to SCM</li>
+              <li>Upgrades Maria's SCM security role from Prospective User to <em>Supplier Portal Administrator</em></li>
+            </ul>
+            <div class="result"><strong>GV-001 (Pacific Components Ltd.) status = Qualified. Go to SCM → Procurement and sourcing → Vendors → Supplier engagement → All global vendors to confirm the record appears.</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== LAB 6 ========== -->
+    <section id="lab6" class="lab-section">
+      <!-- ##LAB6## -->
+      <div class="lab-hdr">
+        <div class="lab-meta">
+          <span class="lab-num">Lab 6 of 9</span>
+          <span class="lab-time">⏱ ~35 min</span>
+          <span class="badge b-scn">Scenario</span>
+        </div>
+        <h1>Internal Invitation &amp; Full Vendor Lifecycle — Alps Sensors GmbH</h1>
+        <p class="lab-goal">Alex manually creates a Prospect global vendor (GV-002) for Alps Sensors GmbH and invites Klaus Weber to the portal. After Klaus completes onboarding, Alex qualifies and then approves the vendor. Finally, Alex releases GV-002 to the USMF legal entity, creating a local vendor account, and enables the vendor for portal-based purchase order collaboration. An optional <strong>Part D</strong> releases the <em>same</em> global vendor to a second legal entity (DEMF) to demonstrate the one-profile-across-many-companies model.</p>
+      </div>
+
+      <div class="prereq">
+        <h4>Before you start</h4>
+        <ul class="chk">
+          <li><input type="checkbox"><span>Lab 5 complete — self-registration flow understood.</span></li>
+          <li><input type="checkbox"><span>Klaus Weber test account (<code>k.weber@alps-sensors.de</code>) has a Microsoft Entra identity.</span></li>
+          <li><input type="checkbox"><span>Reference data from Lab 4 is available (segments, vendor types, capabilities).</span></li>
+        </ul>
+      </div>
+
+      <div class="slbl">Part A — Create Global Vendor Manually</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>1</span></div>
+          <div class="step-body">
+            <h3>Alex creates a new Prospect global vendor</h3>
+            <p>In the Supplier Engagement app, go to <strong>General → Global vendors → New</strong>. Only <strong>Name</strong> is mandatory; the rest are optional but fill them in for the demo. <strong>Country/Region of Operation</strong> and <strong>Type</strong> are <em>lookups</em> — click the field and start typing to filter, then pick from the list.</p>
+            <table class="ft">
+              <thead><tr><th>Field (exact label on form)</th><th>Value</th><th>Notes</th></tr></thead>
+              <tbody>
+                <tr><td>Name <span style="color:#b00020">*</span></td><td><span class="v">Alps Sensors GmbH</span></td><td>Required.</td></tr>
+                <tr><td>Country/Region of Operation</td><td><span class="v">Germany</span></td><td>Lookup.</td></tr>
+                <tr><td>Type</td><td><span class="v">Direct Material</span></td><td>Lookup to the <em>Global vendor types</em> you created in Lab 4.</td></tr>
+                <tr><td>Organization Number</td><td><span class="v">DE 12345 6789</span></td><td>Free text.</td></tr>
+                <tr><td>Number of Employees</td><td><span class="v">145</span></td><td>Whole number.</td></tr>
+                <tr><td>Primary Contact URL</td><td><span class="v">www.alps-sensors.de</span></td><td>This is the field used for the company website (there is no separate “Website” field).</td></tr>
+              </tbody>
+            </table>
+            <div class="note"><strong>Segment is not a header field.</strong> A global vendor can belong to several segments, so segments are managed through the <strong>Segments</strong> related tab / subgrid rather than a single dropdown on the header. After you save the record, open the <strong>Segments</strong> area and add <span class="v">Tier 2 Preferred</span>.</div>
+            <p>Click <strong>Save</strong>. The record is created with Status = <span class="v">Prospect</span>.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>2</span></div>
+          <div class="step-body">
+            <h3>Add address and contact information</h3>
+            <p>On the <strong>Summary</strong> tab, find the <strong>Addresses</strong> section and click <strong>+ New</strong> (or <strong>New Address</strong>) to add the primary address. <strong>Country/Region</strong> is a lookup; the other fields are free text.</p>
+            <table class="ft">
+              <thead><tr><th>Field</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td>Street</td><td><span class="v">Kaiserswerther Str. 115</span></td></tr>
+                <tr><td>City</td><td><span class="v">Ratingen</span></td></tr>
+                <tr><td>ZIP/Postal Code</td><td><span class="v">40880</span></td></tr>
+                <tr><td>Country/Region</td><td><span class="v">Germany</span></td></tr>
+              </tbody>
+            </table>
+            <p>On the <strong>Contacts</strong> tab (or the <strong>Contacts</strong> subgrid), click <strong>New Contact</strong> and fill the quick-create form:</p>
+            <table class="ft">
+              <thead><tr><th>Field</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td>First Name</td><td><span class="v">Klaus</span></td></tr>
+                <tr><td>Last Name</td><td><span class="v">Weber</span></td></tr>
+                <tr><td>Email</td><td><span class="v">k.weber@alps-sensors.de</span></td></tr>
+                <tr><td>Phone (Business Phone)</td><td><span class="v">+49-211-555-0200</span></td></tr>
+              </tbody>
+            </table>
+            <div class="warn"><strong>Placeholder identity — use a real email for the contact.</strong> <em>Klaus Weber</em> and <code>k.weber@alps-sensors.de</code> are placeholders for the demo persona. The portal invitation is sent to whatever you enter in <strong>Email</strong>, and that address becomes the Microsoft Entra guest you later sign in with — so enter a <strong>real external inbox you control</strong> (for example a personal Gmail/Outlook address). You can keep the display name (Klaus Weber) as-is; only the <strong>Email</strong> must be real. Use the <em>same</em> address consistently for every sign-in.</div>
+            <p>Save the contact. Back on the <strong>Summary</strong> tab, set Klaus Weber as the <strong>Primary contact</strong>.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part B — Invite to Portal &amp; Approve User</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>3</span></div>
+          <div class="step-body">
+            <h3>Invite Alps Sensors to the supplier portal</h3>
+            <p>On the GV-002 record command bar, click <strong>Invite to supplier portal</strong>. The system sends an invitation email to Klaus Weber (<code>k.weber@alps-sensors.de</code>) and creates a portal user request in SCM with Klaus provisioned as <em>Global Vendor Administrator</em>.</p>
+            <div class="note"><strong>The "Invite to supplier portal" button only appears if a Primary contact with a valid email is set on the global vendor record.</strong></div>
+            <div class="warn"><strong>Dev/trial shortcut — create the Entra guest via Microsoft Teams.</strong>
+              <p><strong>Why:</strong> the portal signs users in through Entra (Azure AD), so the external email must first exist in the tenant as a <em>B2B guest</em>. The built-in “Invite to supplier portal” relies on a Dataverse email server profile to deliver its invitation — and dev/trial environments usually have none, so that email is generated but never actually sent. Result: no guest, nothing to sign in with.</p>
+              <p><strong>Dev/trial workaround:</strong> in <strong>Microsoft Teams</strong>, add the supplier's email (<code>k.weber@alps-sensors.de</code> — or your real test inbox) as a <em>guest member of any team</em>. Teams raises the Entra B2B invitation on your behalf and sends its own <em>“Accept invitation”</em> email from <code>invites@microsoft.com</code>, which the person redeems in seconds. Once redeemed, the guest exists in the tenant; they sign in to the portal and Power Pages matches them to the contact by email — no portal invitation email required.</p>
+              <p><strong>Preferred path:</strong> configure Lab 0 Step 7 and Lab 3 Step 5 so the FSCM workflow runs <strong>Provision Microsoft Entra ID B2B user</strong>. In that path, the guest is created by FSCM and the same Entra <strong>Object ID</strong> is stored on the Supplier Engagement contact automatically.</p>
+              <p><strong>Do it once — don't remove &amp; re-add.</strong> Removing then re-adding the guest mints a <em>new</em> Entra object ID that no longer matches the ID stored on the contact's External Identity record, producing the <span class="v">"Invalid sign-in attempt"</span> error. If that happens, an admin must re-point the contact's External Identity to the current guest's object ID (see the sign-in troubleshooting box in Lab 5, Step 5).</p>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>4</span></div>
+          <div class="step-body">
+            <h3>Approve Klaus's portal user request in SCM</h3>
+            <div class="where"><span class="mod">Procurement and sourcing</span><span class="sep"> › </span><span>Vendors</span><span class="sep"> › </span><span>Supplier Engagement</span><span class="sep"> › </span><span>Portal user requests</span></div>
+            <p>Find the request for Klaus Weber and click <strong>Approve</strong>. (Auto-approves if Lab 3 Step 5 configured.) Klaus receives a portal access confirmation email.</p>
+            <div class="result"><strong>Klaus's portal access is active. He can sign in to the supplier portal and see his company profile.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>5</span></div>
+          <div class="step-body">
+            <h3>Klaus signs in and completes onboarding</h3>
+            <p>Klaus opens the invitation email, clicks the portal link, and signs in. He completes the onboarding form, adding:</p>
+            <ul class="sl">
+              <li>Confirm company details (populated from manual entry, Klaus reviews and supplements)</li>
+              <li>Certificate: <span class="v">IATF 16949</span>, certifying org = <span class="v">TÜV Rheinland</span>, <strong>certification number</strong> = <span class="v">TR-16949-2024-8842</span>, valid from <span class="v">2024-06-01</span> to <span class="v">2027-05-31</span> <em>(Certification number, type, certifying org, and both dates are all required.)</em></li>
+              <li>Capabilities: <span class="v">Electrical Testing &amp; Inspection</span></li>
+              <li>Self-assessment: complete all four questions</li>
+            </ul>
+            <p>Klaus clicks <strong>Submit</strong> on the final onboarding step.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part C — Qualify, Approve &amp; Release</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>6</span></div>
+          <div class="step-body">
+            <h3>Alex qualifies GV-002</h3>
+            <p>In the Supplier Engagement app, open <strong>Alps Sensors GmbH (GV-002)</strong>. Review all onboarding data. On the command bar click <strong>Qualify</strong>. Enter comment: <span class="v">IATF 16949 verified. Electrical testing capability confirmed. Approved for sensor procurement.</span> Click <strong>OK</strong>.</p>
+            <div class="result"><strong>Status = Qualified. Global vendor party created in SCM and data synchronized.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>7</span></div>
+          <div class="step-body">
+            <h3>Alex approves GV-002</h3>
+            <p>On the command bar click <strong>Approve → Approve</strong>. Enter comment: <span class="v">Meets all qualification and compliance criteria. Cleared for release to USMF.</span> Click <strong>OK</strong>.</p>
+            <div class="result"><strong>Status = Approved. GV-002 is now eligible for release to a legal entity.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>8</span></div>
+          <div class="step-body">
+            <h3>Release GV-002 to USMF legal entity</h3>
+            <p>On the GV-002 record command bar, click <strong>Release vendor</strong>. Select <strong>OK</strong> in the confirmation dialog. In the <strong>Release vendor</strong> dialog, enter:</p>
+            <table class="ft">
+              <thead><tr><th>Field</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td>Global vendor</td><td>Alps Sensors GmbH (read-only reference)</td></tr>
+                <tr><td>Legal entity</td><td><span class="v">USMF</span></td></tr>
+                <tr><td>Vendor group</td><td>Select any <strong>active vendor group configured in this legal entity</strong> (e.g., <span class="v">10</span>). Vendor groups vary by environment — if you don't see a group named "Foreign vendors", just pick any group in the list. They're defined in SCM under <em>Accounts payable → Setup → Vendor groups</em>; create one there first if the dropdown is empty.</td></tr>
+                <tr><td>Vendor number</td><td>Enter a vendor number (or leave to auto-number per group)</td></tr>
+                <tr><td>Currency code</td><td><span class="v">EUR</span> (leave blank to use the legal entity default)</td></tr>
+                <tr><td>Vendor hold</td><td>Leave blank (vendor is not on hold)</td></tr>
+              </tbody>
+            </table>
+            <p>Click <strong>Release</strong>. The system creates a local vendor account in USMF linked to the same party as GV-002.</p>
+            <div class="result"><strong>A local vendor account appears in SCM for Alps Sensors GmbH under USMF. The Lifecycle tab shows the local vendor in the Vendors section.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>9</span></div>
+          <div class="step-body">
+            <h3>Enable the local vendor for supplier portal collaboration</h3>
+            <p>In the Supplier Engagement app, open the <strong>Alps Sensors GmbH (GV-002)</strong> record and open the <strong>Lifecycle</strong> tab. In the <strong>Vendors</strong> section, select the <strong>Vendor account</strong> link for the USMF local vendor. The vendor opens; on the <strong>General</strong> tab, in the <strong>Vendor collaboration</strong> section, set <strong>Collaboration activation</strong> to one of:</p>
+            <table class="ft">
+              <thead><tr><th>Value</th><th>Behavior</th></tr></thead>
+              <tbody>
+                <tr><td><span class="v">Active (PO is not auto-confirmed)</span></td><td>Purchase orders require manual confirmation by the supplier (use this for the lab)</td></tr>
+                <tr><td><span class="v">Active (PO is auto-confirmed)</span></td><td>Purchase orders are automatically confirmed on submission</td></tr>
+              </tbody>
+            </table>
+            <p>On the command bar, click <strong>Save</strong>.</p>
+            <div class="note"><strong>This activation step is required</strong> before the vendor can see purchase orders in the supplier portal. Without it, the PO view is empty for this vendor's portal users.</div>
+            <div class="result"><strong>Alps Sensors GmbH local vendor has Collaboration activation = Active. Klaus can now see purchase orders in the supplier portal for the USMF legal entity.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part D — Release to a Second Legal Entity (optional · illustrates the global vendor model)</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>10</span></div>
+          <div class="step-body">
+            <h3>(Optional) Release the same global vendor (GV-002) to DEMF</h3>
+            <p>Technova also buys from Alps Sensors through its German company. Because GV-002 is a <strong>single global profile</strong>, you can release it to a second legal entity without re-entering any identity data — demonstrating the core value of the global vendor model.</p>
+            <p>In the Supplier Engagement app, open <strong>Alps Sensors GmbH (GV-002)</strong>. On the command bar click <strong>Release vendor</strong>, select <strong>OK</strong> in the confirmation dialog, and enter:</p>
+            <table class="ft">
+              <thead><tr><th>Field</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td>Global vendor</td><td>Alps Sensors GmbH (read-only reference)</td></tr>
+                <tr><td>Legal entity</td><td><span class="v">DEMF</span> (the German company)</td></tr>
+                <tr><td>Vendor group</td><td>Select the appropriate German vendor group</td></tr>
+                <tr><td>Vendor number</td><td>Enter a vendor number (or leave to auto-number per group)</td></tr>
+                <tr><td>Currency code</td><td><span class="v">EUR</span></td></tr>
+                <tr><td>Vendor hold</td><td>Leave blank</td></tr>
+              </tbody>
+            </table>
+            <p>Click <strong>Release</strong>. A <strong>second</strong> local vendor account is created — this time in DEMF — linked to the same party as GV-002.</p>
+            <div class="note"><strong>What this proves:</strong> The shared identity data (name, addresses, contacts, certificates, agreements) was entered <em>once</em> on the global vendor and now backs <em>two</em> local vendors. Each local vendor keeps its own legal-entity-specific settings (currency, vendor group, bank accounts, tax IDs). Open the <strong>Lifecycle</strong> tab — the <strong>Vendors</strong> section now lists both the USMF and DEMF local vendors.</div>
+            <div class="result"><strong>GV-002 is released to two legal entities. The Lifecycle tab shows two local vendors (USMF + DEMF) under one global vendor profile.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>11</span></div>
+          <div class="step-body">
+            <h3>(Optional) Enable the DEMF local vendor for collaboration</h3>
+            <p>If suppliers should collaborate on German-company purchase orders too, repeat Step 9 for the DEMF local vendor: open it from the <strong>Lifecycle → Vendors</strong> section and set <strong>Collaboration activation</strong> to <span class="v">Active (PO is not auto-confirmed)</span>. Certificates and contacts from the global vendor already apply — no re-entry needed.</p>
+            <div class="result"><strong>The DEMF local vendor is portal-enabled, sharing the same global identity as the USMF vendor.</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== LAB 7 ========== -->
+    <section id="lab7" class="lab-section">
+      <!-- ##LAB7## -->
+      <div class="lab-hdr">
+        <div class="lab-meta">
+          <span class="lab-num">Lab 7 of 9</span>
+          <span class="lab-time">⏱ ~20 min</span>
+          <span class="badge b-dat">Migration</span>
+        </div>
+        <h1>Migrate Existing Vendor to Global Vendor — Acme Office Supplies</h1>
+        <p class="lab-goal">Acme Office Supplies (USMF vendor account <strong>1001</strong>, based in Houston, US) already exists as a local vendor but has never been linked to a global vendor record. Use the Global Vendor Creation Wizard in SCM to promote it to a global vendor (GV-003), check for party duplicates, and verify the migration in both SCM and the Supplier Engagement app. This is the pattern for organizations transitioning an existing supplier base to Supplier Engagement.</p>
+      </div>
+
+      <div class="prereq">
+        <h4>Before you start</h4>
+        <ul class="chk">
+          <li><input type="checkbox"><span>Lab 3 complete — Supplier Engagement feature enabled in SCM.</span></li>
+          <li><input type="checkbox"><span>Acme Office Supplies exists as a local vendor in USMF (vendor account <strong>1001</strong>, Houston, US) and is NOT yet linked to a global vendor.</span></li>
+        </ul>
+      </div>
+
+      <div class="slbl">Part A — Run the Global Vendor Creation Wizard</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>1</span></div>
+          <div class="step-body">
+            <h3>Select Acme Office Supplies from All vendors</h3>
+            <div class="where"><span class="mod">Procurement and sourcing</span><span class="sep"> › </span><span>Vendors</span><span class="sep"> › </span><span>All vendors</span></div>
+            <p>Find and select the <strong>Acme Office Supplies</strong> (vendor account <span class="v">1001</span>) record (it should not have a global vendor linked yet). On the Action Pane, open the <strong>Vendor</strong> tab, and in the <strong>Set up</strong> group click <strong>Global vendor</strong>.</p>
+            <div class="note"><strong>This button is the entry point</strong> — you must open it from the selected vendor record (Vendor tab → Set up → Global vendor). There is no separate "Global vendor creation" menu item under <em>Supplier engagement</em>; that submenu only contains <em>All global vendors</em> and the <em>Global vendor creation log</em> (used in Part B).</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>2</span></div>
+          <div class="step-body">
+            <h3>Work through the wizard steps</h3>
+            <p>The <strong>Global vendor creation</strong> wizard opens. Follow the pages:</p>
+            <ol class="sl">
+              <li><strong>Welcome</strong> — Click <strong>Next</strong>.</li>
+              <li><strong>Select vendor</strong> — Confirm Acme Office Supplies is selected. Click <strong>Next</strong>.</li>
+              <li><strong>Check for duplicates</strong> — The system searches the global address book for parties that match by name, email, or phone. Review any results in the <em>Duplicates search result</em> panel.
+                <ul class="sl" style="margin-top:6px">
+                  <li>If no duplicates: select the vendor row and mark it as <strong>Global vendor</strong>.</li>
+                  <li>If a duplicate party exists: select the correct one as <strong>Global vendor</strong> and mark the other for <strong>Merge</strong>.</li>
+                </ul>
+              </li>
+              <li><strong>Summary</strong> — Review the actions listed. Verify that one global vendor will be created and linked to Acme Office Supplies. Click <strong>Finish</strong>.</li>
+            </ol>
+            <div class="note"><strong>The wizard runs asynchronously.</strong> The page will return immediately, but the global vendor creation happens in the background. Check the log in the next step to confirm success.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part B — Verify Migration</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>3</span></div>
+          <div class="step-body">
+            <h3>Review the Global Vendor Creation Log</h3>
+            <div class="where"><span class="mod">Procurement and sourcing</span><span class="sep"> › </span><span>Vendors</span><span class="sep"> › </span><span>Supplier Engagement</span><span class="sep"> › </span><span>Global vendor creation log</span></div>
+            <p>Find the log entry for Acme Office Supplies. Confirm the <strong>Status</strong> column shows <span class="v">Completed</span>. If it shows <span class="v">Error</span>, select the row and click <strong>Resync</strong> on the Action Pane to retry.</p>
+            <div class="result"><strong>Log entry shows Status = Completed for Acme Office Supplies.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>4</span></div>
+          <div class="step-body">
+            <h3>Confirm GV-003 in SCM and the Supplier Engagement app</h3>
+            <p>In SCM go to <strong>Procurement and sourcing → Vendors → Supplier engagement → All global vendors</strong>. Confirm <strong>Acme Office Supplies</strong> appears with a global vendor number (GV-003).</p>
+            <p>In the Supplier Engagement app, go to <strong>General → Global vendors</strong>. Open the Acme Office Supplies record and verify:</p>
+            <ul class="sl">
+              <li>Status = <span class="v">Qualified</span> (existing vendors created via the wizard are directly qualified, not Prospect)</li>
+              <li>Origin = <span class="v">Supply Chain Management</span> (records created from existing vendor data show this origin, versus <em>Supplier portal</em> for self-registration or <em>Supplier Engagement</em> for manual creation)</li>
+              <li>The <strong>Lifecycle</strong> tab shows the USMF local vendor in the <strong>Vendors</strong> section</li>
+              <li>Addresses and contacts from the original vendor record are visible</li>
+            </ul>
+            <div class="result"><strong>GV-003 (Acme Office Supplies) exists in both SCM and the Supplier Engagement app, linked to the original USMF local vendor record.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>5</span></div>
+          <div class="step-body">
+            <h3>Enable Acme Office Supplies for vendor portal collaboration (optional)</h3>
+            <p>If Acme Office Supplies should use the supplier portal, follow the same pattern as Lab 6 Step 9: open the local vendor in SCM, set <strong>Collaboration activation</strong> to <span class="v">Active (PO is not auto-confirmed)</span>, and invite their primary contact from the Supplier Engagement app.</p>
+            <div class="note"><strong>For this lab series</strong>, RFQ and PO scenarios in Labs 8 and 9 use Pacific Components Ltd. (GV-001). Acme Office Supplies can be used as a second scenario for practice.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== LAB 8 ========== -->
+    <section id="lab8" class="lab-section">
+      <!-- ##LAB8## -->
+      <div class="lab-hdr">
+        <div class="lab-meta">
+          <span class="lab-num">Lab 8 of 9</span>
+          <span class="lab-time">⏱ ~45 min</span>
+          <span class="badge b-prc">Document Processing</span>
+        </div>
+        <h1>RFQ via Supplier Portal — TX-500 PCB Connector Sourcing</h1>
+        <p class="lab-goal">Technova issues a Request for Quotation for 500 M12 PCB Connectors. Alex creates the RFQ in SCM and sends it to Pacific Components Ltd. Maria views the RFQ in the supplier portal and submits a competitive bid. Alex reviews the bid in SCM and awards the RFQ to Pacific Components, completing the sourcing event end-to-end.</p>
+      </div>
+
+      <div class="prereq">
+        <h4>Before you start</h4>
+        <ul class="chk">
+          <li><input type="checkbox"><span>Labs 5–6 complete — Pacific Components Ltd. (GV-001) is <strong>Approved</strong> in the Supplier Engagement app and has been <strong>released to USMF</strong> as a local vendor with <strong>Collaboration activation = Active</strong>. If not done, complete the <em>Setup</em> step below.</span></li>
+          <li><input type="checkbox"><span>Item <span class="v">PCB-CON-M12</span> exists as a released product in USMF with site <span class="v">1</span> / warehouse <span class="v">11</span> configured. <strong>This item is not part of standard USMF demo data</strong> — create it first using the one-time <em>Setup</em> step below.</span></li>
+          <li><input type="checkbox"><span>Maria Santos can sign in to the supplier portal.</span></li>
+        </ul>
+        <div class="note"><strong>Lab variable:</strong> The examples use <span class="v">USSEP-0002</span> for the Pacific Components local vendor account. If your environment assigns or requires a different vendor number, use your actual value anywhere the labs reference <span class="v">USSEP-0002</span>, including Lab 9.</div>
+      </div>
+
+      <div class="slbl">Setup A — Approve &amp; release Pacific Components to USMF (one-time)</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>0a</span></div>
+          <div class="step-body">
+            <h3>Approve Pacific Components and release to USMF</h3>
+            <p>Lab 5 ends with Pacific Components at <em>Qualified</em> status. Before Lab 8, the vendor must be <strong>Approved</strong> and released to USMF so it appears on the RFQ solicitation list. Skip this step if already done (local vendor <span class="v">USSEP-0002</span> exists in USMF).</p>
+            <p><strong>1. Approve the global vendor</strong></p>
+            <div class="where"><span class="mod">Supplier Engagement app</span><span class="sep"> › </span><span>General</span><span class="sep"> › </span><span>Global vendors</span><span class="sep"> › </span><span>Pacific Components Ltd.</span></div>
+            <p>On the command bar click <strong>Approve</strong>. Enter a comment if prompted. Status changes to <span class="v">Approved</span>.</p>
+            <p><strong>2. Release to USMF</strong></p>
+            <div class="where"><span class="mod">Procurement and sourcing</span><span class="sep"> › </span><span>Vendors</span><span class="sep"> › </span><span>Supplier Engagement</span><span class="sep"> › </span><span>All global vendors</span><span class="sep"> › </span><span>Pacific Components Ltd.</span></div>
+            <p>Open the <strong>Vendors</strong> (Released vendors) tab. Click <strong>New</strong>. In the new-vendor row/dialog, set:</p>
+            <table class="ft">
+              <thead><tr><th>Field</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td>Company</td><td><span class="v">USMF</span></td></tr>
+                <tr><td>Vendor group</td><td><span class="v">10</span></td></tr>
+                <tr><td>Currency</td><td><span class="v">USD</span></td></tr>
+              </tbody>
+            </table>
+            <p>Save. Note the auto-assigned <strong>Vendor account</strong> number. The value is generated by your environment's number sequence; examples in this lab use <span class="v">USSEP-0002</span> only as a placeholder.</p>
+            <p><strong>3. Enable Collaboration activation</strong></p>
+            <div class="where"><span class="mod">Accounts payable</span><span class="sep"> › </span><span>Vendors</span><span class="sep"> › </span><span>All vendors</span><span class="sep"> › </span><span>your assigned vendor account</span></div>
+            <p>On the <strong>General</strong> tab, set <strong>Collaboration activation</strong> = <span class="v">Active</span>. Save.</p>
+            <div class="result"><strong>Pacific Components Ltd. local vendor USSEP-0002 is active in USMF and enabled for supplier portal collaboration.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Setup B — Create the PCB-CON-M12 released product (one-time)</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>0</span></div>
+          <div class="step-body">
+            <h3>Create PCB-CON-M12 as a released product</h3>
+            <p><strong>PCB-CON-M12 is not in the standard USMF demo data</strong>, so create it once before running the RFQ. Skip this step if you have already created it (or if you substitute an existing USMF item such as <span class="v">A0001</span> throughout Labs 8–9).</p>
+            <div class="where"><span class="mod">Product information management</span><span class="sep"> › </span><span>Products</span><span class="sep"> › </span><span>Released products</span><span class="sep"> › </span><span>+ New</span></div>
+            <p>In the <strong>New released product</strong> dialog, enter (values below are valid in USMF — matched to a comparable stocked item):</p>
+            <table class="ft">
+              <thead><tr><th>Field</th><th>Value</th><th>Notes</th></tr></thead>
+              <tbody>
+                <tr><td>Product number</td><td><span class="v">PCB-CON-M12</span></td><td>Required.</td></tr>
+                <tr><td>Product name</td><td><span class="v">M12 PCB Connector</span></td><td>Required.</td></tr>
+                <tr><td>Product type</td><td><span class="v">Item</span></td><td>Stocked physical part.</td></tr>
+                <tr><td>Product subtype</td><td><span class="v">Product</span></td><td>Not a product master (no variants).</td></tr>
+                <tr><td>Item model group</td><td><span class="v">FIFO</span></td><td>Lookup.</td></tr>
+                <tr><td>Item group</td><td><span class="v">Audio</span></td><td>Lookup — select <span class="v">Audio</span> for ledger posting.</td></tr>
+                <tr><td>Storage dimension group</td><td><span class="v">SiteWH</span></td><td>Includes <em>Site</em> and <em>Warehouse</em> — needed for site 1 / warehouse 11. Use <span class="v">SiteWH</span> (standard); <span class="v">Ware</span> is WMS-specific and requires WMS activation.</td></tr>
+                <tr><td>Tracking dimension group</td><td><span class="v">None</span></td><td>No batch/serial tracking.</td></tr>
+                <tr><td>Inventory / Purchase / Sales unit</td><td><span class="v">ea</span></td><td>Same unit across all three.</td></tr>
+              </tbody>
+            </table>
+            <p>Click <strong>OK</strong> to create the product. Then open the released product and set the following so the RFQ/PO lines default correctly:</p>
+            <ul class="sl">
+              <li><strong>Default order settings</strong> (Plan tab / Action Pane) — set default <strong>Site = 1</strong> and <strong>Warehouse = 11</strong> for Purchase orders.</li>
+              <li><strong>Purchase price</strong> (Purchase tab → <em>Purchase prices</em>, optional) — e.g., <span class="v">2.50</span> USD, so a default cost is available before the awarded bid (USD 2.45) overrides it.</li>
+            </ul>
+            <div class="result"><strong>PCB-CON-M12 exists as a released product in USMF and can be transacted at site 1 / warehouse 11.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part A — Create &amp; Send RFQ (Alex in SCM)</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>1</span></div>
+          <div class="step-body">
+            <h3>Create a new Request for Quotation</h3>
+            <div class="where"><span class="mod">Procurement and sourcing</span><span class="sep"> › </span><span>Requests for quotations</span><span class="sep"> › </span><span>All requests for quotations</span><span class="sep"> › </span><span>+ New</span></div>
+            <p>The <strong>New request for quotation</strong> dialog opens. Fill in the fields (the RFQ case number is auto-assigned):</p>
+            <table class="ft">
+              <thead><tr><th>Field (exact label)</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td>Purchase type</td><td><span class="v">Purchase order</span></td></tr>
+                <tr><td>Document title</td><td><span class="v">TX-500 Program — M12 PCB Connector Sourcing Event</span></td></tr>
+                <tr><td>Requested receipt date</td><td><span class="v">2026-09-15</span> <em>*</em></td></tr>
+                <tr><td>Expiration date and time</td><td><span class="v">2026-08-15</span> <em>* (bidding deadline)</em></td></tr>
+                <tr><td>Site <em>(under Delivery address → Inventory)</em></td><td><span class="v">1</span></td></tr>
+                <tr><td>Warehouse <em>(under Delivery address → Inventory)</em></td><td><span class="v">11</span></td></tr>
+              </tbody>
+            </table>
+            <p><em>* Date placeholders — adjust relative to today. The expiration date must be in the future for the RFQ to accept bids; the requested receipt date should be after the expiration date.</em></p>
+            <p>Click <strong>OK</strong>. The RFQ header record opens.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>2</span></div>
+          <div class="step-body">
+            <h3>Add the line item</h3>
+            <p>In the <strong>Lines</strong> FastTab, click <strong>Add line</strong>:</p>
+            <table class="ft">
+              <thead><tr><th>Field</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td>Item number</td><td><span class="v">PCB-CON-M12</span></td></tr>
+                <tr><td>Quantity</td><td><span class="v">500</span></td></tr>
+                <tr><td>Unit</td><td><span class="v">ea</span></td></tr>
+                <tr><td>Site</td><td><span class="v">1</span></td></tr>
+                <tr><td>Warehouse</td><td><span class="v">11</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>3</span></div>
+          <div class="step-body">
+            <h3>Add Pacific Components as a solicitation vendor</h3>
+            <p>Switch to the <strong>Header</strong> tab (next to <strong>Lines</strong> at the top of the RFQ form). Scroll down to the <strong>Vendor</strong> FastTab. Click <strong>+ Add</strong> — a new row appears inline. In the <strong>Vendor account</strong> column, select <span class="v">USSEP-0002</span> (Pacific Components Ltd.). The <strong>Name</strong> and status columns fill automatically.</p>
+            <div class="note">The Vendor FastTab controls who receives the RFQ. The vendor must exist as a local vendor in USMF (USSEP-0002, created in Setup A) and have <strong>Collaboration activation = Active</strong> — otherwise the send step will not deliver the RFQ to the portal.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>4</span></div>
+          <div class="step-body">
+            <h3>Send the RFQ</h3>
+            <p>On the Action Pane, <strong>Quotation</strong> tab, click <strong>Send</strong>. Review the <em>Send request for quotation</em> confirmation dialog — Pacific Components Ltd. should appear in the vendor list. Click <strong>OK</strong> / <strong>Send</strong> to dispatch.</p>
+            <div class="result"><strong>RFQ status changes to "Sent". Pacific Components Ltd. receives a notification that an RFQ is awaiting their response in the supplier portal.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part B — Submit Bid (Maria in supplier portal)</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>5</span></div>
+          <div class="step-body">
+            <h3>Maria opens and responds to the RFQ</h3>
+            <p>Maria signs in to the supplier portal. On the main navigation she selects <strong>Requests for Quotation</strong>. She finds the <em>TX-500 Program — M12 PCB Connector Sourcing Event</em> RFQ and opens it.</p>
+            <p>She clicks the option to reply to / edit the RFQ reply and enters her bid details:</p>
+            <table class="ft">
+              <thead><tr><th>Field</th><th>Value Maria Enters</th></tr></thead>
+              <tbody>
+                <tr><td>Unit price</td><td><span class="v">2.45</span> USD</td></tr>
+                <tr><td>Promised delivery date</td><td><span class="v">2026-09-10</span> (5 days early)</td></tr>
+                <tr><td>Valid until</td><td><span class="v">2026-08-31</span></td></tr>
+                <tr><td>Vendor reference</td><td><span class="v">PCL-Q-2026-0089</span></td></tr>
+                <tr><td>Notes / comments</td><td><span class="v">Price includes DDP shipping to Technova Site 1. Lead time: 14 calendar days. MOQ: 100 ea.</span></td></tr>
+              </tbody>
+            </table>
+            <p>Maria submits the bid to Technova.</p>
+            <div class="note">Because Supplier Engagement is in preview, exact supplier-portal button labels for RFQ replies may differ from those shown here. The RFQ bidding workflow follows standard vendor-collaboration behavior: the supplier opens the RFQ, enters pricing and delivery terms, and submits the reply.</div>
+            <div class="result"><strong>Maria's bid appears in SCM on the RFQ replies list with Status = Received.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part C — Award the RFQ (Alex in SCM)</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>6</span></div>
+          <div class="step-body">
+            <h3>Alex reviews the bid and accepts it</h3>
+            <div class="where"><span class="mod">Procurement and sourcing</span><span class="sep"> › </span><span>Requests for quotations</span><span class="sep"> › </span><span>Request for quotation replies</span></div>
+            <p>Open the RFQ reply for Pacific Components Ltd. Review the unit price (<span class="v">USD 2.45</span>), delivery date, and notes. On the Action Pane click <strong>Accept</strong>. Confirm the dialog.</p>
+            <p>The system creates a purchase order or purchase agreement from the accepted bid, depending on the <em>Purchase type</em> set on the original RFQ.</p>
+            <div class="result"><strong>RFQ awarded to Pacific Components Ltd. at USD 2.45/ea. The RFQ status changes to "Accepted" for the Pacific Components reply. A follow-on purchase order is generated (used in Lab 9).</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>7</span></div>
+          <div class="step-body">
+            <h3>Verify supplier receives award notification</h3>
+            <p>Confirm that the supplier notification email was sent to Maria Santos (Supplier Engagement uses cloud flows and email templates configured in Lab 2 to notify suppliers of RFQ activity). Maria should see the award confirmation in the supplier portal, where the RFQ status now shows <strong>Accepted</strong>.</p>
+            <div class="note"><strong>If the notification email is not received</strong>, check that the Supplier Engagement cloud flows are turned on (Lab 2 Step 6) and that the service account mailbox is active (Lab 2 Step 2).</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== LAB 9 ========== -->
+    <section id="lab9" class="lab-section">
+      <!-- ##LAB9## -->
+      <div class="lab-hdr">
+        <div class="lab-meta">
+          <span class="lab-num">Lab 9 of 9</span>
+          <span class="lab-time">⏱ ~60 min</span>
+          <span class="badge b-prc">Document Processing</span>
+        </div>
+        <h1>PO Collaboration &amp; Vendor Invoice — Pacific Components Ltd.</h1>
+        <p class="lab-goal">Complete the end-to-end procurement cycle. Alex creates a purchase order for 500 PCB-CON-M12 connectors at the awarded price and sends it to Pacific Components for confirmation. Maria confirms the PO in the supplier portal. After receiving the goods, Maria submits an invoice from the portal, and Alex posts it in SCM. This closes the TX-500 sourcing cycle through Supplier Engagement. An optional bonus part covers a small consignment inventory use case.</p>
+      </div>
+
+      <div class="prereq">
+        <h4>Before you start</h4>
+        <ul class="chk">
+          <li><input type="checkbox"><span>Lab 8 complete — RFQ awarded to Pacific Components Ltd.</span></li>
+          <li><input type="checkbox"><span>Pacific Components local vendor has Collaboration activation = Active in USMF.</span></li>
+          <li><input type="checkbox"><span>Maria Santos can sign in to the supplier portal.</span></li>
+          <li><input type="checkbox"><span>Vendor invoice workflow configured in Accounts payable (Lab 3 reference).</span></li>
+        </ul>
+        <div class="note"><strong>Lab variable:</strong> Lab 9 continues to use <span class="v">USSEP-0002</span> as the example Pacific Components local vendor account. If your Lab 8 setup produced a different vendor account, substitute that value in every RFQ, PO, invoice, and consignment step.</div>
+      </div>
+
+      <div class="slbl">Part A — Create &amp; Send PO (Alex in SCM)</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>1</span></div>
+          <div class="step-body">
+            <h3>Open the purchase order generated in Lab 8</h3>
+            <p>When you accepted the RFQ reply in Lab 8 Step 6, SCM automatically created a purchase order from the awarded bid. <strong>Do not create a new PO</strong> — open the one that was generated.</p>
+            <div class="where"><span class="mod">Procurement and sourcing</span><span class="sep"> › </span><span>Purchase orders</span><span class="sep"> › </span><span>All purchase orders</span></div>
+            <p>Filter by vendor <span class="v">USSEP-0002</span> or sort by created date descending. Open the PO and verify it contains:</p>
+            <table class="ft">
+              <thead><tr><th>Field</th><th>Expected value</th></tr></thead>
+              <tbody>
+                <tr><td>Vendor account</td><td><span class="v">USSEP-0002</span> — Pacific Components Ltd.</td></tr>
+                <tr><td>Item number</td><td><span class="v">PCB-CON-M12</span></td></tr>
+                <tr><td>Quantity</td><td><span class="v">500 ea</span></td></tr>
+                <tr><td>Unit price</td><td><span class="v">2.45 USD</span> (from the accepted bid)</td></tr>
+                <tr><td>Net amount</td><td><span class="v">USD 1,225.00</span></td></tr>
+                <tr><td>Delivery date</td><td><span class="v">2026-09-10</span></td></tr>
+              </tbody>
+            </table>
+            <div class="note">If the PO was not auto-generated (e.g., the RFQ Purchase type was not set to <em>Purchase order</em>), create a new PO manually: vendor <span class="v">USSEP-0002</span>, item <span class="v">PCB-CON-M12</span>, qty <span class="v">500</span>, price <span class="v">2.45</span>, site <span class="v">1</span>, warehouse <span class="v">11</span>.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>2</span></div>
+          <div class="step-body">
+            <h3>Confirm the PO and send it to the supplier portal</h3>
+            <p>Open the PO from Step 1. On the Action Pane → <strong>Purchase</strong> tab → click <strong>Confirm</strong>. This changes the PO status to <span class="v">Confirmed</span> and triggers the vendor collaboration send, making the PO visible to Pacific Components in the supplier portal.</p>
+            <div class="note"><strong>Vendor PO Confirmation flow:</strong> Pacific Components' local vendor is set to <strong>Collaboration activation = Active (PO is not auto-confirmed)</strong>. With this method, the buyer's <strong>Confirm</strong> is what publishes the PO to the portal, where the vendor then accepts (or requests changes) — the vendor's acceptance does not auto-confirm the order. There is no separate "Send to supplier" button. Until you confirm it, the PO stays at <span class="v">Open order</span> and never reaches the portal.</div>
+            <div class="warn"><strong>PO not appearing on the portal? Check these in order:</strong>
+              <ul class="sl">
+                <li><strong>PO not Confirmed</strong> — the most common cause. Confirm it via Action Pane → Purchase tab → Confirm.</li>
+                <li><strong>Vendor not enabled for collaboration</strong> — go to <strong>Accounts payable → Vendors → All vendors → USSEP-0002 → General tab</strong> and verify <strong>Collaboration activation = Active</strong>.</li>
+                <li><strong>Maria's portal security role</strong> — in SCM go to <strong>Procurement and sourcing → Vendors → Supplier Engagement → External users</strong>, confirm Maria has the <em>Vendor portal user</em> or <em>Supplier Portal Administrator</em> role.</li>
+                <li><strong>Stale portal session</strong> — have Maria sign out, clear browser cache, and sign back in. The portal caches the PO list.</li>
+              </ul>
+            </div>
+            <div class="result"><strong>PO status = Confirmed. The PO appears in the supplier portal under Pacific Components' account, awaiting confirmation.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part B — PO Visible to Supplier (portal)</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>3</span></div>
+          <div class="step-body">
+            <h3>Confirm the PO reached the supplier portal</h3>
+            <p>Because Alex confirmed the PO in Step 2, it is now shared with Pacific Components. Maria signs in to the supplier portal, opens <strong>Purchase orders</strong>, and sees PO <span class="v">00000125</span> under the <strong>Pending delivery</strong> tile. That visibility <em>is</em> the collaboration hand-off — there is no Accept/Confirm button to click, because a buyer-confirmed PO is already agreed and simply awaits goods.</p>
+            <div class="note"><strong>The three portal tiles:</strong> <strong>For review</strong> = POs awaiting the supplier's response; <strong>Awaiting customer review</strong> = supplier requested a change, buyer must respond; <strong>Pending delivery</strong> = confirmed POs awaiting shipment. A change-request conversation only happens if a PO reaches the portal <em>before</em> buyer confirmation (landing in <em>For review</em>) — optional and not required for this lab.</div>
+            <div class="result"><strong>PO 00000125 is visible to Pacific Components under Pending delivery. The buyer→supplier link is proven; proceed to product receipt.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part C — Receive Goods &amp; Supplier Invoice</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>4</span></div>
+          <div class="step-body">
+            <h3>Alex posts a product receipt in SCM</h3>
+            <p>Goods arrive from Pacific Components. On the confirmed PO, go to Action Pane → <strong>Receive</strong> tab → <strong>Product receipt</strong>. In the dialog enter:</p>
+            <table class="ft">
+              <thead><tr><th>Field</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td>Product receipt number</td><td><span class="v">PR-2026-0089</span></td></tr>
+                <tr><td>Quantity</td><td><span class="v">500</span> (full delivery)</td></tr>
+                <tr><td>Date</td><td>Today's date</td></tr>
+              </tbody>
+            </table>
+            <p>Click <strong>OK</strong>. The inventory is received into warehouse 11.</p>
+            <div class="result"><strong>Product receipt posted. Inventory on-hand for PCB-CON-M12 increases by 500 in USMF, warehouse 11.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>5</span></div>
+          <div class="step-body">
+            <h3>Maria submits the vendor invoice via the supplier portal</h3>
+            <p>Maria signs in to the supplier portal and navigates to <strong>Vendor invoices → New invoice</strong>. She fills in the invoice details:</p>
+            <table class="ft">
+              <thead><tr><th>Field</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td>Invoice number</td><td><span class="v">INV-PC-2026-001</span></td></tr>
+                <tr><td>Invoice date</td><td>Today's date</td></tr>
+                <tr><td>PO reference</td><td><span class="v">00000125</span></td></tr>
+                <tr><td>Quantity invoiced</td><td><span class="v">500</span></td></tr>
+                <tr><td>Invoice amount</td><td><span class="v">USD 1,225.00</span></td></tr>
+              </tbody>
+            </table>
+            <p>Maria attaches the PDF invoice document and submits it.</p>
+            <div class="note">The supplier portal supports invoice submission as part of vendor collaboration; exact portal labels and layout may differ in preview. The submitted invoice flows into SCM for review and posting.</div>
+            <div class="result"><strong>Invoice INV-PC-2026-001 appears in SCM as a pending vendor invoice, awaiting review.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>6</span></div>
+          <div class="step-body">
+            <h3>Alex reviews and posts the invoice in SCM</h3>
+            <div class="where"><span class="mod">Accounts payable</span><span class="sep"> › </span><span>Vendor invoices</span><span class="sep"> › </span><span>Pending vendor invoices</span></div>
+            <p>Find <span class="v">INV-PC-2026-001</span>. Open it and verify the three-way match: PO line (500 × 2.45), product receipt (500 received), and invoice (500 × 2.45 = 1,225.00). All three should align with no matching exceptions.</p>
+            <p>On the Action Pane click <strong>Post</strong>. The invoice is posted and a voucher is created in the general ledger.</p>
+            <div class="result"><strong>Invoice posted. Status = Posted in Accounts payable. A payment voucher of USD 1,225.00 is created and the invoice appears in Open transactions for Pacific Components Ltd. — awaiting payment processing.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Part D — Bonus: Consignment Inventory Mini Use Case (Optional)</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>7</span></div>
+          <div class="step-body">
+            <h3>(Optional) Set up a consignment agreement and receive vendor-owned stock</h3>
+            <div class="where"><span class="mod">Procurement and sourcing</span><span class="sep"> › </span><span>Vendors</span><span class="sep"> › </span><span>All vendors</span></div>
+            <p>Open <span class="v">USSEP-0002</span> (Pacific Components Ltd.) and, on the <strong>Purchase order defaults</strong> tab, add a consignment agreement for item <span class="v">PCB-CON-M12</span> at the agreed price of <span class="v">2.45 USD</span>. Then create and confirm a <strong>consignment replenishment order</strong> for <span class="v">200 ea</span>, site <span class="v">1</span>, warehouse <span class="v">11</span> — the same flow as a normal PO, except the stock lands as <em>vendor-owned</em> inventory with no payable created yet.</p>
+            <div class="where"><span class="mod">Procurement and sourcing</span><span class="sep"> › </span><span>Purchase orders</span><span class="sep"> › </span><span>All consignment replenishment orders</span></div>
+            <div class="note">The <strong>Maintain consignment replenishment orders</strong> and <strong>Maintain consignment product receipt</strong> duties needed for this step were already added to the Purchasing manager / Purchasing agent roles back in <strong>Lab 3, Part B, Step 3</strong>.</div>
+            <div class="result"><strong>200 ea of PCB-CON-M12 are on hand in warehouse 11, owned by Pacific Components Ltd. — no vendor invoice or liability exists yet, since you only pay for what you actually use.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>8</span></div>
+          <div class="step-body">
+            <h3>(Optional) Consume the stock, which auto-generates a consigned PO</h3>
+            <div class="where"><span class="mod">Inventory management</span><span class="sep"> › </span><span>Journal entries</span><span class="sep"> › </span><span>Items</span><span class="sep"> › </span><span>Inventory ownership change journal</span></div>
+            <p>When the warehouse or production actually consumes some of that stock (for example <span class="v">50 ea</span>), post an <strong>ownership change journal</strong> line for PCB-CON-M12, changing ownership from <span class="v">Consignment</span> to <span class="v">Regular</span> (company-owned). Posting the journal creates a product receipt for the consumed quantity and automatically generates a <strong>consigned purchase order</strong> for that 50 ea — this is what creates the vendor's payable, not the earlier receipt of the 200 ea.</p>
+            <div class="note"><strong>Why this matters:</strong> with a normal PO, receiving goods creates the liability immediately. With consignment, the vendor is paid only for what you consume, tracked at whatever cadence you run the ownership-change journal — useful for high-value or fast-moving parts where you don't want to prepay for on-hand stock.</div>
+            <div class="result"><strong>50 ea of PCB-CON-M12 move from vendor-owned to company-owned, and a consigned PO for 50 ea is generated. The remaining 150 ea stays vendor-owned and unbilled until the next consumption event.</strong></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n"><span>9</span></div>
+          <div class="step-body">
+            <h3>(Optional) Maria monitors and invoices consignment stock from the portal</h3>
+            <div class="where"><span class="mod">Supplier portal</span><span class="sep"> › </span><span>Consignment inventory</span></div>
+            <p>Maria signs in to the supplier portal and opens the <strong>Consignment inventory</strong> workspace (top nav bar, or the Consignment inventory panel on the home page). It shows four tiles, each a count she can drill into:</p>
+            <table class="ft">
+              <thead><tr><th>Tile</th><th>What it shows</th></tr></thead>
+              <tbody>
+                <tr><td><span class="v">On-hand</span></td><td>Current stock Pacific Components still owns at the USMF warehouse — the 200 ea from Step 7, dropping to 150 ea after Step 8.</td></tr>
+                <tr><td><span class="v">Received items</span></td><td>Product receipt lines created when ownership changed from vendor to customer (the 50 ea from Step 8's journal). Selecting a line opens the related PO.</td></tr>
+                <tr><td><span class="v">Consigned POs</span></td><td>Purchase orders auto-generated from consumption — the 50 ea consigned PO created in Step 8.</td></tr>
+                <tr><td><span class="v">Invoiced POs</span></td><td>Consigned POs that have been invoiced, with header/line detail including consignment-specific fields.</td></tr>
+              </tbody>
+            </table>
+            <p>Maria confirms the consigned PO for 50 ea and submits her invoice against it — the same portal invoicing flow as Step 5, but scoped only to what Pacific Components has actually shipped and Contoso has consumed, never the full 200 ea sitting on the shelf.</p>
+            <div class="note">Unlike Part A–C, the vendor never sees a "Confirm PO" step for the initial 200 ea replenishment order arriving — that's just a stock movement. The vendor's portal actions (confirm, invoice) only kick in once a consigned PO exists for consumed quantity.</div>
+            <div class="result"><strong>Maria sees On-hand = 150, Received items and Consigned POs each showing the 50 ea event, and can invoice that consigned PO from the portal — without touching the untouched 150 ea still owned by Pacific Components.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slbl">Lab Series Complete</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n"><span>✓</span></div>
+          <div class="step-body">
+            <h3>What you have configured and validated</h3>
+            <p>By completing this lab series you have stood up a full Supplier Engagement environment from scratch:</p>
+            <table class="ft">
+              <thead><tr><th>Lab</th><th>Outcome</th></tr></thead>
+              <tbody>
+                <tr><td>Lab 0</td><td>Environment verified — SCM version, Dataverse link, virtual entities, service account</td></tr>
+                <tr><td>Lab 1</td><td>Supplier Engagement app + Power Pages portal installed and activated</td></tr>
+                <tr><td>Lab 2</td><td>Portal URL, email templates, cloud flows, and duplicate detection configured</td></tr>
+                <tr><td>Lab 3</td><td>Feature enabled in SCM, workflows, security roles, and localization metadata set</td></tr>
+                <tr><td>Lab 4</td><td>Reference data populated (certs, risks, capabilities, segments, questionnaire)</td></tr>
+                <tr><td>Lab 5</td><td>Pacific Components self-registered, onboarded, and qualified (GV-001)</td></tr>
+                <tr><td>Lab 6</td><td>Alps Sensors internally invited, full lifecycle: qualify → approve → release → activate (GV-002)</td></tr>
+                <tr><td>Lab 7</td><td>Acme Office Supplies migrated from existing vendor via Global Vendor Creation Wizard (GV-003)</td></tr>
+                <tr><td>Lab 8</td><td>RFQ issued, bid received via portal, awarded to Pacific Components</td></tr>
+                <tr><td>Lab 9</td><td>PO confirmed via portal, goods received, invoice submitted by supplier and posted</td></tr>
+              </tbody>
+            </table>
+            <div class="note"><strong>Next steps to explore:</strong> Risk management and corrective actions (assign a risk scenario to GV-001 and track a corrective action), deeper consignment inventory scenarios via the portal (Part D above covers a starter use case), procurement category requests from suppliers, and the Supply Risk Assessment Power BI report.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="page-nav" id="page-nav">
+      <button id="pn-prev" type="button">
+        <span class="pn-dir">← Previous</span>
+        <span class="pn-title" id="pn-prev-title"></span>
+      </button>
+      <button id="pn-next" class="pn-next" type="button">
+        <span class="pn-dir">Next →</span>
+        <span class="pn-title" id="pn-next-title"></span>
+      </button>
+    </div>
+
+  </main>
+  <aside class="rightbar hidden" id="onpage-nav">
+    <div class="onpage-box">
+      <div class="onpage-title">On this page</div>
+      <ul class="onpage-list" id="onpage-list"></ul>
+    </div>
+  </aside>
+</div>
+<script>
+var mainEl = document.getElementById('main-content');
+var PAGES = ['story','concept','lab0','lab1','lab2','lab3','lab4','lab5','lab6','lab7','lab8','lab9'];
+
+function navLabel(id) {
+  var n = document.getElementById('nav-' + id);
+  return n ? n.textContent.trim() : id;
+}
+
+function updatePageNav(id) {
+  var i = PAGES.indexOf(id);
+  var prevBtn = document.getElementById('pn-prev');
+  var nextBtn = document.getElementById('pn-next');
+  if (i > 0) {
+    prevBtn.disabled = false;
+    document.getElementById('pn-prev-title').textContent = navLabel(PAGES[i - 1]);
+    prevBtn.onclick = function(){ show(PAGES[i - 1]); };
+  } else {
+    prevBtn.disabled = true;
+  }
+  if (i > -1 && i < PAGES.length - 1) {
+    nextBtn.disabled = false;
+    document.getElementById('pn-next-title').textContent = navLabel(PAGES[i + 1]);
+    nextBtn.onclick = function(){ show(PAGES[i + 1]); };
+  } else {
+    nextBtn.disabled = true;
+  }
+}
+
+function buildOnPage(id) {
+  var sec = document.getElementById(id);
+  var box = document.getElementById('onpage-nav');
+  var list = document.getElementById('onpage-list');
+  list.innerHTML = '';
+  var labels = sec.querySelectorAll('.slbl');
+  if (labels.length === 0) { box.classList.add('hidden'); return; }
+  box.classList.remove('hidden');
+  labels.forEach(function(el, i) {
+    var aid = id + '-part-' + i;
+    el.id = aid;
+    var a = document.createElement('a');
+    a.textContent = el.textContent;
+    a.setAttribute('data-target', aid);
+    a.onclick = function() { el.scrollIntoView({behavior: 'smooth', block: 'start'}); };
+    var li = document.createElement('li');
+    li.appendChild(a);
+    list.appendChild(li);
+  });
+}
+
+function spyOnPage() {
+  var links = document.querySelectorAll('#onpage-list a');
+  if (!links.length) return;
+  var contTop = mainEl.getBoundingClientRect().top;
+  var cur = null;
+  links.forEach(function(a) {
+    var t = document.getElementById(a.getAttribute('data-target'));
+    if (t && t.getBoundingClientRect().top - contTop <= 60) cur = a;
+  });
+  links.forEach(function(a){ a.classList.remove('active'); });
+  if (cur) cur.classList.add('active');
+}
+
+mainEl.addEventListener('scroll', spyOnPage);
+
+// Remembers the last-viewed page + scroll position across refreshes.
+var PROGRESS_KEY = 'selab-progress';
+var currentId = null;
+
+function loadProgress() {
+  try {
+    var raw = localStorage.getItem(PROGRESS_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
+function saveProgress() {
+  if (!currentId) return;
+  try {
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify({ id: currentId, scrollTop: mainEl.scrollTop }));
+  } catch (e) {}
+}
+
+var scrollSaveTimer = null;
+function scheduleScrollSave() {
+  clearTimeout(scrollSaveTimer);
+  scrollSaveTimer = setTimeout(saveProgress, 300);
+}
+mainEl.addEventListener('scroll', scheduleScrollSave);
+window.addEventListener('beforeunload', saveProgress);
+
+function show(id, restoreScrollTop) {
+  document.querySelectorAll('.lab-section').forEach(function(s){s.classList.remove('active')});
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('#sidebar a').forEach(function(a){a.classList.remove('active')});
+  var nav = document.getElementById('nav-' + id);
+  if (nav) nav.classList.add('active');
+  mainEl.scrollTop = typeof restoreScrollTop === 'number' ? restoreScrollTop : 0;
+  currentId = id;
+  buildOnPage(id);
+  spyOnPage();
+  updatePageNav(id);
+  saveProgress();
+}
+
+var savedProgress = loadProgress();
+if (savedProgress && PAGES.indexOf(savedProgress.id) > -1) {
+  show(savedProgress.id, savedProgress.scrollTop);
+} else {
+  show('story');
+}
+</script>
+</body>
+</html>
