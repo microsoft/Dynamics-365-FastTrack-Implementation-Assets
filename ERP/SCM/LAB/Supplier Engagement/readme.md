@@ -70,7 +70,7 @@ Screenshots and supporting files are stored in [assets](assets). The workflow se
 
 ## References
 
-- [Supplier Engagement overview](https://learn.microsoft.com/en-us/dynamics365/supply-chain/supplier-engagement/supplier-engagement-overview)
-- [Global vendor management overview](https://learn.microsoft.com/en-us/dynamics365/supply-chain/supplier-engagement/supplier-engagement-global-vendors-overview)
-- [Manage local vendors](https://learn.microsoft.com/en-us/dynamics365/supply-chain/supplier-engagement/supplier-engagement-manage-local-vendors)
-- [Power Platform integration with finance and operations apps](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/power-platform/overview)
+- [Supplier Engagement overview](https://learn.microsoft.com/dynamics365/supply-chain/supplier-engagement/supplier-engagement-overview)
+- [Global vendor management overview](https://learn.microsoft.com/dynamics365/supply-chain/supplier-engagement/supplier-engagement-global-vendors-overview)
+- [Manage local vendors](https://learn.microsoft.com/dynamics365/supply-chain/supplier-engagement/supplier-engagement-manage-local-vendors)
+- [Power Platform integration with finance and operations apps](https://learn.microsoft.com/dynamics365/fin-ops-core/dev-itpro/power-platform/overview)
