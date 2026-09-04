@@ -16,20 +16,20 @@ Open [index.html](index.html) for the full browser-based guide.
 
 The editable source modules are also included under [markdown](markdown):
 
-| Module | Purpose |
+| Module | Article |
 |---|---|
-| [story.md](markdown/story.md) | Scenario, personas, lab values, and preview disclaimer |
-| [concept.md](markdown/concept.md) | Global vendor model and lifecycle overview |
-| [lab0.md](markdown/lab0.md) | Prerequisites and environment validation |
-| [lab1.md](markdown/lab1.md) | Supplier portal setup and site access |
-| [lab2.md](markdown/lab2.md) | Dataverse configuration and duplicate detection |
-| [lab3.md](markdown/lab3.md) | SCM feature, security, and workflow setup |
-| [lab4.md](markdown/lab4.md) | Supplier Engagement reference data |
-| [lab5.md](markdown/lab5.md) | Supplier self-registration and onboarding |
-| [lab6.md](markdown/lab6.md) | Internal invitation and vendor lifecycle |
-| [lab7.md](markdown/lab7.md) | Existing vendor migration |
-| [lab8.md](markdown/lab8.md) | RFQ collaboration through the supplier portal |
-| [lab9.md](markdown/lab9.md) | Purchase order collaboration, invoice collaboration, and optional consignment |
+| Scenario | [Personas, lab values, and preview disclaimer](markdown/story.md) |
+| Concept | [Global vendor model and lifecycle overview](markdown/concept.md) |
+| Lab 0 | [Prerequisites and environment validation](markdown/lab0.md) |
+| Lab 1 | [Supplier portal setup and site access](markdown/lab1.md) |
+| Lab 2 | [Dataverse configuration and duplicate detection](markdown/lab2.md) |
+| Lab 3 | [SCM feature, security, and workflow setup](markdown/lab3.md) |
+| Lab 4 | [Supplier Engagement reference data](markdown/lab4.md) |
+| Lab 5 | [Supplier self-registration and onboarding](markdown/lab5.md) |
+| Lab 6 | [Internal invitation and vendor lifecycle](markdown/lab6.md) |
+| Lab 7 | [Existing vendor migration](markdown/lab7.md) |
+| Lab 8 | [RFQ collaboration through the supplier portal](markdown/lab8.md) |
+| Lab 9 | [Purchase order collaboration, invoice collaboration, and optional consignment](markdown/lab9.md) |
 
 ## Prerequisites
 
