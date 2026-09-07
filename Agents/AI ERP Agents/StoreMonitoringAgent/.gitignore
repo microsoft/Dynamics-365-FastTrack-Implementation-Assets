@@ -92,7 +92,6 @@ alerts/StoreMonitoringAlertFunction/.github/copilot-instructions.md
 .vscode/settings.json
 docs/EventId/RetailLoggerEventMetadata.md
 docs/prompts.md
-docs/store-monitoring-agent-test-prompts.md
 docs/cost-estimate.md
 docs/cost-estimate.docx
 docs/SMA V2 cost estimate.html
@@ -110,3 +109,4 @@ kql-queries/pos-user-sessions-by-device.kql
 scripts/New-RetailHardwareStationCertificate.ps1
 docs/copilot-credit-run-table.md
 .github/copilot-instructions.md
+scripts/invoke-arc-local-sql-script.ps1
