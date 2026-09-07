@@ -90,7 +90,10 @@ The solution connects POS devices to Azure via **Azure Arc** and **Azure Monitor
    - See [Quick start](docs/quick-start-portal.md)
 
 3. **Import the Agent**
-   - Import the Copilot Studio agent into your Power Platform environment using the solution zip file `StoreMonitoringAgent_1_0_0_26.zip` provided in the root of this repository. See [Step 7 in the Quick Start guide](docs/quick-start-portal.md#step-7-setup-copilot-studio-agent-5-minutes) for detailed instructions.
+   - Choose the solution package provided in the root of this repository:
+     - `StoreMonitoringAgent_1_0_0_32.zip` for the solution with Teams connections.
+     - `StoreMonitoringAgent_1_0_0_33_wT.zip` for the solution without Teams connections.
+   - See [Step 7 in the Quick Start guide](docs/quick-start-portal.md#step-7-setup-copilot-studio-agent-5-minutes) for detailed import instructions.
 
 ## Documentation
 
@@ -98,12 +101,13 @@ The solution connects POS devices to Azure via **Azure Arc** and **Azure Monitor
 | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
 | [Quick Start Guide - Azure Portal](docs/quick-start-portal.md)                         | Step-by-step deployment guide using the Azure portal                 |
 | [Architecture Documentation](docs/architecture.md)                                     | Solution architecture and component overview                         |
-| [Multi-Agent Deployment for Store Segments](docs/multi-instance-store-segmentation.md) | Deploy isolated instances and workspaces for store segments          |
+| [Multi-Agent Deployment for Store Segments](docs/multi-sma-store-segmentation.md)      | Deploy isolated instances and workspaces for store segments          |
 | [Device Onboarding Guide](docs/device-onboarding.md)                                   | Connect POS devices to Azure Arc and configure AMA                   |
 | [Capturing Database Metrics to Log Analytics](docs/database-metrics-log-analytics.md)  | Configure offline SQL database metrics collection                    |
 | [Store Commerce App Update Procedure](docs/store-commerce-update.md)                   | Procedure for updating Store Commerce on monitored devices           |
 | [Model Support](docs/model-support.md)                                                 | Supported generative AI models for the Copilot Studio agent          |
 | [Alert-Triggered Agent](docs/alert-triggered-agent.md)                                 | Alert-triggered investigation pattern using Azure Monitor and Teams  |
 | [Autonomous / Proactive Monitoring Setup](docs/autonomous-proactive-monitoring.md)     | Configure the Recurring Store Monitoring Agent Flow                  |
+| [Store Monitoring Agent Test Prompts](docs/store-monitoring-agent-test-prompts.md)     | Categorized prompts for manually testing the monitoring agent        |
 | [Known Limitations](docs/known-limitations.md)                                         | Current known limitations and workarounds                            |
 | [Periodic Maintenance Guide](docs/periodic-maintenance.md)                             | Periodic rotation and expiration checks for secrets and certificates |

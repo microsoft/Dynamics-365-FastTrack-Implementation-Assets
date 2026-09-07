@@ -339,10 +339,13 @@ Default settings in `appsettings.json`:
 3. Go to [Copilot Studio](https://copilotstudio.microsoft.com)
 4. Click **Solutions** in the left menu
 5. Click **Import solution**
-6. Browse to the `StoreMonitoringAgent_1_0_0_26.zip` file provided in the root of this repository.
-7. On the **Connections** page, map the **Azure Monitor Logs** connection reference to an existing connection or create one. Sign in with an account that has permission to query the Log Analytics workspace.
-8. If prompted for the optional `SMAAlertObjectId` environment variable, keep the imported value or enter a temporary GUID. This value is not a secret and is only used by the optional alert-triggered flows. Replace it with the correct object ID when completing [Step 8](#step-8-optional---enable-autonomous-alert-capabilities).
-9. Click **Next** → **Import** and wait for the import to complete.
+6. Choose a solution package from the root of this repository:
+   - `StoreMonitoringAgent_1_0_0_32.zip` for the solution with Teams connections.
+   - `StoreMonitoringAgent_1_0_0_33_wT.zip` for the solution without Teams connections.
+7. Browse to the selected solution package.
+8. On the **Connections** page, map the required connection references, including **Azure Monitor Logs**, to existing connections or create them. Sign in with accounts that have the required permissions.
+9. If prompted for the optional `SMAAlertObjectId` environment variable, keep the imported value or enter a temporary GUID. This value is not a secret and is only used by the optional alert-triggered flows. Replace it with the correct object ID when completing [Step 8](#step-8-optional---enable-autonomous-alert-capabilities).
+10. Click **Next** → **Import** and wait for the import to complete.
 
 **Configure the Log Analytics cloud flow:**
 
