@@ -86,6 +86,10 @@ Microsoft Identity (Entra ID) with MSAL. App registration:
 - Tenant: `<YOUR_ENTRA_TENANT_ID>`
 - Client ID: `<YOUR_ENTRA_CLIENT_ID>`
 
+The chat page's **Switch Agent** dialog changes only the agent name, environment ID and schema name. It reuses the signed-in user and the server-configured app registration; it does not switch authentication tenants or client credentials. The selected agent must be accessible through that existing sign-in.
+
+Configure credentials on the server, not in the browser. Saved agent profiles contain only agent identifiers. Older saved profiles remain readable, but their tenant/client fields are ignored and omitted when profiles are saved again.
+
 For local dev, add to `appsettings.Development.json` or user secrets:
 ```json
 {
