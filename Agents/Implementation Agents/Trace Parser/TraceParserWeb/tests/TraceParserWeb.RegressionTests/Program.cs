@@ -120,7 +120,8 @@ using (var config = JsonDocument.Parse(File.ReadAllText(configPath)))
     Assert(searches.All(name => entities.TryGetProperty(name, out _)), "An analysis procedure was removed");
     passed++;
 }
-Console.WriteLine($"{passed} deletion regression checks passed.");
+passed += await ImportStatusChecks.RunAsync();
+Console.WriteLine($"{passed} regression checks passed.");
 
 sealed class ProbeAuthentication(ClaimsPrincipal user) : AuthenticationStateProvider
 {

@@ -35,7 +35,7 @@ public class TraceStats
     public int TotalDatabaseCalls { get; set; }
 }
 
-public class TraceService(IHttpClientFactory httpFactory)
+public class TraceService(IHttpClientFactory httpFactory, ILogger<TraceService> logger)
 {
     public async Task<List<TraceDto>> GetTracesAsync(CancellationToken ct = default)
     {
@@ -110,32 +110,53 @@ public class TraceService(IHttpClientFactory httpFactory)
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             cts.CancelAfter(TimeSpan.FromSeconds(10));
 
-            var http = httpFactory.CreateClient("dab");
+            using var http = httpFactory.CreateClient("dab");
 
             // Check USPT exists
-            var threadUrl = $"/api/UserSessionProcessThreads?$filter=TraceId eq {traceId}&$top=1";
+            var threadUrl = $"/api/UserSessionProcessThreads?$filter=TraceId eq {traceId}&$first=1&$select=UserSessionProcessThreadId";
             var threadResp = await http.GetFromJsonAsync<JsonElement>(threadUrl, cts.Token);
-            if (!threadResp.TryGetProperty("value", out var threadArr) || threadArr.GetArrayLength() == 0)
+            var threadArr = ReadRows(threadResp);
+            if (threadArr.GetArrayLength() == 0)
                 return ImportStage.Parsing;
 
             // Check TraceLines exist
-            var threadId = threadArr[0].GetProperty("UserSessionProcessThreadId").GetInt32();
-            var tlUrl = $"/api/TraceLines?$filter=UserSessionProcessThreadId eq {threadId}&$top=1";
+            var threadId = ReadId(threadArr[0], "UserSessionProcessThreadId");
+            var tlUrl = $"/api/TraceLines?$filter=UserSessionProcessThreadId eq {threadId}&$first=1&$select=TraceLineId";
             var tlResp = await http.GetFromJsonAsync<JsonElement>(tlUrl, cts.Token);
-            if (!tlResp.TryGetProperty("value", out var tlArr) || tlArr.GetArrayLength() == 0)
+            if (ReadRows(tlResp).GetArrayLength() == 0)
                 return ImportStage.ProcessingDimensions;
 
             // Check SessionMetrics exist
-            var smUrl = $"/api/SessionMetrics?$filter=TraceId eq {traceId}&$top=1";
+            var smUrl = $"/api/SessionMetrics?$filter=TraceId eq {traceId}&$first=1&$select=TraceId";
             var smResp = await http.GetFromJsonAsync<JsonElement>(smUrl, cts.Token);
-            if (!smResp.TryGetProperty("value", out var smArr) || smArr.GetArrayLength() == 0)
+            if (ReadRows(smResp).GetArrayLength() == 0)
                 return ImportStage.Finalizing;
 
             return ImportStage.Complete;
         }
-        catch
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or OperationCanceledException)
         {
-            return ImportStage.Parsing;
+            ct.ThrowIfCancellationRequested();
+            logger.LogWarning(ex, "Import status unavailable for trace {TraceId}", traceId);
+            return ImportStage.Unavailable;
         }
+    }
+
+    internal static JsonElement ReadRows(JsonElement response)
+    {
+        if (response.ValueKind != JsonValueKind.Object
+            || !response.TryGetProperty("value", out var rows)
+            || rows.ValueKind != JsonValueKind.Array)
+            throw new JsonException("DAB returned an invalid row collection.");
+        return rows;
+    }
+
+    internal static int ReadId(JsonElement row, string property)
+    {
+        if (row.ValueKind != JsonValueKind.Object
+            || !row.TryGetProperty(property, out var id)
+            || id.ValueKind != JsonValueKind.Number || !id.TryGetInt32(out var value))
+            throw new JsonException("DAB returned an invalid identifier.");
+        return value;
     }
 }

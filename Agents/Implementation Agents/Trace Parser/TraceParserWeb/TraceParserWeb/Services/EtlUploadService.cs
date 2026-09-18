@@ -9,6 +9,7 @@ namespace TraceParserWeb.Services;
 
 public enum ImportStage
 {
+    Unavailable = -1,
     WaitingForFunction,
     Parsing,
     ProcessingDimensions,
@@ -29,7 +30,11 @@ public class EtlImportOptions
     public string DabBaseUrl { get; set; } = "";
 }
 
-public class EtlUploadService(IOptions<EtlImportOptions> opts, IHttpClientFactory httpFactory)
+public class EtlUploadService(
+    IOptions<EtlImportOptions> opts,
+    IHttpClientFactory httpFactory,
+    TraceService traceService,
+    ILogger<EtlUploadService> logger)
 {
     /// <summary>
     /// Uploads an ETL file to Azure Blob Storage under {sessionName}/{fileName}.
@@ -80,40 +85,29 @@ public class EtlUploadService(IOptions<EtlImportOptions> opts, IHttpClientFactor
     {
         try
         {
-            var http = httpFactory.CreateClient("dab");
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(10));
+            using var http = httpFactory.CreateClient("dab");
 
             // Step 1: Find the trace
-            var url = $"/api/Traces?$filter=TraceName eq '{Uri.EscapeDataString(sessionName)}'";
-            var resp = await http.GetFromJsonAsync<JsonElement>(url, ct);
-            if (!resp.TryGetProperty("value", out var arr) || arr.GetArrayLength() == 0)
+            var escapedName = Uri.EscapeDataString(sessionName.Replace("'", "''"));
+            var url = $"/api/Traces?$filter=TraceName eq '{escapedName}'&$first=1&$select=TraceId";
+            var resp = await http.GetFromJsonAsync<JsonElement>(url, cts.Token);
+            var arr = TraceService.ReadRows(resp);
+            if (arr.GetArrayLength() == 0)
                 return new ImportStatus { Stage = ImportStage.WaitingForFunction };
 
-            var traceId = arr[0].GetProperty("TraceId").GetInt32();
-
-            // Step 2: Check threads exist (created during BulkInsertDimensions, after staging)
-            var threadUrl = $"/api/UserSessionProcessThreads?$filter=TraceId eq {traceId}&$top=1";
-            var threadResp = await http.GetFromJsonAsync<JsonElement>(threadUrl, ct);
-            if (!threadResp.TryGetProperty("value", out var threadArr) || threadArr.GetArrayLength() == 0)
-                return new ImportStatus { Stage = ImportStage.Parsing, TraceId = traceId };
-
-            // Step 3: Verify TraceLines exist (the final promote step)
-            var threadId = threadArr[0].GetProperty("UserSessionProcessThreadId").GetInt32();
-            var tlUrl = $"/api/TraceLines?$filter=UserSessionProcessThreadId eq {threadId}&$top=1";
-            var tlResp = await http.GetFromJsonAsync<JsonElement>(tlUrl, ct);
-            if (!tlResp.TryGetProperty("value", out var tlArr) || tlArr.GetArrayLength() == 0)
-                return new ImportStatus { Stage = ImportStage.ProcessingDimensions, TraceId = traceId };
-
-            // Step 4: Check SessionMetrics exist (aggregation complete)
-            var smUrl = $"/api/SessionMetrics?$filter=TraceId eq {traceId}&$top=1";
-            var smResp = await http.GetFromJsonAsync<JsonElement>(smUrl, ct);
-            if (!smResp.TryGetProperty("value", out var smArr) || smArr.GetArrayLength() == 0)
-                return new ImportStatus { Stage = ImportStage.Finalizing, TraceId = traceId };
-
-            return new ImportStatus { Stage = ImportStage.Complete, TraceId = traceId };
+            var traceId = TraceService.ReadId(arr[0], "TraceId");
+            return new ImportStatus {
+                Stage = await traceService.GetImportStageAsync(traceId, cts.Token),
+                TraceId = traceId
+            };
         }
-        catch
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or OperationCanceledException)
         {
-            return new ImportStatus { Stage = ImportStage.WaitingForFunction };
+            ct.ThrowIfCancellationRequested();
+            logger.LogWarning(ex, "Import status lookup unavailable");
+            return new ImportStatus { Stage = ImportStage.Unavailable };
         }
     }
 

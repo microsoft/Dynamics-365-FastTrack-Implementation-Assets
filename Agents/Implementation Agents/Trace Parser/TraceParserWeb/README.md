@@ -122,8 +122,14 @@ Deploy the updated **read-only** `TraceParserMCP/dab-config.json` as part of thi
 
 ### Deletion regression checks
 
-The dependency-free console harness checks denied anonymous/wrong-tenant calls, ordinary tenant-user access, disabled configuration, incremental completion, failure/cancellation propagation, and read-only DAB permissions. It uses synthetic identities and a fake store, with no database or network calls:
+The dependency-free console harness checks deletion authorization/completion, read-only DAB permissions, import-status query/error handling, visible deletion feedback, and non-overlapping status polls. It uses synthetic identities and fake stores/HTTP responses, with no database or network calls:
 
 ```powershell
 dotnet run --project .\tests\TraceParserWeb.RegressionTests -c Release
 ```
+
+## Import status and database maintenance
+
+Status polling uses DAB's `$first` parameter, not OData's unsupported `$top`. The upload and trace-list pages share the same database-milestone checks. HTTP failures, timeouts and malformed responses are displayed as **status unavailable**, not as evidence that the Function is parsing or queued. Each page permits only one status poll at a time.
+
+Trace-list labels describe data availability, not a live worker heartbeat. For example, an empty trace has no parsed session data; that alone does not prove an ETL job is running. SQL index maintenance can delay status queries and deletion. Deletion errors appear above the trace list so a timeout is not hidden below other records. Do not treat a timeout as successful deletion or repeatedly submit deletes while maintenance is blocking SQL.
