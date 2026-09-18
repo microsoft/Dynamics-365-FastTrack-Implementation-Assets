@@ -35,7 +35,7 @@ public class TraceStats
     public int TotalDatabaseCalls { get; set; }
 }
 
-public class TraceService(IHttpClientFactory httpFactory, ILogger<TraceService> logger)
+public class TraceService(IHttpClientFactory httpFactory)
 {
     public async Task<List<TraceDto>> GetTracesAsync(CancellationToken ct = default)
     {
@@ -137,27 +137,5 @@ public class TraceService(IHttpClientFactory httpFactory, ILogger<TraceService> 
         {
             return ImportStage.Parsing;
         }
-    }
-
-    public async Task DeleteTraceAsync(int traceId, CancellationToken ct = default)
-    {
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        cts.CancelAfter(TimeSpan.FromMinutes(5));
-
-        var http = httpFactory.CreateClient("dab");
-        // DAB requires SP parameters in JSON body (not query string).
-        // Use explicit options to preserve PascalCase — DAB rejects camelCase field names.
-        var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = null };
-        var content = JsonContent.Create(new { TraceId = traceId }, options: jsonOptions);
-        var response = await http.PostAsync("/api/DeleteTrace", content, cts.Token);
-
-        if (!response.IsSuccessStatusCode)
-        {
-            var body = await response.Content.ReadAsStringAsync(cts.Token);
-            logger.LogError("Delete trace {TraceId} failed: {Status} {Body}", traceId, response.StatusCode, body);
-            throw new InvalidOperationException($"Failed to delete trace {traceId}: {response.StatusCode}");
-        }
-
-        logger.LogInformation("Deleted trace {TraceId}", traceId);
     }
 }

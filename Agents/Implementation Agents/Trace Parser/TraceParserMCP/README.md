@@ -47,7 +47,7 @@ The Large Language Model (LLM) used with this MCP server is **entirely customer-
 - **Data accuracy depends on source traces.** The MCP server returns data as-is from the database. Analysis quality depends on the completeness and correctness of imported trace data.
 - **No built-in authentication.** The default configuration uses anonymous read access. Customers must implement appropriate authentication and network security for their deployment.
 - **AI analysis is non-deterministic.** Different AI models and prompts will produce different analysis results for the same trace data. Results should be verified by qualified engineers.
-- **Read-only access.** The MCP server provides read and execute permissions only. It cannot modify trace data.
+- **Read-only access.** Tables and views allow reads only. Procedure execution is limited to the four read-only keyword searches; trace deletion is not exposed by DAB.
 - **View-based analysis thresholds are fixed.** Analytical views (e.g., N+1 pattern detection at >100 DB calls, slow SQL at >5 seconds) use hardcoded thresholds that may not suit all scenarios.
 
 ### Disclaimers
@@ -272,6 +272,8 @@ All server behavior is defined declaratively in `dab-config.json`. Key settings:
 - **Host mode:** Production
 - **GraphQL introspection:** Enabled
 - **REST request body:** Strict validation
+
+The supplied configuration does not expose `DeleteTrace` and grants no table mutations on REST, GraphQL or MCP. Disabling MCP DML tools alone is not an authorization boundary for the other protocols. Keep deletion out of this public analysis API; [TraceParserWeb](../TraceParserWeb/README.md#authenticated-trace-deletion) provides a separate server-side path for signed-in users.
 
 ## Third-Party Dependencies
 

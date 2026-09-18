@@ -98,3 +98,32 @@ For local dev, add to `appsettings.Development.json` or user secrets:
   }
 }
 ```
+
+## Authenticated trace deletion
+
+Deletion is performed inside the Blazor server, not through the public DAB API. Immediately before accessing SQL, the service requires a signed-in user whose tenant claim matches the configured `AzureAd:TenantId`. **Every signed-in user in that tenant, including admitted guests, can delete any trace.** This is not an administrator-only or per-trace ownership policy.
+
+Deletion is disabled until `TraceAdministration:SqlConnectionString` is configured. On App Service the setting name is `TraceAdministration__SqlConnectionString`. Keep its value in protected server configuration (or a Key Vault reference), never in source, browser fields, logs, or saved agent profiles. The connection validates the SQL server certificate and requires encryption.
+
+Provision a dedicated database principal; do not reuse the SQL administrator, DAB, or importer credential. Prefer a managed identity where SQL Entra authentication is already configured. Alternatively, an operator can create a contained SQL user with a generated password and store that password securely. Grant only:
+
+```sql
+GRANT EXECUTE ON OBJECT::dbo.sp_DeleteTrace TO [TraceParserWebDeletion];
+GRANT SELECT ON OBJECT::dbo.Traces TO [TraceParserWebDeletion];
+```
+
+The principal must not belong to `db_owner`, `db_datawriter`, or other broad roles. The procedure relies on the normal same-owner SQL ownership chain; do not grant table-delete permissions to compensate for a broken chain. No SQL schema or procedure replacement is required by this change.
+
+The server repeats the existing procedure until a separate parameterized query confirms the trace is absent. This supports both the original procedure and incremental versions returning `HasMore`; one successful batch is not reported as a completed deletion. Errors and cancellation are surfaced, and the operation has a five-minute budget. A failed or timed-out operation can leave a partially deleted trace; refresh and retry. Do not delete traces while they are being imported.
+
+Deploy the updated **read-only** `TraceParserMCP/dab-config.json` as part of this update. Merely hiding the Delete button does not remove direct API access. Existing deployments must remove the `DeleteTrace` entity and table-delete grants, not just update the web application. Anonymous analysis remains unchanged; protect sensitive traces with appropriate network and read-access controls.
+
+`deploy.ps1` does not provision deletion credentials. Configure the dedicated principal and server setting separately, then restart the web app. If deletion is unavailable, retain the read-only DAB configuration rather than restoring public mutations.
+
+### Deletion regression checks
+
+The dependency-free console harness checks denied anonymous/wrong-tenant calls, ordinary tenant-user access, disabled configuration, incremental completion, failure/cancellation propagation, and read-only DAB permissions. It uses synthetic identities and a fake store, with no database or network calls:
+
+```powershell
+dotnet run --project .\tests\TraceParserWeb.RegressionTests -c Release
+```

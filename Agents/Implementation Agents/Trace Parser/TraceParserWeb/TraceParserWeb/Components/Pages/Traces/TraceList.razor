@@ -3,6 +3,7 @@
 @using TraceParserWeb.Services
 @attribute [Authorize]
 @inject TraceService TraceSvc
+@inject TraceDeletionService DeletionSvc
 @inject ILogger<TraceList> Logger
 @implements IDisposable
 
@@ -20,6 +21,10 @@
             <div>
                 <h2 class="traces-title">Imported Traces</h2>
                 <p class="traces-subtitle">Manage imported ETL trace sessions.</p>
+                @if (!DeletionSvc.IsConfigured)
+                {
+                    <p class="traces-subtitle">Deletion is unavailable until the deployment owner configures authenticated trace deletion.</p>
+                }
             </div>
         </div>
 
@@ -107,7 +112,7 @@
                             }
                             else
                             {
-                                <button class="btn-delete" @onclick="@(() => RequestDelete(trace.TraceId))" title="Delete trace">
+                                <button class="btn-delete" @onclick="@(() => RequestDelete(trace.TraceId))" title="Delete trace" disabled="@(!DeletionSvc.IsConfigured)">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                          stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -260,7 +265,7 @@
 
         try
         {
-            await TraceSvc.DeleteTraceAsync(traceId);
+            await DeletionSvc.DeleteTraceAsync(traceId);
             _statusMessage = $"Trace {traceId} deleted successfully.";
             _statusIsError = false;
             _traces.RemoveAll(t => t.TraceId == traceId);
