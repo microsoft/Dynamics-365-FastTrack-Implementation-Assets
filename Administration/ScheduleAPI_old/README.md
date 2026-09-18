@@ -1,5 +1,8 @@
 # Powershell example for Project Operations Schedule API
 
+> [!WARNING]
+> This sample uses an older version of the Schedule API and is retained for reference only. A newer version will be published; customers should use the newer version when it is available.
+
 ### Purpose
 The docs article https://docs.microsoft.com/en-us/dynamics365/project-operations/project-management/schedule-api-preview describes how the Schedule API provide the ability to perform create, update and delete operations with Scheduling entities. These entities are managed through the Scheduling engine in Project for Web. 
 The article also describes a console application.
@@ -22,7 +25,7 @@ PowerShell was chosen because it is available on any Windows10 computer without 
 
 1) Download the zip file via the green button "Code" on Dynamics-365-FastTrack-Implementation-Assets
 2) Extract files make (sure the set switch "Unblock" on the properties from the zip file)
-3) Move the directories LIB_OData, LIB_OperationSet, LIB_Project and LIB_TASK from ScheduleAPI under ThisPC > Documents > WindowsPowerShell > Modules. You can manually create directory WindowsPowerShell and/or Modules if these directories are not on your machine.
+3) Move the directories LIB_OData, LIB_OperationSet, LIB_Project and LIB_TASK from ScheduleAPI_old under ThisPC > Documents > WindowsPowerShell > Modules. You can manually create directory WindowsPowerShell and/or Modules if these directories are not on your machine.
 4) File PO_ImportTasks.ps1 can be saved to any location
 5) Setup authentication as described in the README.md file in LIB_Odata. Note that you will be using the native authentication flow (therefore requiring an AAD application client ID, username and password, but not a client secret), due to the current limitation that the Schedule APIs can only be used by Users with a Microsoft Project License. In case your organization enforces Multi Factor Authentication you can change the HttpRequest.Authenticate() method by HttpRequest.Login() which will show a browser window where you can login with MFA. 
 6) Use "Windows PowerShell ISE" program to open file "PO_CreateProject.ps1" and you start verifying / modifying parameters 
