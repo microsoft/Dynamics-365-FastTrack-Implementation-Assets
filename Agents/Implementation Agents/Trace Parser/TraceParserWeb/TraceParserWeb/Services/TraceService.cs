@@ -35,7 +35,8 @@ public class TraceStats
     public int TotalDatabaseCalls { get; set; }
 }
 
-public class TraceService(IHttpClientFactory httpFactory, ILogger<TraceService> logger)
+public class TraceService(IHttpClientFactory httpFactory, ILogger<TraceService> logger,
+    RegisteredImportService? registrations = null)
 {
     public async Task<List<TraceDto>> GetTracesAsync(CancellationToken ct = default)
     {
@@ -109,6 +110,11 @@ public class TraceService(IHttpClientFactory httpFactory, ILogger<TraceService> 
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             cts.CancelAfter(TimeSpan.FromSeconds(10));
+            if (registrations is not null)
+            {
+                var status = await registrations.GetTraceAsync(traceId, cts.Token);
+                return status is null ? ImportStage.LegacyUntracked : RegisteredImportService.ToDisplay(status).Stage;
+            }
 
             using var http = httpFactory.CreateClient("dab");
 
@@ -138,6 +144,11 @@ public class TraceService(IHttpClientFactory httpFactory, ILogger<TraceService> 
         {
             ct.ThrowIfCancellationRequested();
             logger.LogWarning(ex, "Import status unavailable for trace {TraceId}", traceId);
+            return ImportStage.Unavailable;
+        }
+        catch (Microsoft.Data.SqlClient.SqlException)
+        {
+            logger.LogWarning("Durable import status unavailable for trace {TraceId}", traceId);
             return ImportStage.Unavailable;
         }
     }

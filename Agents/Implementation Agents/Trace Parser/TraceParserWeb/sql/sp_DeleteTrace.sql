@@ -102,6 +102,27 @@ IF EXISTS (
                             AND COL_NAME(i.object_id, ic.column_id) = expected.ColumnName))))
     THROW 51005, 'Required unique deletion keys are unavailable. No procedure changed.', 1;
 
+-- Install-time selection preserves standalone legacy deletion without hiding receipt
+-- tables behind caller-sensitive OBJECT_ID checks in the restricted runtime module.
+DECLARE @coordinated bit = CASE WHEN OBJECT_ID('dbo.TPImportReceipts', 'U') IS NULL THEN 0 ELSE 1 END;
+IF @coordinated = 1 AND (
+    ISNULL(COL_LENGTH('dbo.TPImportReceipts', 'TraceId'),-1) <> 4
+    OR ISNULL(COL_LENGTH('dbo.TPImportReceipts', 'Phase'),-1) <> 24
+    OR COL_LENGTH('dbo.TPImportReceipts', 'UpdatedUtc') IS NULL
+    OR COALESCE((SELECT principal_id FROM sys.objects WHERE object_id=OBJECT_ID('dbo.TPImportReceipts')), @owner) <> @owner)
+    THROW 51006, 'Unsupported import receipt schema/ownership. No procedure changed.', 1;
+DECLARE @receiptGuard nvarchar(max) = CASE WHEN @coordinated=1 THEN N'
+        IF EXISTS (SELECT 1 FROM dbo.TPImportReceipts WITH (UPDLOCK,HOLDLOCK)
+            WHERE TraceId=@TraceId AND Phase NOT IN (''Complete'',''Deleted''))
+            THROW 51131, ''Import is active or awaiting retry. Deletion is blocked until durable completion.'', 1;
+        -- Tombstone commits with the first successful deletion batch, never before it.
+        -- It remains terminal for importer retries even while the trace root still exists.
+        UPDATE dbo.TPImportReceipts SET Phase=''Deleted'',UpdatedUtc=SYSUTCDATETIME()
+            WHERE TraceId=@TraceId AND Phase=''Complete'';
+' ELSE N'' END;
+
+BEGIN TRY
+BEGIN TRANSACTION;
 EXEC(N'CREATE OR ALTER PROCEDURE dbo.sp_DeleteTrace
     @TraceId INT,
     @BatchSize INT = 2000
@@ -119,6 +140,15 @@ BEGIN
     DECLARE @RowsDeleted INT = 0, @Phase nvarchar(40) = N''Complete'', @HasMore INT = 0;
     BEGIN TRY
         BEGIN TRANSACTION;
+        -- Importer: global importer session lock -> trace session lock -> data locks.
+        -- Deleter: trace transaction lock -> receipt/root data locks. Never acquire
+        -- the global importer lock here, so unrelated completed traces remain deletable.
+        DECLARE @lockResult int, @traceLock nvarchar(255)=CONCAT(''TraceParser:Trace:'',@TraceId);
+        EXEC @lockResult=sys.sp_getapplock @Resource=@traceLock,@LockMode=''Exclusive'',
+            @LockOwner=''Transaction'',@LockTimeout=0;
+        IF @lockResult<0
+            THROW 51130, ''Trace is busy with an import or another deletion batch. Retry later.'', 1;
+' + @receiptGuard + N'
         -- Serialize same-trace callers for this one batch, never the whole deletion.
         IF NOT EXISTS (SELECT 1 FROM dbo.Traces WITH (UPDLOCK, HOLDLOCK) WHERE TraceId = @TraceId)
         BEGIN
@@ -225,3 +255,21 @@ Finished:
         THROW;
     END CATCH;
 END;');
+
+-- A definition fingerprint makes activation fail closed if an older/noncoordinated
+-- procedure is restored. CREATE OR ALTER alone preserves extended properties.
+DECLARE @definitionHash varbinary(32) = CASE WHEN @coordinated=1
+    THEN HASHBYTES('SHA2_256',OBJECT_DEFINITION(OBJECT_ID('dbo.sp_DeleteTrace'))) ELSE 0x END;
+IF EXISTS (SELECT 1 FROM sys.extended_properties WHERE class=1
+    AND major_id=OBJECT_ID('dbo.sp_DeleteTrace') AND name=N'TraceParserImporterDeletionHash')
+    EXEC sys.sp_updateextendedproperty @name=N'TraceParserImporterDeletionHash',@value=@definitionHash,
+        @level0type=N'SCHEMA',@level0name=N'dbo',@level1type=N'PROCEDURE',@level1name=N'sp_DeleteTrace';
+ELSE
+    EXEC sys.sp_addextendedproperty @name=N'TraceParserImporterDeletionHash',@value=@definitionHash,
+        @level0type=N'SCHEMA',@level0name=N'dbo',@level1type=N'PROCEDURE',@level1name=N'sp_DeleteTrace';
+COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    IF XACT_STATE()<>0 ROLLBACK TRANSACTION;
+    THROW;
+END CATCH;

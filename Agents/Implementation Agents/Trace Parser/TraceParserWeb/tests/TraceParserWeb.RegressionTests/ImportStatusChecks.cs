@@ -134,6 +134,37 @@ static class ImportStatusChecks
             page.Dispose();
             passed++;
         }
+        foreach (var test in new[] {
+            (ImportStage.Parsing,true), (ImportStage.RetryableFailure,true), (ImportStage.RejectedOversize,true),
+            (ImportStage.Deleting,false), (ImportStage.LegacyUntracked,false) })
+        {
+            var page=new TraceListPage();
+            Set(page,"_importingStages",new Dictionary<int,ImportStage>{{42,test.Item1}});
+            Check((bool)Invoke(page,"IsImportBlocked",42)! == test.Item2,"Incorrect import deletion eligibility hint");
+            page.Dispose();
+            passed++;
+        }
+        {
+            var page=new TraceListPage();
+            Set(page,"_loading",false);
+            Set(page,"_traces",new List<TraceDto>{new(){TraceId=42,TraceName="partial trace",TraceParserVersion="safe-import-v1"}});
+            Set(page,"_traceStats",new Dictionary<int,TraceStats>{{42,new(){SessionCount=1,TotalTraceLines=20}}});
+            Set(page,"_importingStages",new Dictionary<int,ImportStage>{{42,ImportStage.Deleting}});
+            Set(page,"DeletionSvc",new TraceDeletionService(new ProbeStore(false),
+                new ProbeAuthentication(new ClaimsPrincipal()),
+                Options.Create(new TraceAdministrationOptions{SqlConnectionString="synthetic"}),
+                new ConfigurationBuilder().Build(),NullLogger<TraceDeletionService>.Instance));
+            using var builder=new RenderTreeBuilder();
+            Invoke(page,"BuildRenderTree",builder);
+            var frames=builder.GetFrames();
+            var text=string.Concat(frames.Array.Take(frames.Count).Select(frame=>
+                frame.FrameType==RenderTreeFrameType.Text?frame.TextContent:
+                frame.FrameType==RenderTreeFrameType.Markup?frame.MarkupContent:""));
+            Check(text.Contains("Deletion is incomplete") && text.Contains("lines"),
+                "Surviving metrics hid partial deletion status");
+            page.Dispose();
+            passed++;
+        }
         foreach (var upload in new[] { false, true })
         {
             using var http = new StatusHttp(Empty) { Block = true };
@@ -144,7 +175,16 @@ static class ImportStatusChecks
             if (upload)
             {
                 var component = new UploadPage();
-                Set(component, "UploadSvc", UploadService(http));
+                var tenant = Guid.NewGuid().ToString();
+                var registered = new RegisteredImportService(new PollingImportStore(http),
+                    new ProbeAuthentication(new ClaimsPrincipal(new ClaimsIdentity(
+                        [new Claim("tid", tenant)], "synthetic"))),
+                    new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?>
+                        { ["AzureAd:TenantId"] = tenant }).Build(),
+                    Options.Create(new EtlImportOptions()));
+                Set(component, "UploadSvc", new EtlUploadService(Options.Create(new EtlImportOptions()),
+                    http, Service(http), NullLogger<EtlUploadService>.Instance, registered));
+                Set(component, "_importId", Guid.NewGuid());
                 Set(component, "Logger", NullLogger<UploadPage>.Instance);
                 Set(component, "SessionName", "synthetic");
                 page = component;
@@ -167,6 +207,21 @@ static class ImportStatusChecks
             await renderer.Dispatcher.InvokeAsync(((IDisposable)page).Dispose);
             http.Release.SetResult();
             await first.WaitAsync(TimeSpan.FromSeconds(5));
+            passed++;
+        }
+        {
+            var page=new UploadPage();
+            Set(page,"_isProcessing",true);
+            Set(page,"Busy",true);
+            using var timer=new System.Threading.Timer(_=>{},null,Timeout.Infinite,Timeout.Infinite);
+            Set(page,"_pollTimer",timer);
+            Invoke(page,"ShowOversizeRejection");
+            Check(!(bool)Get(page,"_isProcessing")! && !(bool)Get(page,"Busy")!
+                && !(bool)Get(page,"IsComplete")! && (bool)Get(page,"IsError")!
+                && Get(page,"_pollTimer") is null,"Oversize rejection left processing polling or a success state active");
+            Check(((string)Get(page,"StatusMessage")!).Contains("1 GiB")
+                && ((string)Get(page,"StatusMessage")!).Contains("retained"),"Oversize rejection lacks an actionable retained-data message");
+            page.Dispose();
             passed++;
         }
         return passed;
@@ -193,6 +248,27 @@ static class ImportStatusChecks
     static object? Invoke(object instance, string name, params object[] args) =>
         (instance.GetType().GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic)
             ?? throw new Exception($"Missing method {name}")).Invoke(instance, args);
+
+    static object? Get(object instance,string name)
+    {
+        var flags=BindingFlags.Instance|BindingFlags.NonPublic|BindingFlags.Public;
+        var field=instance.GetType().GetField(name,flags);
+        return field is not null ? field.GetValue(instance) : instance.GetType().GetProperty(name,flags)?.GetValue(instance);
+    }
+}
+
+sealed class PollingImportStore(StatusHttp gate) : IRegisteredImportStore
+{
+    public Task RegisterAsync(Guid id, string account, string container, string blobName, string session, CancellationToken ct)
+        => throw new NotSupportedException();
+
+    public async Task<DurableImportStatus?> ReadAsync(Guid? importId, int? traceId, CancellationToken ct)
+    {
+        gate.Requests.Add("synthetic receipt status");
+        gate.Started.TrySetResult();
+        await gate.Release.Task.WaitAsync(ct);
+        return new(importId!.Value, null, "Registered", false);
+    }
 }
 
 sealed class StatusHttp(params string[] responses) : HttpMessageHandler, IHttpClientFactory

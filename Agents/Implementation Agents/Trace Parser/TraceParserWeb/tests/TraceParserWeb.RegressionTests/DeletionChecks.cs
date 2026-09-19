@@ -99,6 +99,22 @@ static class DeletionChecks
             catch (SqlException ex) { Check(ReferenceEquals(ex, error), "Real SQL error masked"); }
             passed++;
         }
+        foreach (var number in new[] { 51130, 51131 })
+        {
+            var error=SqlError(number);
+            try
+            {
+                await Service(new CallbackStore((_,_)=>throw error)).DeleteTraceAsync(42);
+                throw new Exception("Importer exclusion was swallowed");
+            }
+            catch(InvalidOperationException ex)
+            {
+                Check(ReferenceEquals(ex.InnerException,error)
+                    && ex.Message.Contains(number==51130?"busy":"blocked",StringComparison.OrdinalIgnoreCase),
+                    "Importer exclusion did not produce actionable feedback");
+            }
+            passed++;
+        }
         using (var caller = new CancellationTokenSource())
         {
             var callbackCompleted = false;

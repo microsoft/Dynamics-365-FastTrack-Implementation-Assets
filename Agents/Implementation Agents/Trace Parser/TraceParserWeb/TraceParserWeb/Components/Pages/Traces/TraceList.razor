@@ -85,6 +85,12 @@
                                     }
                                 }
                             </div>
+                            @if (_importingStages.TryGetValue(trace.TraceId, out var stage))
+                            {
+                                <div class="trace-importing">
+                                    <span class="importing-text">@GetImportStageText(stage)</span>
+                                </div>
+                            }
                             @if (_traceStats.TryGetValue(trace.TraceId, out var stats))
                             {
                                 <div class="trace-stats">
@@ -100,17 +106,11 @@
                                     }
                                 </div>
                             }
-                            else if (_importingStages.TryGetValue(trace.TraceId, out var stage))
-                            {
-                                <div class="trace-importing">
-                                    <span class="importing-text">@GetImportStageText(stage)</span>
-                                </div>
-                            }
                         </div>
                         <div class="trace-actions">
                             @if (_confirmDeleteId == trace.TraceId)
                             {
-                                <span class="confirm-text">Delete?</span>
+                                <span class="confirm-text">@(IsPartialDeletion(trace.TraceId) ? "Resume deletion?" : "Delete?")</span>
                                 <button class="btn-confirm-yes" @onclick="@(async () => await ConfirmDelete(trace.TraceId))" disabled="@_deleting">
                                     @if (_deleting && _deletingId == trace.TraceId)
                                     {
@@ -125,7 +125,9 @@
                             }
                             else
                             {
-                                <button class="btn-delete" @onclick="@(() => RequestDelete(trace.TraceId))" title="Delete trace" disabled="@(_deleting || !DeletionSvc.IsConfigured)">
+                                <button class="btn-delete" @onclick="@(() => RequestDelete(trace.TraceId))"
+                                    title="@(IsPartialDeletion(trace.TraceId) ? "Resume partial deletion" : "Delete trace")"
+                                    disabled="@(_deleting || !DeletionSvc.IsConfigured || IsImportBlocked(trace.TraceId))">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                          stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -198,10 +200,12 @@
         _importPollTimer?.Dispose();
         _importPollTimer = null;
 
-        var tracesWithoutStats = _traces.Where(t => !_traceStats.ContainsKey(t.TraceId)).ToList();
+        var tracesWithoutStats = _traces.Where(t => t.TraceParserVersion == "safe-import-v1"
+            || !_traceStats.ContainsKey(t.TraceId)).ToList();
         if (tracesWithoutStats.Count == 0) return;
 
-        // Check stage for each trace without stats
+        // Physical aggregates can remain during partial deletion. For protocol imports,
+        // always consult the receipt even when aggregate rows are still present.
         foreach (var trace in tracesWithoutStats)
         {
             if (_disposed) return;
@@ -274,7 +278,7 @@
 
     void RequestDelete(int traceId)
     {
-        if (_deleting || _disposed) return;
+        if (_deleting || _disposed || IsImportBlocked(traceId)) return;
         _confirmDeleteId = traceId;
         _statusMessage = null;
     }
@@ -303,6 +307,8 @@
                     ? $"{progress.ConfirmedRowsDeleted:N0} rows deleted"
                     : "row count unavailable for this procedure version";
                 _deleteProgress = $"Trace {traceId}: {progress.Batches:N0} batches confirmed; {rows}. Last phase: {progress.Phase ?? "legacy procedure"}. Waiting for SQL to confirm completion.";
+                if (progress.ConfirmedRowsDeleted > 0 && !progress.Complete)
+                    _importingStages[traceId] = ImportStage.Deleting;
                 StateHasChanged();
             }));
             if (_disposed) return;
@@ -372,8 +378,20 @@
         ImportStage.ProcessingDimensions => "Waiting for trace lines.",
         ImportStage.Finalizing => "Waiting for session metrics.",
         ImportStage.Unavailable => "Import status unavailable; the next poll will retry.",
+        ImportStage.RetryableFailure => "Import interrupted; progress is retained for retry. Deletion remains blocked.",
+        ImportStage.RejectedOversize => "Import rejected: ETL exceeds 1 GiB. Any partial data is retained for review; deletion remains blocked.",
+        ImportStage.Deleting => "Deletion is incomplete while this trace exists. Refresh and resume deletion.",
+        ImportStage.Deleted => "Deletion was completed. Refresh the trace list.",
+        ImportStage.LegacyUntracked => "Legacy trace: no import receipt is available. Missing metrics do not prove an active import.",
         _ => "Import status not confirmed."
     };
+
+    bool IsPartialDeletion(int traceId) =>
+        _importingStages.TryGetValue(traceId, out var stage) && stage == ImportStage.Deleting;
+
+    bool IsImportBlocked(int traceId) => _importingStages.TryGetValue(traceId, out var stage)
+        && stage is ImportStage.WaitingForFunction or ImportStage.Parsing or ImportStage.ProcessingDimensions
+            or ImportStage.Finalizing or ImportStage.RetryableFailure or ImportStage.RejectedOversize;
 
     public void Dispose()
     {

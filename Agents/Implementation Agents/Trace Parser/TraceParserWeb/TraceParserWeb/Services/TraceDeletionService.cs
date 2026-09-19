@@ -63,6 +63,16 @@ public class TraceDeletionService(
             throw new TimeoutException(
                 "Deletion timed out and may be partial. Committed batches remain deleted. Refresh and retry to finish.", ex);
         }
+        catch (SqlException ex) when (ex.Number == 51131)
+        {
+            throw new InvalidOperationException(
+                "This import is active or awaiting retry. Deletion is blocked until durable import completion.", ex);
+        }
+        catch (SqlException ex) when (ex.Number == 51130)
+        {
+            throw new InvalidOperationException(
+                "This trace is busy with an import or another deletion batch. Refresh and retry later.", ex);
+        }
 
         logger.LogInformation("Deleted trace {TraceId} for a signed-in user in the configured tenant", traceId);
     }
