@@ -58,9 +58,6 @@
           "actions": [
             {
               "action": "read"
-            },
-            {
-              "action": "delete"
             }
           ]
         }
@@ -88,9 +85,6 @@
           "actions": [
             {
               "action": "read"
-            },
-            {
-              "action": "delete"
             }
           ]
         }
@@ -145,9 +139,6 @@
           "actions": [
             {
               "action": "read"
-            },
-            {
-              "action": "delete"
             }
           ]
         }
@@ -647,44 +638,6 @@
         "type": {
           "singular": "SearchMessages",
           "plural": "SearchMessages"
-        }
-      },
-      "rest": {
-        "enabled": true,
-        "methods": [
-          "post"
-        ]
-      },
-      "permissions": [
-        {
-          "role": "anonymous",
-          "actions": [
-            {
-              "action": "execute"
-            }
-          ]
-        }
-      ]
-    },
-    "DeleteTrace": {
-      "description": "Delete a trace and all related data (TraceLines, UserSessions, etc.) by TraceId.",
-      "source": {
-        "object": "dbo.sp_DeleteTrace",
-        "type": "stored-procedure",
-        "parameters": [
-          {
-            "name": "TraceId",
-            "required": false,
-            "default": "0"
-          }
-        ]
-      },
-      "graphql": {
-        "enabled": true,
-        "operation": "mutation",
-        "type": {
-          "singular": "DeleteTrace",
-          "plural": "DeleteTraces"
         }
       },
       "rest": {

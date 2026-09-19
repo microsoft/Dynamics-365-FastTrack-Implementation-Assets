@@ -120,6 +120,9 @@ builder.Services.AddScoped<IChatClient>(sp => sp.GetRequiredService<CopilotStudi
 builder.Services.Configure<EtlImportOptions>(builder.Configuration.GetSection("EtlImport"));
 builder.Services.AddScoped<EtlUploadService>();
 builder.Services.AddScoped<TraceService>();
+builder.Services.AddScoped<TraceDeletionService>();
+builder.Services.Configure<TraceAdministrationOptions>(builder.Configuration.GetSection("TraceAdministration"));
+builder.Services.AddScoped<ITraceDeletionStore, SqlTraceDeletionStore>();
 builder.Services.AddHttpClient("dab", client =>
 {
     var dabUrl = builder.Configuration["EtlImport:DabBaseUrl"] ?? "";
