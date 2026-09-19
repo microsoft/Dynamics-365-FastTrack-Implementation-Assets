@@ -28,6 +28,13 @@
             </div>
         </div>
 
+        @if (!string.IsNullOrEmpty(_statusMessage))
+        {
+            <div role="status" class="traces-status @(_statusIsError ? "status-error" : "status-success")">
+                @_statusMessage
+            </div>
+        }
+
         @if (_loading)
         {
             <div class="traces-loading">
@@ -89,7 +96,6 @@
                             else if (_importingStages.TryGetValue(trace.TraceId, out var stage))
                             {
                                 <div class="trace-importing">
-                                    <span class="importing-spinner"></span>
                                     <span class="importing-text">@GetImportStageText(stage)</span>
                                 </div>
                             }
@@ -126,12 +132,6 @@
             </div>
         }
 
-        @if (!string.IsNullOrEmpty(_statusMessage))
-        {
-            <div class="traces-status @(_statusIsError ? "status-error" : "status-success")">
-                @_statusMessage
-            </div>
-        }
     </div>
 </div>
 
@@ -147,6 +147,8 @@
     string? _statusMessage;
     bool _statusIsError;
     System.Threading.Timer? _importPollTimer;
+    int _pollInProgress;
+    bool _disposed;
 
     protected override async Task OnInitializedAsync()
     {
@@ -193,7 +195,9 @@
         // Check stage for each trace without stats
         foreach (var trace in tracesWithoutStats)
         {
+            if (_disposed) return;
             var stage = await TraceSvc.GetImportStageAsync(trace.TraceId);
+            if (_disposed) return;
             if (stage != ImportStage.Complete)
                 _importingStages[trace.TraceId] = stage;
         }
@@ -201,20 +205,30 @@
         if (_importingStages.Count == 0) return;
 
         // Start polling importing traces every 10s
-        _importPollTimer = new System.Threading.Timer(async _ =>
+        _importPollTimer = new System.Threading.Timer(async _ => await PollImportStagesAsync(),
+            null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+    }
+
+    async Task PollImportStagesAsync()
+    {
+        if (Interlocked.CompareExchange(ref _pollInProgress, 1, 0) != 0) return;
+        try
         {
-            try
+            await InvokeAsync(async () =>
             {
+                if (_disposed) return;
                 var changed = false;
                 foreach (var traceId in _importingStages.Keys.ToList())
                 {
                     var stage = await TraceSvc.GetImportStageAsync(traceId);
+                    if (_disposed) return;
+                    if (!_importingStages.TryGetValue(traceId, out var previousStage)) continue;
                     if (stage == ImportStage.Complete)
                     {
                         _importingStages.Remove(traceId);
                         changed = true;
                     }
-                    else if (_importingStages[traceId] != stage)
+                    else if (previousStage != stage)
                     {
                         _importingStages[traceId] = stage;
                         changed = true;
@@ -236,13 +250,17 @@
                     }
                 }
 
-                await InvokeAsync(StateHasChanged);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogWarning(ex, "Import poll error on Traces page");
-            }
-        }, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+                if (!_disposed) StateHasChanged();
+            });
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Import poll error on Traces page");
+        }
+        finally
+        {
+            Volatile.Write(ref _pollInProgress, 0);
+        }
     }
 
     void RequestDelete(int traceId)
@@ -270,6 +288,7 @@
             _statusIsError = false;
             _traces.RemoveAll(t => t.TraceId == traceId);
             _traceStats.Remove(traceId);
+            _importingStages.Remove(traceId);
         }
         catch (Exception ex)
         {
@@ -304,14 +323,16 @@
     static string GetImportStageText(ImportStage stage) => stage switch
     {
         ImportStage.WaitingForFunction => "Waiting for processing...",
-        ImportStage.Parsing => "Parsing ETL events...",
-        ImportStage.ProcessingDimensions => "Importing trace lines...",
-        ImportStage.Finalizing => "Finalizing...",
-        _ => "Importing..."
+        ImportStage.Parsing => "No parsed session data available yet.",
+        ImportStage.ProcessingDimensions => "Waiting for trace lines.",
+        ImportStage.Finalizing => "Waiting for session metrics.",
+        ImportStage.Unavailable => "Import status unavailable; the next poll will retry.",
+        _ => "Import status not confirmed."
     };
 
     public void Dispose()
     {
+        _disposed = true;
         _importPollTimer?.Dispose();
     }
 }

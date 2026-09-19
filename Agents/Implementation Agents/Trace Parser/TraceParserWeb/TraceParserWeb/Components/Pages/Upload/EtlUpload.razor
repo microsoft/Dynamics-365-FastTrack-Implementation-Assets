@@ -176,6 +176,8 @@
     long _uploadedBytes;
     string StatusMessage = "";
     System.Threading.Timer? _pollTimer;
+    int _pollInProgress;
+    bool _disposed;
     DotNetObjectReference<EtlUpload>? _dotNetRef;
     ImportStage _currentStage = ImportStage.WaitingForFunction;
     DateTime _processingStartTime;
@@ -278,11 +280,20 @@
         Logger.LogInformation("Direct blob upload complete for session {Session}", SessionName);
 
         // Start polling for import stage
-        _pollTimer = new System.Threading.Timer(async _ =>
+        _pollTimer = new System.Threading.Timer(async _ => await PollImportStatusAsync(),
+            null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+    }
+
+    async Task PollImportStatusAsync()
+    {
+        if (Interlocked.CompareExchange(ref _pollInProgress, 1, 0) != 0) return;
+        try
         {
-            try
+            await InvokeAsync(async () =>
             {
+                if (_disposed) return;
                 var status = await UploadSvc.GetImportStatusAsync(SessionName, CancellationToken.None);
+                if (_disposed) return;
 
                 if (status.Stage != _currentStage)
                 {
@@ -300,13 +311,17 @@
                     StatusMessage = $"Import complete! Session '{SessionName}' is ready to query in Chat.";
                 }
 
-                await InvokeAsync(StateHasChanged);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogWarning(ex, "Status poll error for session {Session}", SessionName);
-            }
-        }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+                StateHasChanged();
+            });
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Status poll error for session {Session}", SessionName);
+        }
+        finally
+        {
+            Volatile.Write(ref _pollInProgress, 0);
+        }
     }
 
     [JSInvokable]
@@ -339,6 +354,7 @@
         ImportStage.ProcessingDimensions => "Promoting trace lines and rebuilding indexes...",
         ImportStage.Finalizing => "Computing session aggregations...",
         ImportStage.Complete => "Import complete!",
+        ImportStage.Unavailable => "Import status unavailable; the next poll will retry.",
         _ => "Processing..."
     };
 
@@ -348,6 +364,7 @@
         ImportStage.Parsing => "Parsing",
         ImportStage.ProcessingDimensions => "Importing",
         ImportStage.Finalizing => "Finalizing",
+        ImportStage.Unavailable => "Unavailable",
         _ => ""
     };
 
@@ -384,6 +401,7 @@
 
     public void Dispose()
     {
+        _disposed = true;
         _pollTimer?.Dispose();
         _dotNetRef?.Dispose();
     }
