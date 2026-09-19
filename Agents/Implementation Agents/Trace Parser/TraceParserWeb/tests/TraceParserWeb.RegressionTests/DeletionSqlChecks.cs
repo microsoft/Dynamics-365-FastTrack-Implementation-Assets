@@ -12,7 +12,7 @@ static class DeletionSqlChecks
     const string Prefix = "TPBoundedDelete_c100bb02_";
     static readonly string[] Tables = { "QueryBindParameters", "XppParameters", "TraceLines",
         "TopMethods", "StageTraceLines", "SessionMetrics", "TopMethodsBySession",
-        "UserSessionProcessThreads", "UserSessions", "Traces" };
+        "UserSessionProcessThreads", "UserSessions", "MethodAotLayers", "TraceInformations", "Traces" };
 
     public static async Task RunAsync()
     {
@@ -57,6 +57,35 @@ static class DeletionSqlChecks
                 await ExpectSqlAsync(() => ExecuteAsync(connection, migration), 51003);
                 await ExecuteAsync(connection, "DROP TABLE dbo.UnexpectedChild");
                 checks++;
+                foreach (var table in new[] { "MethodAotLayers", "TraceInformations" })
+                {
+                    await ExecuteAsync(connection, $"EXEC sp_rename 'dbo.{table}.TraceId', 'UnexpectedTraceId', 'COLUMN'");
+                    await ExpectSqlAsync(() => ExecuteAsync(connection, migration), 51001);
+                    await ExecuteAsync(connection, $"EXEC sp_rename 'dbo.{table}.UnexpectedTraceId', 'TraceId', 'COLUMN'");
+                    checks++;
+                    var key = table == "MethodAotLayers" ? "Id" : "InfoId";
+                    await ExecuteAsync(connection, $"CREATE TABLE dbo.UnexpectedChild (Id int REFERENCES dbo.{table}({key}))");
+                    await ExpectSqlAsync(() => ExecuteAsync(connection, migration), 51003);
+                    await ExecuteAsync(connection, "DROP TABLE dbo.UnexpectedChild");
+                    checks++;
+                }
+                await ExecuteAsync(connection, "EXEC sp_rename 'dbo.TopMethods.EndUspId', 'UnexpectedEndpoint', 'COLUMN'");
+                await ExpectSqlAsync(() => ExecuteAsync(connection, migration), 51001);
+                await ExecuteAsync(connection, "EXEC sp_rename 'dbo.TopMethods.UnexpectedEndpoint', 'EndUspId', 'COLUMN'");
+                checks++;
+                await ExecuteAsync(connection, """
+                    DROP TABLE dbo.TraceInformations;
+                    CREATE TABLE dbo.TraceInformations (InfoId int NOT NULL PRIMARY KEY,
+                        TraceId int NOT NULL REFERENCES dbo.Traces(TraceId)) AS NODE;
+                    """);
+                await ExpectSqlAsync(() => ExecuteAsync(connection, migration), 51001);
+                await ExecuteAsync(connection, """
+                    DROP TABLE dbo.TraceInformations;
+                    CREATE TABLE dbo.TraceInformations (InfoId int NOT NULL PRIMARY KEY, TraceId int NOT NULL REFERENCES dbo.Traces(TraceId),
+                        SystemName nvarchar(200) NULL, UserName nvarchar(200) NULL, AxVersion nvarchar(50) NULL, TraceSessionNotes nvarchar(max) NULL);
+                    """);
+                checks++;
+                checks += await CheckCompositeGuardsAsync(connection, migration);
                 await ExecuteAsync(connection, migration);
                 await ExecuteAsync(connection, """
                     CREATE USER BoundedDeleteExecutor WITHOUT LOGIN;
@@ -65,6 +94,10 @@ static class DeletionSqlChecks
                     """);
                 await ExecuteAsync(connection, Seed);
                 var unrelated = await SnapshotUnrelatedAsync(connection);
+                Check((int)(await ScalarAsync(connection,
+                    "SELECT COUNT(*) FROM dbo.UserSessions WHERE SessionId = 1 AND TraceId IN (1,2)"))! == 2,
+                    "Fixture did not exercise the same SessionId in different traces");
+                checks++;
                 Check((int)(await ScalarAsync(connection, "SELECT COUNT(*) FROM dbo.TraceLines WHERE UserSessionProcessThreadId = 1"))! == 250001,
                     "Large synthetic fixture missing");
                 checks++;
@@ -144,7 +177,8 @@ static class DeletionSqlChecks
                     Check(Tables.All(phases.ContainsKey), "Not all deletion phases ran");
                     Check(phases["SessionMetrics"].Batches > 1 && phases["UserSessions"].Batches > 1
                         && phases["UserSessionProcessThreads"].Batches > 1
-                        && phases["TopMethodsBySession"].Batches > 1 && phases["StageTraceLines"].Batches > 1,
+                        && phases["TopMethodsBySession"].Batches > 1 && phases["StageTraceLines"].Batches > 1
+                        && phases["MethodAotLayers"].Batches > 1 && phases["TraceInformations"].Batches > 1,
                         "Parent/aggregate/staging phases were not exercised across batches");
                     checks++;
                     var missing = await SqlTraceDeletionStore.ExecuteBatchAsync(connection, 1, default);
@@ -159,13 +193,20 @@ static class DeletionSqlChecks
                     Check((int)(await ScalarAsync(connection, $"SELECT COUNT(*) FROM dbo.[{table}]"))! == 1,
                         $"Requested trace left rows in {table}");
                 checks++;
+                Check((int)(await ScalarAsync(connection, "SELECT COUNT(*) FROM dbo.MethodNames"))! == 1
+                    && (int)(await ScalarAsync(connection, """
+                        SELECT COUNT(*) FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.TraceLines')
+                        AND name IN ('IX_USP_METHOD', 'IX_TL_USPT_Aggregation') AND is_disabled = 1
+                        """))! == 2, "Deletion changed a shared dimension or disabled secondary indexes");
+                checks++;
+                checks += await CheckAmbiguousMethodsAsync(connection);
 
                 // Caller-specified bounds include parameter fan-out and final root cleanup.
                 await ExecuteAsync(connection, SmallSeed);
-                var beforeCancellation = (int)(await ScalarAsync(connection, "SELECT COUNT(*) FROM dbo.QueryBindParameters WHERE TraceLineId = 4"))!;
+                var beforeCancellation = (int)(await ScalarAsync(connection, "SELECT COUNT(*) FROM dbo.TopMethods WHERE BeginUspId = 4"))!;
                 // Test-only trigger pauses AFTER mutation, so attention tests rollback, not just a blocked read.
                 await ExecuteAsync(connection, """
-                    CREATE TRIGGER dbo.PauseSyntheticDelete ON dbo.QueryBindParameters AFTER DELETE AS
+                    CREATE TRIGGER dbo.PauseSyntheticDelete ON dbo.TopMethods AFTER DELETE AS
                     BEGIN
                         WAITFOR DELAY '00:00:30';
                     END
@@ -206,7 +247,7 @@ static class DeletionSqlChecks
                             providerCancellations.Add(CancellationEvidence("AfterMutation", ex));
                         }
                     }
-                    Check((int)(await ScalarAsync(connection, "SELECT COUNT(*) FROM dbo.QueryBindParameters WHERE TraceLineId = 4"))! == beforeCancellation,
+                    Check((int)(await ScalarAsync(connection, "SELECT COUNT(*) FROM dbo.TopMethods WHERE BeginUspId = 4"))! == beforeCancellation,
                         "Interrupted statement committed partial mutation");
                     checks++;
                 }
@@ -223,7 +264,7 @@ static class DeletionSqlChecks
                     boundedRows += result.RowsDeleted!.Value;
                     if (!result.HasMore) break;
                 }
-                Check(boundedRows == 29, "Small-batch affected row counts do not match fixture");
+                Check(boundedRows == 39, "Small-batch affected row counts do not match fixture");
                 checks++;
 
                 // Old no-result and HasMore-only versions; ignore false HasMore until root is absent.
@@ -366,6 +407,98 @@ static class DeletionSqlChecks
         (int)(await ScalarAsync(connection, "SELECT " +
             string.Join(" + ", Tables.Select(t => $"(SELECT COUNT(*) FROM dbo.[{t}])"))))!;
 
+    static async Task<int> CheckCompositeGuardsAsync(SqlConnection connection, string migration)
+    {
+        const string drop = "ALTER TABLE dbo.UserSessionProcessThreads DROP CONSTRAINT UserSessionUserSessionProcessThread;";
+        const string restore = """
+            ALTER TABLE dbo.UserSessionProcessThreads ADD CONSTRAINT UserSessionUserSessionProcessThread
+                FOREIGN KEY (SessionId, TraceId) REFERENCES dbo.UserSessions(SessionId, TraceId);
+            """;
+        await ExecuteAsync(connection, drop + """
+            ALTER TABLE dbo.UserSessionProcessThreads ADD CONSTRAINT UnexpectedComposite
+                FOREIGN KEY (TraceId, SessionId) REFERENCES dbo.UserSessions(SessionId, TraceId);
+            """);
+        await ExpectSqlAsync(() => ExecuteAsync(connection, migration), 51003);
+        await ExecuteAsync(connection, """
+            ALTER TABLE dbo.UserSessionProcessThreads DROP CONSTRAINT UnexpectedComposite;
+            CREATE UNIQUE INDEX SyntheticSingleSessionId ON dbo.UserSessions(SessionId);
+            ALTER TABLE dbo.UserSessionProcessThreads ADD CONSTRAINT UnexpectedSingle
+                FOREIGN KEY (SessionId) REFERENCES dbo.UserSessions(SessionId);
+            """);
+        await ExpectSqlAsync(() => ExecuteAsync(connection, migration), 51003);
+        await ExecuteAsync(connection, """
+            ALTER TABLE dbo.UserSessionProcessThreads DROP CONSTRAINT UnexpectedSingle;
+            DROP INDEX SyntheticSingleSessionId ON dbo.UserSessions;
+            ALTER TABLE dbo.UserSessions ADD Extra int NOT NULL;
+            ALTER TABLE dbo.UserSessionProcessThreads ADD Extra int NOT NULL;
+            CREATE UNIQUE INDEX SyntheticTriple ON dbo.UserSessions(SessionId, TraceId, Extra);
+            ALTER TABLE dbo.UserSessionProcessThreads ADD CONSTRAINT UnexpectedTriple
+                FOREIGN KEY (SessionId, TraceId, Extra) REFERENCES dbo.UserSessions(SessionId, TraceId, Extra);
+            """);
+        await ExpectSqlAsync(() => ExecuteAsync(connection, migration), 51003);
+        await ExecuteAsync(connection, """
+            ALTER TABLE dbo.UserSessionProcessThreads DROP CONSTRAINT UnexpectedTriple;
+            DROP INDEX SyntheticTriple ON dbo.UserSessions;
+            ALTER TABLE dbo.UserSessionProcessThreads DROP COLUMN Extra;
+            ALTER TABLE dbo.UserSessions DROP COLUMN Extra;
+            ALTER TABLE dbo.UserSessions DROP CONSTRAINT PK_UserSessions;
+            ALTER TABLE dbo.UserSessions ADD CONSTRAINT PK_UserSessions PRIMARY KEY(TraceId, SessionId);
+            """);
+        await ExpectSqlAsync(() => ExecuteAsync(connection, migration), 51005);
+        await ExecuteAsync(connection, """
+            ALTER TABLE dbo.UserSessions DROP CONSTRAINT PK_UserSessions;
+            ALTER TABLE dbo.UserSessions ADD CONSTRAINT PK_UserSessions PRIMARY KEY(SessionId, TraceId);
+            """ + restore);
+        return 4;
+    }
+
+    static async Task<int> CheckAmbiguousMethodsAsync(SqlConnection connection)
+    {
+        await ExecuteAsync(connection, """
+            INSERT dbo.Traces VALUES (5, N'synthetic-ambiguous-endpoints');
+            INSERT dbo.UserSessions VALUES (1, 5);
+            INSERT dbo.UserSessionProcessThreads VALUES (5, 1, 5);
+            """);
+        foreach (var (begin, end, disabled) in new[] {
+            (5, 1000001, ""), (1000001, 5, ""),
+            (5, 9000999, "FK_TopMethod_UserSessionProcesses1"),
+            (9000999, 5, "FK_TopMethod_UserSessionProcesses") })
+        {
+            if (disabled != "") await ExecuteAsync(connection, $"ALTER TABLE dbo.TopMethods NOCHECK CONSTRAINT {disabled}");
+            await ExecuteAsync(connection, $"INSERT dbo.TopMethods VALUES (9000002, {begin}, {end}), (9000003, 5, 5)");
+            var before = await CountRowsAsync(connection);
+            var unrelated = await SnapshotUnrelatedAsync(connection);
+            await ExecuteAsync(connection, "EXECUTE AS USER = 'BoundedDeleteExecutor'");
+            try
+            {
+                try
+                {
+                    await DeleteAsync(connection, 5, 2);
+                    throw new Exception("Ambiguous TopMethods row was silently accepted");
+                }
+                catch (SqlException ex) when (ex.Number == 51013)
+                {
+                    Check(ex.Message.Contains("owner review is required"), "Ambiguous endpoint error was not actionable");
+                }
+            }
+            finally { await ExecuteAsync(connection, "REVERT"); }
+            Check(await CountRowsAsync(connection) == before && unrelated == await SnapshotUnrelatedAsync(connection),
+                "Ambiguous endpoint deletion mutated this or another trace");
+            Check((int)(await ScalarAsync(connection, "SELECT COUNT(*) FROM dbo.TopMethods WHERE Id IN (9000002,9000003)"))! == 2,
+                "Ambiguous row or safe companion was removed from the rejected batch");
+            await ExecuteAsync(connection, "DELETE FROM dbo.TopMethods WHERE Id IN (9000002,9000003)");
+            if (disabled != "") await ExecuteAsync(connection, $"ALTER TABLE dbo.TopMethods WITH CHECK CHECK CONSTRAINT {disabled}");
+        }
+        // Only after synthetic ownership ambiguity is explicitly corrected can retry finish.
+        for (var i = 0; ; i++)
+        {
+            Check(i < 4, "Resolved synthetic trace did not finish");
+            var result = await DeleteAsync(connection, 5, 1);
+            if (!result.HasMore) break;
+        }
+        return 5;
+    }
+
     static object CancellationEvidence(string phase, Exception ex) => new {
         Phase = phase, ExceptionType = ex.GetType().FullName,
         SqlErrors = ex is SqlException sql
@@ -377,24 +510,38 @@ static class DeletionSqlChecks
     // shape follow captured deployed metadata. Enabled FKs are deliberately stricter.
     const string Schema = """
         CREATE TABLE dbo.Traces (TraceId int NOT NULL PRIMARY KEY, TraceName nvarchar(100) NOT NULL);
-        CREATE TABLE dbo.UserSessions (SessionId int NOT NULL PRIMARY KEY, TraceId int NOT NULL REFERENCES dbo.Traces(TraceId));
+        CREATE TABLE dbo.UserSessions (SessionId int NOT NULL, TraceId int NOT NULL REFERENCES dbo.Traces(TraceId),
+            CONSTRAINT PK_UserSessions PRIMARY KEY(SessionId, TraceId));
         CREATE TABLE dbo.UserSessionProcessThreads (UserSessionProcessThreadId int NOT NULL PRIMARY KEY,
-            SessionId int NOT NULL REFERENCES dbo.UserSessions(SessionId), TraceId int NOT NULL REFERENCES dbo.Traces(TraceId));
+            SessionId int NOT NULL, TraceId int NOT NULL,
+            CONSTRAINT UserSessionUserSessionProcessThread FOREIGN KEY(SessionId, TraceId) REFERENCES dbo.UserSessions(SessionId, TraceId));
         CREATE INDEX IX_USPT_TraceId ON dbo.UserSessionProcessThreads(TraceId, SessionId);
         CREATE TABLE dbo.TraceLines (TraceLineId bigint NOT NULL PRIMARY KEY NONCLUSTERED,
             UserSessionProcessThreadId int NOT NULL REFERENCES dbo.UserSessionProcessThreads(UserSessionProcessThreadId),
             Sequence int NOT NULL, CONSTRAINT UQ_SessionUser UNIQUE CLUSTERED (UserSessionProcessThreadId, Sequence));
+        CREATE INDEX IX_USP_METHOD ON dbo.TraceLines(UserSessionProcessThreadId, Sequence);
+        CREATE INDEX IX_TL_USPT_Aggregation ON dbo.TraceLines(UserSessionProcessThreadId, Sequence);
+        ALTER INDEX IX_USP_METHOD ON dbo.TraceLines DISABLE;
+        ALTER INDEX IX_TL_USPT_Aggregation ON dbo.TraceLines DISABLE;
         CREATE TABLE dbo.QueryBindParameters (QueryBindParameterId int IDENTITY NOT NULL, TraceLineId bigint NOT NULL REFERENCES dbo.TraceLines(TraceLineId),
             ParameterIndex int NULL, BindValue nvarchar(100) NULL);
         CREATE TABLE dbo.XppParameters (TraceLineId bigint NOT NULL REFERENCES dbo.TraceLines(TraceLineId));
-        CREATE TABLE dbo.TopMethods (Id int IDENTITY NOT NULL, BeginUspId int NOT NULL REFERENCES dbo.UserSessionProcessThreads(UserSessionProcessThreadId), EndUspId int NOT NULL);
+        CREATE TABLE dbo.TopMethods (Id int NOT NULL PRIMARY KEY,
+            BeginUspId int NOT NULL CONSTRAINT FK_TopMethod_UserSessionProcesses REFERENCES dbo.UserSessionProcessThreads(UserSessionProcessThreadId),
+            EndUspId int NOT NULL CONSTRAINT FK_TopMethod_UserSessionProcesses1 REFERENCES dbo.UserSessionProcessThreads(UserSessionProcessThreadId));
         CREATE TABLE dbo.StageTraceLines (TraceLineId bigint NOT NULL PRIMARY KEY,
             UserSessionProcessThreadId int NULL REFERENCES dbo.UserSessionProcessThreads(UserSessionProcessThreadId));
         CREATE INDEX IX_Stage_ThreadId ON dbo.StageTraceLines(UserSessionProcessThreadId);
-        CREATE TABLE dbo.SessionMetrics (SessionId int NOT NULL REFERENCES dbo.UserSessions(SessionId),
+        CREATE TABLE dbo.SessionMetrics (SessionId int NOT NULL,
             TraceId int NOT NULL REFERENCES dbo.Traces(TraceId), PRIMARY KEY (TraceId, SessionId));
         CREATE TABLE dbo.TopMethodsBySession (Id int IDENTITY NOT NULL PRIMARY KEY,
-            SessionId int NOT NULL REFERENCES dbo.UserSessions(SessionId), TraceId int NOT NULL REFERENCES dbo.Traces(TraceId));
+            SessionId int NOT NULL, TraceId int NOT NULL REFERENCES dbo.Traces(TraceId));
+        CREATE TABLE dbo.MethodNames (MethodHash bigint NOT NULL PRIMARY KEY);
+        CREATE TABLE dbo.MethodAotLayers (Id int NOT NULL PRIMARY KEY, TraceId int NOT NULL REFERENCES dbo.Traces(TraceId),
+            MethodHash bigint NOT NULL REFERENCES dbo.MethodNames(MethodHash), AotLayer int NOT NULL);
+        CREATE INDEX IX_TracelLineId_MethodHash ON dbo.MethodAotLayers(TraceId, MethodHash);
+        CREATE TABLE dbo.TraceInformations (InfoId int NOT NULL PRIMARY KEY, TraceId int NOT NULL REFERENCES dbo.Traces(TraceId),
+            SystemName nvarchar(200) NULL, UserName nvarchar(200) NULL, AxVersion nvarchar(50) NULL, TraceSessionNotes nvarchar(max) NULL);
         """;
 
     const string Seed = """
@@ -402,9 +549,9 @@ static class DeletionSqlChecks
         SELECT TOP (250001) CONVERT(int, ROW_NUMBER() OVER (ORDER BY (SELECT NULL))) AS n
         INTO #numbers FROM sys.all_objects a CROSS JOIN sys.all_objects b;
         INSERT dbo.UserSessions SELECT n, 1 FROM #numbers WHERE n <= 6001;
-        INSERT dbo.UserSessions VALUES (1000001, 2);
+        INSERT dbo.UserSessions VALUES (1, 2);
         INSERT dbo.UserSessionProcessThreads SELECT n, n, 1 FROM #numbers WHERE n <= 6001;
-        INSERT dbo.UserSessionProcessThreads VALUES (1000001, 1000001, 2);
+        INSERT dbo.UserSessionProcessThreads VALUES (1000001, 1, 2);
         INSERT dbo.TraceLines SELECT CONVERT(bigint, n), 1, n FROM #numbers;
         INSERT dbo.TraceLines VALUES (9000001, 1000001, 1);
         INSERT dbo.QueryBindParameters(TraceLineId, ParameterIndex, BindValue) SELECT n, 1, N'synthetic' FROM #numbers;
@@ -412,14 +559,19 @@ static class DeletionSqlChecks
         INSERT dbo.QueryBindParameters(TraceLineId) VALUES (9000001);
         INSERT dbo.XppParameters SELECT 1 FROM #numbers WHERE n <= 6001;
         INSERT dbo.XppParameters VALUES (9000001);
-        INSERT dbo.TopMethods(BeginUspId, EndUspId) SELECT 1, 1 FROM #numbers WHERE n <= 6001;
-        INSERT dbo.TopMethods(BeginUspId, EndUspId) VALUES (1000001, 1000001);
+        INSERT dbo.TopMethods(Id, BeginUspId, EndUspId) SELECT n, 1, 2 FROM #numbers WHERE n <= 6001;
+        INSERT dbo.TopMethods(Id, BeginUspId, EndUspId) VALUES (9000001, 1000001, 1000001);
         INSERT dbo.StageTraceLines SELECT n, 1 FROM #numbers WHERE n <= 6001;
         INSERT dbo.StageTraceLines VALUES (9000001, 1000001);
         INSERT dbo.SessionMetrics SELECT n, 1 FROM #numbers WHERE n <= 6001;
-        INSERT dbo.SessionMetrics VALUES (1000001, 2);
+        INSERT dbo.SessionMetrics VALUES (1, 2);
         INSERT dbo.TopMethodsBySession(SessionId, TraceId) SELECT n, 1 FROM #numbers WHERE n <= 6001;
-        INSERT dbo.TopMethodsBySession(SessionId, TraceId) VALUES (1000001, 2);
+        INSERT dbo.TopMethodsBySession(SessionId, TraceId) VALUES (1, 2);
+        INSERT dbo.MethodNames VALUES (1);
+        INSERT dbo.MethodAotLayers SELECT n, 1, 1, 1 FROM #numbers WHERE n <= 6001;
+        INSERT dbo.MethodAotLayers VALUES (9000001, 2, 1, 1);
+        INSERT dbo.TraceInformations(InfoId, TraceId) SELECT n, 1 FROM #numbers WHERE n <= 6001;
+        INSERT dbo.TraceInformations(InfoId, TraceId) VALUES (9000001, 2);
         DROP TABLE #numbers;
         """;
 
@@ -430,9 +582,11 @@ static class DeletionSqlChecks
         INSERT dbo.TraceLines VALUES (4, 4, 1);
         INSERT dbo.QueryBindParameters(TraceLineId) SELECT 4 FROM (VALUES(1),(2),(3),(4),(5)) n(n);
         INSERT dbo.XppParameters SELECT 4 FROM (VALUES(1),(2),(3),(4),(5)) n(n);
-        INSERT dbo.TopMethods(BeginUspId, EndUspId) SELECT 4, 4 FROM (VALUES(1),(2),(3),(4),(5)) n(n);
+        INSERT dbo.TopMethods(Id, BeginUspId, EndUspId) SELECT n, 4, 4 FROM (VALUES(1),(2),(3),(4),(5)) n(n);
         INSERT dbo.StageTraceLines SELECT n, 4 FROM (VALUES(1),(2),(3),(4),(5)) n(n);
         INSERT dbo.SessionMetrics VALUES (4, 4);
         INSERT dbo.TopMethodsBySession(SessionId, TraceId) SELECT 4, 4 FROM (VALUES(1),(2),(3),(4)) n(n);
+        INSERT dbo.MethodAotLayers SELECT n, 4, 1, 1 FROM (VALUES(1),(2),(3),(4),(5)) n(n);
+        INSERT dbo.TraceInformations(InfoId, TraceId) SELECT n, 4 FROM (VALUES(1),(2),(3),(4),(5)) n(n);
         """;
 }
