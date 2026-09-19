@@ -34,6 +34,13 @@
                 @_statusMessage
             </div>
         }
+        @if (_deleting)
+        {
+            <div role="status" aria-live="polite" class="traces-status">
+                @_deleteProgress
+                <button class="btn-confirm-no" @onclick="StopDeletion" disabled="@(_deleteCancellation?.IsCancellationRequested != false)">Cancel deletion</button>
+            </div>
+        }
 
         @if (_loading)
         {
@@ -118,7 +125,7 @@
                             }
                             else
                             {
-                                <button class="btn-delete" @onclick="@(() => RequestDelete(trace.TraceId))" title="Delete trace" disabled="@(!DeletionSvc.IsConfigured)">
+                                <button class="btn-delete" @onclick="@(() => RequestDelete(trace.TraceId))" title="Delete trace" disabled="@(_deleting || !DeletionSvc.IsConfigured)">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                          stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -149,6 +156,8 @@
     System.Threading.Timer? _importPollTimer;
     int _pollInProgress;
     bool _disposed;
+    CancellationTokenSource? _deleteCancellation;
+    string? _deleteProgress;
 
     protected override async Task OnInitializedAsync()
     {
@@ -265,6 +274,7 @@
 
     void RequestDelete(int traceId)
     {
+        if (_deleting || _disposed) return;
         _confirmDeleteId = traceId;
         _statusMessage = null;
     }
@@ -276,32 +286,67 @@
 
     async Task ConfirmDelete(int traceId)
     {
+        if (_deleting || _disposed) return;
+        using var cancellation = new CancellationTokenSource();
+        _deleteCancellation = cancellation;
         _deleting = true;
         _deletingId = traceId;
         _statusMessage = null;
-        StateHasChanged();
-
+        _deleteProgress = $"Deleting trace {traceId}: waiting for the first SQL batch. Cancelling may leave a partial deletion.";
         try
         {
-            await DeletionSvc.DeleteTraceAsync(traceId);
+            StateHasChanged();
+            await DeletionSvc.DeleteTraceAsync(traceId, cancellation.Token, progress => InvokeAsync(() =>
+            {
+                if (_disposed) return;
+                var rows = progress.AllRowsKnown
+                    ? $"{progress.ConfirmedRowsDeleted:N0} rows deleted"
+                    : "row count unavailable for this procedure version";
+                _deleteProgress = $"Trace {traceId}: {progress.Batches:N0} batches confirmed; {rows}. Last phase: {progress.Phase ?? "legacy procedure"}. Waiting for SQL to confirm completion.";
+                StateHasChanged();
+            }));
+            if (_disposed) return;
             _statusMessage = $"Trace {traceId} deleted successfully.";
             _statusIsError = false;
             _traces.RemoveAll(t => t.TraceId == traceId);
             _traceStats.Remove(traceId);
             _importingStages.Remove(traceId);
+            if (_importingStages.Count == 0)
+            {
+                _importPollTimer?.Dispose();
+                _importPollTimer = null;
+            }
+        }
+        catch (OperationCanceledException ex)
+        {
+            if (!_disposed)
+            {
+                _statusMessage = $"Trace {traceId}: {ex.Message}";
+                _statusIsError = true;
+            }
         }
         catch (Exception ex)
         {
-            _statusMessage = $"Failed to delete trace {traceId}: {ex.Message}";
-            _statusIsError = true;
+            if (!_disposed)
+            {
+                _statusMessage = $"Failed to delete trace {traceId}: {ex.Message} Deletion may be partial; committed batches remain deleted. Refresh before retrying.";
+                _statusIsError = true;
+            }
             Logger.LogError(ex, "Failed to delete trace {TraceId}", traceId);
         }
         finally
         {
+            _deleteCancellation = null;
             _deleting = false;
             _deletingId = null;
             _confirmDeleteId = null;
         }
+    }
+
+    void StopDeletion()
+    {
+        _deleteCancellation?.Cancel();
+        _deleteProgress = "Cancellation requested; waiting for SQL to stop. Previously committed batches remain deleted.";
     }
 
     static string FormatCount(long count)
@@ -332,7 +377,9 @@
 
     public void Dispose()
     {
+        if (_disposed) return;
         _disposed = true;
+        _deleteCancellation?.Cancel();
         _importPollTimer?.Dispose();
     }
 }

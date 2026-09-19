@@ -122,7 +122,10 @@ using (var config = JsonDocument.Parse(File.ReadAllText(configPath)))
 }
 passed += await ImportStatusChecks.RunAsync();
 passed += await AgentDestinationChecks.RunAsync();
+passed += await DeletionChecks.RunAsync();
 Console.WriteLine($"{passed} regression checks passed.");
+if (args.Contains("--sql-integration"))
+    await DeletionSqlChecks.RunAsync();
 
 sealed class ProbeAuthentication(ClaimsPrincipal user) : AuthenticationStateProvider
 {
@@ -137,7 +140,7 @@ sealed class ProbeStore(params bool[] remaining) : ITraceDeletionStore
     public Exception? Failure { get; init; }
     public Action? AfterCall { get; init; }
 
-    public Task<bool> DeleteBatchAsync(int traceId, CancellationToken ct)
+    public Task<TraceDeletionBatch> DeleteBatchAsync(int traceId, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
         LastTraceId = traceId;
@@ -145,6 +148,6 @@ sealed class ProbeStore(params bool[] remaining) : ITraceDeletionStore
         if (Failure is not null) throw Failure;
         if (Calls > remaining.Length) throw new Exception("Unexpected extra deletion batch");
         AfterCall?.Invoke();
-        return Task.FromResult(remaining[Calls - 1]);
+        return Task.FromResult(new TraceDeletionBatch(remaining[Calls - 1]));
     }
 }

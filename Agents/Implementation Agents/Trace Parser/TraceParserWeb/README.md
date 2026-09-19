@@ -124,11 +124,34 @@ GRANT EXECUTE ON OBJECT::dbo.sp_DeleteTrace TO [TraceParserWebDeletion];
 GRANT SELECT ON OBJECT::dbo.Traces TO [TraceParserWebDeletion];
 ```
 
-The principal must not belong to `db_owner`, `db_datawriter`, or other broad roles. The procedure relies on the normal same-owner SQL ownership chain; do not grant table-delete permissions to compensate for a broken chain. No SQL schema or procedure replacement is required by this change.
+The principal must not belong to `db_owner`, `db_datawriter`, or other broad roles. The procedure relies on the normal same-owner SQL ownership chain; do not grant table-delete permissions to compensate for a broken chain.
 
-The server repeats the existing procedure until a separate parameterized query confirms the trace is absent. This supports both the original procedure and incremental versions returning `HasMore`; one successful batch is not reported as a completed deletion. Errors and cancellation are surfaced, and the operation has a five-minute budget. A failed or timed-out operation can leave a partially deleted trace; refresh and retry. Do not delete traces while they are being imported.
+The server repeats the procedure until a separate parameterized query confirms the trace is absent. It supports the original no-result procedure, incremental versions returning only `HasMore`, and the bounded procedure below. One successful batch (or `HasMore=0`) is not proof of completion. The page displays confirmed batches, actual rows deleted when supplied by SQL, and the last completed phase; it never invents a percentage or a legacy row count. The initial/in-flight message remains visible while SQL is working.
 
-Deploy the updated **read-only** `TraceParserMCP/dab-config.json` as part of this update. Merely hiding the Delete button does not remove direct API access. Existing deployments must remove the `DeleteTrace` entity and table-delete grants, not just update the web application. Anonymous analysis remains unchanged; protect sensitive traces with appropriate network and read-access controls.
+Deletion retains its **five-minute overall budget and 120-second SQL command timeout**. Cancel stops further batches and cancels the current SQL request; leaving the page also cancels its deletion. Previously committed batches stay deleted. Caller cancellation and overall timeout have distinct partial-deletion messages, including SqlClient cancellation errors when the operation token really was cancelled. Other SQL errors remain errors, not successful cancellation. Refresh before retrying a partial deletion. **Do not delete a trace being imported, submit concurrent imports for it, or infer importer inactivity from missing statistics.** This change does not coordinate with or stop importers.
+
+### Bounded deletion procedure migration (fresh and existing installs)
+
+The canonical install/update script is [`sql/sp_DeleteTrace.sql`](sql/sp_DeleteTrace.sql). It updates **only `dbo.sp_DeleteTrace`** with `CREATE OR ALTER`; existing EXECUTE grants survive. Run this same script for a fresh compatible database after installing its base schema/physical aggregates, and for an existing database. It is not bundled into the historical solution ZIP, view scripts, importer, or resource deployment. Do not replace a database, re-run `Create Views.sql`, change indexes, or repack an unrelated solution to install it.
+
+**Prerequisites / fail closed:** inspect the current definition, columns, keys, ownership, triggers, FK graph and caller inventory; save the deployed procedure definition and grants as rollback evidence. Required objects are dbo **physical tables** `Traces`, `UserSessions`, `UserSessionProcessThreads`, `TraceLines`, `QueryBindParameters`, `XppParameters`, `TopMethods`, `StageTraceLines`, `SessionMetrics`, and `TopMethodsBySession`. The migration checks the exact deletion column types, unique root/session/thread/line identifiers, dbo ownership, absence of enabled table triggers, and supported non-cascading inbound FKs (including disabled FKs). In particular, `XppParameters.TraceLineId` must be `bigint`; this child is drained even when its FK is disabled. Unexpected/missing objects, views in place of physical aggregates, temporal/memory-optimized tables, triggers or FK edges abort **before** the procedure is changed. Review incompatible schemas separately; do not bypass the checks or manufacture replacement aggregates/views. Schemas without declared FKs still require the owner's review of logical relationships. Existing orphan rows whose trace/thread association was already removed cannot be safely attributed to this deletion.
+
+Use a deployment-owner SQL session with permission to inspect metadata and alter the procedure; the runtime principal does not perform migration. With an already-approved authentication mechanism, for example:
+
+```powershell
+# Run from TraceParserWeb. Entra authentication shown; no password in source/arguments.
+sqlcmd -S "<approved-server>" -d "<approved-database>" -G -b -i ".\sql\sp_DeleteTrace.sql"
+```
+
+The script is a **single SQL batch**, without `GO`, so failed prerequisites prevent installation even in clients that otherwise continue after batch errors. It changes no tables, indexes, views, permissions, SQL settings or tiers.
+
+Contract: `@TraceId int` is retained; optional `@BatchSize int = 2000` accepts 1–10000. Each call deletes **at most that many persisted rows in total**, returns one row `(HasMore int, Phase nvarchar(40), RowsDeleted int)`, and commits just that batch. Parameter fan-out is independently bounded before its TraceLines are removed. Then TopMethods, staging, each aggregate table, threads and sessions are each drained in bounded phases, followed by the single root row. A root update lock serializes callers for the same trace during each batch. `XACT_ABORT` and transaction rollback protect interrupted batches; production connections are disposed on failure, rolling back any transaction left by an attention. Calls inside a caller-owned transaction are rejected so a caller cannot accidentally turn all batches into one giant transaction. No index hints or rebuilds are used. Bounded rows do not guarantee fixed runtime, cheap scans, or absence of blocking/lock escalation: nonclustered-index and bookmark locks also count, and even `ROWLOCK` would not guarantee prevention. The existing command and operation timeouts still apply. See [Microsoft's lock-escalation guidance](https://learn.microsoft.com/en-us/troubleshoot/sql/database-engine/performance/resolve-blocking-problems-caused-lock-escalation).
+
+**Deployment order:** (1) first establish an owner-verified quiet SQL window with no active import/index maintenance, then capture/review fresh metadata, permissions and rollback definition; if metadata access times out or maintenance resumes, hold deployment rather than interrupting the importer; (2) deploy the web application first, which remains compatible with existing procedures (legacy progress has no row counts); (3) apply this procedure-only migration; (4) verify grants/definition and perform an owner-approved synthetic smoke test before any real deletion. The already-deployed looping web client also supports the new procedure if SQL must be updated first. Other callers that previously assumed one procedure invocation deletes everything must be updated to loop and confirm root absence; callers that strictly deserialize a one-column result must accept the two added columns. Do not restore anonymous DAB deletion.
+
+**Rollback:** stop new deletion requests, let/cancel the current bounded call finish, and restore the captured *deployed* definition using `ALTER`/`CREATE OR ALTER` (not DROP), preserving grants. Do not substitute the old Git procedure for the captured deployed version. The new web supports the restored no-result/HasMore-only contract. Prefer retaining the prior authenticated looping web and the bounded procedure over restoring a large-batch performance problem. Neither procedure nor web rollback resurrects committed rows; recovery of deleted data requires a separately approved data-restoration plan.
+
+Installations upgrading from unauthenticated deletion must also deploy the **read-only** `TraceParserMCP/dab-config.json`. Merely hiding the Delete button does not remove direct API access: remove the `DeleteTrace` entity and table-delete grants, not just update the web application. Already read-only deployments need no DAB change for the bounded-procedure migration. Anonymous analysis remains unchanged; protect sensitive traces with appropriate network and read-access controls.
 
 `deploy.ps1` does not provision deletion credentials. Configure the dedicated principal and server setting separately, then restart the web app. If deletion is unavailable, retain the read-only DAB configuration rather than restoring public mutations.
 
@@ -139,6 +162,16 @@ The dependency-free console harness checks deletion authorization/completion, re
 ```powershell
 dotnet run --project .\tests\TraceParserWeb.RegressionTests -c Release
 ```
+
+The same harness optionally runs **real, synthetic SQL integration**, without any live SQL connection strings:
+
+```powershell
+# On a host with runtime 8/10 but no 9, allow this net9.0 harness to use runtime 10:
+$env:DOTNET_ROLL_FORWARD = "Major"
+dotnet run --project .\tests\TraceParserWeb.RegressionTests -c Release -- --sql-integration
+```
+
+This integration mode is hard-guarded to the already-provisioned `(localdb)\TPImporterTests_c100bb02` instance and a newly generated `TPBoundedDelete_c100bb02_<guid>` database. It never uses/changes `MSSQLLocalDB`; it creates and removes only its own database in `finally`. The fixture uses deletion-relevant deployed column/key shapes, stricter enabled child FKs, 250,001 synthetic TraceLines, parameter fan-out, multi-batch stages/aggregates/parents and a preserved unrelated trace. It tests parameter bounds, restricted EXECUTE + root SELECT ownership chaining, partial cancellation/retry, interrupted mutation rollback, legacy procedure contracts, actual SQL errors, fail-closed migration, and grant preservation. SQL timings, phase totals, TLS result and cleanup state are emitted as JSON; **LocalDB timings do not predict Azure SQL S4 performance**. Only the test fixture may trust a local self-signed certificate; production TLS remains enforced and is tested separately. Offline tests use actual SqlClient exception types plus service/dispatcher-rendered UI checks.
 
 ## Import status and database maintenance
 
