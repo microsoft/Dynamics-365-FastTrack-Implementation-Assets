@@ -126,9 +126,12 @@
 
             <div class="agent-modal-actions">
                 <button class="agent-btn-secondary" @onclick="CloseAgentSelector">Cancel</button>
-                <button class="agent-btn-primary" @onclick="ConnectToAgent"
-                        disabled="@(!IsAgentFormValid)">Connect</button>
+                <button class="agent-btn-primary" @onclick="ConnectToAgent">Connect</button>
             </div>
+            @if (agentValidationError is not null)
+            {
+                <p role="alert">@agentValidationError</p>
+            }
         </div>
     </div>
 }
@@ -150,16 +153,13 @@
     private string editAgentName = "";
     private string editEnvironmentId = "";
     private string editSchemaName = "";
+    private string? agentValidationError;
     private List<AgentProfile> savedAgentProfiles = new();
 
     protected override void OnInitialized()
     {
         activeAgentName = CopilotStudioClient.ActiveAgentName;
     }
-
-    private bool IsAgentFormValid =>
-        !string.IsNullOrWhiteSpace(editEnvironmentId) &&
-        !string.IsNullOrWhiteSpace(editSchemaName);
 
     private void ToggleInformativeMessages()
     {
@@ -214,6 +214,7 @@
         editAgentName = "";
         editEnvironmentId = "";
         editSchemaName = "";
+        agentValidationError = null;
     }
 
     private void SelectAgentProfile(AgentProfile profile)
@@ -221,6 +222,7 @@
         editAgentName = profile.Name;
         editEnvironmentId = profile.EnvironmentId;
         editSchemaName = profile.SchemaName;
+        agentValidationError = null;
     }
 
     private async Task DeleteAgentProfile(AgentProfile profile)
@@ -244,12 +246,28 @@
 
     private async Task ConnectToAgent()
     {
-        if (!IsAgentFormValid) return;
+        agentValidationError = null;
+        if (!CopilotDestinationPolicy.TryNormalizeEnvironmentId(editEnvironmentId, out var environmentId))
+        {
+            agentValidationError = CopilotDestinationPolicy.EnvironmentIdError;
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(editSchemaName))
+        {
+            agentValidationError = "Enter an agent Schema Name.";
+            return;
+        }
+
+        var newSettings = CopilotStudioConnectionSettings.ForAgent(
+            Configuration, environmentId, editSchemaName);
+        var newScope = CopilotClient.ScopeFromSettings(newSettings);
+        var logger = LoggerFactory.CreateLogger<CopilotClient>();
+        var newClient = new CopilotClient(newSettings, HttpClientFactory, logger, "mcs");
 
         var profile = new AgentProfile
         {
             Name = string.IsNullOrWhiteSpace(editAgentName) ? editSchemaName : editAgentName.Trim(),
-            EnvironmentId = editEnvironmentId.Trim(),
+            EnvironmentId = environmentId,
             SchemaName = editSchemaName.Trim()
         };
 
@@ -257,24 +275,6 @@
         savedAgentProfiles.RemoveAll(p => p.Name == profile.Name);
         savedAgentProfiles.Insert(0, profile);
         await SaveAgentProfiles();
-
-        // Build in-memory configuration from form values
-        var configData = new Dictionary<string, string?>
-        {
-            ["CopilotStudio:EnvironmentId"] = profile.EnvironmentId,
-            ["CopilotStudio:SchemaName"] = profile.SchemaName,
-        };
-        var memConfig = new ConfigurationBuilder()
-            .AddInMemoryCollection(configData)
-            .Build();
-
-        var newSettings = new CopilotStudioConnectionSettings(
-            memConfig.GetSection("CopilotStudio"),
-            Configuration.GetSection("AzureAd"));
-
-        var newScope = CopilotClient.ScopeFromSettings(newSettings);
-        var logger = LoggerFactory.CreateLogger<CopilotClient>();
-        var newClient = new CopilotClient(newSettings, HttpClientFactory, logger, "mcs");
 
         CopilotStudioClient.SwitchAgent(newClient, newScope);
 

@@ -121,6 +121,7 @@ using (var config = JsonDocument.Parse(File.ReadAllText(configPath)))
     passed++;
 }
 passed += await ImportStatusChecks.RunAsync();
+passed += await AgentDestinationChecks.RunAsync();
 Console.WriteLine($"{passed} regression checks passed.");
 
 sealed class ProbeAuthentication(ClaimsPrincipal user) : AuthenticationStateProvider

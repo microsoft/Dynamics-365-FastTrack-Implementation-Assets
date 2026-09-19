@@ -90,6 +90,18 @@ The chat page's **Switch Agent** dialog changes only the agent name, environment
 
 Configure credentials on the server, not in the browser. Saved agent profiles contain only agent identifiers. Older saved profiles remain readable, but their tenant/client fields are ignored and omitted when profiles are saved again.
 
+### Agent destination protection
+
+Environment IDs are validated on the server before profiles are saved or clients are used. Accepted identifiers are a hyphenated GUID or `Default-<GUID>` (case-insensitive, with surrounding whitespace trimmed); saved identifiers are canonicalized. URLs, encoded escapes and arbitrary environment names are rejected with form feedback. Valid legacy profiles still work; invalid legacy entries remain visible for correction or deletion but cannot connect.
+
+Startup configuration and runtime agent switching use the same validation. Switching retains the server's cloud and app registration, never browser-supplied authentication settings. The default cloud is `Prod`. The named hosted clouds from **Microsoft.Agents.CopilotStudio.Client 1.3.176** are supported; `Local`, `Other`, `Unknown`, undefined cloud values and any `CustomPowerPlatformCloud` are rejected. `UseExperimentalEndpoint=true` is explicitly unsupported. These restrictions fail closed at startup rather than acquiring a token for an unverified endpoint.
+
+The authenticated HTTP handler independently checks **every request before token acquisition or attachment**, including requests that already have Authorization and SDK response-derived activity/stream URLs. Only HTTPS on port 443, without userinfo or fragments, is allowed. Hosts must have the exact SDK environment-ID DNS-label shape under the **configured cloud's** Power Platform API domain; a matching substring or arbitrary subdomain is not enough. A server `DirectConnectUrl` must satisfy this same policy (specify `Cloud` for a non-commercial URL). A trusted direct-only configuration can omit EnvironmentId/SchemaName; identifiers supplied alongside it are still validated. Switching clears the default direct URL so it does not override the selected agent.
+
+Automatic HTTP redirects are disabled and all 3xx responses are rejected, even redirects to another trusted host. Transport-level redirects would otherwise bypass the authenticated handler. No arbitrary redirect or experimental island endpoint is followed. If the service begins requiring redirects or another hostname family, update and test this explicit policy before enabling that behavior; do not broaden it to suffix/substring matching or an allow-all override.
+
+**Deployment:** publish/restart only the Blazor web application for this fix; no database, importer, DAB, token-scope, consent or tenant changes are required. Review the server's CopilotStudio cloud/direct/experimental settings before rollout, because unsupported configurations now fail startup. Normal commercial GUID/Default-GUID agent switching is preserved. Offline regression coverage checks the actual pinned SDK's generated URLs and synthetic returned endpoints; it is not a live service compatibility test or a claim of complete application security coverage.
+
 For local dev, add to `appsettings.Development.json` or user secrets:
 ```json
 {
@@ -122,7 +134,7 @@ Deploy the updated **read-only** `TraceParserMCP/dab-config.json` as part of thi
 
 ### Deletion regression checks
 
-The dependency-free console harness checks deletion authorization/completion, read-only DAB permissions, import-status query/error handling, visible deletion feedback, and non-overlapping status polls. It uses synthetic identities and fake stores/HTTP responses, with no database or network calls:
+The dependency-free console harness checks deletion authorization/completion, read-only DAB permissions, import-status query/error handling, visible deletion feedback, non-overlapping status polls, agent identifier/profile validation, startup/runtime configuration, authenticated destination checks, redirect policy, and SDK-generated/response-derived URLs. It uses synthetic identities/tokens and fake stores/HTTP responses, with no database or network calls:
 
 ```powershell
 dotnet run --project .\tests\TraceParserWeb.RegressionTests -c Release

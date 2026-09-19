@@ -92,13 +92,12 @@ builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStat
 
 // Register settings and scope
 builder.Services.AddSingleton(copilotSettings);
+builder.Services.AddSingleton(new CopilotDestinationPolicy(copilotSettings.Cloud));
 builder.Services.AddSingleton(new CopilotScope(copilotScope));
 builder.Services.AddSingleton<IDistributedCache, CookieDistributedCache>();
 
 // Register HttpClient for Copilot Studio with token handler
-builder.Services.AddScoped<AuthTokenHandler>();
-builder.Services.AddHttpClient("mcs")
-    .AddHttpMessageHandler<AuthTokenHandler>();
+builder.Services.AddCopilotStudioHttpClient();
 
 // Register CopilotClient
 builder.Services.AddScoped<CopilotClient>(sp =>
