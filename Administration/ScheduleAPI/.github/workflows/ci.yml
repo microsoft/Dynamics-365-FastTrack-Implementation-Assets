@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  repository-hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject tracked execution records
+        shell: bash
+        run: |
+          unexpected_files="$(git ls-files execution_records | grep -v '^execution_records/README\.md$' || true)"
+          if [[ -n "$unexpected_files" ]]; then
+            echo "Sensitive runtime files must not be committed under execution_records/:"
+            echo "$unexpected_files"
+            exit 1
+          fi
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Compile source
+        run: python -m py_compile app.py auth.py excel_loader.py po_client.py runtime_controller.py submit.py pages/abandon_operation_sets.py
+      - name: Run smoke tests
+        run: python -m unittest discover -s tests -v

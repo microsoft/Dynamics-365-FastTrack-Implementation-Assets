@@ -1,0 +1,25 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+.streamlit/secrets.toml
+execution_records/*
+!execution_records/README.md
+
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+.DS_Store
+Thumbs.db
+~$*.xlsx
+~$*.xlsm
+Custom Column addition.mp4
