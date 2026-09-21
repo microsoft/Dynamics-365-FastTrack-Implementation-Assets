@@ -112,13 +112,22 @@ IF @coordinated = 1 AND (
     OR COALESCE((SELECT principal_id FROM sys.objects WHERE object_id=OBJECT_ID('dbo.TPImportReceipts')), @owner) <> @owner)
     THROW 51006, 'Unsupported import receipt schema/ownership. No procedure changed.', 1;
 DECLARE @receiptGuard nvarchar(max) = CASE WHEN @coordinated=1 THEN N'
-        IF EXISTS (SELECT 1 FROM dbo.TPImportReceipts WITH (UPDLOCK,HOLDLOCK)
-            WHERE TraceId=@TraceId AND Phase NOT IN (''Complete'',''Deleted''))
+        -- The trace application lock protects eligibility, including absent receipts.
+        -- Do not retain receipt range/key locks while waiting for trace data:
+        -- promotion, binding and completion all write data before their receipt.
+        DECLARE @receiptId uniqueidentifier, @receiptPhase varchar(24);
+        SELECT @receiptId=ImportId,@receiptPhase=Phase
+            FROM dbo.TPImportReceipts WITH (READCOMMITTEDLOCK) WHERE TraceId=@TraceId;
+        IF @receiptPhase NOT IN (''Complete'',''Deleted'')
             THROW 51131, ''Import is active or awaiting retry. Deletion is blocked until durable completion.'', 1;
+' ELSE N'' END;
+DECLARE @receiptFinish nvarchar(max) = CASE WHEN @coordinated=1 THEN N'
         -- Tombstone commits with the first successful deletion batch, never before it.
-        -- It remains terminal for importer retries even while the trace root still exists.
+        -- Seek the captured receipt only after data writes. Legacy/Deleted traces
+        -- need no receipt write or missing-key range lock.
+        IF @receiptPhase=''Complete''
         UPDATE dbo.TPImportReceipts SET Phase=''Deleted'',UpdatedUtc=SYSUTCDATETIME()
-            WHERE TraceId=@TraceId AND Phase=''Complete'';
+            WHERE ImportId=@receiptId AND Phase=''Complete'';
 ' ELSE N'' END;
 
 BEGIN TRY
@@ -141,7 +150,7 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
         -- Importer: global importer session lock -> trace session lock -> data locks.
-        -- Deleter: trace transaction lock -> receipt/root data locks. Never acquire
+        -- Deleter: trace transaction lock -> eligibility read -> data -> receipt. Never acquire
         -- the global importer lock here, so unrelated completed traces remain deletable.
         DECLARE @lockResult int, @traceLock nvarchar(255)=CONCAT(''TraceParser:Trace:'',@TraceId);
         EXEC @lockResult=sys.sp_getapplock @Resource=@traceLock,@LockMode=''Exclusive'',
@@ -151,11 +160,7 @@ BEGIN
 ' + @receiptGuard + N'
         -- Serialize same-trace callers for this one batch, never the whole deletion.
         IF NOT EXISTS (SELECT 1 FROM dbo.Traces WITH (UPDLOCK, HOLDLOCK) WHERE TraceId = @TraceId)
-        BEGIN
-            COMMIT TRANSACTION;
-            SELECT @HasMore AS HasMore, @Phase AS Phase, @RowsDeleted AS RowsDeleted;
-            RETURN;
-        END;
+            GOTO Finished;
         SET @HasMore = 1;
 
         -- A method can reference this trace at either endpoint. Never infer ownership
@@ -247,6 +252,7 @@ BEGIN
         SET @HasMore = 0;
 
 Finished:
+' + @receiptFinish + N'
         COMMIT TRANSACTION;
         SELECT @HasMore AS HasMore, @Phase AS Phase, @RowsDeleted AS RowsDeleted;
     END TRY
