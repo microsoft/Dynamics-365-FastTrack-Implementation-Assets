@@ -1,0 +1,5 @@
+streamlit>=1.58,<2
+pandas>=2.0,<4
+openpyxl>=3.1,<4
+requests>=2.31,<3
+azure-identity>=1.17,<2

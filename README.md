@@ -34,7 +34,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 | [`Storage Management`](Administration/Storage%20Management) | Data cleanup scripts    |
 | [`Dual-write`](Administration/Dual-write)             | Dynamics 365 Dual-write guides             |
 | [`SCM`](ERP/SCM)      		                 | Tools for SCM and WHS solutions            |
-| [`ScheduleAPI`](Administration/ScheduleAPI)	         | Project Operations - Schedule API example  |
+| [`ScheduleAPI_old`](Administration/ScheduleAPI_old)  | Legacy Project Operations Schedule API example |
 | [`PO-DataMigration`](Administration/PO-DataMigration) | Project Operations - ADF data migration    |
 | [`Cloud security`](Administration/CloudSecurity)      | Dynamics 365 Cloud security guides         |
 | [`Integration`](Administration/Integration)           | Dynamics 365 integration samples           |
@@ -71,7 +71,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 - [Small Parcel Shipping Tools](ERP/SCM/SPS) A sample TMS DLL is included for testing SPS scenarios without a live connection to a carrier.
 
 ### Project Operations - Schedule API
-- [Schedule API](Administration/ScheduleAPI) A PowerShell sample to illustrate the Schedule API for Project Operations.
+- [Legacy Schedule API](Administration/ScheduleAPI_old) A PowerShell sample for an older version of the Project Operations Schedule API. Customers should use the newer version when it is published.
 - [PO-DataMigration](Administration/PO-DataMigration) An Azure Data Factory sample to illustrate data migration for Project Operations.
 
 ### Cloud Security
