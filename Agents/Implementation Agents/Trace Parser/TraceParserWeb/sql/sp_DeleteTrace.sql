@@ -145,11 +145,75 @@ DECLARE @receiptFinish nvarchar(max) = CASE WHEN @coordinated=1 THEN N'
             WHERE ImportId=@receiptId AND Phase=''Complete'';
 ' ELSE N'' END;
 
+DECLARE @durable bit=CASE WHEN OBJECT_ID('dbo.TraceDeletionJobs','U') IS NULL THEN 0 ELSE 1 END;
+IF @durable=1 AND (@coordinated=0 OR COL_LENGTH('dbo.Traces','DeletionIdentity') IS NULL)
+    THROW 51200,'Install the supported durable deletion schema first.',1;
+DECLARE @jobGuard nvarchar(max)=CASE WHEN @durable=1 THEN N'
+        IF @JobId IS NULL
+        BEGIN
+            IF EXISTS(SELECT 1 FROM dbo.TraceDeletionJobs WHERE TraceId=@TraceId AND IsActive=1)
+                THROW 51206,''Use the existing durable job; direct deletion is blocked.'',1;
+        END
+        ELSE
+        BEGIN
+            DECLARE @sequence bigint,@state varchar(20),@identity uniqueidentifier,@jobImport uniqueidentifier;
+            -- Ownership is retained until commit. Expired takeover cannot pass this row lock.
+            SELECT @sequence=Sequence,@state=State,@identity=TraceIdentity,@jobImport=ImportId
+            FROM dbo.TraceDeletionJobs WITH(UPDLOCK,HOLDLOCK)
+            WHERE JobId=@JobId AND TraceId=@TraceId AND LeaseToken=@LeaseToken
+                AND LeaseExpiresUtc>SYSUTCDATETIME() AND State IN(''Running'',''CancelRequested'');
+            IF @sequence IS NULL THROW 51205,''Deletion lease/binding is no longer owned.'',1;
+            IF @ExpectedSequence IS NULL OR @ExpectedSequence>@sequence OR @ExpectedSequence<@sequence-1
+                THROW 51207,''Unexpected deletion sequence; reconcile persisted progress.'',1;
+            IF @ExpectedSequence=@sequence-1
+            BEGIN
+                SELECT @HasMore=LastHasMore,@Phase=LastPhase,@RowsDeleted=LastRows
+                    FROM dbo.TraceDeletionJobs WHERE JobId=@JobId;
+                COMMIT;
+                SELECT @HasMore AS HasMore,@Phase AS Phase,@RowsDeleted AS RowsDeleted;
+                RETURN;
+            END;
+            IF @state=''CancelRequested''
+            BEGIN
+                UPDATE dbo.TraceDeletionJobs SET State=''Cancelled'',LeaseToken=NULL,LeaseOwner=NULL,
+                    LeaseExpiresUtc=NULL,UpdatedUtc=SYSUTCDATETIME() WHERE JobId=@JobId;
+                COMMIT;
+                SELECT 1 AS HasMore,N''Cancelled'' AS Phase,0 AS RowsDeleted;
+                RETURN;
+            END;
+            IF EXISTS(SELECT 1 FROM dbo.Traces WHERE TraceId=@TraceId AND DeletionIdentity<>@identity)
+                OR ISNULL(@jobImport,CONVERT(uniqueidentifier,0x0))<>ISNULL(@receiptId,CONVERT(uniqueidentifier,0x0))
+                THROW 51208,''Trace/import identity changed. Owner review required.'',1;
+        END;
+' ELSE N'
+        IF @JobId IS NOT NULL OR @LeaseToken IS NOT NULL OR @ExpectedSequence IS NOT NULL
+            THROW 51202,''Durable deletion is not installed.'',1;
+' END;
+DECLARE @jobFinish nvarchar(max)=CASE WHEN @durable=1 THEN N'
+        IF @JobId IS NOT NULL
+        BEGIN
+            -- Actual successful root query, under module ownership, is the sole completion authority.
+            DECLARE @complete bit=CASE WHEN EXISTS(SELECT 1 FROM dbo.Traces WHERE TraceId=@TraceId) THEN 0 ELSE 1 END;
+            UPDATE dbo.TraceDeletionJobs SET Sequence=Sequence+1,CommittedRows=CommittedRows+@RowsDeleted,
+                LastRows=@RowsDeleted,LastPhase=@Phase,LastHasMore=CASE WHEN @complete=1 THEN 0 ELSE 1 END,
+                State=CASE WHEN @complete=1 THEN ''Completed'' ELSE ''Running'' END,
+                IsActive=CASE WHEN @complete=1 THEN 0 ELSE 1 END,
+                LeaseToken=CASE WHEN @complete=1 THEN NULL ELSE LeaseToken END,
+                LeaseOwner=CASE WHEN @complete=1 THEN NULL ELSE LeaseOwner END,
+                LeaseExpiresUtc=CASE WHEN @complete=1 THEN NULL ELSE LeaseExpiresUtc END,
+                Attempts=0,ErrorCode=NULL,ErrorMessage=NULL,UpdatedUtc=SYSUTCDATETIME()
+            WHERE JobId=@JobId;
+        END;
+' ELSE N'' END;
+
 BEGIN TRY
 BEGIN TRANSACTION;
 EXEC(N'CREATE OR ALTER PROCEDURE dbo.sp_DeleteTrace
     @TraceId INT,
-    @BatchSize INT = 2000
+    @BatchSize INT = 2000,
+    @JobId uniqueidentifier = NULL,
+    @LeaseToken uniqueidentifier = NULL,
+    @ExpectedSequence bigint = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -172,7 +236,7 @@ BEGIN
             @LockOwner=''Transaction'',@LockTimeout=0;
         IF @lockResult<0
             THROW 51130, ''Trace is busy with an import or another deletion batch. Retry later.'', 1;
-' + @receiptGuard + N'
+' + @receiptGuard + @jobGuard + N'
         -- Serialize same-trace callers for this one batch, never the whole deletion.
         IF NOT EXISTS (SELECT 1 FROM dbo.Traces WITH (UPDLOCK, HOLDLOCK) WHERE TraceId = @TraceId)
             GOTO Finished;
@@ -271,7 +335,7 @@ BEGIN
         SET @HasMore = 0;
 
 Finished:
-' + @receiptFinish + N'
+' + @receiptFinish + @jobFinish + N'
         COMMIT TRANSACTION;
         SELECT @HasMore AS HasMore, @Phase AS Phase, @RowsDeleted AS RowsDeleted;
     END TRY
@@ -292,6 +356,16 @@ IF EXISTS (SELECT 1 FROM sys.extended_properties WHERE class=1
 ELSE
     EXEC sys.sp_addextendedproperty @name=N'TraceParserImporterDeletionHash',@value=@definitionHash,
         @level0type=N'SCHEMA',@level0name=N'dbo',@level1type=N'PROCEDURE',@level1name=N'sp_DeleteTrace';
+IF @durable=1
+BEGIN
+    IF EXISTS(SELECT 1 FROM sys.extended_properties WHERE major_id=OBJECT_ID('dbo.sp_DeleteTrace')
+        AND name=N'TraceParserDurableDeletionHash')
+        EXEC sys.sp_updateextendedproperty @name=N'TraceParserDurableDeletionHash',@value=@definitionHash,
+            @level0type=N'SCHEMA',@level0name=N'dbo',@level1type=N'PROCEDURE',@level1name=N'sp_DeleteTrace';
+    ELSE
+        EXEC sys.sp_addextendedproperty @name=N'TraceParserDurableDeletionHash',@value=@definitionHash,
+            @level0type=N'SCHEMA',@level0name=N'dbo',@level1type=N'PROCEDURE',@level1name=N'sp_DeleteTrace';
+END;
 COMMIT TRANSACTION;
 END TRY
 BEGIN CATCH

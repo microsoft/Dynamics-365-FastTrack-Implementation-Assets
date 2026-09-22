@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <Compile Include="..\Shared\ImportFilePolicy.cs" Link="Shared\ImportFilePolicy.cs" />
+    <Compile Include="..\Shared\DurableDeletion.cs" Link="Shared\DurableDeletion.cs" />
     <Content Include="Manifests\*.manifest.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -21,6 +22,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.0.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs" Version="6.6.1" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Timer" Version="4.3.1" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.0" />
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.13" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />

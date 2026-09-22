@@ -2,6 +2,107 @@
 
 Blazor Server web app + Azure Function for uploading and importing D365 ETL traces.
 
+## Durable background deletion (local implementation; disabled by default)
+
+The existing net8 isolated Premium Function app now has `DeleteTraceJobs`, a monitored
+one-minute timer. SQL is the durable queue; no new Azure resource, storage queue,
+Durable Functions or Durable Task Scheduler is used. The sole new production package
+is `Microsoft.Azure.Functions.Worker.Extensions.Timer` 4.3.1, the isolated-worker
+binding corresponding to the existing Worker/Storage binding pattern.
+
+**Activation is NOT part of local validation.** `DurableDeletion__WebEnabled` defaults
+to `false`; absent/false `DurableDeletion__WorkerEnabled` performs no SQL work. The
+Function requires `DurableDeletion__WorkerSqlConnectionString`; the web requires
+`DurableDeletion__WebSqlConnectionString`. Neither falls back to importer credentials.
+Connection strings belong in approved secret configuration, not this repository.
+The worker needs a **separate EXECUTE-only identity**, never the importer's dbo access.
+See `sql\durable-deletion-permissions.sql` for the narrow provisioning template.
+Existing legacy deletion grants need not be widened: old callers are refused while
+any non-completed durable job reserves the trace, even when cancelled/blocked/failed.
+With the web feature disabled, the existing bounded interactive deletion remains.
+
+**Contract and identity.** `sql\durable-deletion.sql` creates an empty job queue,
+request-key aliases, and a generated `Traces.DeletionIdentity` incarnation column
+(existing roots receive metadata only, not jobs). Existing traces are never adopted
+or queued automatically. Jobs retain immutable root/import IDs and authenticated
+requester tenant/object IDs, not uploader ownership. Existing tenant-wide eligibility
+is preserved, while lists/status/cancel/resume are requester-only. A duplicate from
+another requester returns no job details. Every accepted request key continues to
+resolve to the same job after completion, root removal, refresh or restart.
+HTTP mutations are authorized, tenant/object checked, antiforgery validated and
+`no-store`; request-body identity fields are ignored. Blazor interactive callbacks
+also check the current authenticated circuit identity through the same service.
+No DAB mutation or HTTP worker endpoint is added.
+
+**Atomicity and pacing.** The compatible optional job/token/expected-sequence
+parameters on `sp_DeleteTrace` keep its old call signature and three result columns.
+It still owns each transaction and rejects an outer transaction. Under the trace
+application lock, it checks import eligibility and immutable identity, holds the
+fenced job row through commit, deletes one bounded batch, tombstones the import
+receipt *after data*, and commits sequence/counters/terminal status together.
+Replaying the immediately preceding sequence returns its stored response without
+deleting again. Completion requires a successful root-absence query; neither
+`HasMore=0`, a SQL exception nor a hidden catalog object means completion.
+New counters represent only rows committed by that job, excluding prior cleanup.
+The deployed receipt lock-order and target-thread seek/index guards are retained.
+Blob contents and shared lookup tables are never deleted.
+
+A filtered unique SQL index permits only **one leased job database-wide**, independent
+of process/Function scale. Claim/control/status never acquire trace/data/receipt locks
+after taking job locks. A batch retains its job ownership lock through commit, so
+expired takeover cannot pass an uncommitted batch. Leases last 90 SQL-server seconds;
+the client renews before each step and never estimates expiry from its own clock.
+Each invocation runs at most four 2,000-row batches (SQL accepts 1–10,000), paced one
+second apart, with a 45-second slice budget, 30-second SQL command timeout, 10-second
+connection timeout and at most five seconds for reconciliation/release. Released
+work yields for five seconds. Deadlock, busy, throttling, timeout and selected network
+errors use bounded exponential backoff (5–320 seconds plus 0–4 seconds jitter), then
+fail after nine consecutive failed attempts; lease-loss recovery is bounded too.
+Unknown commit outcomes inspect persisted state before releasing; if SQL is still
+unavailable, ownership expires rather than fabricating progress or retrying a batch.
+Import eligibility changes become `Blocked` and require explicit resume. Permanent
+schema, fingerprint, permission and cross-trace endpoint errors stop as `Failed`.
+
+**User experience.** Enabled deletion enqueues and returns; a separate job panel
+polls every three seconds even if trace/statistics loading fails. It displays
+Queued/Running/RetryScheduled/CancelRequested/Cancelled/Blocked/Failed/Completed,
+committed rows/batches and last phase, never a guessed percentage. Refresh/reconnect
+reads SQL jobs including completed jobs whose roots are gone. Closing/disposal stops
+only polling. Cancellation does not undo commits: an already committing batch may
+finish, then future batches stop. Explicit resume preserves history and obtains a
+fresh fenced lease. Stale/offline reads retain last confirmed values with an error.
+
+**Separately approved rollout sequence:** inventory/quiesce incompatible writers;
+back up definitions/permissions and verify existing importer/storage/seek guards;
+apply additive `durable-deletion.sql`, then `sp_DeleteTrace.sql` (its exact definition
+and importer/durable fingerprints update atomically); verify jobs remain empty and
+fingerprints match; provision/audit the two narrow identities; deploy compatible
+web/Function binaries with both features disabled. Only after fresh live gates and
+explicit approval enable the worker and web. No `tp_*` names or module-count checks
+are relaxed. Do not use the broad `deploy.ps1` provisioning script for this rollout.
+Rollback means disable new enqueues/worker, drain or expire the current slice and
+retain all jobs, aliases, root tokens and counters. **Never downgrade deletion SQL
+while non-completed jobs exist.** Cancelling is not deleting the job or reversing data.
+
+**Liveness is separate from `/health`.** The timer uses the Function app's existing
+`AzureWebJobsStorage` host storage for schedule monitoring/host coordination, not a
+new work queue. Validate host storage access, timer listener startup, Premium host
+availability, function-enabled settings, schedule telemetry and advancing SQL job
+timestamps independently. Web health alone cannot establish worker availability.
+No automatic host-level retry loop is configured; the next scheduled tick and SQL
+due time control recovery. Local tests do not certify Azure timer/storage liveness,
+Azure SQL capacity, or real-browser acceptance.
+
+Local console validation (no new test framework; synthetic owned databases only):
+`dotnet run --project tests\TraceParserWeb.RegressionTests -- --durable-deletion --sql-integration --batch-selection`,
+`dotnet run --project tests\TraceParserFunction.ProtocolTests -- --lock-order`,
+and the existing web import protocol harness. LocalDB is exclusively
+`(localdb)\TPImporterTests_c100bb02`; each run creates/removes uniquely named databases.
+Set `NUGET_PACKAGES=C:\.tools\.nuget\packages` and `DOTNET_ROLL_FORWARD=Major` where
+SDK10 is installed without runtime9. The SQL suite uses real restricted principals,
+RCSI off/on, actual transactions, replay/rollback/cancel races and schema/permission
+failures. Manual-clock worker and render/HTTP tests are not real-browser acceptance.
+
 ## Solution Structure
 
 ```

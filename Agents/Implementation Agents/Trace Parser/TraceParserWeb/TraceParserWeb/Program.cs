@@ -119,6 +119,9 @@ builder.Services.Configure<EtlImportOptions>(builder.Configuration.GetSection("E
 builder.Services.AddScoped<EtlUploadService>();
 builder.Services.AddScoped<TraceService>();
 builder.Services.AddScoped<TraceDeletionService>();
+builder.Services.AddScoped<TraceParser.Deletion.IDeletionJobStore>(_ =>
+    new TraceParser.Deletion.SqlDeletionJobStore(builder.Configuration["DurableDeletion:WebSqlConnectionString"] ?? ""));
+builder.Services.AddScoped<DeletionJobService>();
 builder.Services.Configure<TraceAdministrationOptions>(builder.Configuration.GetSection("TraceAdministration"));
 builder.Services.AddScoped<ITraceDeletionStore, SqlTraceDeletionStore>();
 builder.Services.AddScoped<IRegisteredImportStore, SqlRegisteredImportStore>();
@@ -155,6 +158,7 @@ app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 // Registered uploads require tenant checks and anti-forgery validation, not a
 // state-changing GET that hands out overwrite permissions for historical paths.
 app.MapRegisteredImports();
+app.MapDeletionJobs();
 
 // Ensure the upload container exists at startup
 using (var scope = app.Services.CreateScope())

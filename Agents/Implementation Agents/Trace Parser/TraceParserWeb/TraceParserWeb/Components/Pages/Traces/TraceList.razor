@@ -4,6 +4,7 @@
 @attribute [Authorize]
 @inject TraceService TraceSvc
 @inject TraceDeletionService DeletionSvc
+@inject DeletionJobService DeletionJobsSvc
 @inject ILogger<TraceList> Logger
 @implements IDisposable
 
@@ -21,7 +22,7 @@
             <div>
                 <h2 class="traces-title">Imported Traces</h2>
                 <p class="traces-subtitle">Manage imported ETL trace sessions.</p>
-                @if (!DeletionSvc.IsConfigured)
+                @if (!DeletionJobsSvc.Enabled && !DeletionSvc.IsConfigured)
                 {
                     <p class="traces-subtitle">Deletion is unavailable until the deployment owner configures authenticated trace deletion.</p>
                 }
@@ -34,12 +35,17 @@
                 @_statusMessage
             </div>
         }
-        @if (_deleting)
+        @if (_deleting && !DeletionJobsSvc.Enabled)
         {
             <div role="status" aria-live="polite" class="traces-status">
                 @_deleteProgress
                 <button class="btn-confirm-no" @onclick="StopDeletion" disabled="@(_deleteCancellation?.IsCancellationRequested != false)">Cancel deletion</button>
             </div>
+        }
+
+        @if (DeletionJobsSvc.Enabled)
+        {
+            <DeletionJobs />
         }
 
         @if (_loading)
@@ -127,7 +133,7 @@
                             {
                                 <button class="btn-delete" @onclick="@(() => RequestDelete(trace.TraceId))"
                                     title="@(IsPartialDeletion(trace.TraceId) ? "Resume partial deletion" : "Delete trace")"
-                                    disabled="@(_deleting || !DeletionSvc.IsConfigured || IsImportBlocked(trace.TraceId))">
+                                    disabled="@(_deleting || (!DeletionJobsSvc.Enabled && !DeletionSvc.IsConfigured) || IsImportBlocked(trace.TraceId))">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                          stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -160,6 +166,7 @@
     bool _disposed;
     CancellationTokenSource? _deleteCancellation;
     string? _deleteProgress;
+    readonly Dictionary<int, Guid> _deletionRequestKeys = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -291,6 +298,26 @@
     async Task ConfirmDelete(int traceId)
     {
         if (_deleting || _disposed) return;
+        if (DeletionJobsSvc.Enabled)
+        {
+            _deleting = true;
+            try
+            {
+                if (!_deletionRequestKeys.TryGetValue(traceId, out var key))
+                    _deletionRequestKeys[traceId] = key = Guid.NewGuid();
+                var job = await DeletionJobsSvc.EnqueueAsync(key, traceId);
+                _statusMessage = $"Trace {traceId}: {job.State}. Progress appears in Your deletion jobs; closing the page does not stop it.";
+                _statusIsError = false;
+            }
+            catch (Exception ex)
+            {
+                _statusMessage = "Deletion request was not confirmed. Check your persisted jobs before retrying. Active imports cannot be deleted.";
+                _statusIsError = true;
+                Logger.LogWarning(ex, "Durable deletion enqueue was not confirmed");
+            }
+            finally { _deleting = false; _confirmDeleteId = null; }
+            return;
+        }
         using var cancellation = new CancellationTokenSource();
         _deleteCancellation = cancellation;
         _deleting = true;

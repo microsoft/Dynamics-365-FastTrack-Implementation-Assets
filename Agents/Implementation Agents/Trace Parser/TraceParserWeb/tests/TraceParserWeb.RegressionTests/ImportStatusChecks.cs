@@ -238,6 +238,7 @@ static class ImportStatusChecks
 
     static void Set(object instance, string name, object value)
     {
+        if (name == "DeletionSvc") Set(instance, "DeletionJobsSvc", DurableDeletionChecks.DisabledService());
         var flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
         var field = instance.GetType().GetField(name, flags);
         if (field is not null) field.SetValue(instance, value);

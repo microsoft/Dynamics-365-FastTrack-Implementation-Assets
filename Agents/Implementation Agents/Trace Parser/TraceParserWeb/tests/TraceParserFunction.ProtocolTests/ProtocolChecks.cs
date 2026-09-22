@@ -32,7 +32,7 @@ var masterString = new SqlConnectionStringBuilder
 var databaseString = new SqlConnectionStringBuilder(masterString) { InitialCatalog = database }.ConnectionString;
 if (!Regex.IsMatch(database, "^TPImporterProtocol_[0-9a-f]{32}$") || instance != @"(localdb)\TPImporterTests_c100bb02")
     throw new InvalidOperationException("Unsafe fixture target.");
-var checks = 0;
+var checks = await DeletionTimerChecks.RunAsync();
 var created = false;
 var wholeTest=System.Diagnostics.Stopwatch.StartNew();
 await using var master = new SqlConnection(masterString);
@@ -57,6 +57,7 @@ try
             await Reject(51122,()=>Importer().BeginImportAsync(activation,"account","etl-uploads",Name(beforeGuard),"\"v1\"",default));
             Check(await Scalar(activation,"SELECT COUNT(*) FROM dbo.Traces")==0,"activation before coordinated deletion creates no trace");
         }
+        await Exec(setup,await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory,"durable-deletion.sql")));
         await Exec(setup,await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory,"sp_DeleteTrace.sql")));
     }
     if(!lockOrderOnly) await RunChecks();
