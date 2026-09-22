@@ -309,13 +309,24 @@ EXEC(N'CREATE OR ALTER PROCEDURE dbo.dj_Step
 AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @trace int;
-    SELECT @trace=TraceId FROM dbo.TraceDeletionJobs WHERE JobId=@JobId AND LeaseToken=@Token;
-    IF @trace IS NULL THROW 51205,''Deletion lease is no longer owned.'',1;
-    EXEC dbo.dj_AssertProtocol;
-    EXEC dbo.sp_DeleteTrace @TraceId=@trace,@BatchSize=@BatchSize,
-        @JobId=@JobId,@LeaseToken=@Token,@ExpectedSequence=@ExpectedSequence;
-    SELECT Sequence,State FROM dbo.TraceDeletionJobs WHERE JobId=@JobId;
+    IF @@TRANCOUNT<>0 THROW 51201,''Call the deletion worker outside a transaction.'',1;
+    BEGIN TRY
+        DECLARE @trace int;
+        SELECT @trace=TraceId FROM dbo.TraceDeletionJobs WHERE JobId=@JobId AND LeaseToken=@Token;
+        IF @trace IS NULL THROW 51205,''Deletion lease is no longer owned.'',1;
+        EXEC dbo.dj_AssertProtocol;
+        EXEC dbo.sp_DeleteTrace @TraceId=@trace,@BatchSize=@BatchSize,
+            @JobId=@JobId,@LeaseToken=@Token,@ExpectedSequence=@ExpectedSequence;
+        SELECT Sequence,State FROM dbo.TraceDeletionJobs WHERE JobId=@JobId;
+    END TRY
+    BEGIN CATCH
+        -- Report server errors only after persisting their classified stop/backoff.
+        -- The worker still reconciles client-side timeouts and lost acknowledgements.
+        DECLARE @error int=ERROR_NUMBER();
+        IF @error NOT IN(51205,51207,51010,51011,51012,51201)
+            EXEC dbo.dj_Release @JobId,@Token,@error;
+        THROW;
+    END CATCH;
 END');
 COMMIT;
 END TRY

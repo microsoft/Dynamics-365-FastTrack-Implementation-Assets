@@ -133,7 +133,7 @@ DECLARE @receiptGuard nvarchar(max) = CASE WHEN @coordinated=1 THEN N'
         DECLARE @receiptId uniqueidentifier, @receiptPhase varchar(24);
         SELECT @receiptId=ImportId,@receiptPhase=Phase
             FROM dbo.TPImportReceipts WITH (READCOMMITTEDLOCK) WHERE TraceId=@TraceId;
-        IF @receiptPhase NOT IN (''Complete'',''Deleted'')
+        IF @receiptPhase NOT IN (''Complete'',''Deleted'') AND @JobId IS NULL
             THROW 51131, ''Import is active or awaiting retry. Deletion is blocked until durable completion.'', 1;
 ' ELSE N'' END;
 DECLARE @receiptFinish nvarchar(max) = CASE WHEN @coordinated=1 THEN N'
@@ -181,9 +181,27 @@ DECLARE @jobGuard nvarchar(max)=CASE WHEN @durable=1 THEN N'
                 SELECT 1 AS HasMore,N''Cancelled'' AS Phase,0 AS RowsDeleted;
                 RETURN;
             END;
+            IF @receiptPhase NOT IN (''Complete'',''Deleted'')
+            BEGIN
+                -- Persist the stop before reporting the error; a crashed worker must not
+                -- later auto-delete just because this import became eligible again.
+                UPDATE dbo.TraceDeletionJobs SET State=''Blocked'',ErrorCode=51131,
+                    ErrorMessage=N''Import is active/retryable. Resolve it, then explicitly resume.'',
+                    LeaseToken=NULL,LeaseOwner=NULL,LeaseExpiresUtc=NULL,UpdatedUtc=SYSUTCDATETIME()
+                WHERE JobId=@JobId;
+                COMMIT;
+                THROW 51131,''Import is active or retryable. Explicit resume is required.'',1;
+            END;
             IF EXISTS(SELECT 1 FROM dbo.Traces WHERE TraceId=@TraceId AND DeletionIdentity<>@identity)
                 OR ISNULL(@jobImport,CONVERT(uniqueidentifier,0x0))<>ISNULL(@receiptId,CONVERT(uniqueidentifier,0x0))
+            BEGIN
+                UPDATE dbo.TraceDeletionJobs SET State=''Failed'',ErrorCode=51208,
+                    ErrorMessage=N''Trace/import identity changed. Owner review and explicit resume required.'',
+                    LeaseToken=NULL,LeaseOwner=NULL,LeaseExpiresUtc=NULL,UpdatedUtc=SYSUTCDATETIME()
+                WHERE JobId=@JobId;
+                COMMIT;
                 THROW 51208,''Trace/import identity changed. Owner review required.'',1;
+            END;
         END;
 ' ELSE N'
         IF @JobId IS NOT NULL OR @LeaseToken IS NOT NULL OR @ExpectedSequence IS NOT NULL
@@ -204,6 +222,16 @@ DECLARE @jobFinish nvarchar(max)=CASE WHEN @durable=1 THEN N'
                 Attempts=0,ErrorCode=NULL,ErrorMessage=NULL,UpdatedUtc=SYSUTCDATETIME()
             WHERE JobId=@JobId;
         END;
+' ELSE N'' END;
+DECLARE @endpointFailure nvarchar(max)=CASE WHEN @durable=1 THEN N'
+            IF @JobId IS NOT NULL
+            BEGIN
+                UPDATE dbo.TraceDeletionJobs SET State=''Failed'',ErrorCode=51013,
+                    ErrorMessage=N''Cross-trace or missing method endpoints. Owner review and explicit resume required.'',
+                    LeaseToken=NULL,LeaseOwner=NULL,LeaseExpiresUtc=NULL,UpdatedUtc=SYSUTCDATETIME()
+                WHERE JobId=@JobId;
+                COMMIT;
+            END;
 ' ELSE N'' END;
 
 BEGIN TRY
@@ -253,7 +281,10 @@ BEGIN
         WHERE b.TraceId = @TraceId OR e.TraceId = @TraceId;
         IF EXISTS (SELECT 1 FROM @methods WHERE BeginTraceId IS NULL OR EndTraceId IS NULL
             OR BeginTraceId <> @TraceId OR EndTraceId <> @TraceId)
+        BEGIN
+' + @endpointFailure + N'
             THROW 51013, ''TopMethods has cross-trace or missing thread endpoints. No rows from this batch were deleted. Earlier batches may be committed; owner review is required.'', 1;
+        END;
         IF EXISTS (SELECT 1 FROM @methods)
         BEGIN
             SET @Phase = N''TopMethods'';

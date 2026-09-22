@@ -89,7 +89,10 @@ internal static class DurableDeletionSqlChecks
                 await Error(() => Step(worker, l), 51300);
                 Check(await Number(owner, $"SELECT Sequence FROM dbo.TraceDeletionJobs WHERE JobId='{job}'") == 0, "Rolled-back batch advanced sequence");
                 Check(await Number(owner, "SELECT COUNT(*) FROM dbo.TraceLines") == 5, "Rolled-back batch lost data");
+                Check(await State(owner, job) == "Failed", "Server failure was not persisted before reporting it");
                 await Exec(owner, "DROP TRIGGER dbo.SyntheticDeleteFailure");
+                await Exec(web, $"EXEC dbo.dj_Control '{Tenant}','{Requester}','{job}','Resume'");
+                l = (await Claim(worker))!.Value;
                 await Step(worker, l); // Deliberately discard acknowledgement.
                 Check(await Number(owner, $"SELECT Sequence FROM dbo.TraceDeletionJobs WHERE JobId='{job}'") == 1, "Lost ack did not persist");
                 Check(await Number(owner, $"SELECT CommittedRows FROM dbo.TraceDeletionJobs WHERE JobId='{job}'") == 2, "Wrong committed counter");
@@ -98,6 +101,7 @@ internal static class DurableDeletionSqlChecks
                 checks++;
 
                 // Old owner holds the job row while data is blocked. Expiry must not permit takeover.
+                var preExpiry = l;
                 await Exec(owner, $"UPDATE dbo.TraceDeletionJobs SET LeaseExpiresUtc=DATEADD(second,2,SYSUTCDATETIME()) WHERE JobId='{job}'");
                 await using (var blocker = await Open(db))
                 {
@@ -116,8 +120,8 @@ internal static class DurableDeletionSqlChecks
                 Check(await Number(owner, $"SELECT Sequence FROM dbo.TraceDeletionJobs WHERE JobId='{job}'") == 2, "Blocked owner lost committed progress");
                 await Exec(owner, $"UPDATE dbo.TraceDeletionJobs SET NextDueUtc=DATEADD(second,-1,SYSUTCDATETIME()) WHERE JobId='{job}'");
                 l = (await Claim(second))!.Value;
-                await Error(() => Step(worker, lease.Value with { Seq = 2 }), 51205);
-                await Exec(worker, $"EXEC dbo.dj_Release '{job}','{lease.Value.Token}',51013");
+                await Error(() => Step(worker, preExpiry with { Seq = 2 }), 51205);
+                await Exec(worker, $"EXEC dbo.dj_Release '{job}','{preExpiry.Token}',51013");
                 Check(await Number(owner, $"SELECT COUNT(*) FROM dbo.TraceDeletionJobs WHERE JobId='{job}' AND LeaseToken='{l.Token}'") == 1,
                     "Stale release cleared successor");
                 await Exec(web, $"EXEC dbo.dj_Control '{Tenant}','{Requester}','{job}','Cancel'");
@@ -195,8 +199,8 @@ internal static class DurableDeletionSqlChecks
         var lease = (await Claim(worker))!.Value;
         await Exec(owner, $"UPDATE dbo.TPImportReceipts SET Phase='Promoting' WHERE ImportId='{import}'");
         await Error(() => Step(worker, lease), 51131);
-        await Exec(worker, $"EXEC dbo.dj_Release '{job}','{lease.Token}',51131");
-        Check(await State(owner, job) == "Blocked", "Changed import eligibility not stopped");
+        // No worker release: simulate its death immediately after receiving the SQL error.
+        Check(await State(owner, job) == "Blocked", "Eligibility stop depended on a live worker");
         await Exec(owner, $"UPDATE dbo.TPImportReceipts SET Phase='Complete' WHERE ImportId='{import}'");
         Check(await Claim(worker) is null, "Blocked job auto-resumed");
         await Exec(web, $"EXEC dbo.dj_Control '{Tenant}','{Requester}','{job}','Resume'");
@@ -213,6 +217,8 @@ internal static class DurableDeletionSqlChecks
             && (string)(await Scalar(owner, $"SELECT Phase FROM dbo.TPImportReceipts WHERE ImportId='{import}'"))! == "Complete",
             "Failed tombstone left data, receipt or progress partially committed");
         await Exec(owner, "DROP TRIGGER dbo.SyntheticTombstoneFailure");
+        await Exec(web, $"EXEC dbo.dj_Control '{Tenant}','{Requester}','{job}','Resume'");
+        lease = (await Claim(worker))!.Value;
         await Step(worker, lease);
         Check((string)(await Scalar(owner, $"SELECT Phase FROM dbo.TPImportReceipts WHERE ImportId='{import}'"))! == "Deleted",
             "Receipt tombstone did not commit with first batch");
@@ -239,12 +245,17 @@ internal static class DurableDeletionSqlChecks
         Check(await Number(owner, $"SELECT CommittedRows FROM dbo.TraceDeletionJobs WHERE JobId='{otherJob}'") == 0, "Prior partial history included");
         await Exec(owner, "ALTER INDEX UX_DeletionTrace ON dbo.TraceDeletionJobs DISABLE");
         await Error(() => Step(worker, lease), 51200);
-        Check(await State(owner, otherJob) == "Running", "Schema error fabricated completion");
+        Check(await State(owner, otherJob) == "Failed", "Schema error did not durably stop before reporting");
         await Error(() => Exec(owner, awaitMigration()), 51200);
         await Exec(owner, "ALTER INDEX UX_DeletionTrace ON dbo.TraceDeletionJobs REBUILD");
+        await Exec(web, $"EXEC dbo.dj_Control '{Tenant}','{Requester}','{otherJob}','Resume'");
+        lease = (await Claim(worker))!.Value;
         await Exec(owner, "EXEC sys.sp_updateextendedproperty @name=N'TraceParserDurableDeletionHash',@value=0x00,@level0type=N'SCHEMA',@level0name=N'dbo',@level1type=N'PROCEDURE',@level1name=N'sp_DeleteTrace'");
         await Error(() => Step(worker, lease), 51202);
+        Check(await State(owner, otherJob) == "Failed", "Fingerprint error did not persist its stop");
         await Exec(owner, await File.ReadAllTextAsync(Path.Combine(Root, "sql", "sp_DeleteTrace.sql")));
+        await Exec(web, $"EXEC dbo.dj_Control '{Tenant}','{Requester}','{otherJob}','Resume'");
+        lease = (await Claim(worker))!.Value;
         await Exec(owner, "REVOKE EXECUTE ON dbo.dj_Step FROM JobWorker");
         await Error(() => Step(worker, lease), 229);
         await Exec(worker, $"EXEC dbo.dj_Release '{otherJob}','{lease.Token}',229");
@@ -259,7 +270,10 @@ internal static class DurableDeletionSqlChecks
             WHERE a.TraceId={other} AND b.TraceId={trace};
             """);
         await Error(() => Step(worker, lease), 51013);
+        Check(await State(owner, otherJob) == "Failed", "Endpoint failure was not atomically held");
         await Exec(owner, "DELETE dbo.TopMethods WHERE Id=1");
+        await Exec(web, $"EXEC dbo.dj_Control '{Tenant}','{Requester}','{otherJob}','Resume'");
+        lease = (await Claim(worker))!.Value;
         await Exec(worker, $"EXEC dbo.dj_Release '{otherJob}','{lease.Token}',51130");
         Check(await State(owner, otherJob) == "RetryScheduled", "Busy trace did not yield its slot");
         var absent = await Seed(owner, "root absence");

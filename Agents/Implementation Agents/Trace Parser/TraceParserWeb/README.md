@@ -62,6 +62,10 @@ Unknown commit outcomes inspect persisted state before releasing; if SQL is stil
 unavailable, ownership expires rather than fabricating progress or retrying a batch.
 Import eligibility changes become `Blocked` and require explicit resume. Permanent
 schema, fingerprint, permission and cross-trace endpoint errors stop as `Failed`.
+Eligibility, identity and endpoint holds commit under the owning job lock before
+SQL reports their error, so losing the worker cannot auto-resume a rejected trace.
+Other catchable server errors persist their classified stop/backoff before returning;
+the worker separately reconciles client-side timeouts and transport uncertainty.
 
 **User experience.** Enabled deletion enqueues and returns; a separate job panel
 polls every three seconds even if trace/statistics loading fails. It displays
