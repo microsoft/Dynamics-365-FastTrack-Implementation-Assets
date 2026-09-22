@@ -102,6 +102,21 @@ IF EXISTS (
                             AND COL_NAME(i.object_id, ic.column_id) = expected.ColumnName))))
     THROW 51005, 'Required unique deletion keys are unavailable. No procedure changed.', 1;
 
+-- Batch selection must seek target threads, then their lines, rather than scan
+-- unrelated traces. Do not depend on index names or repair indexes in this migration.
+IF EXISTS (
+    SELECT 1 FROM (VALUES
+        ('UserSessionProcessThreads', 'TraceId'),
+        ('TraceLines', 'UserSessionProcessThreadId')) r(TableName, ColumnName)
+    WHERE NOT EXISTS (
+        SELECT 1 FROM sys.indexes i
+        JOIN sys.index_columns ic ON ic.object_id = i.object_id AND ic.index_id = i.index_id
+        WHERE i.object_id = OBJECT_ID('dbo.' + r.TableName)
+            AND i.type IN (1, 2) AND i.is_disabled = 0 AND i.is_hypothetical = 0
+            AND i.has_filter = 0 AND ic.key_ordinal = 1
+            AND COL_NAME(i.object_id, ic.column_id) = r.ColumnName))
+    THROW 51007, 'Required thread-leading deletion seek indexes are unavailable. No procedure changed.', 1;
+
 -- Install-time selection preserves standalone legacy deletion without hiding receipt
 -- tables behind caller-sensitive OBJECT_ID checks in the restricted runtime module.
 DECLARE @coordinated bit = CASE WHEN OBJECT_ID('dbo.TPImportReceipts', 'U') IS NULL THEN 0 ELSE 1 END;
@@ -184,11 +199,15 @@ BEGIN
         END;
 
         DECLARE @batch TABLE (Id BIGINT PRIMARY KEY);
+        -- Keep work proportional to the target threads and the batch, even
+        -- after partial deletion or when unrelated traces dominate the table.
         INSERT @batch (Id)
         SELECT TOP (@BatchSize) tl.TraceLineId
-        FROM dbo.TraceLines tl
-        JOIN dbo.UserSessionProcessThreads u ON u.UserSessionProcessThreadId = tl.UserSessionProcessThreadId
-        WHERE u.TraceId = @TraceId;
+        FROM dbo.UserSessionProcessThreads u WITH (FORCESEEK)
+        INNER LOOP JOIN dbo.TraceLines tl WITH (FORCESEEK)
+            ON tl.UserSessionProcessThreadId = u.UserSessionProcessThreadId
+        WHERE u.TraceId = @TraceId
+        OPTION (FORCE ORDER);
 
         IF EXISTS (SELECT 1 FROM @batch)
         BEGIN

@@ -126,6 +126,8 @@ passed += await DeletionChecks.RunAsync();
 Console.WriteLine($"{passed} regression checks passed.");
 if (args.Contains("--sql-integration"))
     await DeletionSqlChecks.RunAsync();
+if (args.Contains("--batch-selection"))
+    await BatchSelectionChecks.RunAsync();
 
 sealed class ProbeAuthentication(ClaimsPrincipal user) : AuthenticationStateProvider
 {
