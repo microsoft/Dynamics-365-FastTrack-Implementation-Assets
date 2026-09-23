@@ -10,6 +10,9 @@ static class AnalysisChecks
 {
     public static async Task<int> RunAsync(SqlConnection connection, string? etlPath)
     {
+        if (etlPath is not null && (Path.GetFileName(etlPath) != "synthetic-small.etl"
+            || new FileInfo(etlPath).Length != 131072))
+            throw new InvalidOperationException("Duration analysis accepts only the 128 KiB synthetic-small ETL.");
         var checks = 0;
         void Check(bool ok, string name)
         {
@@ -198,7 +201,8 @@ static class AnalysisChecks
                 ExecutionSeconds = 0.002, ActualExecutionNanoField = rawExecution, ActualFetchNanoField = rawFetch
             }));
         }
-        Console.WriteLine($"PASS {checks} analytical checks; 37:1 inclusive inflation reproduced; unit mismatch characterized, NOT corrected.");
+        Console.WriteLine($"PASS {checks} analytical checks; 37:1 inclusive inflation reproduced; " +
+            (etlPath is null ? "ETL unit checks SKIPPED." : "unit mismatch characterized, NOT corrected."));
         return checks;
     }
 }
