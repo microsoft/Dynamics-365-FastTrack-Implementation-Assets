@@ -41,6 +41,7 @@ public sealed class SqlRegisteredImportStore(IOptions<TraceAdministrationOptions
         cmd.Parameters.Add("@ContainerName", SqlDbType.NVarChar, 63).Value = container;
         cmd.Parameters.Add("@BlobName", SqlDbType.NVarChar, 1024).Value = blobName;
         cmd.Parameters.Add("@SessionName", SqlDbType.NVarChar, 500).Value = session;
+        cmd.Parameters.Add("@ParserVersion", SqlDbType.VarChar, 40).Value = "safe-import-v2";
         await cmd.ExecuteNonQueryAsync(ct);
     }
 

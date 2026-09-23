@@ -295,6 +295,22 @@ static class ImportStatusChecks
             page.Dispose();
             passed += 2;
         }
+        using(var http=new TraceListHttp
+        {
+            StatsBody="""{"value":[{"TraceId":42,"SessionId":1,"TotalTraceLines":12,"TotalDurationMs":null,"TotalDatabaseMs":null,"TotalDatabaseCalls":null,"StoredDurationUnit":"unknown","AggregationVersion":"legacy-unverified"}]}"""
+        })
+        {
+            var page=Page(http);
+            await using var renderer=new StatusRenderer(provider);
+            await renderer.Dispatcher.InvokeAsync(()=>renderer.Attach(page));
+            await Call(renderer,page,"LoadTraces");
+            Check(Get(page,"_statsError") is null && Text(page).Contains("12 lines")
+                && Text(page).Contains("Duration/DB totals uncertain"),
+                "Unclassified historical durations render honestly without losing valid counts");
+            Check(!Text(page).Contains("Retry statistics") && Text(page).Contains("synthetic visible trace"),
+                "Expected duration uncertainty is not an API outage");
+            page.Dispose(); passed+=2;
+        }
         foreach (var blockTraces in new[] { false, true })
         {
             using var http = new TraceListHttp { BlockStats = !blockTraces, BlockTraces = blockTraces };

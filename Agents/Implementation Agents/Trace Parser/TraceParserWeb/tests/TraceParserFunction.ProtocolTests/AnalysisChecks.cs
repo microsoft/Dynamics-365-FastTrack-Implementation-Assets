@@ -33,9 +33,15 @@ static class AnalysisChecks
         var mcp = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,
             "..", "..", "..", "..", "..", "..", "TraceParserMCP"));
         var views = await File.ReadAllTextAsync(Path.Combine(mcp, "Create Views.sql"));
-        await Exec("ALTER TABLE dbo.Traces ADD AxVersion nvarchar(50) NULL;");
+        await Exec("IF COL_LENGTH('dbo.Traces','AxVersion') IS NULL ALTER TABLE dbo.Traces ADD AxVersion nvarchar(50) NULL;");
+        foreach (var batch in Regex.Split(await File.ReadAllTextAsync(Path.Combine(mcp,"Duration units.sql")),
+            @"^\s*GO\s*$",RegexOptions.Multiline|RegexOptions.IgnoreCase))
+            if (!string.IsNullOrWhiteSpace(batch)) await Exec(batch);
         foreach (var batch in Regex.Split(views, @"^\s*GO\s*$", RegexOptions.Multiline | RegexOptions.IgnoreCase))
             if (!string.IsNullOrWhiteSpace(batch)) await Exec(batch);
+        foreach(var batch in Regex.Split(await File.ReadAllTextAsync(Path.Combine(mcp,"Create Keyword Search SPs.sql")),
+            @"^\s*GO\s*$",RegexOptions.Multiline|RegexOptions.IgnoreCase))
+            if(batch.Contains("CREATE OR ALTER PROCEDURE dbo.sp_Search")) await Exec(batch);
         using (var config = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(mcp, "dab-config.json"))))
             foreach (var entity in new[] { "SessionSummary", "SessionMetrics", "TopMethodsBySession" })
                 Check(config.RootElement.GetProperty("entities").GetProperty(entity).GetProperty("source")
@@ -45,8 +51,8 @@ static class AnalysisChecks
         await Exec("""
             SET IDENTITY_INSERT dbo.Traces ON;
             INSERT dbo.Traces(TraceId,TraceName,TraceFile,TimeStampBegin,TimeStampEnd,TraceParserVersion)
-            VALUES(9001,N'synthetic analysis A',N'synthetic',GETUTCDATE(),GETUTCDATE(),N'known-nanoseconds'),
-                  (9002,N'synthetic analysis B',N'synthetic',GETUTCDATE(),GETUTCDATE(),N'known-nanoseconds');
+            VALUES(9001,N'synthetic analysis A',N'synthetic',GETUTCDATE(),GETUTCDATE(),N'safe-import-v2'),
+                  (9002,N'synthetic analysis B',N'synthetic',GETUTCDATE(),GETUTCDATE(),N'safe-import-v2');
             SET IDENTITY_INSERT dbo.Traces OFF;
             INSERT dbo.Users VALUES(N'synthetic analysis');
             INSERT dbo.Customers VALUES(N'synthetic analysis');
@@ -70,9 +76,9 @@ static class AnalysisChecks
                 INSERT dbo.TraceLines(UserSessionProcessThreadId,CallTypeId,Sequence,SequenceEnd,[TimeStamp],
                 TimeStampEnd,InclusiveDurationNano,ExclusiveDurationNano,DatabaseDurationNano,ParentSequence,
                 InclusiveRpc,DatabaseCalls,PrepDurationNano,BindDurationNano,RowFetchDurationNano,RowFetchCount,
-                MethodHash,HasChildren,FileName,EventId,EventType,LineNumber)
+                MethodHash,HasChildren,FileName,EventId,EventType,LineNumber,IsComplete)
                 VALUES(@thread,@type,@sequence,@sequence,0,0,@duration,0,@db,@parent,0,@calls,0,0,0,0,
-                CASE WHEN @type=8 THEN 123 ELSE NULL END,0,N'synthetic',0,0,0)
+                CASE WHEN @type=8 THEN 123 ELSE NULL END,0,N'synthetic',0,0,0,1)
                 """, connection);
             cmd.Parameters.AddWithValue("@thread", thread);
             cmd.Parameters.AddWithValue("@sequence", sequence);
@@ -134,6 +140,32 @@ static class AnalysisChecks
         Check(await Number("SELECT COUNT(*) FROM dbo.vw_NPlusOnePatterns") ==
             await Number("SELECT COUNT(DISTINCT TraceLineId) FROM dbo.vw_NPlusOnePatterns"), "N+1 DAB key is unique.");
 
+        // Unit and threshold decisions use recorded provenance, not plausible numbers.
+        await Exec("UPDATE dbo.Traces SET TraceParserVersion='safe-import-v1' WHERE TraceId=9002;");
+        Check(await Number("SELECT COUNT(*) FROM dbo.vw_NPlusOnePatterns WHERE TraceId=9002")==0,
+            "v1's 100ms average cannot pass the 5ms N+1 threshold as a fake 1ms average");
+        await Exec("UPDATE dbo.Traces SET TraceParserVersion='7.0.7697.0' WHERE TraceId=9002;");
+        Check(await Number("SELECT COUNT(*) FROM dbo.vw_TraceLineDetails WHERE TraceId=9002 AND InclusiveMs IS NULL AND StoredDurationUnit='unknown'")==2
+            && await Number("SELECT COUNT(*) FROM dbo.vw_NPlusOnePatterns WHERE TraceId=9002")==0,
+            "unclassified native version retains rows but has no pretend duration/threshold classification");
+        foreach(var version in new[]{"safe-import-v1 ","SAFE-IMPORT-V1","unclassified"})
+        {
+            await Exec($"UPDATE dbo.Traces SET TraceParserVersion='{version}' WHERE TraceId=9002;");
+            Check(await Number("SELECT COUNT(*) FROM dbo.vw_TraceDurationUnits WHERE TraceId=9002 AND NanosecondsPerStoredUnit IS NULL")==1,
+                "provenance matching is exact, never case/whitespace inference");
+        }
+        await Exec("INSERT dbo.QueryStatements VALUES(777,'SELECT synthetic');");
+        await Line(9105,3,null,64,1,60_000_000,60_000_000);
+        await Exec("UPDATE dbo.TraceLines SET QueryStatementHash=777 WHERE UserSessionProcessThreadId=9105 AND Sequence=3;");
+        Check(await Number("SELECT COUNT(*) FROM dbo.vw_SlowSqlStatements WHERE TraceId=9002")==0,
+            "unknown units do not pass the slow-SQL threshold");
+        await Exec("UPDATE dbo.Traces SET TraceParserVersion='safe-import-v1' WHERE TraceId=9002;");
+        Check(await Number("SELECT ExecutionMs FROM dbo.vw_SlowSqlStatements WHERE TraceId=9002")==6000,
+            "known v1 60 million ticks means 6000ms and correctly passes slow SQL");
+        await Line(9105,4,null,8,0,0,long.MaxValue);
+        Check(await Number("SELECT InclusiveDurationNano FROM dbo.vw_UnitAwareTraceLines WHERE TraceId=9002 AND Sequence=4")==922337203685477580700m,
+            "read normalization converts before multiplication and cannot overflow bigint");
+
         if (etlPath is not null)
         {
             var secondsToTicks = typeof(EtlParser).GetMethod("ConvertSecToTicks",
@@ -171,11 +203,14 @@ static class AnalysisChecks
             Check(elapsed["SyntheticFixture.Outer"] == 80 && elapsed["SyntheticFixture.Inner"] == 30
                 && preparations.SequenceEqual(new[] { 0.001, 0.001 }) && executions.SequenceEqual(new[] { 0.002, 0.004 }),
                 "Independent ETW decode agrees with the generator's 80/30 ms elapsed time and seconds payloads.");
+            foreach (var version in new[] { "safe-import-v1", "safe-import-v2" })
+            {
+            var factor = version == "safe-import-v1" ? 1 : 100;
             var id = Guid.NewGuid();
             var blob = $"_imports/{id:D}/sample.etl";
             // The analytical rows above were seeded outside the importer, in this disposable DB only.
             await Exec("UPDATE dbo.TraceLineIDControls SET NextTraceLineId=(SELECT MAX(TraceLineId)+1 FROM dbo.TraceLines);");
-            await Exec($"EXEC dbo.tp_RegisterUpload '{id}',N'account',N'etl-uploads',N'{blob}',N'synthetic units';");
+            await Exec($"EXEC dbo.tp_RegisterUpload '{id}',N'account',N'etl-uploads',N'{blob}',N'synthetic units','{version}';");
             var importer = new SqlImporter(NullLogger<SqlImporter>.Instance);
             using var budget = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             var receipt = await importer.BeginImportAsync(connection, "account", "etl-uploads", blob, "\"units\"", budget.Token);
@@ -186,23 +221,106 @@ static class AnalysisChecks
             var rawPreparation = await Number($"SELECT PrepDurationNano FROM dbo.TPImportLines WHERE ImportId='{id}' AND Sequence=5");
             var rawExecution = await Number($"SELECT ExclusiveDurationNano FROM dbo.TPImportLines WHERE ImportId='{id}' AND Sequence=5");
             var rawFetch = await Number($"SELECT RowFetchDurationNano FROM dbo.TPImportLines WHERE ImportId='{id}' AND Sequence=5");
-            Check(rawOuter == 800000 && rawPreparation == 10000 && rawExecution == 20000 && rawFetch == 30000,
-                "Characterize the frozen importer: fields named Nano actually store 100ns ticks.");
+            Check(receipt.ParserVersion == version && rawOuter == 800000*factor && rawPreparation == 10000*factor
+                && rawExecution == 20000*factor && rawFetch == 30000*factor,
+                "Versioned output: v1 unchanged ticks, v2 correct nanoseconds for known independent timings.");
+            var oraclePath=Path.Combine(Path.GetDirectoryName(etlPath)!,"synthetic-small.etl.rows.json");
+            if(new FileInfo(oraclePath).Length>50000 ||
+                Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(oraclePath))) !=
+                "90D573987FF4C76D278A02B7304E42557C7B930576694AD04BC1C8AF72A01D1D")
+                throw new InvalidOperationException("Expected pinned, pre-change eight-row parser capture.");
+            using(var oracle=JsonDocument.Parse(await File.ReadAllTextAsync(oraclePath)))
+            foreach(var item in oracle.RootElement.GetProperty("rows").EnumerateArray())
+            {
+                var options=new JsonSerializerOptions { IncludeFields=true };
+                var expected=JsonSerializer.Deserialize<StageRow>(item.GetRawText(),options)!;
+                // Independent baseline row capture, not the implementation's encoder.
+                expected.IncNano*=factor; expected.ExcNano*=factor; expected.DbNano*=factor;
+                expected.PrepNano*=factor; expected.BindNano*=factor; expected.FetchNano*=factor;
+                var fingerprint=Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(expected,options)));
+                Check(await Number($"SELECT COUNT(*) FROM dbo.TPImportLines WHERE ImportId='{id}' AND Sequence={expected.Seq} AND PayloadHash=0x{fingerprint}")==1,
+                    $"{version} exact payload fingerprint incl all duration fields, FILETIME and non-duration fields.");
+            }
             await importer.PromoteStageToTraceLines(connection);
             await importer.CompleteImportAsync(connection);
             var displayed = await Number($"SELECT InclusiveMs FROM dbo.vw_TraceLineDetails WHERE TraceId={receipt.TraceId} AND Sequence=1");
-            Check(displayed == 0.8m && displayed * 100 == (decimal)elapsed["SyntheticFixture.Outer"],
-                "Known defect reproduced end-to-end: 80ms is shown as 0.8ms, not a timing inference.");
+            Check(displayed == 80m && displayed == (decimal)elapsed["SyntheticFixture.Outer"],
+                "Known v1/v2 read normalization both show independently encoded 80ms without rewriting raw rows.");
             Console.WriteLine(JsonSerializer.Serialize(new {
                 Kind = "DurationKnownAnswer", FixtureSha256 = hash, IndependentElapsedMs = 80,
                 ExpectedNanoseconds = 80000000, ActualStoredNanoField = rawOuter, ActualViewMs = displayed,
-                Status = "BLOCKED: unit-versioned replay/cutover strategy requires approval; importer contract unchanged",
+                Status = "Correct versioned import/read; no historical rewrite", ParserVersion=version,
                 PreparationSeconds = 0.001, ActualPreparationNanoField = rawPreparation,
                 ExecutionSeconds = 0.002, ActualExecutionNanoField = rawExecution, ActualFetchNanoField = rawFetch
             }));
+            }
         }
+        // Reconcile actual materialized readers, not only reference raw aggregation.
+        foreach(var batch in Regex.Split(await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory,"duration-aggregates.sql")),
+            @"^\s*GO\s*$",RegexOptions.Multiline|RegexOptions.IgnoreCase).Skip(1))
+            if(!string.IsNullOrWhiteSpace(batch)) await Exec(batch);
+        await Exec("""
+            INSERT dbo.SessionMetrics(TraceId,SessionId,TotalTraceLines,RootCalls,TotalDurationMs,
+                TotalDatabaseMs,TotalDatabaseCalls,TotalRpcCalls,TotalRowsFetched)
+                VALUES(9002,1,4,2,0.8,0.1,3737,0,0);
+            INSERT dbo.TopMethodsBySession(SessionId,TraceId,MethodName,CallCount,TotalInclusiveMs,
+                TotalExclusiveMs,AvgInclusiveMs,TotalDbCalls,TotalDbMs)
+                VALUES(1,9002,'legacy synthetic',1,0.8,0.5,0.8,101,0.1);
+            """);
+        Check(await Number("SELECT COUNT(*) FROM dbo.vw_SessionMetrics WHERE TraceId=9002 AND TotalDurationMs IS NULL AND TotalDatabaseCalls IS NULL AND AggregationVersion='legacy-unverified' AND TotalTraceLines=4")==1,
+            "legacy physical session aggregates retain counts and explicitly withhold unreliable totals");
+        Check(await Number("SELECT TotalInclusiveMs FROM dbo.vw_TopMethodsBySession WHERE TraceId=9002")==80
+            && await Number("SELECT TotalPrecisionMs FROM dbo.vw_TopMethodsBySession WHERE TraceId=9002")==1,
+            "legacy physical v1 method totals normalize on read with honest 1ms precision");
+        await Exec("UPDATE dbo.Traces SET TraceParserVersion='native-unclassified' WHERE TraceId=9002;");
+        Check(await Number("SELECT COUNT(*) FROM dbo.vw_TopMethodsBySession WHERE TraceId=9002 AND TotalInclusiveMs IS NULL")==1,
+            "unclassified physical method aggregate times are NULL");
+        Check(await Number("SELECT TotalInclusiveMs FROM dbo.TopMethodsBySession WHERE TraceId=9002")==0.8m
+            && await Number("SELECT TotalDatabaseCalls FROM dbo.SessionMetrics WHERE TraceId=9002")==3737,
+            "original historical aggregate numbers remain untouched");
+        if(etlPath is not null)
+            Check(await Number("SELECT COUNT(*) FROM dbo.vw_SessionMetrics s JOIN dbo.Traces t ON t.TraceId=s.TraceId WHERE t.TraceName='synthetic units' AND s.TotalDurationMs=80 AND s.AggregationVersion='sql-execution-v2'")==2,
+                "both genuine v1/v2 imports publish correct 80ms materialized session metrics");
+        await Line(9103,9000,null,8,0,0,0);
+        await Exec("UPDATE dbo.TraceLines SET IsComplete=0 WHERE UserSessionProcessThreadId=9103 AND Sequence=9000; EXEC dbo.sp_PopulateSessionAggregations 9001;");
+        Check(await Number("SELECT COUNT(*) FROM dbo.vw_SessionMetrics WHERE TraceId=9001 AND SessionId=3 AND TotalDurationMs IS NULL AND DurationStatus='unknown-values'")==1,
+            "negative/missing duration sentinels cannot become a pretend complete physical total");
+        Check(await Number("SELECT TotalDatabaseCalls FROM dbo.vw_SessionMetrics WHERE TraceId=9001 AND SessionId=1")==101,
+            "materialized session DB count uses execution grain, not inclusive 37:1 counters");
+        Check(await Number("SELECT COUNT(*) FROM dbo.vw_SessionMetrics WHERE TraceId=9001 AND SessionId=2 AND TotalDurationMs IS NULL AND DurationStatus='unknown-values'")==1
+            && await Number("SELECT COUNT(*) FROM dbo.vw_TopMethodsBySession WHERE TraceId=9001 AND SessionId=2 AND TotalInclusiveMs IS NULL")==1,
+            "unfinished zero-duration call cannot certify a known session or method duration");
+        await Exec("""
+            INSERT dbo.Messages VALUES(888,'synthetic message');
+            UPDATE dbo.TraceLines SET MessageHash=888 WHERE UserSessionProcessThreadId=9105 AND Sequence=1;
+            INSERT dbo.TopMethods(Id,BeginUspId,EndUspId,Name,Count,InclusiveTotal,ExclusiveTotal,RpcTotal,DatabaseCallTotal,Type)
+                VALUES(123,9105,9105,'synthetic',1,80000000,30000000,0,2,'InclusiveXpp');
+            """);
+        foreach(var procedure in new[]{"sp_SearchTracesByKeyword","sp_SearchSqlStatements","sp_SearchMethods","sp_SearchMessages"})
+        {
+            using var cmd=new SqlCommand($"EXEC dbo.{procedure} @TraceId=9002,@Keyword=N'synthetic'",connection);
+            using var reader=await cmd.ExecuteReaderAsync();
+            var count=0;
+            while(await reader.ReadAsync())
+            {
+                count++;
+                Check(reader.GetString(reader.GetOrdinal("StoredDurationUnit"))=="unknown",
+                    procedure+" explicitly exposes unknown historical provenance");
+                for(var i=0;i<reader.FieldCount;i++)
+                    if(reader.GetName(i).EndsWith("Ms",StringComparison.Ordinal))
+                        Check(reader.IsDBNull(i),procedure+" cannot emit pretend millisecond timing");
+            }
+            Check(count>0,procedure+" exercised real synthetic matching rows");
+        }
+        Check(await Number("SELECT COUNT(*) FROM dbo.vw_TopMethodsWithUnits WHERE Id=123 AND InclusiveTotal IS NULL AND StoredInclusiveTotal=80000000")==1,
+            "legacy native TopMethods retains original values without inferring units");
+        await Exec("UPDATE dbo.Traces SET TraceParserVersion='ps-import-v2' WHERE TraceId=9002;");
+        Check(await Number("SELECT InclusiveTotal FROM dbo.vw_TopMethodsWithUnits WHERE Id=123")==80000000
+            && await Number("SELECT COUNT(*) FROM dbo.vw_TopMethodsWithUnits WHERE Id=123 AND StoredDurationUnit='nanoseconds'")==1,
+            "proven direct PowerShell same-trace TopMethods exposes correct nanoseconds");
+        await Exec("UPDATE dbo.Traces SET TraceParserVersion='native-unclassified' WHERE TraceId=9002;");
         Console.WriteLine($"PASS {checks} analytical checks; 37:1 inclusive inflation reproduced; " +
-            (etlPath is null ? "ETL unit checks SKIPPED." : "unit mismatch characterized, NOT corrected."));
+            (etlPath is null ? "ETL unit checks SKIPPED." : "v1/v2 exact fingerprints and corrected 80ms verified."));
         return checks;
     }
 }

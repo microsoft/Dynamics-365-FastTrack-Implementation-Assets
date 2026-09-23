@@ -61,6 +61,30 @@ static class PaginationChecks
             Check((await Service(h).GetTracesAsync()).Count == 0, "Empty traces rejected.");
         using (var h = new Pages(_ => """{"value":[],"nextLink":null}"""))
             Check((await Service(h).GetTraceStatsAsync()).Count == 0, "Empty metrics rejected.");
+        foreach(var unit in new[]{"unknown","100ns ticks"})
+        {
+            var uncertain=$$"""{"TraceId":42,"SessionId":1,"TotalTraceLines":12,"TotalDurationMs":null,"TotalDatabaseMs":null,"TotalDatabaseCalls":null,"StoredDurationUnit":"{{unit}}","AggregationVersion":"legacy-unverified"}""";
+            using var h=new Pages(i=>i==0?Page(uncertain,"?$after=known"):Page(Metric(43,1)));
+            var stats=await Service(h).GetTraceStatsAsync();
+            Check(stats[42].TotalTraceLines==12 && stats[42].SessionCount==1
+                && stats[42].TotalDurationMs is null && stats[42].TotalDatabaseMs is null
+                && stats[42].TotalDatabaseCalls is null,"Uncertain trace must keep counts, never invent zero durations.");
+            Check(stats[43].TotalDurationMs==1.25m && stats[43].TotalDatabaseCalls==3,
+                "One unclassified trace cannot make other trace statistics unavailable.");
+        }
+        using(var h=new Pages(i=>i==0?Page(Metric(42,1),"?$after=unknown"):
+            Page("""{"TraceId":42,"SessionId":2,"TotalTraceLines":7,"TotalDurationMs":null,"TotalDatabaseMs":null,"TotalDatabaseCalls":null,"StoredDurationUnit":"unknown"}""")))
+        {
+            var stats=(await Service(h).GetTraceStatsAsync())[42];
+            Check(stats.TotalTraceLines==19 && stats.TotalDurationMs is null && stats.TotalDatabaseCalls is null,
+                "A partially unknown trace cannot expose partial totals as complete.");
+        }
+        using(var h=new Pages(_=>Page("""{"TraceId":42,"SessionId":1,"TotalTraceLines":8,"TotalDurationMs":null,"TotalDatabaseMs":null,"TotalDatabaseCalls":2,"StoredDurationUnit":"nanoseconds","AggregationVersion":"sql-execution-v2","DurationStatus":"unknown-values"}""")))
+        {
+            var stats=(await Service(h).GetTraceStatsAsync())[42];
+            Check(stats.TotalDurationMs is null && stats.TotalDatabaseCalls==2,
+                "Unknown duration sentinels with proven units retain independently valid DB counts.");
+        }
         foreach (var next in new[] { "https://other.invalid/api/Traces?$after=1",
             "//other.invalid/api/Traces?$after=1", "http://dab.invalid/api/Traces?$after=1",
             "https://user@dab.invalid/api/Traces?$after=1", "/api/Other?$after=1",

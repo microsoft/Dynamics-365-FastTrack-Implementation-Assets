@@ -52,14 +52,21 @@ The Large Language Model (LLM) used with this MCP server is **entirely customer-
 
 ### Duration provenance, call grain and pagination
 
-**Do not infer units from column names.** The sample C# and PowerShell parsers put
-100 ns .NET ticks into fields named `*DurationNano`. A genuine, synthetic ETL with an
-80 ms call produces 800,000 in that field and 0.8 in the view's `/1000000` result:
-100x too small. SQL provider payloads explicitly named `*TimeSeconds` have the same
-storage mismatch. This does not establish units for historical native Trace Parser
-imports. `TimeStamp`/`TimeStampEnd` are separate FILETIME timestamps; their units
-must never be changed with duration fields. Current view thresholds/conversions are
-valid for nanosecond-provenance input only. No historical rescale is supplied.
+**Do not infer units from column names.** Recorded `safe-import-v1` proves the old
+100 ns tick output. New `safe-import-v2` and isolated `ps-import-v2` output nanoseconds
+(retaining 100 ns parser resolution). A pinned genuine 80 ms ETL call remains 800,000
+in v1 raw storage, becomes 80,000,000 in v2, and reads as **80 ms** under both proven
+versions. FILETIME timestamps, IDs/counters and negative sentinel codes are unchanged.
+Every other/native version remains **unclassified**; no historical row is rewritten.
+
+Run `Duration units.sql` before the reference view/search scripts. DAB `TraceLines`
+now targets `vw_UnitAwareTraceLines`: six `*Nano` fields are normalized nanoseconds,
+or NULL for unknown provenance. `Stored*` fields retain original values and
+`StoredDurationUnit` explains them. `TraceLineDetails` and all four keyword searches
+normalize milliseconds consistently. Unknown units never satisfy N+1/slow-SQL
+thresholds; an empty result does not certify those traces fast. `TopMethods` native
+durations are likewise NULL/unknown except for same-trace `ps-import-v2` endpoints.
+Do not bypass these readers and assume that physical `dbo.TraceLines` is all ns.
 
 The local analytical candidate preserves the existing `TraceLineId` N+1 key and
 strict `DatabaseCalls > 100`, average `< 5 ms` threshold. A caller is suppressed
@@ -85,14 +92,24 @@ documented default page size is 100. Composite keys also matter to GraphQL/MCP
 continuation. See Microsoft Learn: [REST first](https://learn.microsoft.com/en-us/azure/data-api-builder/keywords/first-rest)
 and [REST after](https://learn.microsoft.com/en-us/azure/data-api-builder/keywords/after-rest).
 
-**Rollout boundary:** these are local view/config/web changes, not a production
-migration. If a deployment substitutes materialized `SessionMetrics` or
-`TopMethodsBySession` for source views, reconcile the actual definitions and its
-`sp_PopulateSessionAggregations` separately; this candidate does not alter that
-procedure or rebuild existing rows. Do not blindly execute the entire view script
-over such a deployment. Duration ingestion remains blocked on an explicitly
-versioned importer/replay strategy; leave existing importer/deletion fingerprints,
-receipt semantics and historical data unchanged.
+**Materialized deployments:** use the discrete, guarded migration generator in
+`..\TraceParserWeb\sql\Prepare-DurationAnalysis.ps1`, not the whole reference view
+script. Session/method readers keep their physical tables and indexed joins rather
+than scanning millions of raw rows. Legacy session duration/DB totals are withheld
+because their old grain is unverified; existing counts remain available. Legacy
+v1 method totals normalize x100 on read, with `TotalPrecisionMs=1` to expose prior
+rounding. New aggregates contain normalized ms and execution-grain session DB counts.
+Unfinished/negative/missing durations make new totals uncertain. Inclusive method/RPC
+counts are still nonadditive. No existing aggregates are rebuilt.
+
+**Rollout boundary:** local implementation/testing is not production authorization.
+The Web README documents exact SQL -> Function/web version negotiation, DAB schema
+refresh, and rollback constraints. Old v1 receipts replay unchanged; old workers
+refuse v2. Never downgrade receipts or rerun the old bootstrap over the v2 contract.
+`DAB_ParseEtl.ps1` always creates a fresh `ps-import-v2` trace in an isolated direct-
+import database. Because its legacy shared staging/truncation does not implement
+receipt ownership, it now refuses receipt-managed databases; use web registration
+there. Native historical versions are not classified by these changes.
 
 ### Disclaimers
 
@@ -291,7 +308,7 @@ MCP clients can use the `read-records`, `describe-entities`, and `execute-entity
 
 ## Key Concepts
 
-- **Time units differ between tables and views.** Raw tables (`TraceLines`) store durations in **nanoseconds**. Analytical views (`TraceLineDetails`, `SessionMetrics`, etc.) convert to **milliseconds**.
+- **Check duration provenance.** DAB `TraceLines` exposes normalized nanoseconds, analytical views expose milliseconds, and unknown provenance yields NULL. Physical `dbo.TraceLines` may contain v1 ticks or unclassified historical units; `Stored*` values are never rewritten.
 - **Hash-based lookups.** `TraceLines` references method names, SQL statements, and table names via hash columns (`MethodHash`, `QueryStatementHash`, `QueryTableHash`). Use the corresponding lookup tables or the `TraceLineDetails` view which resolves them automatically.
 - **Session-centric organization.** Data is organized around user sessions. Start with `SessionSummary` or `SessionMetrics` to discover sessions, then drill into `TraceLineDetails` for specifics.
 

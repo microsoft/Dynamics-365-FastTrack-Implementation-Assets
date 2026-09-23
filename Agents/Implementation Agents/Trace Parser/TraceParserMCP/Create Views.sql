@@ -8,9 +8,10 @@
 --   1. Denormalize the hash-based schema
 --   2. Convert nanoseconds to milliseconds
 --   3. Pre-filter common performance patterns
--- Conversions/thresholds assume nanosecond input. The sample importers currently
--- store 100ns ticks in duration fields; see README before interpreting legacy data.
--- This script neither changes ingestion units nor rescales stored trace data.
+-- Run Duration units.sql first. Unknown duration provenance produces NULL times,
+-- never fabricated threshold matches. No stored trace data is rescaled.
+-- Materialized deployments must use the discrete Web/sql duration migration,
+-- not replace their aggregate views with this nonmaterialized reference script.
 --
 -- Run this script in SSMS connected to your TraceParser database
 -- .DISCLAIMER
@@ -82,19 +83,25 @@ SELECT
     t.TraceId,
     COUNT(tl.TraceLineId) AS TotalTraceLines,
     SUM(CASE WHEN tl.TraceLineId IS NOT NULL AND (tl.ParentSequence IS NULL OR tl.ParentSequence = 0) THEN 1 ELSE 0 END) AS RootCalls,
+    CASE WHEN du.NanosecondsPerStoredUnit IS NOT NULL THEN
     CAST(COALESCE(SUM(CASE WHEN tl.ParentSequence IS NULL OR tl.ParentSequence = 0
-         THEN tl.InclusiveDurationNano ELSE 0 END), 0) / 1000000.0 AS DECIMAL(18,2)) AS TotalDurationMs,
+         THEN tl.InclusiveDurationNano ELSE 0 END), 0) / 1000000.0 AS DECIMAL(18,2)) END AS TotalDurationMs,
     -- Method DB counters include descendant SQL: only execution rows are additive.
-    CAST(COALESCE(SUM(CASE WHEN tl.CallTypeId = 64 THEN tl.DatabaseDurationNano ELSE 0 END), 0) / 1000000.0 AS DECIMAL(18,2)) AS TotalDatabaseMs,
+    CASE WHEN du.NanosecondsPerStoredUnit IS NOT NULL THEN
+    CAST(COALESCE(SUM(CASE WHEN tl.CallTypeId = 64 THEN tl.DatabaseDurationNano ELSE 0 END), 0) / 1000000.0 AS DECIMAL(18,2)) END AS TotalDatabaseMs,
     COALESCE(SUM(CASE WHEN tl.CallTypeId = 64 THEN tl.DatabaseCalls ELSE 0 END), 0) AS TotalDatabaseCalls,
     COALESCE(SUM(tl.InclusiveRpc), 0) AS TotalRpcCalls,
-    COALESCE(SUM(tl.RowFetchCount), 0) AS TotalRowsFetched
+    COALESCE(SUM(tl.RowFetchCount), 0) AS TotalRowsFetched,
+    du.StoredDurationUnit,
+    CAST('sql-execution-v2' AS varchar(24)) AS AggregationVersion,
+    CASE WHEN du.NanosecondsPerStoredUnit IS NULL THEN 'unclassified-units' ELSE 'known' END AS DurationStatus
 FROM dbo.UserSessions us
 INNER JOIN dbo.Users u ON us.UserId = u.UserId
 INNER JOIN dbo.Traces t ON us.TraceId = t.TraceId
+INNER JOIN dbo.vw_TraceDurationUnits du ON du.TraceId=t.TraceId
 INNER JOIN dbo.UserSessionProcessThreads uspt ON us.SessionId = uspt.SessionId AND us.TraceId = uspt.TraceId
-LEFT JOIN dbo.TraceLines tl ON uspt.UserSessionProcessThreadId = tl.UserSessionProcessThreadId
-GROUP BY us.SessionId, us.SessionName, u.UserName, t.TraceName, t.TraceId;
+LEFT JOIN dbo.vw_UnitAwareTraceLines tl ON uspt.UserSessionProcessThreadId = tl.UserSessionProcessThreadId
+GROUP BY us.SessionId, us.SessionName, u.UserName, t.TraceName, t.TraceId,du.NanosecondsPerStoredUnit,du.StoredDurationUnit;
 GO
 
 PRINT '  ✓ vw_SessionMetrics created';
@@ -129,7 +136,7 @@ SELECT
     CASE 
         WHEN tl.DatabaseCalls > 0 
         THEN CAST(tl.DatabaseDurationNano / 1000000.0 / tl.DatabaseCalls AS DECIMAL(18,4))
-        ELSE 0 
+        ELSE CASE WHEN tl.StoredDurationUnit<>'unknown' THEN 0 END
     END AS AvgDbCallMs,
     tl.RowFetchCount,
     tl.QueryStatementHash,
@@ -137,9 +144,11 @@ SELECT
     tl.QueryTableHash,
     qt.TableNames,
     tl.HasChildren,
+    tl.IsComplete,
     tl.EventType,
-    tl.EventName
-FROM dbo.TraceLines tl
+    tl.EventName,
+    tl.StoredDurationUnit
+FROM dbo.vw_UnitAwareTraceLines tl
 INNER JOIN dbo.UserSessionProcessThreads uspt 
     ON tl.UserSessionProcessThreadId = uspt.UserSessionProcessThreadId
 LEFT JOIN dbo.MethodNames mn ON tl.MethodHash = mn.MethodHash
@@ -178,16 +187,17 @@ SELECT
     CAST(tl.DatabaseDurationNano / 1000000.0 AS DECIMAL(18,2)) AS DatabaseMs,
     CAST(tl.DatabaseDurationNano / 1000000.0 / NULLIF(tl.DatabaseCalls, 0) AS DECIMAL(18,4)) AS AvgMsPerCall,
     CAST(tl.InclusiveDurationNano / 1000000.0 AS DECIMAL(18,2)) AS InclusiveMs,
-    'N+1 PATTERN: High DB calls with low avg time' AS PatternDescription
-FROM dbo.TraceLines tl
+    'N+1 PATTERN: High DB calls with low avg time' AS PatternDescription,
+    tl.StoredDurationUnit
+FROM dbo.vw_UnitAwareTraceLines tl
 INNER JOIN dbo.UserSessionProcessThreads uspt 
     ON tl.UserSessionProcessThreadId = uspt.UserSessionProcessThreadId
 LEFT JOIN dbo.MethodNames mn ON tl.MethodHash = mn.MethodHash
 WHERE tl.DatabaseCalls > 100
   AND tl.DatabaseDurationNano >= 0
-  AND (tl.DatabaseDurationNano / 1000000.0 / NULLIF(tl.DatabaseCalls, 0)) < 5
+  AND tl.DatabaseDurationNano < CONVERT(decimal(28,0),tl.DatabaseCalls) * 5000000
   AND NOT EXISTS (
-      SELECT 1 FROM dbo.TraceLines child
+      SELECT 1 FROM dbo.vw_UnitAwareTraceLines child
       WHERE child.UserSessionProcessThreadId = tl.UserSessionProcessThreadId
         AND child.ParentSequence = tl.Sequence
         AND child.Sequence > tl.Sequence
@@ -221,8 +231,9 @@ SELECT
     qt.TableNames,
     CAST(tl.DatabaseDurationNano / 1000000.0 AS DECIMAL(18,2)) AS ExecutionMs,
     tl.RowFetchCount,
-    'SLOW SQL: Execution > 5 seconds' AS PatternDescription
-FROM dbo.TraceLines tl
+    'SLOW SQL: Execution > 5 seconds' AS PatternDescription,
+    tl.StoredDurationUnit
+FROM dbo.vw_UnitAwareTraceLines tl
 INNER JOIN dbo.UserSessionProcessThreads uspt 
     ON tl.UserSessionProcessThreadId = uspt.UserSessionProcessThreadId
 LEFT JOIN dbo.MethodNames mn ON tl.MethodHash = mn.MethodHash
@@ -256,13 +267,14 @@ SELECT
     CAST(SUM(tl.ExclusiveDurationNano) / 1000000.0 AS DECIMAL(18,2)) AS TotalExclusiveMs,
     CAST(AVG(tl.InclusiveDurationNano) / 1000000.0 AS DECIMAL(18,4)) AS AvgInclusiveMs,
     SUM(tl.DatabaseCalls) AS TotalDbCalls,
-    CAST(SUM(tl.DatabaseDurationNano) / 1000000.0 AS DECIMAL(18,2)) AS TotalDbMs
-FROM dbo.TraceLines tl
+    CAST(SUM(tl.DatabaseDurationNano) / 1000000.0 AS DECIMAL(18,2)) AS TotalDbMs,
+    tl.StoredDurationUnit
+FROM dbo.vw_UnitAwareTraceLines tl
 INNER JOIN dbo.UserSessionProcessThreads uspt 
     ON tl.UserSessionProcessThreadId = uspt.UserSessionProcessThreadId
 LEFT JOIN dbo.MethodNames mn ON tl.MethodHash = mn.MethodHash
 WHERE mn.Name IS NOT NULL
-GROUP BY uspt.SessionId, uspt.TraceId, mn.Name;
+GROUP BY uspt.SessionId, uspt.TraceId, mn.Name, tl.StoredDurationUnit;
 GO
 
 PRINT '  ✓ vw_TopMethodsBySession created';

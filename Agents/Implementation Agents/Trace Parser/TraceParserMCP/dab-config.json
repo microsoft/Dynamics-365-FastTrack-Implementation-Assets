@@ -145,10 +145,11 @@
       ]
     },
     "TraceLines": {
-      "description": "Main call-tree data. Duration columns are named Nano and views assume nanoseconds (/1000000 for ms), but the sample C#/PowerShell importers store 100ns ticks in them. Verify per-import provenance before interpreting duration or changing units. TimeStamp fields are separate FILETIME timestamps, not durations.",
+      "description": "Call-tree data. Nano duration fields are normalized nanoseconds only for recorded safe-import-v1 (stored 100ns ticks), safe-import-v2 or ps-import-v2 (stored ns); unknown provenance returns NULL durations. Stored* fields preserve original values and negative sentinel codes; inspect StoredDurationUnit. FILETIME timestamps remain 100ns ticks, never durations.",
       "source": {
-        "object": "dbo.TraceLines",
-        "type": "table"
+        "object": "dbo.vw_UnitAwareTraceLines",
+        "type": "view",
+        "key-fields": ["TraceLineId"]
       },
       "graphql": {
         "enabled": true,
@@ -253,10 +254,11 @@
       ]
     },
     "TopMethods": {
-      "description": "Pre-aggregated top methods by performance.",
+      "description": "Legacy/native TopMethods durations are UNCLASSIFIED: normalized InclusiveTotal/ExclusiveTotal are NULL, originals are Stored* fields. Only ps-import-v2 with both endpoints in the same trace proves nanoseconds. The Function does not generate this table. Inspect StoredDurationUnit; prefer TopMethodsBySession.",
       "source": {
-        "object": "dbo.TopMethods",
-        "type": "table"
+        "object": "dbo.vw_TopMethodsWithUnits",
+        "type": "view",
+        "key-fields": ["Id"]
       },
       "graphql": {
         "enabled": true,
@@ -311,7 +313,7 @@
       ]
     },
     "SessionMetrics": {
-      "description": "Session metrics keyed by TraceId and SessionId. DB totals count recorded SQL execution rows, not inclusive ancestor counters. Times in MILLISECONDS assuming nanosecond input; legacy importer unit provenance must be verified.",
+      "description": "Physical session metrics keyed by TraceId and SessionId; no raw full scan. sql-execution-v2 counts SQL execution DB work once with normalized MILLISECONDS. Legacy aggregates retain counts but duration/DB totals are NULL because their old grain cannot be repaired by unit conversion. Negative/missing durations also make totals NULL, preserving valid DB counts. Inspect AggregationVersion, DurationStatus and StoredDurationUnit; NULL is uncertainty, never zero.",
       "source": {
         "object": "dbo.vw_SessionMetrics",
         "type": "view",
@@ -342,7 +344,7 @@
       ]
     },
     "TraceLineDetails": {
-      "description": "TraceLines with method names and SQL resolved. Ms fields divide raw duration columns by 1000000 and are accurate only for nanosecond input. Verify legacy importer units.",
+      "description": "TraceLines with method names and SQL resolved. Ms fields are normalized MILLISECONDS for proven versioned importers; NULL for unclassified historical units. Inspect StoredDurationUnit. Negative raw sentinel codes are not elapsed time.",
       "source": {
         "object": "dbo.vw_TraceLineDetails",
         "type": "view",
@@ -372,7 +374,7 @@
       ]
     },
     "NPlusOnePatterns": {
-      "description": "N+1 call-context candidates: >100 inclusive DB calls, <5ms avg. Suppresses callers whose immediate child accounts for identical DB work; preserves distinct executions, threads and sessions. Do not sum these inclusive counters. Threshold assumes nanosecond input; verify legacy importer unit provenance.",
+      "description": "N+1 contexts: >100 inclusive DB calls, <5 normalized ms avg, proven units only. Unknown durations and negative sentinels are excluded (absence is NOT proof of no issue). Suppresses callers whose immediate child accounts for identical DB work; preserves distinct executions/threads/sessions. Do not sum overlapping context counters.",
       "source": {
         "object": "dbo.vw_NPlusOnePatterns",
         "type": "view",
@@ -402,7 +404,7 @@
       ]
     },
     "SlowSqlStatements": {
-      "description": "SQL statements with full text and raw DatabaseDurationNano >5000000000. This means >5 seconds only for nanosecond input; verify importer units.",
+      "description": "SQL statements with full text and proven normalized DB duration >5000ms. Unknown units are excluded, not certified fast. Inspect trace provenance before interpreting an empty result.",
       "source": {
         "object": "dbo.vw_SlowSqlStatements",
         "type": "view",
@@ -432,7 +434,7 @@
       ]
     },
     "TopMethodsBySession": {
-      "description": "Method performance aggregated by trace and session. Inclusive durations and DB counters can overlap across nested/recursive calls; do not sum them as a session total. Ms conversion assumes nanosecond input.",
+      "description": "Physical method aggregates with normalized ms for proven units, NULL otherwise. Old values retain rounding: TotalPrecisionMs is 1ms for v1 legacy totals, 0.01ms for new aggregates. Inspect AggregationVersion/StoredDurationUnit. Inclusive durations and DB counters overlap across nested calls; never sum as a session total.",
       "source": {
         "object": "dbo.vw_TopMethodsBySession",
         "type": "view",

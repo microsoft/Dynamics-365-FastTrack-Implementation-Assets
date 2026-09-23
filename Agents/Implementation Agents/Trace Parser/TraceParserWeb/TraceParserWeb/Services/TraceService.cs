@@ -12,6 +12,7 @@ public class TraceDto
     public DateTime? TimeStampBegin { get; set; }
     public DateTime? TimeStampEnd { get; set; }
     public string? TraceParserVersion { get; set; }
+    public bool HasKnownDurationUnits => TraceParserVersion is "safe-import-v1" or "safe-import-v2" or "ps-import-v2";
 }
 
 public class SessionMetricDto
@@ -19,10 +20,10 @@ public class SessionMetricDto
     public int SessionId { get; set; }
     public int TraceId { get; set; }
     public int TotalTraceLines { get; set; }
-    public int RootCalls { get; set; }
-    public decimal TotalDurationMs { get; set; }
-    public decimal TotalDatabaseMs { get; set; }
-    public int TotalDatabaseCalls { get; set; }
+    public int? RootCalls { get; set; }
+    public decimal? TotalDurationMs { get; set; }
+    public decimal? TotalDatabaseMs { get; set; }
+    public int? TotalDatabaseCalls { get; set; }
     public long TotalRpcCalls { get; set; }
     public int TotalRowsFetched { get; set; }
 }
@@ -31,9 +32,9 @@ public class TraceStats
 {
     public int SessionCount { get; set; }
     public long TotalTraceLines { get; set; }
-    public decimal TotalDurationMs { get; set; }
-    public decimal TotalDatabaseMs { get; set; }
-    public long TotalDatabaseCalls { get; set; }
+    public decimal? TotalDurationMs { get; set; } = 0;
+    public decimal? TotalDatabaseMs { get; set; } = 0;
+    public long? TotalDatabaseCalls { get; set; } = 0;
 }
 
 public class TraceService(IHttpClientFactory httpFactory, ILogger<TraceService> logger,
@@ -76,7 +77,7 @@ public class TraceService(IHttpClientFactory httpFactory, ILogger<TraceService> 
         var byTrace = new Dictionary<int, TraceStats>();
         var sessions = new HashSet<(int TraceId, int SessionId)>();
         await foreach (var item in ReadAllRowsAsync(http,
-            "/api/SessionMetrics?$select=TraceId,SessionId,TotalTraceLines,RootCalls,TotalDurationMs,TotalDatabaseMs,TotalDatabaseCalls&$orderby=TraceId,SessionId",
+            "/api/SessionMetrics?$select=TraceId,SessionId,TotalTraceLines,RootCalls,TotalDurationMs,TotalDatabaseMs,TotalDatabaseCalls,StoredDurationUnit,AggregationVersion,DurationStatus&$orderby=TraceId,SessionId",
             cts.Token))
         {
             var traceId = ReadId(item, "TraceId");
@@ -91,7 +92,9 @@ public class TraceService(IHttpClientFactory httpFactory, ILogger<TraceService> 
             stats.TotalTraceLines += ReadCount(item, "TotalTraceLines");
             stats.TotalDurationMs += ReadDuration(item, "TotalDurationMs");
             stats.TotalDatabaseMs += ReadDuration(item, "TotalDatabaseMs");
-            stats.TotalDatabaseCalls += ReadCount(item, "TotalDatabaseCalls");
+            stats.TotalDatabaseCalls += item.TryGetProperty("TotalDatabaseCalls", out var calls)
+                && calls.ValueKind == JsonValueKind.Null && HasUncertainMetrics(item)
+                    ? null : ReadCount(item, "TotalDatabaseCalls");
         }
 
         return byTrace;
@@ -201,13 +204,24 @@ public class TraceService(IHttpClientFactory httpFactory, ILogger<TraceService> 
         return value;
     }
 
-    static decimal ReadDuration(JsonElement row, string property)
+    static decimal? ReadDuration(JsonElement row, string property)
     {
+        if (row.TryGetProperty(property, out var nullable) && nullable.ValueKind == JsonValueKind.Null
+            && HasUncertainMetrics(row))
+            return null;
         if (!row.TryGetProperty(property, out var number) || number.ValueKind != JsonValueKind.Number
             || !number.TryGetDecimal(out var value))
             throw new JsonException("DAB returned an invalid statistics duration.");
         return value;
     }
+
+    static bool HasUncertainMetrics(JsonElement row) =>
+        (row.TryGetProperty("StoredDurationUnit", out var unit) && unit.ValueKind == JsonValueKind.String
+            && unit.GetString() == "unknown")
+        || (row.TryGetProperty("AggregationVersion", out var version) && version.ValueKind == JsonValueKind.String
+            && version.GetString() == "legacy-unverified")
+        || (row.TryGetProperty("DurationStatus", out var status) && status.ValueKind == JsonValueKind.String
+            && status.GetString() == "unknown-values");
 
     internal static int ReadId(JsonElement row, string property)
     {
