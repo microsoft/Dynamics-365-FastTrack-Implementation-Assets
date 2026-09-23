@@ -145,7 +145,7 @@
       ]
     },
     "TraceLines": {
-      "description": "Main trace data with call tree and timing. Times in NANOSECONDS - divide by 1000000 for ms.",
+      "description": "Main call-tree data. Duration columns are named Nano and views assume nanoseconds (/1000000 for ms), but the sample C#/PowerShell importers store 100ns ticks in them. Verify per-import provenance before interpreting duration or changing units. TimeStamp fields are separate FILETIME timestamps, not durations.",
       "source": {
         "object": "dbo.TraceLines",
         "type": "table"
@@ -285,6 +285,7 @@
         "object": "dbo.vw_SessionSummary",
         "type": "view",
         "key-fields": [
+          "TraceId",
           "SessionId"
         ]
       },
@@ -310,11 +311,12 @@
       ]
     },
     "SessionMetrics": {
-      "description": "Session with aggregated metrics. Times in MILLISECONDS.",
+      "description": "Session metrics keyed by TraceId and SessionId. DB totals count recorded SQL execution rows, not inclusive ancestor counters. Times in MILLISECONDS assuming nanosecond input; legacy importer unit provenance must be verified.",
       "source": {
         "object": "dbo.vw_SessionMetrics",
         "type": "view",
         "key-fields": [
+          "TraceId",
           "SessionId"
         ]
       },
@@ -340,7 +342,7 @@
       ]
     },
     "TraceLineDetails": {
-      "description": "TraceLines with method names and SQL resolved. Times in MILLISECONDS.",
+      "description": "TraceLines with method names and SQL resolved. Ms fields divide raw duration columns by 1000000 and are accurate only for nanosecond input. Verify legacy importer units.",
       "source": {
         "object": "dbo.vw_TraceLineDetails",
         "type": "view",
@@ -370,7 +372,7 @@
       ]
     },
     "NPlusOnePatterns": {
-      "description": "N+1 query pattern candidates: >100 DB calls, <5ms avg.",
+      "description": "N+1 call-context candidates: >100 inclusive DB calls, <5ms avg. Suppresses callers whose immediate child accounts for identical DB work; preserves distinct executions, threads and sessions. Do not sum these inclusive counters. Threshold assumes nanosecond input; verify legacy importer unit provenance.",
       "source": {
         "object": "dbo.vw_NPlusOnePatterns",
         "type": "view",
@@ -400,7 +402,7 @@
       ]
     },
     "SlowSqlStatements": {
-      "description": "SQL statements >5 seconds with full text.",
+      "description": "SQL statements with full text and raw DatabaseDurationNano >5000000000. This means >5 seconds only for nanosecond input; verify importer units.",
       "source": {
         "object": "dbo.vw_SlowSqlStatements",
         "type": "view",
@@ -430,11 +432,12 @@
       ]
     },
     "TopMethodsBySession": {
-      "description": "Method performance aggregated by session.",
+      "description": "Method performance aggregated by trace and session. Inclusive durations and DB counters can overlap across nested/recursive calls; do not sum them as a session total. Ms conversion assumes nanosecond input.",
       "source": {
         "object": "dbo.vw_TopMethodsBySession",
         "type": "view",
         "key-fields": [
+          "TraceId",
           "SessionId",
           "MethodName"
         ]

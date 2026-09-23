@@ -10,15 +10,19 @@ using TraceParserFunction;
 // This executable intentionally accepts no connection string or database argument.
 var runLarge=false;
 var lockOrderOnly=false;
+var analysisOnly=false;
 string? etlFixture=null;
 for(var arg=0;arg<args.Length;arg++)
 {
     if(args[arg]=="--large" && !runLarge) runLarge=true;
     else if(args[arg]=="--lock-order" && !lockOrderOnly) lockOrderOnly=true;
+    else if(args[arg]=="--analysis-only" && !analysisOnly) analysisOnly=true;
     else if(args[arg]=="--etl-fixture" && etlFixture is null && arg+1<args.Length)
         etlFixture=Path.GetFullPath(args[++arg]);
-    else throw new ArgumentException("Only --large, --lock-order and --etl-fixture <approved synthetic ETL> are supported; connection overrides are prohibited.");
+    else throw new ArgumentException("Only --large, --lock-order, --analysis-only and --etl-fixture <approved synthetic ETL> are supported; connection overrides are prohibited.");
 }
+if (analysisOnly && (runLarge || lockOrderOnly))
+    throw new ArgumentException("--analysis-only cannot be combined with --large or --lock-order.");
 if(etlFixture is not null && (!File.Exists(etlFixture) ||
     Path.GetFileName(etlFixture) is not ("synthetic-small.etl" or "synthetic-large.etl" or "synthetic-near-limit.etl")))
     throw new ArgumentException("Use an approved synthetic-small.etl, synthetic-large.etl or synthetic-near-limit.etl fixture; no customer ETL.");
@@ -60,11 +64,19 @@ try
         await Exec(setup,await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory,"durable-deletion.sql")));
         await Exec(setup,await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory,"sp_DeleteTrace.sql")));
     }
-    if(!lockOrderOnly) await RunChecks();
-    foreach(var snapshot in new[]{false,true})
+    if (analysisOnly)
     {
-        await Exec(master,$"ALTER DATABASE [{database}] SET READ_COMMITTED_SNAPSHOT {(snapshot?"ON":"OFF")};");
-        await LockOrderChecks(snapshot);
+        await using var analysis = await Open();
+        checks += await AnalysisChecks.RunAsync(analysis, etlFixture);
+    }
+    else
+    {
+        if(!lockOrderOnly) await RunChecks();
+        foreach(var snapshot in new[]{false,true})
+        {
+            await Exec(master,$"ALTER DATABASE [{database}] SET READ_COMMITTED_SNAPSHOT {(snapshot?"ON":"OFF")};");
+            await LockOrderChecks(snapshot);
+        }
     }
     Console.WriteLine($"PASS {checks} protocol checks. Fixture={database}");
 }

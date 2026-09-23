@@ -131,7 +131,7 @@ builder.Services.AddHttpClient("dab", client =>
     var dabUrl = builder.Configuration["EtlImport:DabBaseUrl"] ?? "";
     if (!string.IsNullOrEmpty(dabUrl))
         client.BaseAddress = new Uri(dabUrl);
-});
+}).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 
 var app = builder.Build();
 

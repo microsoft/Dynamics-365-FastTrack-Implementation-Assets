@@ -13,6 +13,46 @@ Import status continues to use its own checks; deletion stays disabled while sta
 is unknown. A trace-metadata failure has a separate **Retry trace list** action.
 Navigating away cancels pending list, statistics and status reads, not durable jobs.
 
+List and statistics reads follow DAB `nextLink` continuations, preserving opaque
+`$after` tokens. Relative and absolute links must remain on the original origin and
+entity; redirects, repeated pages/identities and malformed responses fail explicitly.
+Each complete read has one 10-second budget, at most 1,000 pages/100,000 rows and
+16 MiB per response. Hitting a limit or failing a later page never returns partial
+totals. Statistics retry starts a fresh read. Concurrent database changes can still
+span different page snapshots; this is not a transactionally consistent snapshot.
+The single-row import-status probes intentionally do not enumerate additional pages.
+
+## Analytical correctness validation (local; rollout requires separate approval)
+
+`tests\TraceParserWeb.RegressionTests` covers multipage metadata/statistics,
+same-origin cursor handling, cancellation, whole-read timeout, failure/retry and
+bounded pagination. The existing Function protocol runner additionally supports:
+
+```powershell
+dotnet run --project tests\TraceParserFunction.ProtocolTests -- --analysis-only --etl-fixture <approved-synthetic-small.etl>
+```
+
+This creates and removes only a uniquely named database on the dedicated
+`(localdb)\TPImporterTests_c100bb02` instance. The optional ETL must match the pinned
+synthetic fixture SHA-256, not merely its filename. Without it, only SQL view and
+DAB-key checks run. No new testing framework is needed.
+
+**Known duration defect, deliberately not converted yet:** the genuine ETL fixture
+has an independently decoded 80 ms outer call, but the frozen C# parser stores
+800,000 in `InclusiveDurationNano`; the view reports 0.8 ms. The SQL seconds payload
+similarly yields 10,000 for 1 ms preparation. The test explicitly characterizes this
+100x mismatch; it does **not** certify correct durations. Timestamp FILETIMEs are
+100 ns units and must not be multiplied alongside duration fields.
+
+Changing output units in-place would change staged payload fingerprints on retries
+and allow mixed provenance under the existing `safe-import-v1` marker. First approve
+an import-version/replay cutover strategy (including Parsing/Ready/Promoting receipts
+and the PowerShell path), then correct newly versioned imports. Historical traces
+must remain untouched unless separately classified and approved for migration.
+No duration parser, importer/deletion procedure, materialized aggregation procedure,
+existing receipt or historical trace is changed by this local analytical candidate.
+See the MCP README for the view grain and deployment boundaries.
+
 ## Durable background deletion (local implementation; disabled by default)
 
 The existing net8 isolated Premium Function app now has `DeleteTraceJobs`, a monitored

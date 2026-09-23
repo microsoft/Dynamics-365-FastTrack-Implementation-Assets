@@ -471,7 +471,7 @@ sealed class StatusRenderer(IServiceProvider services) : Renderer(services, Null
 
 sealed class TraceListHttp : HttpMessageHandler, IHttpClientFactory
 {
-    public const string Metrics = """{"value":[{"TraceId":42,"TotalTraceLines":12,"TotalDurationMs":100,"TotalDatabaseMs":20,"TotalDatabaseCalls":3}]}""";
+    public const string Metrics = """{"value":[{"TraceId":42,"SessionId":1,"TotalTraceLines":12,"TotalDurationMs":100,"TotalDatabaseMs":20,"TotalDatabaseCalls":3}]}""";
     public string TraceBody { get; set; } = """{"value":[{"TraceId":42,"TraceName":"synthetic visible trace"}]}""";
     public string StatsBody { get; set; } = Metrics;
     public string FilteredMetricsBody { get; set; } = """{"value":[{"TraceId":42}]}""";

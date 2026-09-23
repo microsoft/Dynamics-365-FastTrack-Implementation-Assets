@@ -50,6 +50,50 @@ The Large Language Model (LLM) used with this MCP server is **entirely customer-
 - **Read-only access.** Tables and views allow reads only. Procedure execution is limited to the four read-only keyword searches; trace deletion is not exposed by DAB.
 - **View-based analysis thresholds are fixed.** Analytical views (e.g., N+1 pattern detection at >100 DB calls, slow SQL at >5 seconds) use hardcoded thresholds that may not suit all scenarios.
 
+### Duration provenance, call grain and pagination
+
+**Do not infer units from column names.** The sample C# and PowerShell parsers put
+100 ns .NET ticks into fields named `*DurationNano`. A genuine, synthetic ETL with an
+80 ms call produces 800,000 in that field and 0.8 in the view's `/1000000` result:
+100x too small. SQL provider payloads explicitly named `*TimeSeconds` have the same
+storage mismatch. This does not establish units for historical native Trace Parser
+imports. `TimeStamp`/`TimeStampEnd` are separate FILETIME timestamps; their units
+must never be changed with duration fields. Current view thresholds/conversions are
+valid for nanosecond-provenance input only. No historical rescale is supplied.
+
+The local analytical candidate preserves the existing `TraceLineId` N+1 key and
+strict `DatabaseCalls > 100`, average `< 5 ms` threshold. A caller is suppressed
+only when its immediate child, in the **same thread**, has identical inclusive DB
+count and duration. This collapses redundant call-chain wrappers without merging
+independent repeated invocations, methods, threads or sessions. The retained row
+includes thread, sequence and parent sequence; use `TraceLineDetails` to inspect
+its ancestors. Callers with additional DB work remain separate candidates. These
+are overlapping **call contexts**, not disjoint query groups: do not sum candidate
+DB counts. Negative duration sentinels do not qualify as fast calls.
+
+`vw_SessionMetrics` counts recorded SQL execution rows (`CallTypeId=64`) for DB
+totals, rather than repeatedly adding their inclusive method ancestors. A controlled
+fixture with 36 ancestors and 101 SQL executions reproduces 3,737 summed calls
+(37:1); the corrected total is 101 and its single-work chain has one N+1 candidate.
+Session joins and DAB keys include `TraceId` as well as `SessionId`. Empty threads
+produce zero metrics, not a synthetic root/null totals. Root calls accept both NULL
+and zero parent sentinels. Method-level/RPC inclusive counters remain nonadditive.
+
+REST collection consumers must follow the returned `nextLink` (opaque `$after`),
+not assume the first page is complete or substitute unsupported `$top`. DAB's
+documented default page size is 100. Composite keys also matter to GraphQL/MCP
+continuation. See Microsoft Learn: [REST first](https://learn.microsoft.com/en-us/azure/data-api-builder/keywords/first-rest)
+and [REST after](https://learn.microsoft.com/en-us/azure/data-api-builder/keywords/after-rest).
+
+**Rollout boundary:** these are local view/config/web changes, not a production
+migration. If a deployment substitutes materialized `SessionMetrics` or
+`TopMethodsBySession` for source views, reconcile the actual definitions and its
+`sp_PopulateSessionAggregations` separately; this candidate does not alter that
+procedure or rebuild existing rows. Do not blindly execute the entire view script
+over such a deployment. Duration ingestion remains blocked on an explicitly
+versioned importer/replay strategy; leave existing importer/deletion fingerprints,
+receipt semantics and historical data unchanged.
+
 ### Disclaimers
 
 - AI-generated trace analysis is provided for **informational purposes only** and should not be treated as definitive performance diagnostics
