@@ -8,11 +8,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using TraceParserWeb.Services;
 
 internal static class EndpointChecks
 {
-    public static async Task<int> Run(RegisteredImportService imports, string tenant, Guid id, Func<int> calls)
+    public static async Task<int> Run(RegisteredImportService imports, string tenant, Guid id, Func<int> calls, IConfiguration configuration)
     {
         var antiforgery=new ProbeAntiforgery();
         using var provider=new ServiceCollection().AddLogging().AddRouting()
@@ -36,6 +37,14 @@ internal static class EndpointChecks
         Check(await Invoke(post,User(tenant),"POST")==200 && calls()==before+1,
             "Authenticated tenant/antiforgery request did not register exactly once");
         Check(await Invoke(get,User(tenant),"GET")==200,"Authenticated HTTP status failed");
+        configuration["UploadAdmission:Hold"]="true";
+        before=calls();
+        Check(await Invoke(post,User(tenant),"POST")==503,"held HTTP registration must explicitly return temporary unavailable");
+        Check(calls()==before,"held HTTP request reached SQL/store");
+        Check(await Invoke(post,User(Guid.NewGuid().ToString()),"POST")==403,"hold must not bypass tenant checks");
+        Check(await Invoke(get,User(tenant),"GET")==200,"held HTTP receipt status must remain available");
+        configuration["UploadAdmission:Hold"]=null;
+        Check(await Invoke(post,User(tenant),"POST")==200,"restored HTTP admission failed");
         return passed;
 
         ClaimsPrincipal User(string tid)=>new(new ClaimsIdentity([new Claim("tid",tid)],"synthetic"));
@@ -57,6 +66,13 @@ internal static class EndpointChecks
                 context.Request.Body=new MemoryStream(bytes);
             }
             await endpoint.RequestDelegate!(context);
+            if(context.Response.StatusCode==503)
+            {
+                if(context.Response.Headers.RetryAfter!="60")throw new Exception("Held response has no retry guidance");
+                context.Response.Body.Position=0;
+                var body=await new StreamReader(context.Response.Body).ReadToEndAsync();
+                if(!body.Contains("temporarily unavailable"))throw new Exception("Hold response hid the maintenance condition");
+            }
             if(context.Response.Headers.CacheControl!="no-store")throw new Exception("Private HTTP response is cacheable");
             return context.Response.StatusCode;
         }

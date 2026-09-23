@@ -24,6 +24,29 @@ The single-row import-status probes intentionally do not enumerate additional pa
 
 ## Analytical correctness validation (local; rollout requires separate approval)
 
+### Coordinated cutover upload admission
+
+`UploadAdmission__Hold=true` (configuration key `UploadAdmission:Hold`) temporarily
+rejects **new** registrations at the shared service, before SQL registration,
+storage client construction or SAS signing. Default/absent is false. Both HTTP
+(503 with Retry-After) and Blazor (disabled upload button and explicit maintenance
+message) retain tenant/authentication checks. Status, reads, deletion and existing
+worker/retry paths are not gated. App Service environment changes require a brief
+restart; drain/check actual work before each restart, not just before deployment.
+
+The hold has **no automatic expiry**. It does not revoke issued two-hour SAS URLs,
+drain pending Registered receipts, or fence external/legacy importers. Include all
+nonterminal receipts, current Function lifecycle, SQL activity and active deletion
+leases in quiet checks. Preserve and restore the exact prior setting (including
+absence) only after verified cutover and acceptance.
+
+Bootstrap the nullable-aware web with the hold already configured against old
+SQL/DAB. Then commit the guarded SQL/readers migration, refresh DAB, and install
+the v2-capable worker before allowing any v2 registration. Never run the new worker
+against old SQL parameters. After SQL commit, retain compatible web/worker/readers
+and hold admission on failure; old package snapshots are not generic rollback.
+Unknown outcomes require independent reconciliation, not replay.
+
 `tests\TraceParserWeb.RegressionTests` covers multipage metadata/statistics,
 same-origin cursor handling, cancellation, whole-read timeout, failure/retry and
 bounded pagination. The existing Function protocol runner additionally supports:

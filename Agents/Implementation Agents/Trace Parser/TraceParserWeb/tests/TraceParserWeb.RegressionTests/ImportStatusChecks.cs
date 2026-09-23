@@ -212,6 +212,25 @@ static class ImportStatusChecks
         }
         {
             var page=new UploadPage();
+            var config=new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?>
+                { ["UploadAdmission:Hold"]="true" }).Build();
+            using var http=new StatusHttp(Empty);
+            Set(page,"Imports",new RegisteredImportService(new PollingImportStore(http),
+                new ProbeAuthentication(new ClaimsPrincipal()),config,Options.Create(new EtlImportOptions())));
+            using var builder=new RenderTreeBuilder();
+            Invoke(page,"BuildRenderTree",builder);
+            var frames=builder.GetFrames();
+            var text=string.Concat(frames.Array.Take(frames.Count).Where(f=>f.FrameType==RenderTreeFrameType.Text).Select(f=>f.TextContent));
+            Check(text.Contains("temporarily unavailable") && text.Contains("Existing imports"),
+                "Held upload UI must explain temporary unavailability without implying active work is paused");
+            Check(frames.Array.Take(frames.Count).Any(f=>f.FrameType==RenderTreeFrameType.Attribute
+                && f.AttributeName=="disabled" && Equals(f.AttributeValue,true)),"Held upload button is not disabled");
+            page.Dispose();
+            Check((bool)Get(page,"_disposed")!,"Held upload page disposal failed");
+            passed+=3;
+        }
+        {
+            var page=new UploadPage();
             Set(page,"_isProcessing",true);
             Set(page,"Busy",true);
             using var timer=new System.Threading.Timer(_=>{},null,Timeout.Infinite,Timeout.Infinite);
@@ -310,6 +329,17 @@ static class ImportStatusChecks
             Check(!Text(page).Contains("Retry statistics") && Text(page).Contains("synthetic visible trace"),
                 "Expected duration uncertainty is not an API outage");
             page.Dispose(); passed+=2;
+        }
+        using(var http=new TraceListHttp())
+        {
+            var page=Page(http);
+            await using var renderer=new StatusRenderer(provider);
+            await renderer.Dispatcher.InvokeAsync(()=>renderer.Attach(page));
+            await Call(renderer,page,"LoadTraces");
+            var stats=((Dictionary<int,TraceStats>)Get(page,"_traceStats")!)[42];
+            Check(stats.TotalDurationMs==100 && !Text(page).Contains("Duration/DB totals uncertain")
+                && Get(page,"_statsError") is null,"Nullable-aware held web must accept pre-migration numeric DAB shape");
+            page.Dispose();passed++;
         }
         foreach (var blockTraces in new[] { false, true })
         {

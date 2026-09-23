@@ -11,6 +11,11 @@ namespace TraceParserWeb.Services;
 public sealed record RegisteredUpload(Guid ImportId, string SasUrl, string FileName);
 public sealed record DurableImportStatus(Guid ImportId, int? TraceId, string Phase, bool RetryableFailure);
 
+public sealed class UploadAdmissionHeldException() : InvalidOperationException(MessageText)
+{
+    public const string MessageText = "New uploads are temporarily unavailable during maintenance. Existing imports, receipt status and trace access remain available. Please try again later.";
+}
+
 public interface IRegisteredImportStore
 {
     Task RegisterAsync(Guid id, string account, string container, string blobName, string session, CancellationToken ct);
@@ -68,6 +73,10 @@ public sealed class RegisteredImportService(
     IConfiguration configuration,
     IOptions<EtlImportOptions> options)
 {
+    // No expiry: an interrupted cutover must never reopen admission automatically.
+    // This does not revoke previously issued SAS URLs or stop existing imports.
+    public bool AdmissionHeld => configuration.GetValue<bool>("UploadAdmission:Hold");
+
     public async Task<RegisteredUpload> RegisterAsync(string session, string fileName, CancellationToken ct = default)
         => await RegisterAsync((await authentication.GetAuthenticationStateAsync()).User, session, fileName, ct);
 
@@ -75,6 +84,7 @@ public sealed class RegisteredImportService(
     {
         RequireTenant(user);
         ct.ThrowIfCancellationRequested();
+        if (AdmissionHeld) throw new UploadAdmissionHeldException();
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(fileName);
         session = session.Trim();
