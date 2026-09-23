@@ -551,6 +551,10 @@ sealed class TraceListHttp : HttpMessageHandler, IHttpClientFactory
         }
         else if (path == "/api/SessionMetrics" && !request.RequestUri.Query.Contains("$filter"))
         {
+            Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(request.RequestUri.Query).TryGetValue("$select",out var projection);
+            var select=projection.ToString();
+            if(select.Split(',').Any(column=>column is "StoredDurationUnit" or "AggregationVersion" or "DurationStatus"))
+                return new(HttpStatusCode.BadRequest) { Content=new StringContent("Column absent from pre-cutover DAB schema") };
             StatsRequests++;
             StatsStarted.TrySetResult();
             if (BlockStats) await Task.Delay(Timeout.Infinite, ct);

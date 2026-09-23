@@ -76,8 +76,10 @@ public class TraceService(IHttpClientFactory httpFactory, ILogger<TraceService> 
         using var http = httpFactory.CreateClient("dab");
         var byTrace = new Dictionary<int, TraceStats>();
         var sessions = new HashSet<(int TraceId, int SessionId)>();
+        // Optional provenance columns do not exist in the pre-cutover DAB schema.
+        // Reading its bounded metadata rows without a projection supports both shapes.
         await foreach (var item in ReadAllRowsAsync(http,
-            "/api/SessionMetrics?$select=TraceId,SessionId,TotalTraceLines,RootCalls,TotalDurationMs,TotalDatabaseMs,TotalDatabaseCalls,StoredDurationUnit,AggregationVersion,DurationStatus&$orderby=TraceId,SessionId",
+            "/api/SessionMetrics?$orderby=TraceId,SessionId",
             cts.Token))
         {
             var traceId = ReadId(item, "TraceId");
