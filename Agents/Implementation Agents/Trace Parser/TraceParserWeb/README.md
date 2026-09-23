@@ -2,6 +2,17 @@
 
 Blazor Server web app + Azure Function for uploading and importing D365 ETL traces.
 
+## Trace-list availability
+
+The trace list renders as soon as trace metadata loads, independently of optional
+statistics. A statistics timeout, HTTP failure or malformed response shows an
+explicit warning and a **Retry statistics** button, not an empty list or fabricated
+zero counts. Failed refreshes hide old statistics rather than presenting them as
+current. Retrying statistics does not reload trace metadata or modify trace data.
+Import status continues to use its own checks; deletion stays disabled while status
+is unknown. A trace-metadata failure has a separate **Retry trace list** action.
+Navigating away cancels pending list, statistics and status reads, not durable jobs.
+
 ## Durable background deletion (local implementation; disabled by default)
 
 The existing net8 isolated Premium Function app now has `DeleteTraceJobs`, a monitored

@@ -43,26 +43,23 @@ public class TraceService(IHttpClientFactory httpFactory, ILogger<TraceService> 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         cts.CancelAfter(TimeSpan.FromSeconds(10));
 
-        var http = httpFactory.CreateClient("dab");
+        using var http = httpFactory.CreateClient("dab");
         var resp = await http.GetFromJsonAsync<JsonElement>("/api/Traces?$orderby=TraceId desc", cts.Token);
 
         var traces = new List<TraceDto>();
-        if (resp.TryGetProperty("value", out var arr))
+        foreach (var item in ReadRows(resp).EnumerateArray())
         {
-            foreach (var item in arr.EnumerateArray())
+            traces.Add(new TraceDto
             {
-                traces.Add(new TraceDto
-                {
-                    TraceId = item.GetProperty("TraceId").GetInt32(),
-                    TraceName = item.GetProperty("TraceName").GetString() ?? "",
-                    TraceFile = item.TryGetProperty("TraceFile", out var tf) ? tf.GetString() ?? "" : "",
-                    TimeStampBegin = item.TryGetProperty("TimeStampBegin", out var tsb) && tsb.ValueKind != JsonValueKind.Null
-                        ? tsb.GetDateTime() : null,
-                    TimeStampEnd = item.TryGetProperty("TimeStampEnd", out var tse) && tse.ValueKind != JsonValueKind.Null
-                        ? tse.GetDateTime() : null,
-                    TraceParserVersion = item.TryGetProperty("TraceParserVersion", out var v) ? v.GetString() : null
-                });
-            }
+                TraceId = ReadId(item, "TraceId"),
+                TraceName = item.GetProperty("TraceName").GetString() ?? "",
+                TraceFile = item.TryGetProperty("TraceFile", out var tf) ? tf.GetString() ?? "" : "",
+                TimeStampBegin = item.TryGetProperty("TimeStampBegin", out var tsb) && tsb.ValueKind != JsonValueKind.Null
+                    ? tsb.GetDateTime() : null,
+                TimeStampEnd = item.TryGetProperty("TimeStampEnd", out var tse) && tse.ValueKind != JsonValueKind.Null
+                    ? tse.GetDateTime() : null,
+                TraceParserVersion = item.TryGetProperty("TraceParserVersion", out var v) ? v.GetString() : null
+            });
         }
 
         return traces;
@@ -73,32 +70,25 @@ public class TraceService(IHttpClientFactory httpFactory, ILogger<TraceService> 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         cts.CancelAfter(TimeSpan.FromSeconds(10));
 
-        var http = httpFactory.CreateClient("dab");
+        using var http = httpFactory.CreateClient("dab");
         var resp = await http.GetFromJsonAsync<JsonElement>(
             "/api/SessionMetrics?$select=TraceId,TotalTraceLines,RootCalls,TotalDurationMs,TotalDatabaseMs,TotalDatabaseCalls",
             cts.Token);
 
         var byTrace = new Dictionary<int, TraceStats>();
-        if (resp.TryGetProperty("value", out var arr))
+        foreach (var item in ReadRows(resp).EnumerateArray())
         {
-            foreach (var item in arr.EnumerateArray())
+            var traceId = ReadId(item, "TraceId");
+            if (!byTrace.TryGetValue(traceId, out var stats))
             {
-                var traceId = item.GetProperty("TraceId").GetInt32();
-                if (!byTrace.TryGetValue(traceId, out var stats))
-                {
-                    stats = new TraceStats();
-                    byTrace[traceId] = stats;
-                }
-                stats.SessionCount++;
-                stats.TotalTraceLines += item.TryGetProperty("TotalTraceLines", out var tl) && tl.ValueKind == JsonValueKind.Number
-                    ? tl.GetInt32() : 0;
-                stats.TotalDurationMs += item.TryGetProperty("TotalDurationMs", out var td) && td.ValueKind == JsonValueKind.Number
-                    ? td.GetDecimal() : 0;
-                stats.TotalDatabaseMs += item.TryGetProperty("TotalDatabaseMs", out var db) && db.ValueKind == JsonValueKind.Number
-                    ? db.GetDecimal() : 0;
-                stats.TotalDatabaseCalls += item.TryGetProperty("TotalDatabaseCalls", out var dc) && dc.ValueKind == JsonValueKind.Number
-                    ? dc.GetInt32() : 0;
+                stats = new TraceStats();
+                byTrace[traceId] = stats;
             }
+            stats.SessionCount++;
+            stats.TotalTraceLines += ReadCount(item, "TotalTraceLines");
+            stats.TotalDurationMs += ReadDuration(item, "TotalDurationMs");
+            stats.TotalDatabaseMs += ReadDuration(item, "TotalDatabaseMs");
+            stats.TotalDatabaseCalls += ReadCount(item, "TotalDatabaseCalls");
         }
 
         return byTrace;
@@ -160,6 +150,22 @@ public class TraceService(IHttpClientFactory httpFactory, ILogger<TraceService> 
             || rows.ValueKind != JsonValueKind.Array)
             throw new JsonException("DAB returned an invalid row collection.");
         return rows;
+    }
+
+    static int ReadCount(JsonElement row, string property)
+    {
+        if (!row.TryGetProperty(property, out var number) || number.ValueKind != JsonValueKind.Number
+            || !number.TryGetInt32(out var value))
+            throw new JsonException("DAB returned an invalid statistics count.");
+        return value;
+    }
+
+    static decimal ReadDuration(JsonElement row, string property)
+    {
+        if (!row.TryGetProperty(property, out var number) || number.ValueKind != JsonValueKind.Number
+            || !number.TryGetDecimal(out var value))
+            throw new JsonException("DAB returned an invalid statistics duration.");
+        return value;
     }
 
     internal static int ReadId(JsonElement row, string property)
