@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace TraceParserWeb.Services;
@@ -11,6 +12,7 @@ public class TraceDto
     public DateTime? TimeStampBegin { get; set; }
     public DateTime? TimeStampEnd { get; set; }
     public string? TraceParserVersion { get; set; }
+    public bool HasKnownDurationUnits => TraceParserVersion is "safe-import-v1" or "safe-import-v2" or "ps-import-v2";
 }
 
 public class SessionMetricDto
@@ -18,10 +20,10 @@ public class SessionMetricDto
     public int SessionId { get; set; }
     public int TraceId { get; set; }
     public int TotalTraceLines { get; set; }
-    public int RootCalls { get; set; }
-    public decimal TotalDurationMs { get; set; }
-    public decimal TotalDatabaseMs { get; set; }
-    public int TotalDatabaseCalls { get; set; }
+    public int? RootCalls { get; set; }
+    public decimal? TotalDurationMs { get; set; }
+    public decimal? TotalDatabaseMs { get; set; }
+    public int? TotalDatabaseCalls { get; set; }
     public long TotalRpcCalls { get; set; }
     public int TotalRowsFetched { get; set; }
 }
@@ -30,9 +32,9 @@ public class TraceStats
 {
     public int SessionCount { get; set; }
     public long TotalTraceLines { get; set; }
-    public decimal TotalDurationMs { get; set; }
-    public decimal TotalDatabaseMs { get; set; }
-    public int TotalDatabaseCalls { get; set; }
+    public decimal? TotalDurationMs { get; set; } = 0;
+    public decimal? TotalDatabaseMs { get; set; } = 0;
+    public long? TotalDatabaseCalls { get; set; } = 0;
 }
 
 public class TraceService(IHttpClientFactory httpFactory, ILogger<TraceService> logger,
@@ -44,14 +46,15 @@ public class TraceService(IHttpClientFactory httpFactory, ILogger<TraceService> 
         cts.CancelAfter(TimeSpan.FromSeconds(10));
 
         using var http = httpFactory.CreateClient("dab");
-        var resp = await http.GetFromJsonAsync<JsonElement>("/api/Traces?$orderby=TraceId desc", cts.Token);
-
         var traces = new List<TraceDto>();
-        foreach (var item in ReadRows(resp).EnumerateArray())
+        var ids = new HashSet<int>();
+        await foreach (var item in ReadAllRowsAsync(http, "/api/Traces?$orderby=TraceId desc", cts.Token))
         {
+            var id = ReadId(item, "TraceId");
+            if (!ids.Add(id)) throw new JsonException("DAB returned a repeated trace.");
             traces.Add(new TraceDto
             {
-                TraceId = ReadId(item, "TraceId"),
+                TraceId = id,
                 TraceName = item.GetProperty("TraceName").GetString() ?? "",
                 TraceFile = item.TryGetProperty("TraceFile", out var tf) ? tf.GetString() ?? "" : "",
                 TimeStampBegin = item.TryGetProperty("TimeStampBegin", out var tsb) && tsb.ValueKind != JsonValueKind.Null
@@ -71,14 +74,17 @@ public class TraceService(IHttpClientFactory httpFactory, ILogger<TraceService> 
         cts.CancelAfter(TimeSpan.FromSeconds(10));
 
         using var http = httpFactory.CreateClient("dab");
-        var resp = await http.GetFromJsonAsync<JsonElement>(
-            "/api/SessionMetrics?$select=TraceId,TotalTraceLines,RootCalls,TotalDurationMs,TotalDatabaseMs,TotalDatabaseCalls",
-            cts.Token);
-
         var byTrace = new Dictionary<int, TraceStats>();
-        foreach (var item in ReadRows(resp).EnumerateArray())
+        var sessions = new HashSet<(int TraceId, int SessionId)>();
+        // Optional provenance columns do not exist in the pre-cutover DAB schema.
+        // Reading its bounded metadata rows without a projection supports both shapes.
+        await foreach (var item in ReadAllRowsAsync(http,
+            "/api/SessionMetrics?$orderby=TraceId,SessionId",
+            cts.Token))
         {
             var traceId = ReadId(item, "TraceId");
+            if (!sessions.Add((traceId, ReadId(item, "SessionId"))))
+                throw new JsonException("DAB returned repeated session metrics.");
             if (!byTrace.TryGetValue(traceId, out var stats))
             {
                 stats = new TraceStats();
@@ -88,10 +94,50 @@ public class TraceService(IHttpClientFactory httpFactory, ILogger<TraceService> 
             stats.TotalTraceLines += ReadCount(item, "TotalTraceLines");
             stats.TotalDurationMs += ReadDuration(item, "TotalDurationMs");
             stats.TotalDatabaseMs += ReadDuration(item, "TotalDatabaseMs");
-            stats.TotalDatabaseCalls += ReadCount(item, "TotalDatabaseCalls");
+            stats.TotalDatabaseCalls += item.TryGetProperty("TotalDatabaseCalls", out var calls)
+                && calls.ValueKind == JsonValueKind.Null && HasUncertainMetrics(item)
+                    ? null : ReadCount(item, "TotalDatabaseCalls");
         }
 
         return byTrace;
+    }
+
+    // DAB's nextLink is opaque: preserve its escaped cursor, but never leave this entity/origin.
+    private static async IAsyncEnumerable<JsonElement> ReadAllRowsAsync(HttpClient http, string path,
+        [EnumeratorCancellation] CancellationToken ct)
+    {
+        var initial = new Uri(http.BaseAddress ?? throw new InvalidOperationException("DAB URL is missing."), path);
+        var next = initial;
+        var visited = new HashSet<string>(StringComparer.Ordinal);
+        var rowCount = 0;
+        http.MaxResponseContentBufferSize = 16 * 1024 * 1024;
+        for (var page = 0; page < 1000; page++)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (!visited.Add(next.AbsoluteUri)) throw new JsonException("DAB pagination repeated a page.");
+            using var response = await http.GetAsync(next, ct);
+            response.EnsureSuccessStatusCode();
+            var document = await response.Content.ReadFromJsonAsync<JsonElement>(ct);
+            var rows = ReadRows(document);
+            rowCount = checked(rowCount + rows.GetArrayLength());
+            if (rowCount > 100_000) throw new JsonException("DAB pagination exceeded the row budget.");
+            foreach (var row in rows.EnumerateArray())
+            {
+                ct.ThrowIfCancellationRequested();
+                yield return row;
+            }
+
+            if (!document.TryGetProperty("nextLink", out var link) || link.ValueKind == JsonValueKind.Null)
+                yield break;
+            if (link.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(link.GetString())
+                || !Uri.TryCreate(next, link.GetString(), out var continuation)
+                || continuation.Scheme != initial.Scheme || continuation.Authority != initial.Authority
+                || continuation.UserInfo.Length != 0 || continuation.Fragment.Length != 0
+                || continuation.AbsolutePath != initial.AbsolutePath)
+                throw new JsonException("DAB returned an invalid continuation URL.");
+            next = continuation;
+        }
+        throw new JsonException("DAB pagination exceeded the page budget.");
     }
 
     public async Task<ImportStage> GetImportStageAsync(int traceId, CancellationToken ct = default)
@@ -160,13 +206,24 @@ public class TraceService(IHttpClientFactory httpFactory, ILogger<TraceService> 
         return value;
     }
 
-    static decimal ReadDuration(JsonElement row, string property)
+    static decimal? ReadDuration(JsonElement row, string property)
     {
+        if (row.TryGetProperty(property, out var nullable) && nullable.ValueKind == JsonValueKind.Null
+            && HasUncertainMetrics(row))
+            return null;
         if (!row.TryGetProperty(property, out var number) || number.ValueKind != JsonValueKind.Number
             || !number.TryGetDecimal(out var value))
             throw new JsonException("DAB returned an invalid statistics duration.");
         return value;
     }
+
+    static bool HasUncertainMetrics(JsonElement row) =>
+        (row.TryGetProperty("StoredDurationUnit", out var unit) && unit.ValueKind == JsonValueKind.String
+            && unit.GetString() == "unknown")
+        || (row.TryGetProperty("AggregationVersion", out var version) && version.ValueKind == JsonValueKind.String
+            && version.GetString() == "legacy-unverified")
+        || (row.TryGetProperty("DurationStatus", out var status) && status.ValueKind == JsonValueKind.String
+            && status.GetString() == "unknown-values");
 
     internal static int ReadId(JsonElement row, string property)
     {

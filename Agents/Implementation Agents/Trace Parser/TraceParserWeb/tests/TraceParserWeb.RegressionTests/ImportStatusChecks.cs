@@ -212,6 +212,25 @@ static class ImportStatusChecks
         }
         {
             var page=new UploadPage();
+            var config=new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?>
+                { ["UploadAdmission:Hold"]="true" }).Build();
+            using var http=new StatusHttp(Empty);
+            Set(page,"Imports",new RegisteredImportService(new PollingImportStore(http),
+                new ProbeAuthentication(new ClaimsPrincipal()),config,Options.Create(new EtlImportOptions())));
+            using var builder=new RenderTreeBuilder();
+            Invoke(page,"BuildRenderTree",builder);
+            var frames=builder.GetFrames();
+            var text=string.Concat(frames.Array.Take(frames.Count).Where(f=>f.FrameType==RenderTreeFrameType.Text).Select(f=>f.TextContent));
+            Check(text.Contains("temporarily unavailable") && text.Contains("Existing imports"),
+                "Held upload UI must explain temporary unavailability without implying active work is paused");
+            Check(frames.Array.Take(frames.Count).Any(f=>f.FrameType==RenderTreeFrameType.Attribute
+                && f.AttributeName=="disabled" && Equals(f.AttributeValue,true)),"Held upload button is not disabled");
+            page.Dispose();
+            Check((bool)Get(page,"_disposed")!,"Held upload page disposal failed");
+            passed+=3;
+        }
+        {
+            var page=new UploadPage();
             Set(page,"_isProcessing",true);
             Set(page,"Busy",true);
             using var timer=new System.Threading.Timer(_=>{},null,Timeout.Infinite,Timeout.Infinite);
@@ -294,6 +313,33 @@ static class ImportStatusChecks
                 && stats.TotalDurationMs == 100, $"{failure}: statistics-only retry did not recover");
             page.Dispose();
             passed += 2;
+        }
+        using(var http=new TraceListHttp
+        {
+            StatsBody="""{"value":[{"TraceId":42,"SessionId":1,"TotalTraceLines":12,"TotalDurationMs":null,"TotalDatabaseMs":null,"TotalDatabaseCalls":null,"StoredDurationUnit":"unknown","AggregationVersion":"legacy-unverified"}]}"""
+        })
+        {
+            var page=Page(http);
+            await using var renderer=new StatusRenderer(provider);
+            await renderer.Dispatcher.InvokeAsync(()=>renderer.Attach(page));
+            await Call(renderer,page,"LoadTraces");
+            Check(Get(page,"_statsError") is null && Text(page).Contains("12 lines")
+                && Text(page).Contains("Duration/DB totals uncertain"),
+                "Unclassified historical durations render honestly without losing valid counts");
+            Check(!Text(page).Contains("Retry statistics") && Text(page).Contains("synthetic visible trace"),
+                "Expected duration uncertainty is not an API outage");
+            page.Dispose(); passed+=2;
+        }
+        using(var http=new TraceListHttp())
+        {
+            var page=Page(http);
+            await using var renderer=new StatusRenderer(provider);
+            await renderer.Dispatcher.InvokeAsync(()=>renderer.Attach(page));
+            await Call(renderer,page,"LoadTraces");
+            var stats=((Dictionary<int,TraceStats>)Get(page,"_traceStats")!)[42];
+            Check(stats.TotalDurationMs==100 && !Text(page).Contains("Duration/DB totals uncertain")
+                && Get(page,"_statsError") is null,"Nullable-aware held web must accept pre-migration numeric DAB shape");
+            page.Dispose();passed++;
         }
         foreach (var blockTraces in new[] { false, true })
         {
@@ -471,7 +517,7 @@ sealed class StatusRenderer(IServiceProvider services) : Renderer(services, Null
 
 sealed class TraceListHttp : HttpMessageHandler, IHttpClientFactory
 {
-    public const string Metrics = """{"value":[{"TraceId":42,"TotalTraceLines":12,"TotalDurationMs":100,"TotalDatabaseMs":20,"TotalDatabaseCalls":3}]}""";
+    public const string Metrics = """{"value":[{"TraceId":42,"SessionId":1,"TotalTraceLines":12,"TotalDurationMs":100,"TotalDatabaseMs":20,"TotalDatabaseCalls":3}]}""";
     public string TraceBody { get; set; } = """{"value":[{"TraceId":42,"TraceName":"synthetic visible trace"}]}""";
     public string StatsBody { get; set; } = Metrics;
     public string FilteredMetricsBody { get; set; } = """{"value":[{"TraceId":42}]}""";
@@ -505,6 +551,10 @@ sealed class TraceListHttp : HttpMessageHandler, IHttpClientFactory
         }
         else if (path == "/api/SessionMetrics" && !request.RequestUri.Query.Contains("$filter"))
         {
+            Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(request.RequestUri.Query).TryGetValue("$select",out var projection);
+            var select=projection.ToString();
+            if(select.Split(',').Any(column=>column is "StoredDurationUnit" or "AggregationVersion" or "DurationStatus"))
+                return new(HttpStatusCode.BadRequest) { Content=new StringContent("Column absent from pre-cutover DAB schema") };
             StatsRequests++;
             StatsStarted.TrySetResult();
             if (BlockStats) await Task.Delay(Timeout.Infinite, ct);

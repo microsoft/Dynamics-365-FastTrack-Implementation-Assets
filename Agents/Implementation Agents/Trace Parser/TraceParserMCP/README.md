@@ -50,6 +50,67 @@ The Large Language Model (LLM) used with this MCP server is **entirely customer-
 - **Read-only access.** Tables and views allow reads only. Procedure execution is limited to the four read-only keyword searches; trace deletion is not exposed by DAB.
 - **View-based analysis thresholds are fixed.** Analytical views (e.g., N+1 pattern detection at >100 DB calls, slow SQL at >5 seconds) use hardcoded thresholds that may not suit all scenarios.
 
+### Duration provenance, call grain and pagination
+
+**Do not infer units from column names.** Recorded `safe-import-v1` proves the old
+100 ns tick output. New `safe-import-v2` and isolated `ps-import-v2` output nanoseconds
+(retaining 100 ns parser resolution). A pinned genuine 80 ms ETL call remains 800,000
+in v1 raw storage, becomes 80,000,000 in v2, and reads as **80 ms** under both proven
+versions. FILETIME timestamps, IDs/counters and negative sentinel codes are unchanged.
+Every other/native version remains **unclassified**; no historical row is rewritten.
+
+Run `Duration units.sql` before the reference view/search scripts. DAB `TraceLines`
+now targets `vw_UnitAwareTraceLines`: six `*Nano` fields are normalized nanoseconds,
+or NULL for unknown provenance. `Stored*` fields retain original values and
+`StoredDurationUnit` explains them. `TraceLineDetails` and all four keyword searches
+normalize milliseconds consistently. Unknown units never satisfy N+1/slow-SQL
+thresholds; an empty result does not certify those traces fast. `TopMethods` native
+durations are likewise NULL/unknown except for same-trace `ps-import-v2` endpoints.
+Do not bypass these readers and assume that physical `dbo.TraceLines` is all ns.
+
+The analytical implementation preserves the existing `TraceLineId` N+1 key and
+strict `DatabaseCalls > 100`, average `< 5 ms` threshold. A caller is suppressed
+only when its immediate child, in the **same thread**, has identical inclusive DB
+count and duration. This collapses redundant call-chain wrappers without merging
+independent repeated invocations, methods, threads or sessions. The retained row
+includes thread, sequence and parent sequence; use `TraceLineDetails` to inspect
+its ancestors. Callers with additional DB work remain separate candidates. These
+are overlapping **call contexts**, not disjoint query groups: do not sum candidate
+DB counts. Negative duration sentinels do not qualify as fast calls.
+
+`vw_SessionMetrics` counts recorded SQL execution rows (`CallTypeId=64`) for DB
+totals, rather than repeatedly adding their inclusive method ancestors. A controlled
+fixture with 36 ancestors and 101 SQL executions reproduces 3,737 summed calls
+(37:1); the corrected total is 101 and its single-work chain has one N+1 candidate.
+Session joins and DAB keys include `TraceId` as well as `SessionId`. Empty threads
+produce zero metrics, not a synthetic root/null totals. Root calls accept both NULL
+and zero parent sentinels. Method-level/RPC inclusive counters remain nonadditive.
+
+REST collection consumers must follow the returned `nextLink` (opaque `$after`),
+not assume the first page is complete or substitute unsupported `$top`. DAB's
+documented default page size is 100. Composite keys also matter to GraphQL/MCP
+continuation. See Microsoft Learn: [REST first](https://learn.microsoft.com/en-us/azure/data-api-builder/keywords/first-rest)
+and [REST after](https://learn.microsoft.com/en-us/azure/data-api-builder/keywords/after-rest).
+
+**Materialized deployments:** use the discrete, guarded migration generator in
+`..\TraceParserWeb\sql\Prepare-DurationAnalysis.ps1`, not the whole reference view
+script. Session/method readers keep their physical tables and indexed joins rather
+than scanning millions of raw rows. Legacy session duration/DB totals are withheld
+because their old grain is unverified; existing counts remain available. Legacy
+v1 method totals normalize x100 on read, with `TotalPrecisionMs=1` to expose prior
+rounding. New aggregates contain normalized ms and execution-grain session DB counts.
+Unfinished/negative/missing durations make new totals uncertain. Inclusive method/RPC
+counts are still nonadditive. No existing aggregates are rebuilt.
+
+**Rollout boundary:** local implementation/testing is not production authorization.
+The Web README documents exact SQL -> Function/web version negotiation, DAB schema
+refresh, and rollback constraints. Old v1 receipts replay unchanged; old workers
+refuse v2. Never downgrade receipts or rerun the old bootstrap over the v2 contract.
+`DAB_ParseEtl.ps1` always creates a fresh `ps-import-v2` trace in an isolated direct-
+import database. Because its legacy shared staging/truncation does not implement
+receipt ownership, it now refuses receipt-managed databases; use web registration
+there. Native historical versions are not classified by these changes.
+
 ### Disclaimers
 
 - AI-generated trace analysis is provided for **informational purposes only** and should not be treated as definitive performance diagnostics
@@ -247,7 +308,7 @@ MCP clients can use the `read-records`, `describe-entities`, and `execute-entity
 
 ## Key Concepts
 
-- **Time units differ between tables and views.** Raw tables (`TraceLines`) store durations in **nanoseconds**. Analytical views (`TraceLineDetails`, `SessionMetrics`, etc.) convert to **milliseconds**.
+- **Check duration provenance.** DAB `TraceLines` exposes normalized nanoseconds, analytical views expose milliseconds, and unknown provenance yields NULL. Physical `dbo.TraceLines` may contain v1 ticks or unclassified historical units; `Stored*` values are never rewritten.
 - **Hash-based lookups.** `TraceLines` references method names, SQL statements, and table names via hash columns (`MethodHash`, `QueryStatementHash`, `QueryTableHash`). Use the corresponding lookup tables or the `TraceLineDetails` view which resolves them automatically.
 - **Session-centric organization.** Data is organized around user sessions. Start with `SessionSummary` or `SessionMetrics` to discover sessions, then drill into `TraceLineDetails` for specifics.
 

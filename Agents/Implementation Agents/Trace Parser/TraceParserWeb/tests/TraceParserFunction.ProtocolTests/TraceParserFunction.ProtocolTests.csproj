@@ -16,6 +16,9 @@
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.13" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
     <None Include="..\..\sql\safe-importer.sql" Link="safe-importer.sql" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\sql\duration-import-v2.sql" Link="duration-import-v2.sql" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\sql\duration-aggregates.sql" Link="duration-aggregates.sql" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\TraceParserMCP\Duration units.sql" Link="Duration units.sql" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\sql\sp_DeleteTrace.sql" Link="sp_DeleteTrace.sql" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\sql\durable-deletion.sql" Link="durable-deletion.sql" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\TraceParserFunction\Manifests\*.man" Link="Manifests\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />

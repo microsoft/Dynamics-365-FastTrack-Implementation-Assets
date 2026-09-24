@@ -402,6 +402,12 @@ function Reserve-TraceLineIds {
     return [long]$first
 }
 
+function Convert-DurationTicksToNanoseconds([long]$Ticks) {
+    if ($Ticks -lt 0) { return $Ticks }
+    # Decimal intermediate prevents PowerShell's implicit floating-point overflow.
+    return [long]([decimal]$Ticks * 100)
+}
+
 function Flush-StageBatch {
     param($C,
           [System.Collections.Generic.List[hashtable]]$Rows,
@@ -492,6 +498,10 @@ function Flush-StageBatch {
         $dr = $dt.NewRow()
         foreach ($col in $map.Keys) {
             $v = if ($row.ContainsKey($map[$col])) { $row[$map[$col]] } else { $null }
+            if ($null -ne $v -and $col -in @('InclusiveDurationNano','ExclusiveDurationNano',
+                'DatabaseDurationNano','PrepDurationNano','BindDurationNano','RowFetchDurationNano')) {
+                $v = Convert-DurationTicksToNanoseconds $v
+            }
             $dr[$col] = if ($null -eq $v) { [DBNull]::Value } else { $v }
         }
         $dt.Rows.Add($dr)
@@ -1967,14 +1977,19 @@ function Ensure-DefaultRows { param($C)
 }
 
 try {
+    # This legacy direct writer uses shared staging/truncation, not receipt replay.
+    # Never let it bypass the versioned Function's ownership or deletion protocol.
+    if ([int](Scalar-Sql $conn "SELECT CASE WHEN HAS_PERMS_BY_NAME(DB_NAME(),'DATABASE','VIEW DEFINITION')=1 AND OBJECT_ID('dbo.TPImportReceipts','U') IS NULL THEN 0 ELSE 1 END") -ne 0) {
+        throw "Direct PowerShell import is unsupported in a receipt-managed database or when protocol metadata is hidden. Use a new registered web upload."
+    }
     # Semaphore
     $semId = Acquire-Semaphore $conn $SessionName
     Ensure-DefaultRows $conn
 
     # Traces record
     $traceId = [int](Scalar-Sql $conn @"
-        INSERT INTO Traces(TraceName,TraceFile,TimeStampBegin,TimeStampEnd,Description)
-        OUTPUT INSERTED.TraceId VALUES(@n,@f,@ts,@ts,@d)
+        INSERT INTO Traces(TraceName,TraceFile,TimeStampBegin,TimeStampEnd,Description,TraceParserVersion)
+        OUTPUT INSERTED.TraceId VALUES(@n,@f,@ts,@ts,@d,'ps-import-v2')
 "@ @{
         n  = $SessionName
         f  = [IO.Path]::GetFileName($EtlPath)
@@ -2128,7 +2143,7 @@ try {
                 (SELECT MAX(tl.TimeStampEnd) FROM TraceLines tl
                  JOIN UserSessionProcessThreads uspt ON tl.UserSessionProcessThreadId = uspt.UserSessionProcessThreadId
                  WHERE uspt.TraceId = @tid) / 10000000 - 11644473600, '1970-01-01'),
-            TraceParserVersion = '7.0.7697.0'
+            TraceParserVersion = 'ps-import-v2'
         WHERE TraceId = @tid
 "@ @{tid=$traceId} | Out-Null
     Write-Status "  Updated Traces timestamps from actual TraceLines data" "Green"

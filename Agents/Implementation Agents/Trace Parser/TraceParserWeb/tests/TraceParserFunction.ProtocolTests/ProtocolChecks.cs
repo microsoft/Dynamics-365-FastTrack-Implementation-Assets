@@ -10,15 +10,26 @@ using TraceParserFunction;
 // This executable intentionally accepts no connection string or database argument.
 var runLarge=false;
 var lockOrderOnly=false;
+var analysisOnly=false;
 string? etlFixture=null;
+string? analysisBaseline=null,analysisUpgrade=null;
 for(var arg=0;arg<args.Length;arg++)
 {
     if(args[arg]=="--large" && !runLarge) runLarge=true;
     else if(args[arg]=="--lock-order" && !lockOrderOnly) lockOrderOnly=true;
+    else if(args[arg]=="--analysis-only" && !analysisOnly) analysisOnly=true;
     else if(args[arg]=="--etl-fixture" && etlFixture is null && arg+1<args.Length)
         etlFixture=Path.GetFullPath(args[++arg]);
-    else throw new ArgumentException("Only --large, --lock-order and --etl-fixture <approved synthetic ETL> are supported; connection overrides are prohibited.");
+    else if(args[arg]=="--analysis-baseline" && analysisBaseline is null && arg+1<args.Length)
+        analysisBaseline=Path.GetFullPath(args[++arg]);
+    else if(args[arg]=="--analysis-upgrade" && analysisUpgrade is null && arg+1<args.Length)
+        analysisUpgrade=Path.GetFullPath(args[++arg]);
+    else throw new ArgumentException("Unsupported argument; connection overrides are prohibited.");
 }
+if((analysisBaseline is null)!=(analysisUpgrade is null))
+    throw new ArgumentException("Captured baseline directory and generated analysis upgrade must be supplied together.");
+if (analysisOnly && (runLarge || lockOrderOnly))
+    throw new ArgumentException("--analysis-only cannot be combined with --large or --lock-order.");
 if(etlFixture is not null && (!File.Exists(etlFixture) ||
     Path.GetFileName(etlFixture) is not ("synthetic-small.etl" or "synthetic-large.etl" or "synthetic-near-limit.etl")))
     throw new ArgumentException("Use an approved synthetic-small.etl, synthetic-large.etl or synthetic-near-limit.etl fixture; no customer ETL.");
@@ -48,23 +59,44 @@ try
         {
             if(path=="safe-importer.sql") await ExecutorInboundChecks(setup);
             foreach (var batch in Regex.Split(await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, path)),
-                         @"^\s*GO\s*$", RegexOptions.Multiline | RegexOptions.IgnoreCase))
+                         @"^\s*GO\s*(?:--[^\r\n]*)?\r?$", RegexOptions.Multiline | RegexOptions.IgnoreCase))
                 if (!string.IsNullOrWhiteSpace(batch)) await Exec(setup, batch);
         }
         var beforeGuard=await Register();
         await using(var activation=await Open())
         {
-            await Reject(51122,()=>Importer().BeginImportAsync(activation,"account","etl-uploads",Name(beforeGuard),"\"v1\"",default));
+            await Reject(51122,()=>Exec(activation,$"EXEC dbo.tp_BeginImport N'account',N'etl-uploads',N'{Name(beforeGuard)}',N'\"v1\"',0"));
             Check(await Scalar(activation,"SELECT COUNT(*) FROM dbo.Traces")==0,"activation before coordinated deletion creates no trace");
         }
         await Exec(setup,await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory,"durable-deletion.sql")));
-        await Exec(setup,await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory,"sp_DeleteTrace.sql")));
+        // The deployed bounded installer canonicalizes these dynamic modules to LF.
+        await Exec(setup,(await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory,"sp_DeleteTrace.sql"))).Replace("\r\n","\n"));
+        using (var debug = new SqlCommand("SELECT name,CONVERT(varchar(64),HASHBYTES('SHA2_256',OBJECT_DEFINITION(object_id)),2) FROM sys.procedures WHERE name LIKE 'tp[_]%'", setup))
+        using (var reader = await debug.ExecuteReaderAsync())
+            while (await reader.ReadAsync()) Console.WriteLine($"BASELINE {reader.GetString(0)} {reader.GetString(1)}");
+        checks += await DurationChecks.UpgradeAsync(setup);
+        checks += await DurationChecks.ContractsAsync(setup);
+        if(analysisBaseline is not null)
+            checks += await DurationChecks.UpgradeAnalysisAsync(setup,analysisBaseline,analysisUpgrade!);
+        else
+            foreach(var path in new[]{"Duration units.sql","duration-aggregates.sql"})
+                foreach(var batch in Regex.Split(await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory,path)),
+                    @"^\s*GO\s*$",RegexOptions.Multiline|RegexOptions.IgnoreCase))
+                    if(!string.IsNullOrWhiteSpace(batch)) await Exec(setup,batch);
     }
-    if(!lockOrderOnly) await RunChecks();
-    foreach(var snapshot in new[]{false,true})
+    if (analysisOnly)
     {
-        await Exec(master,$"ALTER DATABASE [{database}] SET READ_COMMITTED_SNAPSHOT {(snapshot?"ON":"OFF")};");
-        await LockOrderChecks(snapshot);
+        await using var analysis = await Open();
+        checks += await AnalysisChecks.RunAsync(analysis, etlFixture);
+    }
+    else
+    {
+        if(!lockOrderOnly) await RunChecks();
+        foreach(var snapshot in new[]{false,true})
+        {
+            await Exec(master,$"ALTER DATABASE [{database}] SET READ_COMMITTED_SNAPSHOT {(snapshot?"ON":"OFF")};");
+            await LockOrderChecks(snapshot);
+        }
     }
     Console.WriteLine($"PASS {checks} protocol checks. Fixture={database}");
 }
@@ -383,7 +415,9 @@ async Task RunChecks()
     await BindFanoutChecks();
     await CoordinationChecks();
     if (runLarge) await LargeChecks();
-    if (etlFixture is not null) await RealEtlChecks(etlFixture);
+    if (etlFixture is not null)
+        foreach(var version in new[]{"safe-import-v1","safe-import-v2"})
+            await RealEtlChecks(etlFixture,version);
     await using var legacyStage = await Open();
     Check(await Scalar(legacyStage,"SELECT COUNT(*) FROM dbo.StageTraceLines")==1,"legacy staging is retained unchanged");
 }
@@ -393,9 +427,11 @@ async Task InputSizeChecks()
     const long limit=TraceParser.Shared.ImportFilePolicy.MaxFileSizeBytes;
     await using var observer=await Open();
     await Exec(observer,"ALTER TABLE dbo.TPImportReceipts DROP CONSTRAINT CK_TPImportPhase; ALTER TABLE dbo.TPImportReceipts WITH CHECK ADD CONSTRAINT CK_TPImportPhase CHECK (Phase IN ('Registered','Parsing','Ready','Promoting','Binding','Finalizing','Complete','Deleted'));");
-    foreach(var batch in Regex.Split(await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory,"safe-importer.sql")),
-        @"^\s*GO\s*$",RegexOptions.Multiline|RegexOptions.IgnoreCase))
-        if(!string.IsNullOrWhiteSpace(batch)) await Exec(observer,batch);
+    // Exercise the legacy additive phase constraint batch, not its old procedures.
+    var phaseBatch=Regex.Split(await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory,"safe-importer.sql")),
+        @"^\s*GO\s*$",RegexOptions.Multiline|RegexOptions.IgnoreCase)
+        .Single(b=>b.Contains("CREATE TABLE dbo.TPImportReceipts"));
+    await Exec(observer,phaseBatch);
     Check(await Scalar(observer,"SELECT COUNT(*) FROM sys.check_constraints WHERE parent_object_id=OBJECT_ID('dbo.TPImportReceipts') AND name='CK_TPImportPhase' AND definition LIKE '%RejectedOversize%' AND is_not_trusted=0")==1,
         "existing phase constraint upgrades atomically without changing receipt data");
     foreach(var length in new[]{limit-1,limit,limit+1,long.MaxValue})
@@ -609,9 +645,16 @@ async Task RestrictedLifecycleChecks()
 
     async Task ApplyMigration()
     {
-        foreach(var batch in Regex.Split(await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory,"safe-importer.sql")),
-                    @"^\s*GO\s*$",RegexOptions.Multiline|RegexOptions.IgnoreCase))
-            if(!string.IsNullOrWhiteSpace(batch)) await Exec(observer,batch);
+        // Retain predecessor permission/idempotence coverage without installing
+        // v1 over the upgraded fixture. Production must never run this rollback probe.
+        await Exec(observer,"BEGIN TRAN;");
+        try
+        {
+            foreach(var batch in Regex.Split(await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory,"safe-importer.sql")),
+                        @"^\s*GO\s*$",RegexOptions.Multiline|RegexOptions.IgnoreCase))
+                if(!string.IsNullOrWhiteSpace(batch)) await Exec(observer,batch);
+        }
+        finally { await Exec(observer,"IF @@TRANCOUNT>0 ROLLBACK;"); }
     }
 }
 
@@ -939,8 +982,9 @@ async Task FailureChecks()
     }
 }
 
-async Task RealEtlChecks(string path)
+async Task RealEtlChecks(string path,string version)
 {
+    var durationFactor=version=="safe-import-v1"?1:100;
     using var catalog=JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(Path.GetDirectoryName(path)!,"fixture-catalog.json")));
     var fixture=catalog.RootElement.GetProperty("fixtures").EnumerateArray()
         .Single(entry=>entry.GetProperty("file").GetString()==Path.GetFileName(path));
@@ -960,7 +1004,7 @@ async Task RealEtlChecks(string path)
     await using var observer=await Open();
     var preexistingLines=await Scalar(observer,"SELECT COUNT_BIG(*) FROM dbo.TraceLines");
     Check(preexistingLines>0,"real ETL imports into an unrelated prepopulated indexed target");
-    var id=await Register();
+    var id=await Register(version);
     int trace;
     long retainedBinds;
     double interruptedParseSeconds,replayParseSeconds,promotionCompletionSeconds;
@@ -1039,12 +1083,21 @@ async Task RealEtlChecks(string path)
             "real held SELECT parameters bind by statement sequence, not flush order");
         Check(await Scalar(observer,$"SELECT COUNT(*) FROM (SELECT Sequence,LAG(Sequence) OVER(ORDER BY TraceLineId) previous FROM dbo.TPImportLines WHERE ImportId='{id}') q WHERE previous>Sequence")>0,
             "real SQL staging preserves out-of-order parser emission");
-        Check(await Scalar(observer,$"SELECT COUNT(*) FROM dbo.TPImportLines WHERE ImportId='{id}' AND CallTypeId=64 AND Sequence%10=5 AND InclusiveDurationNano=120000 AND RowFetchDurationNano=30000")==expectedBinds,
-            "real parser duration fields retain existing tick semantics unchanged");
+        Check(await Scalar(observer,$"SELECT COUNT(*) FROM dbo.TPImportLines WHERE ImportId='{id}' AND CallTypeId=64 AND Sequence%10=5 AND InclusiveDurationNano={120000*durationFactor} AND RowFetchDurationNano={30000*durationFactor}")==expectedBinds,
+            $"real {version} parser preserves receipt-selected output through replay");
+    }
+    await using(var ready=await Open())
+    {
+        await Exec(ready,"EXECUTE AS USER='ProtocolLifecycle'");
+        var importer=Importer();
+        var receipt=await importer.BeginImportAsync(ready,"account","etl-uploads",Name(id),"\"real-etl\"",budget.Token,
+            contentLength:new FileInfo(path).Length);
+        Check(receipt.Phase=="Ready" && receipt.ParserVersion==version,
+            $"real {version} Ready receipt survives process/session restart without reparse");
         // Report failure to the client AFTER the procedure committed, then close
         // the session. This models lost commit acknowledgement without a network.
-        await Reject(51210,()=>Exec(retry,$"EXEC dbo.tp_PromoteImportBatch @ImportId='{id}',@BatchSize=3; THROW 51210,'Synthetic failure after promotion commit',1;"));
-        await importer.RecordFailureAsync(retry);
+        await Reject(51210,()=>Exec(ready,$"EXEC dbo.tp_PromoteImportBatch @ImportId='{id}',@BatchSize=3; THROW 51210,'Synthetic failure after promotion commit',1;"));
+        await importer.RecordFailureAsync(ready);
         Check(await Scalar(observer,$"SELECT COUNT(*) FROM dbo.TPImportReceipts WHERE ImportId='{id}' AND Phase='Promoting' AND LastPromotedId>0")==1,
             "real ETL first promotion checkpoint commits before lost acknowledgement");
     }
@@ -1093,7 +1146,8 @@ async Task RealEtlChecks(string path)
         InterruptedParseSeconds=interruptedParseSeconds, ReplayParseSeconds=replayParseSeconds,
         PromotionAggregationCleanupSeconds=promotionCompletionSeconds, TotalElapsedSeconds=timer.Elapsed.TotalSeconds,
         PeakObservedManagedBytes=peakObservedManaged, RestrictedPrincipal="ProtocolLifecycle",
-        Scope="Unchanged production EtlParser, real StageBatchWriter/channel, SqlImporter, actual SQL protocol, restricted grants; pre-Ready failure/fresh replay and post-Ready lost acknowledgement; ticks preserved",
+        ParserVersion=version,
+        Scope="Real EtlParser, versioned StageBatchWriter/channel, SqlImporter, SQL protocol, restricted grants; pre-Ready failure/fresh replay and post-Ready lost acknowledgement",
         Limit="LocalDB and these synthetic provider events only; no Azure/blob transfer/host invocation, no maximum-file or malformed-provider certification; no private header data emitted"
     }));
 
@@ -1181,12 +1235,17 @@ InMemoryDimensions Dimensions(int trace)
     dims.EnsureMethodName("test.method", dims.GetMethodHash("test.method"));
     return dims;
 }
-async Task<Guid> Register()
+async Task<Guid> Register(string? version=null)
 {
     var id = Guid.NewGuid();
     await using var conn = await Open();
     using var cmd = conn.CreateCommand();
     cmd.CommandText = "EXEC dbo.tp_RegisterUpload @id,N'account',N'etl-uploads',@name,N'synthetic-session'";
+    if(version is not null)
+    {
+        cmd.CommandText+=",@ParserVersion=@version";
+        cmd.Parameters.Add("@version",SqlDbType.VarChar,40).Value=version;
+    }
     cmd.Parameters.Add("@id", SqlDbType.UniqueIdentifier).Value = id;
     cmd.Parameters.Add("@name", SqlDbType.NVarChar, 1024).Value = Name(id);
     await cmd.ExecuteNonQueryAsync();
