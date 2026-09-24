@@ -9,13 +9,15 @@ using TraceParserFunction;
 
 // This executable intentionally accepts no connection string or database argument.
 var runLarge=false;
+var lockOrderOnly=false;
 string? etlFixture=null;
 for(var arg=0;arg<args.Length;arg++)
 {
     if(args[arg]=="--large" && !runLarge) runLarge=true;
+    else if(args[arg]=="--lock-order" && !lockOrderOnly) lockOrderOnly=true;
     else if(args[arg]=="--etl-fixture" && etlFixture is null && arg+1<args.Length)
         etlFixture=Path.GetFullPath(args[++arg]);
-    else throw new ArgumentException("Only --large and --etl-fixture <approved synthetic ETL> are supported; connection overrides are prohibited.");
+    else throw new ArgumentException("Only --large, --lock-order and --etl-fixture <approved synthetic ETL> are supported; connection overrides are prohibited.");
 }
 if(etlFixture is not null && (!File.Exists(etlFixture) ||
     Path.GetFileName(etlFixture) is not ("synthetic-small.etl" or "synthetic-large.etl" or "synthetic-near-limit.etl")))
@@ -30,7 +32,7 @@ var masterString = new SqlConnectionStringBuilder
 var databaseString = new SqlConnectionStringBuilder(masterString) { InitialCatalog = database }.ConnectionString;
 if (!Regex.IsMatch(database, "^TPImporterProtocol_[0-9a-f]{32}$") || instance != @"(localdb)\TPImporterTests_c100bb02")
     throw new InvalidOperationException("Unsafe fixture target.");
-var checks = 0;
+var checks = await DeletionTimerChecks.RunAsync();
 var created = false;
 var wholeTest=System.Diagnostics.Stopwatch.StartNew();
 await using var master = new SqlConnection(masterString);
@@ -55,9 +57,15 @@ try
             await Reject(51122,()=>Importer().BeginImportAsync(activation,"account","etl-uploads",Name(beforeGuard),"\"v1\"",default));
             Check(await Scalar(activation,"SELECT COUNT(*) FROM dbo.Traces")==0,"activation before coordinated deletion creates no trace");
         }
+        await Exec(setup,await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory,"durable-deletion.sql")));
         await Exec(setup,await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory,"sp_DeleteTrace.sql")));
     }
-    await RunChecks();
+    if(!lockOrderOnly) await RunChecks();
+    foreach(var snapshot in new[]{false,true})
+    {
+        await Exec(master,$"ALTER DATABASE [{database}] SET READ_COMMITTED_SNAPSHOT {(snapshot?"ON":"OFF")};");
+        await LockOrderChecks(snapshot);
+    }
     Console.WriteLine($"PASS {checks} protocol checks. Fixture={database}");
 }
 finally
@@ -102,6 +110,128 @@ async Task ExecutorInboundChecks(SqlConnection setup)
             "migration does not silently revoke inbound permission");
         // Only the fixture resets the grant it just introduced; production never revokes.
         await Exec(setup,$"REVOKE {permission} ON USER::TPImportPromotionExecutor FROM ProtocolInboundProbe CASCADE;");
+    }
+}
+
+async Task LockOrderChecks(bool snapshot)
+{
+    await using(var setup=await Open())
+        await Exec(setup,"""
+            IF USER_ID('LockOrderWeb') IS NULL CREATE USER LockOrderWeb WITHOUT LOGIN;
+            IF USER_ID('LockOrderFunction') IS NULL CREATE USER LockOrderFunction WITHOUT LOGIN;
+            GRANT EXECUTE ON dbo.sp_DeleteTrace TO LockOrderWeb;
+            GRANT EXECUTE ON dbo.tp_PromoteImportBatch TO LockOrderFunction;
+            GRANT EXECUTE ON dbo.tp_CompleteImport TO LockOrderFunction;
+            """);
+    foreach(var legacy in new[]{true,false})
+    foreach(var operation in new[]{"Lines","Binds","Complete"})
+    {
+        var completedId=await Register();
+        int completedTrace;
+        await using(var seed=await Open())
+        {
+            var importer=Importer();
+            completedTrace=(await importer.BeginImportAsync(seed,"account","etl-uploads",Name(completedId),"\"locks\"",default)).TraceId;
+            await importer.SetContentHashAsync(seed,Hash("lock-order-completed"));
+            importer.FlushStageBatch(seed,[Row(1,64),Row(2,8)],[]);
+            importer.FinishDimensions(seed,completedTrace,Dimensions(completedTrace),new(){Staged=2});
+            await importer.PromoteStageToTraceLines(seed);
+            await importer.CompleteImportAsync(seed);
+            await importer.CleanupCompletedAsync(seed);
+            // Only this disposable fixture simulates a legacy root without a receipt.
+            if(legacy) await Exec(seed,"DELETE dbo.TPImportReceipts WHERE ImportId=@id",completedId);
+        }
+        var id=await Register();
+        await using var promoter=await Open();
+        var active=Importer();
+        var trace=(await active.BeginImportAsync(promoter,"account","etl-uploads",Name(id),"\"locks\"",default)).TraceId;
+        await active.SetContentHashAsync(promoter,Hash("lock-order-active"));
+        active.FlushStageBatch(promoter,[Row(1,64),Row(2,8)],[new(){TempSeq=1,ParamIdx=0,BindVal="active"}]);
+        active.FinishDimensions(promoter,trace,Dimensions(trace),new(){Staged=2});
+        if(operation=="Binds")
+            await Exec(promoter,"EXEC dbo.tp_PromoteImportBatch @ImportId=@id,@BatchSize=2",id);
+        else if(operation=="Complete")
+            await active.PromoteStageToTraceLines(promoter);
+        await using var observer=await Open();
+        await using var deleter=await Open();
+        var promoterSpid=await Scalar(promoter,"SELECT @@SPID");
+        var deleterSpid=await Scalar(deleter,"SELECT @@SPID");
+        await Exec(deleter,"SET DEADLOCK_PRIORITY LOW; SET TRANSACTION ISOLATION LEVEL READ COMMITTED; EXECUTE AS USER='LockOrderWeb';");
+        await Reject(51130,()=>Exec(deleter,$"EXEC dbo.sp_DeleteTrace @TraceId={trace},@BatchSize=1"));
+        // Test-only outer transaction represents observed lock escalation without
+        // adding TABLOCKX or artificial barriers to either production procedure.
+        await Exec(promoter,"BEGIN TRAN; SELECT COUNT_BIG(*) FROM dbo.TraceLines WITH(TABLOCKX,HOLDLOCK); EXECUTE AS USER='LockOrderFunction';");
+        Task? deletion=null;
+        try
+        {
+            deletion=DeleteBatch();
+            var deadline=System.Diagnostics.Stopwatch.StartNew();
+            while(await Scalar(observer,$"""
+                SELECT COUNT(*) FROM sys.dm_tran_locks
+                WHERE request_session_id={deleterSpid} AND resource_type='OBJECT'
+                  AND resource_associated_entity_id=OBJECT_ID('dbo.TraceLines')
+                  AND request_status='WAIT'
+                """)==0)
+            {
+                if(deletion.IsCompleted) await deletion;
+                if(deadline.Elapsed>TimeSpan.FromSeconds(15)) throw new Exception("Deletion did not reach the observable TraceLines lock barrier.");
+                await Task.Delay(25);
+            }
+            Check(await Scalar(observer,$"""
+                SELECT COUNT(*) FROM sys.dm_tran_locks
+                WHERE request_session_id={promoterSpid} AND resource_type='OBJECT'
+                  AND resource_associated_entity_id=OBJECT_ID('dbo.TraceLines')
+                  AND request_mode='X' AND request_status='GRANT'
+                """)>0,"observed promoter TraceLines X / deletion WAIT barrier");
+            await Exec(promoter,operation=="Complete"
+                ? "EXEC dbo.tp_CompleteImport @ImportId=@id"
+                : "EXEC dbo.tp_PromoteImportBatch @ImportId=@id,@BatchSize=1",id);
+            await Exec(promoter,"COMMIT;");
+            await deletion;
+            Check(await Scalar(observer,$"SELECT COUNT(*) FROM dbo.TPImportReceipts WHERE ImportId='{id}' AND LastPromotedId>0")==1,
+                "concurrent mutation preserves its checkpoint");
+            if(!legacy)
+                Check(await Scalar(observer,$"SELECT COUNT(*) FROM dbo.TPImportReceipts WHERE ImportId='{completedId}' AND Phase='Deleted'")==1,
+                    "first concurrent deletion commits its tombstone");
+            // Continue through binding and completion while the unrelated deletion
+            // is resumable. Each actual procedure still runs as an EXECUTE-only caller.
+            if(operation!="Complete")
+            {
+                for(var remaining=0;remaining<3;remaining++)
+                {
+                    await Exec(promoter,"EXEC dbo.tp_PromoteImportBatch @ImportId=@id,@BatchSize=1",id);
+                    await DeleteBatch();
+                }
+                await Exec(promoter,"EXEC dbo.tp_CompleteImport @ImportId=@id",id);
+            }
+            var batches=0;
+            while(await Scalar(observer,$"SELECT COUNT(*) FROM dbo.Traces WHERE TraceId={completedTrace}")!=0)
+            {
+                if(++batches>30) throw new Exception("Concurrent deletion did not converge.");
+                await DeleteBatch();
+            }
+            Check(await Scalar(observer,$"SELECT COUNT(*) FROM dbo.TraceLines l JOIN dbo.UserSessionProcessThreads t ON t.UserSessionProcessThreadId=l.UserSessionProcessThreadId WHERE t.TraceId={trace}")==2,
+                "unrelated promoted lines preserved");
+            Check(await Scalar(observer,$"SELECT COUNT(*) FROM dbo.TPImportReceipts WHERE ImportId='{id}' AND Phase='Complete' AND LastBindSequence=1 AND LastBindIndex=0")==1,
+                "unrelated binding cursor and completion preserved");
+            Console.WriteLine($"LOCK ORDER PASS RCSI={snapshot} legacy={legacy} operation={operation}");
+        }
+        finally
+        {
+            // Release only the test-owned pressure transaction, even on a failed barrier.
+            await Exec(promoter,"IF @@TRANCOUNT>0 ROLLBACK;");
+            if(deletion is not null) await deletion;
+        }
+
+        async Task DeleteBatch()
+        {
+            using var command=deleter.CreateCommand();
+            command.CommandTimeout=45;
+            command.CommandText=$"EXEC dbo.sp_DeleteTrace @TraceId={completedTrace},@BatchSize=1";
+            using var reader=await command.ExecuteReaderAsync();
+            if(!await reader.ReadAsync()) throw new Exception("Missing deletion acknowledgement.");
+            Check(reader.GetInt32(2) is >=0 and <=1,"concurrent deletion keeps its row bound");
+        }
     }
 }
 

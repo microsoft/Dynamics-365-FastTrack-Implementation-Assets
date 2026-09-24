@@ -8,13 +8,16 @@
   <ItemGroup>
     <!-- Compile the production implementation without invoking the Functions packaging SDK. -->
     <Compile Include="..\..\Shared\ImportFilePolicy.cs" Link="Shared\ImportFilePolicy.cs" />
+    <Compile Include="..\..\Shared\DurableDeletion.cs" Link="Shared\DurableDeletion.cs" />
     <Compile Include="..\..\TraceParserFunction\*.cs" Exclude="..\..\TraceParserFunction\Program.cs" Link="Importer\%(Filename)%(Extension)" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.0.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs" Version="6.6.1" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Timer" Version="4.3.1" />
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.13" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
     <None Include="..\..\sql\safe-importer.sql" Link="safe-importer.sql" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\sql\sp_DeleteTrace.sql" Link="sp_DeleteTrace.sql" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\sql\durable-deletion.sql" Link="durable-deletion.sql" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\TraceParserFunction\Manifests\*.man" Link="Manifests\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Fixture.sql" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

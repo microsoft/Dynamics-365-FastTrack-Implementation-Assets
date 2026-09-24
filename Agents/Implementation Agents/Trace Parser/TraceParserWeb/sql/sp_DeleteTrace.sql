@@ -102,6 +102,21 @@ IF EXISTS (
                             AND COL_NAME(i.object_id, ic.column_id) = expected.ColumnName))))
     THROW 51005, 'Required unique deletion keys are unavailable. No procedure changed.', 1;
 
+-- Batch selection must seek target threads, then their lines, rather than scan
+-- unrelated traces. Do not depend on index names or repair indexes in this migration.
+IF EXISTS (
+    SELECT 1 FROM (VALUES
+        ('UserSessionProcessThreads', 'TraceId'),
+        ('TraceLines', 'UserSessionProcessThreadId')) r(TableName, ColumnName)
+    WHERE NOT EXISTS (
+        SELECT 1 FROM sys.indexes i
+        JOIN sys.index_columns ic ON ic.object_id = i.object_id AND ic.index_id = i.index_id
+        WHERE i.object_id = OBJECT_ID('dbo.' + r.TableName)
+            AND i.type IN (1, 2) AND i.is_disabled = 0 AND i.is_hypothetical = 0
+            AND i.has_filter = 0 AND ic.key_ordinal = 1
+            AND COL_NAME(i.object_id, ic.column_id) = r.ColumnName))
+    THROW 51007, 'Required thread-leading deletion seek indexes are unavailable. No procedure changed.', 1;
+
 -- Install-time selection preserves standalone legacy deletion without hiding receipt
 -- tables behind caller-sensitive OBJECT_ID checks in the restricted runtime module.
 DECLARE @coordinated bit = CASE WHEN OBJECT_ID('dbo.TPImportReceipts', 'U') IS NULL THEN 0 ELSE 1 END;
@@ -112,20 +127,121 @@ IF @coordinated = 1 AND (
     OR COALESCE((SELECT principal_id FROM sys.objects WHERE object_id=OBJECT_ID('dbo.TPImportReceipts')), @owner) <> @owner)
     THROW 51006, 'Unsupported import receipt schema/ownership. No procedure changed.', 1;
 DECLARE @receiptGuard nvarchar(max) = CASE WHEN @coordinated=1 THEN N'
-        IF EXISTS (SELECT 1 FROM dbo.TPImportReceipts WITH (UPDLOCK,HOLDLOCK)
-            WHERE TraceId=@TraceId AND Phase NOT IN (''Complete'',''Deleted''))
+        -- The trace application lock protects eligibility, including absent receipts.
+        -- Do not retain receipt range/key locks while waiting for trace data:
+        -- promotion, binding and completion all write data before their receipt.
+        DECLARE @receiptId uniqueidentifier, @receiptPhase varchar(24);
+        SELECT @receiptId=ImportId,@receiptPhase=Phase
+            FROM dbo.TPImportReceipts WITH (READCOMMITTEDLOCK) WHERE TraceId=@TraceId;
+        IF @receiptPhase NOT IN (''Complete'',''Deleted'') AND @JobId IS NULL
             THROW 51131, ''Import is active or awaiting retry. Deletion is blocked until durable completion.'', 1;
+' ELSE N'' END;
+DECLARE @receiptFinish nvarchar(max) = CASE WHEN @coordinated=1 THEN N'
         -- Tombstone commits with the first successful deletion batch, never before it.
-        -- It remains terminal for importer retries even while the trace root still exists.
+        -- Seek the captured receipt only after data writes. Legacy/Deleted traces
+        -- need no receipt write or missing-key range lock.
+        IF @receiptPhase=''Complete''
         UPDATE dbo.TPImportReceipts SET Phase=''Deleted'',UpdatedUtc=SYSUTCDATETIME()
-            WHERE TraceId=@TraceId AND Phase=''Complete'';
+            WHERE ImportId=@receiptId AND Phase=''Complete'';
+' ELSE N'' END;
+
+DECLARE @durable bit=CASE WHEN OBJECT_ID('dbo.TraceDeletionJobs','U') IS NULL THEN 0 ELSE 1 END;
+IF @durable=1 AND (@coordinated=0 OR COL_LENGTH('dbo.Traces','DeletionIdentity') IS NULL)
+    THROW 51200,'Install the supported durable deletion schema first.',1;
+DECLARE @jobGuard nvarchar(max)=CASE WHEN @durable=1 THEN N'
+        IF @JobId IS NULL
+        BEGIN
+            IF EXISTS(SELECT 1 FROM dbo.TraceDeletionJobs WHERE TraceId=@TraceId AND IsActive=1)
+                THROW 51206,''Use the existing durable job; direct deletion is blocked.'',1;
+        END
+        ELSE
+        BEGIN
+            DECLARE @sequence bigint,@state varchar(20),@identity uniqueidentifier,@jobImport uniqueidentifier;
+            -- Ownership is retained until commit. Expired takeover cannot pass this row lock.
+            SELECT @sequence=Sequence,@state=State,@identity=TraceIdentity,@jobImport=ImportId
+            FROM dbo.TraceDeletionJobs WITH(UPDLOCK,HOLDLOCK)
+            WHERE JobId=@JobId AND TraceId=@TraceId AND LeaseToken=@LeaseToken
+                AND LeaseExpiresUtc>SYSUTCDATETIME() AND State IN(''Running'',''CancelRequested'');
+            IF @sequence IS NULL THROW 51205,''Deletion lease/binding is no longer owned.'',1;
+            IF @ExpectedSequence IS NULL OR @ExpectedSequence>@sequence OR @ExpectedSequence<@sequence-1
+                THROW 51207,''Unexpected deletion sequence; reconcile persisted progress.'',1;
+            IF @ExpectedSequence=@sequence-1
+            BEGIN
+                SELECT @HasMore=LastHasMore,@Phase=LastPhase,@RowsDeleted=LastRows
+                    FROM dbo.TraceDeletionJobs WHERE JobId=@JobId;
+                COMMIT;
+                SELECT @HasMore AS HasMore,@Phase AS Phase,@RowsDeleted AS RowsDeleted;
+                RETURN;
+            END;
+            IF @state=''CancelRequested''
+            BEGIN
+                UPDATE dbo.TraceDeletionJobs SET State=''Cancelled'',LeaseToken=NULL,LeaseOwner=NULL,
+                    LeaseExpiresUtc=NULL,UpdatedUtc=SYSUTCDATETIME() WHERE JobId=@JobId;
+                COMMIT;
+                SELECT 1 AS HasMore,N''Cancelled'' AS Phase,0 AS RowsDeleted;
+                RETURN;
+            END;
+            IF @receiptPhase NOT IN (''Complete'',''Deleted'')
+            BEGIN
+                -- Persist the stop before reporting the error; a crashed worker must not
+                -- later auto-delete just because this import became eligible again.
+                UPDATE dbo.TraceDeletionJobs SET State=''Blocked'',ErrorCode=51131,
+                    ErrorMessage=N''Import is active/retryable. Resolve it, then explicitly resume.'',
+                    LeaseToken=NULL,LeaseOwner=NULL,LeaseExpiresUtc=NULL,UpdatedUtc=SYSUTCDATETIME()
+                WHERE JobId=@JobId;
+                COMMIT;
+                THROW 51131,''Import is active or retryable. Explicit resume is required.'',1;
+            END;
+            IF EXISTS(SELECT 1 FROM dbo.Traces WHERE TraceId=@TraceId AND DeletionIdentity<>@identity)
+                OR ISNULL(@jobImport,CONVERT(uniqueidentifier,0x0))<>ISNULL(@receiptId,CONVERT(uniqueidentifier,0x0))
+            BEGIN
+                UPDATE dbo.TraceDeletionJobs SET State=''Failed'',ErrorCode=51208,
+                    ErrorMessage=N''Trace/import identity changed. Owner review and explicit resume required.'',
+                    LeaseToken=NULL,LeaseOwner=NULL,LeaseExpiresUtc=NULL,UpdatedUtc=SYSUTCDATETIME()
+                WHERE JobId=@JobId;
+                COMMIT;
+                THROW 51208,''Trace/import identity changed. Owner review required.'',1;
+            END;
+        END;
+' ELSE N'
+        IF @JobId IS NOT NULL OR @LeaseToken IS NOT NULL OR @ExpectedSequence IS NOT NULL
+            THROW 51202,''Durable deletion is not installed.'',1;
+' END;
+DECLARE @jobFinish nvarchar(max)=CASE WHEN @durable=1 THEN N'
+        IF @JobId IS NOT NULL
+        BEGIN
+            -- Actual successful root query, under module ownership, is the sole completion authority.
+            DECLARE @complete bit=CASE WHEN EXISTS(SELECT 1 FROM dbo.Traces WHERE TraceId=@TraceId) THEN 0 ELSE 1 END;
+            UPDATE dbo.TraceDeletionJobs SET Sequence=Sequence+1,CommittedRows=CommittedRows+@RowsDeleted,
+                LastRows=@RowsDeleted,LastPhase=@Phase,LastHasMore=CASE WHEN @complete=1 THEN 0 ELSE 1 END,
+                State=CASE WHEN @complete=1 THEN ''Completed'' ELSE ''Running'' END,
+                IsActive=CASE WHEN @complete=1 THEN 0 ELSE 1 END,
+                LeaseToken=CASE WHEN @complete=1 THEN NULL ELSE LeaseToken END,
+                LeaseOwner=CASE WHEN @complete=1 THEN NULL ELSE LeaseOwner END,
+                LeaseExpiresUtc=CASE WHEN @complete=1 THEN NULL ELSE LeaseExpiresUtc END,
+                Attempts=0,ErrorCode=NULL,ErrorMessage=NULL,UpdatedUtc=SYSUTCDATETIME()
+            WHERE JobId=@JobId;
+        END;
+' ELSE N'' END;
+DECLARE @endpointFailure nvarchar(max)=CASE WHEN @durable=1 THEN N'
+            IF @JobId IS NOT NULL
+            BEGIN
+                UPDATE dbo.TraceDeletionJobs SET State=''Failed'',ErrorCode=51013,
+                    ErrorMessage=N''Cross-trace or missing method endpoints. Owner review and explicit resume required.'',
+                    LeaseToken=NULL,LeaseOwner=NULL,LeaseExpiresUtc=NULL,UpdatedUtc=SYSUTCDATETIME()
+                WHERE JobId=@JobId;
+                COMMIT;
+            END;
 ' ELSE N'' END;
 
 BEGIN TRY
 BEGIN TRANSACTION;
 EXEC(N'CREATE OR ALTER PROCEDURE dbo.sp_DeleteTrace
     @TraceId INT,
-    @BatchSize INT = 2000
+    @BatchSize INT = 2000,
+    @JobId uniqueidentifier = NULL,
+    @LeaseToken uniqueidentifier = NULL,
+    @ExpectedSequence bigint = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -141,21 +257,17 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
         -- Importer: global importer session lock -> trace session lock -> data locks.
-        -- Deleter: trace transaction lock -> receipt/root data locks. Never acquire
+        -- Deleter: trace transaction lock -> eligibility read -> data -> receipt. Never acquire
         -- the global importer lock here, so unrelated completed traces remain deletable.
         DECLARE @lockResult int, @traceLock nvarchar(255)=CONCAT(''TraceParser:Trace:'',@TraceId);
         EXEC @lockResult=sys.sp_getapplock @Resource=@traceLock,@LockMode=''Exclusive'',
             @LockOwner=''Transaction'',@LockTimeout=0;
         IF @lockResult<0
             THROW 51130, ''Trace is busy with an import or another deletion batch. Retry later.'', 1;
-' + @receiptGuard + N'
+' + @receiptGuard + @jobGuard + N'
         -- Serialize same-trace callers for this one batch, never the whole deletion.
         IF NOT EXISTS (SELECT 1 FROM dbo.Traces WITH (UPDLOCK, HOLDLOCK) WHERE TraceId = @TraceId)
-        BEGIN
-            COMMIT TRANSACTION;
-            SELECT @HasMore AS HasMore, @Phase AS Phase, @RowsDeleted AS RowsDeleted;
-            RETURN;
-        END;
+            GOTO Finished;
         SET @HasMore = 1;
 
         -- A method can reference this trace at either endpoint. Never infer ownership
@@ -169,7 +281,10 @@ BEGIN
         WHERE b.TraceId = @TraceId OR e.TraceId = @TraceId;
         IF EXISTS (SELECT 1 FROM @methods WHERE BeginTraceId IS NULL OR EndTraceId IS NULL
             OR BeginTraceId <> @TraceId OR EndTraceId <> @TraceId)
+        BEGIN
+' + @endpointFailure + N'
             THROW 51013, ''TopMethods has cross-trace or missing thread endpoints. No rows from this batch were deleted. Earlier batches may be committed; owner review is required.'', 1;
+        END;
         IF EXISTS (SELECT 1 FROM @methods)
         BEGIN
             SET @Phase = N''TopMethods'';
@@ -179,11 +294,15 @@ BEGIN
         END;
 
         DECLARE @batch TABLE (Id BIGINT PRIMARY KEY);
+        -- Keep work proportional to the target threads and the batch, even
+        -- after partial deletion or when unrelated traces dominate the table.
         INSERT @batch (Id)
         SELECT TOP (@BatchSize) tl.TraceLineId
-        FROM dbo.TraceLines tl
-        JOIN dbo.UserSessionProcessThreads u ON u.UserSessionProcessThreadId = tl.UserSessionProcessThreadId
-        WHERE u.TraceId = @TraceId;
+        FROM dbo.UserSessionProcessThreads u WITH (FORCESEEK)
+        INNER LOOP JOIN dbo.TraceLines tl WITH (FORCESEEK)
+            ON tl.UserSessionProcessThreadId = u.UserSessionProcessThreadId
+        WHERE u.TraceId = @TraceId
+        OPTION (FORCE ORDER);
 
         IF EXISTS (SELECT 1 FROM @batch)
         BEGIN
@@ -247,6 +366,7 @@ BEGIN
         SET @HasMore = 0;
 
 Finished:
+' + @receiptFinish + @jobFinish + N'
         COMMIT TRANSACTION;
         SELECT @HasMore AS HasMore, @Phase AS Phase, @RowsDeleted AS RowsDeleted;
     END TRY
@@ -267,6 +387,16 @@ IF EXISTS (SELECT 1 FROM sys.extended_properties WHERE class=1
 ELSE
     EXEC sys.sp_addextendedproperty @name=N'TraceParserImporterDeletionHash',@value=@definitionHash,
         @level0type=N'SCHEMA',@level0name=N'dbo',@level1type=N'PROCEDURE',@level1name=N'sp_DeleteTrace';
+IF @durable=1
+BEGIN
+    IF EXISTS(SELECT 1 FROM sys.extended_properties WHERE major_id=OBJECT_ID('dbo.sp_DeleteTrace')
+        AND name=N'TraceParserDurableDeletionHash')
+        EXEC sys.sp_updateextendedproperty @name=N'TraceParserDurableDeletionHash',@value=@definitionHash,
+            @level0type=N'SCHEMA',@level0name=N'dbo',@level1type=N'PROCEDURE',@level1name=N'sp_DeleteTrace';
+    ELSE
+        EXEC sys.sp_addextendedproperty @name=N'TraceParserDurableDeletionHash',@value=@definitionHash,
+            @level0type=N'SCHEMA',@level0name=N'dbo',@level1type=N'PROCEDURE',@level1name=N'sp_DeleteTrace';
+END;
 COMMIT TRANSACTION;
 END TRY
 BEGIN CATCH

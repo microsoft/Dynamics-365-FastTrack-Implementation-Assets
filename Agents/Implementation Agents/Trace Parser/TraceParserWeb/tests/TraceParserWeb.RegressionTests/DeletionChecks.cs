@@ -228,6 +228,7 @@ static class DeletionChecks
     static readonly BindingFlags Members = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
     static void Set(object target, string member, object value)
     {
+        if (member == "DeletionSvc") Set(target, "DeletionJobsSvc", DurableDeletionChecks.DisabledService());
         if (target.GetType().GetField(member, Members) is FieldInfo field) field.SetValue(target, value);
         else target.GetType().GetProperty(member, Members)!.SetValue(target, value);
     }
