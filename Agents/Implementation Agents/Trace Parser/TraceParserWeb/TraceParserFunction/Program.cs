@@ -6,8 +6,8 @@ var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
     .ConfigureServices(s =>
     {
-        s.AddSingleton<EtlParser>();
-        s.AddSingleton<SqlImporter>();
+        s.AddScoped<EtlParser>();
+        s.AddScoped<SqlImporter>();
     })
     .Build();
 

@@ -67,7 +67,7 @@ public class ParseStats
 /// <summary>
 /// Handles all SQL operations: dimension upserts, TraceLineId reservation, bulk copy, SP call.
 /// </summary>
-public class SqlImporter(ILogger<SqlImporter> logger)
+public partial class SqlImporter(ILogger<SqlImporter> logger)
 {
     // In-memory caches (string/hash → id or true)
     private readonly Dictionary<string, int>  _cacheHost    = new();
@@ -83,19 +83,12 @@ public class SqlImporter(ILogger<SqlImporter> logger)
     private readonly List<BindParamRow>        _allBindParams = new();
 
     // ----- Hash -----
-    private static readonly System.Security.Cryptography.SHA256 Sha256
-        = System.Security.Cryptography.SHA256.Create();
-    private static readonly Dictionary<string, long> HashCache = new();
-
     public static long ComputeHash(string text)
     {
         text ??= "";
-        if (HashCache.TryGetValue(text, out var cached)) return cached;
         var bytes = System.Text.Encoding.UTF8.GetBytes(text);
-        var sha = Sha256.ComputeHash(bytes);
-        var h = BitConverter.ToInt64(sha, 0);
-        HashCache[text] = h;
-        return h;
+        var sha = System.Security.Cryptography.SHA256.HashData(bytes);
+        return System.Buffers.Binary.BinaryPrimitives.ReadInt64LittleEndian(sha);
     }
 
     internal static string StripMethodPrefix(string name)
@@ -278,127 +271,37 @@ public class SqlImporter(ILogger<SqlImporter> logger)
     // ----- TraceLineId reservation -----
     private long ReserveTraceLineIds(SqlConnection conn, int count)
     {
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = "EXEC ReserveTraceLineIds @batchSize";
+        using var cmd = ImportCommand(conn, "dbo.tp_ReserveTraceLineIds");
         cmd.CommandTimeout = 60;
-        cmd.Parameters.AddWithValue("@batchSize", (long)count);
-        var r = cmd.ExecuteScalar();
-        return r == null || r == DBNull.Value ? 1L : (long)Convert.ChangeType(r, typeof(long));
+        cmd.Parameters.Add("@BatchSize", SqlDbType.Int).Value = count;
+        var r = cmd.ExecuteScalarAsync(ImportCancellation).GetAwaiter().GetResult();
+        if (r is null or DBNull)
+            throw new InvalidOperationException("ID reservation returned no result; refusing to allocate IDs.");
+        var first = Convert.ToInt64(r);
+        if (first < 1 || count < 1 || first > long.MaxValue - count)
+            throw new InvalidOperationException("Invalid ID reservation; refusing to allocate IDs.");
+        return first;
     }
 
     // ----- Batch flush (streaming: rows may have temp negative ThreadIds) -----
     public void FlushStageBatch(SqlConnection conn, List<StageRow> rows, List<BindParamRow> bpRows)
     {
-        if (rows.Count == 0) return;
-        var firstId = ReserveTraceLineIds(conn, rows.Count);
-        var seqMap = new Dictionary<long, long>();
-        for (int i = 0; i < rows.Count; i++)
-        {
-            rows[i].TraceLineId = firstId + i;
-            seqMap[rows[i].Seq] = firstId + i;
-        }
-        foreach (var bp in bpRows)
-            if (seqMap.TryGetValue(bp.TempSeq, out var tlid))
-                bp.TraceLineId = tlid;
-
-        using var bc = new SqlBulkCopy(conn)
-        {
-            DestinationTableName = "StageTraceLines",
-            BatchSize = rows.Count,
-            BulkCopyTimeout = 300
-        };
-        var dt = BuildDataTable(rows);
-        foreach (DataColumn col in dt.Columns)
-            bc.ColumnMappings.Add(col.ColumnName, col.ColumnName);
-        bc.WriteToServer(dt);
-        dt.Dispose();
-
-        foreach (var bp in bpRows)
-            if (seqMap.TryGetValue(bp.TempSeq, out var stlid))
-                bp.TraceLineId = stlid;
-        _allBindParams.AddRange(bpRows);
+        foreach (var chunk in rows.Chunk(10_000))
+            StageOwnedBatch(conn, chunk.ToList(), []);
+        foreach (var chunk in bpRows.Chunk(10_000))
+            StageOwnedBatch(conn, [], chunk.ToList());
     }
 
     // ----- Promote stage rows → TraceLines (replaces CopyTraceLinesFromStage SP) -----
     public async Task PromoteStageToTraceLines(SqlConnection conn)
     {
-        var sw = System.Diagnostics.Stopwatch.StartNew();
-
-        // 1. Discover and disable nonclustered indexes on TraceLines
-        var ncIndexes = new List<string>();
-        using (var cmd = conn.CreateCommand())
+        while (true)
         {
-            cmd.CommandText = @"SELECT i.name FROM sys.indexes i
-                WHERE i.object_id = OBJECT_ID('TraceLines')
-                  AND i.type_desc = 'NONCLUSTERED' AND i.name IS NOT NULL";
-            using var rdr = cmd.ExecuteReader();
-            while (rdr.Read()) ncIndexes.Add(rdr.GetString(0));
+            using var cmd = ImportCommand(conn, "dbo.tp_PromoteImportBatch");
+            var count = Convert.ToInt32(await cmd.ExecuteScalarAsync(ImportCancellation));
+            if (count == 0) break;
+            logger.LogInformation("Committed import batch: ImportId={ImportId}, Rows={Rows}", ImportId, count);
         }
-        foreach (var idx in ncIndexes)
-        {
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = $"ALTER INDEX [{idx}] ON TraceLines DISABLE";
-            cmd.CommandTimeout = 120;
-            cmd.ExecuteNonQuery();
-        }
-        logger.LogInformation("Disabled {Count} nonclustered indexes ({Elapsed}ms)",
-            ncIndexes.Count, sw.ElapsedMilliseconds);
-
-        // 2. INSERT with IDENTITY_INSERT ON + TABLOCK (TraceLineIds already reserved)
-        using (var cmd = conn.CreateCommand())
-        {
-            cmd.CommandTimeout = 3600;  // 60 min (safety margin for 10M+ rows)
-            cmd.CommandText = @"
-                SET IDENTITY_INSERT TraceLines ON;
-                INSERT INTO TraceLines WITH (TABLOCK)
-                    (TraceLineId, UserSessionProcessThreadId, CallTypeId,
-                     Sequence, SequenceEnd, [TimeStamp], TimeStampEnd,
-                     InclusiveDurationNano, ExclusiveDurationNano, DatabaseDurationNano,
-                     ParentSequence, InclusiveRpc, DatabaseCalls,
-                     QueryStatementHash, QueryTableHash,
-                     PrepDurationNano, BindDurationNano, RowFetchDurationNano, RowFetchCount,
-                     MethodHash, MessageHash, CallstackHash,
-                     HasChildren, IsComplete, IsRecursive, TransactionParentSequence,
-                     FileName, RoleRoleId, RoleInstanceRoleInstanceId,
-                     EventLevel, EventId, AzureTenantAzureTenantId,
-                     EventType, PropertiesXml, LineNumber, EventName)
-                SELECT
-                     TraceLineId, UserSessionProcessThreadId, CallTypeId,
-                     Sequence, SequenceEnd, [TimeStamp], TimeStampEnd,
-                     InclusiveDurationNano, ExclusiveDurationNano, DatabaseDurationNano,
-                     ParentSequence, InclusiveRpc, DatabaseCalls,
-                     QueryStatementHash, QueryTableHash,
-                     PrepDurationNano, BindDurationNano, RowFetchDurationNano, RowFetchCount,
-                     MethodHash, MessageHash, CallstackHash,
-                     HasChildren, IsComplete, IsRecursive, TransactionParentSequence,
-                     FileName, RoleRoleId, RoleInstanceRoleInstanceId,
-                     EventLevel, EventId, AzureTenantAzureTenantId,
-                     EventType, PropertiesXml, LineNumber, EventName
-                FROM StageTraceLines;
-                SET IDENTITY_INSERT TraceLines OFF;";
-            var rows = await cmd.ExecuteNonQueryAsync();
-            logger.LogInformation("Inserted {Rows:N0} rows into TraceLines ({Elapsed}ms)",
-                rows, sw.ElapsedMilliseconds);
-        }
-
-        // 3. Rebuild nonclustered indexes
-        foreach (var idx in ncIndexes)
-        {
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = $"ALTER INDEX [{idx}] ON TraceLines REBUILD";
-            cmd.CommandTimeout = 1800;  // 30 min (safety margin for 10M+ rows)
-            cmd.ExecuteNonQuery();
-            logger.LogInformation("  Rebuilt index [{Index}] ({Elapsed}ms)", idx, sw.ElapsedMilliseconds);
-        }
-
-        // 4. Update statistics + truncate staging
-        using (var cmd = conn.CreateCommand())
-        {
-            cmd.CommandTimeout = 300;
-            cmd.CommandText = "UPDATE STATISTICS TraceLines; TRUNCATE TABLE StageTraceLines;";
-            await cmd.ExecuteNonQueryAsync();
-        }
-        logger.LogInformation("PromoteStageToTraceLines complete. Total: {Elapsed}ms", sw.ElapsedMilliseconds);
     }
 
     // ----- Bind param insert (after SP promotes stage rows to TraceLines) -----
@@ -505,10 +408,6 @@ public class SqlImporter(ILogger<SqlImporter> logger)
         var threadMap = BulkUpsertThreads(conn, traceId, dims.GetAllThreads(), sessMap);
         logger.LogInformation("  Threads: {Count} inserted.", threadMap.Count);
 
-        BulkUpsertHashDim(conn, dims.GetAllMethodNames(), "MethodNames", "MethodHash", "Name", 500, true);
-        BulkUpsertHashDim(conn, dims.GetAllQueryStatements(), "QueryStatements", "QueryStatementHash", "Statement", 4000, false);
-        BulkUpsertHashDim(conn, dims.GetAllQueryTables(), "QueryTables", "QueryTableHash", "TableNames", 1000, false);
-        BulkUpsertHashDim(conn, dims.GetAllMessages(), "Messages", "MessageHash", "MessageText", 4000, false);
         logger.LogInformation("  Hash dims: Methods={M} Stmts={S} Tables={T} Msgs={Msg}",
             dims.GetAllMethodNames().Count, dims.GetAllQueryStatements().Count,
             dims.GetAllQueryTables().Count, dims.GetAllMessages().Count);
@@ -517,63 +416,18 @@ public class SqlImporter(ILogger<SqlImporter> logger)
     }
 
     /// <summary>
-    /// Remaps temp (negative) ThreadIds in StageTraceLines to real DB ThreadIds via UPDATE JOIN.
-    /// Also remaps ThreadIds in the accumulated _allBindParams.
+    /// Persists this import's immutable mapping; shared staging is never rewritten.
     /// </summary>
-    public void RemapStageThreadIds(SqlConnection conn, Dictionary<int, int> threadMap)
+    private void PersistThreadMappings(SqlConnection conn, Dictionary<int, int> threadMap)
     {
-        if (threadMap.Count == 0) return;
-        logger.LogInformation("Remapping {Count} temp ThreadIds in StageTraceLines...", threadMap.Count);
-
-        // Create temp mapping table
-        using (var cmd = conn.CreateCommand())
-        {
-            cmd.CommandText = "CREATE TABLE #ThreadMap (TempId INT NOT NULL PRIMARY KEY, RealId INT NOT NULL)";
-            cmd.ExecuteNonQuery();
-        }
-
-        // Insert mappings
         foreach (var (tempId, realId) in threadMap)
         {
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = "INSERT INTO #ThreadMap(TempId, RealId) VALUES(@t, @r)";
-            cmd.Parameters.AddWithValue("@t", tempId);
-            cmd.Parameters.AddWithValue("@r", realId);
-            cmd.ExecuteNonQuery();
+            using var cmd = ImportCommand(conn, "dbo.tp_MapImportThread");
+            cmd.Transaction = _dimensionTransaction;
+            cmd.Parameters.Add("@TempThreadId", SqlDbType.Int).Value = tempId;
+            cmd.Parameters.Add("@ThreadId", SqlDbType.Int).Value = realId;
+            cmd.ExecuteNonQueryAsync(ImportCancellation).GetAwaiter().GetResult();
         }
-
-        // Add index on the join column for faster UPDATE
-        using (var cmd = conn.CreateCommand())
-        {
-            cmd.CommandText = @"IF EXISTS (SELECT 1 FROM sys.indexes WHERE name='IX_Stage_ThreadId' AND object_id=OBJECT_ID('StageTraceLines'))
-                                    DROP INDEX IX_Stage_ThreadId ON StageTraceLines;
-                                CREATE NONCLUSTERED INDEX IX_Stage_ThreadId ON StageTraceLines(UserSessionProcessThreadId)";
-            cmd.CommandTimeout = 600;
-            cmd.ExecuteNonQuery();
-        }
-        logger.LogInformation("Created index on StageTraceLines.UserSessionProcessThreadId");
-
-        // Single UPDATE with JOIN
-        using (var cmd = conn.CreateCommand())
-        {
-            cmd.CommandText = @"UPDATE s SET s.UserSessionProcessThreadId = m.RealId
-                                FROM StageTraceLines s
-                                INNER JOIN #ThreadMap m ON s.UserSessionProcessThreadId = m.TempId";
-            cmd.CommandTimeout = 3600; // 60 min — 10M+ rows on S3 100 DTU needs ~30 min
-            var affected = cmd.ExecuteNonQuery();
-            logger.LogInformation("Remapped {Affected:N0} rows in StageTraceLines.", affected);
-        }
-
-        using (var cmd = conn.CreateCommand())
-        {
-            cmd.CommandText = "DROP TABLE #ThreadMap";
-            cmd.ExecuteNonQuery();
-        }
-
-        // Also remap accumulated bind params
-        foreach (var bp in _allBindParams)
-            if (threadMap.TryGetValue(bp.ThreadId, out var realId))
-                bp.ThreadId = realId;
     }
 
     private Dictionary<int, int> BulkUpsertNameDim(SqlConnection conn,
@@ -582,35 +436,21 @@ public class SqlImporter(ILogger<SqlImporter> logger)
         var map = new Dictionary<int, int>(); // tempId → realId
         if (tempValues.Count == 0) return map;
 
-        // Load all existing rows
-        var existing = new Dictionary<string, int>();
-        using (var cmd = conn.CreateCommand())
-        {
-            cmd.CommandTimeout = 300;
-            cmd.CommandText = $"SELECT {idCol}, {keyCol} FROM {table}";
-            using var rdr = cmd.ExecuteReader();
-            while (rdr.Read())
-                existing[rdr.GetString(1)] = rdr.GetInt32(0);
-        }
-
-        // Map existing, collect new
-        var toInsert = new List<(string name, int tempId)>();
+        // Let SQL apply the deployed column's collation; CLR case-sensitive matching
+        // could otherwise insert a duplicate of a differently-cased existing name.
         foreach (var (name, tempId) in tempValues)
         {
-            if (existing.TryGetValue(name, out var realId))
-                map[tempId] = realId;
-            else
-                toInsert.Add((name, tempId));
-        }
-
-        // Insert new values
-        foreach (var (name, tempId) in toInsert)
-        {
-            using var cmd = conn.CreateCommand();
-            cmd.CommandTimeout = 300;
-            cmd.CommandText = $"INSERT INTO {table} ({keyCol}) OUTPUT INSERTED.{idCol} VALUES(@v)";
-            cmd.Parameters.AddWithValue("@v", name);
-            var realId = (int)cmd.ExecuteScalar()!;
+            using var cmd = DimensionCommand(conn);
+            cmd.CommandTimeout = 120;
+            cmd.CommandText = $"""
+                DECLARE @id int;
+                SELECT @id={idCol} FROM dbo.{table} WITH(UPDLOCK,HOLDLOCK) WHERE {keyCol}=@v;
+                IF @id IS NULL
+                    INSERT dbo.{table}({keyCol}) OUTPUT INSERTED.{idCol} VALUES(@v);
+                ELSE SELECT @id;
+                """;
+            cmd.Parameters.Add("@v", SqlDbType.NVarChar, name.Length is > 0 and <= 4000 ? name.Length : -1).Value = name;
+            var realId = (int)cmd.ExecuteScalarAsync(ImportCancellation).GetAwaiter().GetResult()!;
             map[tempId] = realId;
         }
 
@@ -623,15 +463,15 @@ public class SqlImporter(ILogger<SqlImporter> logger)
         var map = new Dictionary<int, int>(); // tempSessId → realSessId
         if (sessions.Count == 0) return map;
 
-        using var cmd = conn.CreateCommand();
+        using var cmd = DimensionCommand(conn);
         cmd.CommandTimeout = 300;
-        cmd.CommandText = "SELECT ISNULL(MAX(SessionId), 0) FROM UserSessions";
-        var maxId = (int)cmd.ExecuteScalar()!;
+        cmd.CommandText = "SELECT ISNULL(MAX(SessionId), 0) FROM UserSessions WITH (UPDLOCK,HOLDLOCK)";
+        var maxId = (int)cmd.ExecuteScalarAsync(ImportCancellation).GetAwaiter().GetResult()!;
 
         foreach (var sess in sessions)
         {
-            maxId++;
-            using var ins = conn.CreateCommand();
+            maxId = checked(maxId + 1);
+            using var ins = DimensionCommand(conn);
             ins.CommandTimeout = 300;
             ins.CommandText = @"INSERT INTO UserSessions(SessionId, TraceId, UserId, SessionName, CustomerCustomerId)
                                VALUES(@sid, @tid, @uid, @sn, @cid)";
@@ -640,7 +480,7 @@ public class SqlImporter(ILogger<SqlImporter> logger)
             ins.Parameters.AddWithValue("@uid", userMap[sess.TempUserId]);
             ins.Parameters.AddWithValue("@sn", sess.SessionName);
             ins.Parameters.AddWithValue("@cid", custMap[sess.TempCustId]);
-            ins.ExecuteNonQuery();
+            ins.ExecuteNonQueryAsync(ImportCancellation).GetAwaiter().GetResult();
             map[sess.TempSessId] = maxId;
         }
 
@@ -658,7 +498,7 @@ public class SqlImporter(ILogger<SqlImporter> logger)
             Guid.TryParse(t.ActKey, out var ag);
             Guid.TryParse(t.ReqStr, out var rg);
             var realSessId = t.TempSessId == 0 ? 0 : sessMap.GetValueOrDefault(t.TempSessId, 0);
-            using var cmd = conn.CreateCommand();
+            using var cmd = DimensionCommand(conn);
             cmd.CommandTimeout = 300;
             cmd.CommandText = @"INSERT INTO UserSessionProcessThreads(RequestId, ActivityId, RelatedActivityId, SessionId, TraceId)
                                OUTPUT INSERTED.UserSessionProcessThreadId VALUES(@r, @a, @ra, @s, @t)";
@@ -667,7 +507,7 @@ public class SqlImporter(ILogger<SqlImporter> logger)
             cmd.Parameters.AddWithValue("@ra", Guid.Empty);
             cmd.Parameters.AddWithValue("@s", realSessId);
             cmd.Parameters.AddWithValue("@t", traceId);
-            var realId = (int)cmd.ExecuteScalar()!;
+            var realId = (int)cmd.ExecuteScalarAsync(ImportCancellation).GetAwaiter().GetResult()!;
             map[t.TempThreadId] = realId;
         }
 
@@ -710,7 +550,7 @@ public class SqlImporter(ILogger<SqlImporter> logger)
             using (var cmd = conn.CreateCommand())
             {
                 cmd.CommandText = $"CREATE TABLE #HashStage (HashVal BIGINT PRIMARY KEY, TextVal NVARCHAR({maxLen}))";
-                cmd.ExecuteNonQuery();
+                cmd.ExecuteNonQueryAsync(ImportCancellation).GetAwaiter().GetResult();
             }
 
             // SqlBulkCopy to temp table
@@ -718,7 +558,7 @@ public class SqlImporter(ILogger<SqlImporter> logger)
             {
                 bcp.ColumnMappings.Add("HashVal", "HashVal");
                 bcp.ColumnMappings.Add("TextVal", "TextVal");
-                bcp.WriteToServer(dt);
+                bcp.WriteToServerAsync(dt, ImportCancellation).GetAwaiter().GetResult();
             }
             dt.Dispose();
 
@@ -732,15 +572,15 @@ public class SqlImporter(ILogger<SqlImporter> logger)
                     INSERT INTO {table} ({hashCol},{textCol}{colExtra})
                     SELECT s.HashVal, s.TextVal{selectExtra}
                     FROM #HashStage s
-                    WHERE NOT EXISTS (SELECT 1 FROM {table} t WHERE t.{hashCol} = s.HashVal)";
-                var inserted = cmd.ExecuteNonQuery();
+                    WHERE NOT EXISTS (SELECT 1 FROM {table} t WITH(UPDLOCK,HOLDLOCK) WHERE t.{hashCol} = s.HashVal)";
+                var inserted = cmd.ExecuteNonQueryAsync(ImportCancellation).GetAwaiter().GetResult();
                 totalInserted += inserted;
             }
 
             using (var cmd = conn.CreateCommand())
             {
                 cmd.CommandText = "DROP TABLE #HashStage";
-                cmd.ExecuteNonQuery();
+                cmd.ExecuteNonQueryAsync(ImportCancellation).GetAwaiter().GetResult();
             }
         }
 

@@ -165,6 +165,13 @@
                 </a>
             </div>
         }
+        @if (_importId != Guid.Empty && !_isUploading)
+        {
+            <p class="upload-warning">
+                Import receipt: <a href="@($"/api/imports/{_importId:D}")">@_importId</a>.
+                Bookmark this authenticated status link before closing the page.
+            </p>
+        }
     </div>
 </div>
 
@@ -182,6 +189,7 @@
     ImportStage _currentStage = ImportStage.WaitingForFunction;
     DateTime _processingStartTime;
     string _timeEstimate = "";
+    Guid _importId;
 
     static readonly ImportStage[] _displayStages =
     [
@@ -193,14 +201,14 @@
 
     int UploadPercent => File?.Size > 0 ? (int)(_uploadedBytes * 100 / File.Size) : 0;
 
-    const long MaxFileSizeBytes = 1_073_741_824; // 1 GB
+    const long MaxFileSizeBytes = TraceParser.Shared.ImportFilePolicy.MaxFileSizeBytes;
 
     void FileSelected(InputFileChangeEventArgs e)
     {
         File = e.File;
         if (File.Size > MaxFileSizeBytes)
         {
-            StatusMessage = $"File too large ({FormatFileSize(File.Size)}). Maximum allowed size is 1 GB.";
+            StatusMessage = $"File too large ({FormatFileSize(File.Size)}). Maximum allowed size is 1 GiB (1,073,741,824 bytes).";
             IsError = true;
             File = null;
         }
@@ -242,11 +250,12 @@
         try
         {
             // Step 1: Generate SAS URL server-side (Blazor Server runs on the server)
-            var sasUrl = UploadSvc.GenerateSasUrl(SessionName, File.Name);
+            var registration = await UploadSvc.RegisterAsync(SessionName, File.Name);
+            _importId = registration.ImportId;
 
             // Step 2: Upload directly from browser to Azure Blob via JS interop
             _dotNetRef = DotNetObjectReference.Create(this);
-            await JS.InvokeVoidAsync("blobUpload.upload", sasUrl, "etlFileInput", _dotNetRef);
+            await JS.InvokeVoidAsync("blobUpload.upload", registration.SasUrl, "etlFileInput", _dotNetRef);
         }
         catch (Exception ex)
         {
@@ -292,7 +301,7 @@
             await InvokeAsync(async () =>
             {
                 if (_disposed) return;
-                var status = await UploadSvc.GetImportStatusAsync(SessionName, CancellationToken.None);
+                var status = await UploadSvc.GetImportStatusAsync(_importId, CancellationToken.None);
                 if (_disposed) return;
 
                 if (status.Stage != _currentStage)
@@ -310,6 +319,10 @@
                     Busy = false;
                     StatusMessage = $"Import complete! Session '{SessionName}' is ready to query in Chat.";
                 }
+                else if (status.Stage == ImportStage.RejectedOversize)
+                {
+                    ShowOversizeRejection();
+                }
 
                 StateHasChanged();
             });
@@ -317,6 +330,8 @@
         catch (Exception ex)
         {
             Logger.LogWarning(ex, "Status poll error for session {Session}", SessionName);
+            if (!_disposed)
+                await InvokeAsync(() => { _currentStage = ImportStage.Unavailable; StateHasChanged(); });
         }
         finally
         {
@@ -336,6 +351,17 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    void ShowOversizeRejection()
+    {
+        _pollTimer?.Dispose();
+        _pollTimer = null;
+        _isProcessing = false;
+        IsComplete = false;
+        IsError = true;
+        Busy = false;
+        StatusMessage = GetStageMessage(ImportStage.RejectedOversize);
+    }
+
     static string EstimateProcessingTime(long fileSizeBytes)
     {
         var sizeMb = fileSizeBytes / 1_048_576.0;
@@ -351,10 +377,15 @@
     {
         ImportStage.WaitingForFunction => "Waiting for Azure Function to pick up the file...",
         ImportStage.Parsing => "Parsing ETL events and staging data...",
-        ImportStage.ProcessingDimensions => "Promoting trace lines and rebuilding indexes...",
+        ImportStage.ProcessingDimensions => "Importing bounded batches with indexes enabled...",
         ImportStage.Finalizing => "Computing session aggregations...",
         ImportStage.Complete => "Import complete!",
         ImportStage.Unavailable => "Import status unavailable; the next poll will retry.",
+        ImportStage.RetryableFailure => "Import interrupted; staged progress is retained for retry. This trace cannot be deleted yet.",
+        ImportStage.Deleted => "This completed import was deleted. Its receipt is retained; upload again to create a new import.",
+        ImportStage.Deleting => "Deletion is in progress or interrupted. The trace still exists; refresh the Traces page and resume deletion.",
+        ImportStage.LegacyUntracked => "No tracked import exists. Legacy uploads are held for explicit review.",
+        ImportStage.RejectedOversize => "Import rejected: the ETL exceeds 1 GiB (1,073,741,824 bytes). The blob and receipt are retained; upload a smaller file as a new import.",
         _ => "Processing..."
     };
 

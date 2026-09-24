@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\Shared\ImportFilePolicy.cs" Link="Shared\ImportFilePolicy.cs" />
     <Content Include="Manifests\*.manifest.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
