@@ -50,15 +50,18 @@ The agent uses a **dual Model Context Protocol (MCP)** architecture:
 
 See [`TraceParserMCP/README.md`](TraceParserMCP/README.md) for full instructions.
 
-```bash
-# Install Data API Builder
+Run these commands from the `TraceParserMCP` directory:
+
+```powershell
+# Restore the repository-pinned Data API Builder 1.7.83-rc
 dotnet tool restore
+dotnet tool run dab --version
 
 # Configure connection string
 # Edit .env with your SQL Server details
 
 # Start the server
-dab start
+dotnet tool run dab start
 ```
 
 ### 2. Import the Copilot Studio Agent
@@ -81,7 +84,7 @@ See [`TraceParserWeb/README.md`](TraceParserWeb/README.md) for the web-based ETL
 
 ## Prerequisites
 
-- [.NET 8+ Runtime](https://dotnet.microsoft.com/download)
+- [.NET SDK](https://dotnet.microsoft.com/download) for local tool restore, plus the .NET 8 / ASP.NET Core 8 runtimes for the pinned DAB tool
 - SQL Server (LocalDB, SQL Express, or Azure SQL)
 - Microsoft Copilot Studio access
 - Copilot Studio Credits Capacity

@@ -122,7 +122,7 @@ there. Native historical versions are not classified by these changes.
 
 ## Prerequisites
 
-- [.NET 8+ Runtime](https://dotnet.microsoft.com/download)
+- [.NET SDK](https://dotnet.microsoft.com/download) for local tool restore, plus the .NET 8 / ASP.NET Core 8 runtimes for the pinned DAB tool
 - SQL Server (local or Azure SQL)
 - The `AxTrace` database populated with trace data
 
@@ -134,10 +134,13 @@ For Azure deployment, you also need:
 
 ## Local Development
 
-1. **Restore the .NET tool:**
+Run these commands from this `TraceParserMCP` directory.
 
-   ```bash
+1. **Restore the pinned .NET tool:**
+
+   ```powershell
    dotnet tool restore
+   dotnet tool run dab --version
    ```
 
 2. **Configure the connection string:**
@@ -150,8 +153,8 @@ For Azure deployment, you also need:
 
 3. **Start the server:**
 
-   ```bash
-   dab start
+   ```powershell
+   dotnet tool run dab start
    ```
 
 The server will be available at:
@@ -161,6 +164,24 @@ The server will be available at:
 | REST     | `http://localhost:5000/api`    |
 | GraphQL  | `http://localhost:5000/graphql`|
 | MCP      | `http://localhost:5000/mcp`   |
+
+### DAB version contract
+
+The local tool manifest and Azure deployment image both pin DAB `1.7.83-rc`.
+Use `dotnet tool run dab` to select the local manifest rather than a separately
+installed global `dab`. Do not replace the version with `latest` or install an
+unspecified prerelease.
+
+The configuration schema is pinned to source commit
+`c7927fa9885160ed35bcc9b25b13fd59b88f3133`, recorded in that NuGet package's
+repository metadata. The package's generated `v1.7.83` release-schema URL returns
+404; the commit-pinned schema has the same validation rules (only its `$id`
+differs). Keep the schema, tool manifest and container image aligned when
+reviewing a future upgrade.
+
+Use lowercase `production` for `runtime.host.mode`. Restart DAB after changing
+entities in production mode; do not depend on development-mode hot reload.
+Changing the mode's casing does not change authentication or entity permissions.
 
 ## Azure Deployment
 
@@ -332,7 +353,7 @@ All server behavior is defined declaratively in `dab-config.json`. Key settings:
 - **Connection string:** Read from `AZURE_SQL_CONNECTION_STRING` environment variable (`.env` locally, App Settings on Azure)
 - **MCP permissions:** Read and execute only (create, update, delete disabled)
 - **Authentication:** Anonymous read access (customers should configure authentication for their deployment)
-- **Host mode:** Production
+- **Host mode:** `production`
 - **GraphQL introspection:** Enabled
 - **REST request body:** Strict validation
 

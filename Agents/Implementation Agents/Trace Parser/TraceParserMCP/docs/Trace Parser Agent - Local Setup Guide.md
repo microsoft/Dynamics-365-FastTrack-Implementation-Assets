@@ -25,7 +25,7 @@ Before starting, verify you have:
 | Requirement | How to Check | Status |
 | --- | --- | --- |
 | AxTrace DB installed | Open SSMS, connect to LocalDB | ☐ |
-| .NET 9.0 or higher | Run `dotnet --version` in PowerShell | ☐ |
+| .NET SDK and .NET 8 / ASP.NET Core 8 runtimes | Run `dotnet --version` and `dotnet --list-runtimes` in PowerShell | ☐ |
 | SQL Server LocalDB running | Run `sqllocaldb info MSSQLLocalDB` | ☐ |
 | Copilot Studio access | Login to make.powerva.microsoft.com | ☐ |
 | Internet connection | For Microsoft Learn MCP | ☐ |
@@ -34,12 +34,14 @@ Before starting, verify you have:
 
 ```powershell
 dotnet --version
+dotnet --list-runtimes
 
 ```
 
-**Required:** 9.0.0 or higher
+The SDK provides tool restore. DAB `1.7.83-rc` targets .NET 8 and ASP.NET Core 8;
+install both runtimes for this baseline. The .NET 8 SDK includes them.
 
-If not installed, download from: https://dotnet.microsoft.com/download/dotnet/9.0
+Download from: https://dotnet.microsoft.com/download/dotnet/8.0
 
 ## Check LocalDB
 
@@ -101,18 +103,21 @@ cd C:\TraceParserMCP
 
 # Step 2: Install Data API Builder CLI
 
-```powershell
-# Create tool manifest (required for local tool installation)
-dotnet new tool-manifest
+When working in the repository's `TraceParserMCP` directory, use its checked-in
+`.config\dotnet-tools.json` and run only the restore and verification commands
+below. For the empty directory created in Step 1, create the same pinned manifest
+with the first two commands.
 
-# Install DAB CLI with prerelease flag (required for MCP support)
-dotnet tool install microsoft.dataapibuilder --prerelease
+```powershell
+# Empty standalone directory only; skip these two commands in the repository
+dotnet new tool-manifest
+dotnet tool install microsoft.dataapibuilder --version 1.7.83-rc
 
 # Restore tools
 dotnet tool restore
 
 # Verify installation
-dotnet tool list
+dotnet tool list --local
 
 ```
 
@@ -121,14 +126,14 @@ dotnet tool list
 ```
 Package Id                       Version      Commands
 ------------------------------------------------------------
-microsoft.dataapibuilder         1.x.x-rc     dab
+microsoft.dataapibuilder         1.7.83-rc    dab
 
 ```
 
 **Verify DAB works:**
 
 ```powershell
-dotnet dab --version
+dotnet tool run dab --version
 
 ```
 
@@ -546,11 +551,16 @@ MSSQL_CONNECTION_STRING=Server=(LocalDB)\MSSQLLocalDB;Database=AxTrace;Trusted_C
 
 ## 4.2 Create DAB Configuration File
 
+The standalone example below uses lowercase `development` for local testing.
+The repository configuration uses lowercase `production`. Both use the schema
+from the exact source commit for DAB `1.7.83-rc`; see the
+[version contract](../README.md#dab-version-contract) for the pin and upgrade rules.
+
 Create a file named `dab-config.json` in `C:\TraceParserMCP`:
 
 ```json
 {
-  "$schema": "https://github.com/Azure/data-api-builder/releases/latest/download/dab.draft.schema.json",
+  "$schema": "https://raw.githubusercontent.com/Azure/data-api-builder/c7927fa9885160ed35bcc9b25b13fd59b88f3133/schemas/dab.draft.schema.json",
   "data-source": {
     "database-type": "mssql",
     "connection-string": "@env('MSSQL_CONNECTION_STRING')"
@@ -565,7 +575,7 @@ Create a file named `dab-config.json` in `C:\TraceParserMCP`:
       "path": "/graphql"
     },
     "host": {
-      "mode": "Development",
+      "mode": "development",
       "cors": {
         "origins": ["*"],
         "allow-credentials": false
@@ -733,7 +743,7 @@ Open PowerShell and run:
 
 ```powershell
 cd C:\TraceParserMCP
-dotnet dab start --config dab-config.json
+dotnet tool run dab start --config dab-config.json
 
 ```
 
@@ -967,7 +977,7 @@ Analyze the slowest session for performance issues
 
 ```powershell
 $env:MSSQL_CONNECTION_STRING="Server=(LocalDB)\MSSQLLocalDB;Database=AxTrace;Trusted_Connection=True;TrustServerCertificate=True;Encrypt=Optional"
-dab start --config dab-config.json
+dotnet tool run dab start --config dab-config.json
 
 ```
 
@@ -1078,10 +1088,10 @@ Invoke-RestMethod -Uri "http://localhost:5000/api/Traces"
 
 | Action | Command |
 | --- | --- |
-| Start MCP Server | `cd C:\TraceParserMCP; dab start --config dab-config.json` |
+| Start MCP Server | `cd C:\TraceParserMCP; dotnet tool run dab start --config dab-config.json` |
 | Stop MCP Server | Press `Ctrl+C` in PowerShell window |
 | Test Health | `Invoke-RestMethod -Uri "http://localhost:5000/health"` |
-| Check DAB Version | `dab --version` |
+| Check DAB Version | `dotnet tool run dab --version` |
 
 ## URLs
 
