@@ -69,6 +69,10 @@ See [`Solutions/readme.md`](Solutions/readme.md) for import instructions.
 
 See [`TraceParserWeb/README.md`](TraceParserWeb/README.md) for the web-based ETL upload interface.
 
+### Import ETL without the web app
+
+For an isolated, pre-provisioned AXTrace database, the standalone [PowerShell importer](TraceParserMCP/DAB_ParseEtl.ps1) provides a headless import path. Start with its [usage guide](TraceParserMCP/docs/DAB_ParseEtl_Guide.md) for PowerShell 7+, direct ETL versus XML-cache modes, and database prerequisites. It uses legacy shared staging, creates a new trace on each run, and is not retry-safe. It refuses databases managed by the web/Function receipt protocol; use a new registered web upload for those databases.
+
 ## Key Capabilities
 
 - **N+1 query pattern detection** — Automatically identifies repetitive database call patterns
