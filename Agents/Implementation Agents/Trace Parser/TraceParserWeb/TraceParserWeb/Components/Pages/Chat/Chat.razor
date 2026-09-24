@@ -120,27 +120,7 @@
                                @bind="editSchemaName" />
                     </div>
 
-                    <div class="agent-form-separator"></div>
-
-                    <div class="agent-form-field">
-                        <label class="agent-field-label">Tenant ID</label>
-                        <input class="agent-field-input" type="text"
-                               placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                               @bind="editTenantId" />
-                    </div>
-                    <div class="agent-form-field">
-                        <label class="agent-field-label">Client ID</label>
-                        <input class="agent-field-input" type="text"
-                               placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                               @bind="editClientId" />
-                    </div>
-                    <div class="agent-form-field">
-                        <label class="agent-field-label">Client Secret</label>
-                        <input class="agent-field-input" type="password"
-                               placeholder="Enter client secret"
-                               @bind="editClientSecret" />
-                        <span class="agent-field-hint">Not saved to browser storage</span>
-                    </div>
+                    <span class="agent-field-hint">Uses your current sign-in and the server-configured app registration. Credentials cannot be changed here.</span>
                 </div>
             </div>
 
@@ -170,9 +150,6 @@
     private string editAgentName = "";
     private string editEnvironmentId = "";
     private string editSchemaName = "";
-    private string editTenantId = "";
-    private string editClientId = "";
-    private string editClientSecret = "";
     private List<AgentProfile> savedAgentProfiles = new();
 
     protected override void OnInitialized()
@@ -182,10 +159,7 @@
 
     private bool IsAgentFormValid =>
         !string.IsNullOrWhiteSpace(editEnvironmentId) &&
-        !string.IsNullOrWhiteSpace(editSchemaName) &&
-        !string.IsNullOrWhiteSpace(editTenantId) &&
-        !string.IsNullOrWhiteSpace(editClientId) &&
-        !string.IsNullOrWhiteSpace(editClientSecret);
+        !string.IsNullOrWhiteSpace(editSchemaName);
 
     private void ToggleInformativeMessages()
     {
@@ -231,11 +205,6 @@
             savedAgentProfiles = new();
         }
 
-        // Pre-fill Azure AD fields from current configuration
-        editTenantId = Configuration["AzureAd:TenantId"] ?? "";
-        editClientId = Configuration["AzureAd:ClientId"] ?? "";
-        editClientSecret = Configuration["AzureAd:ClientSecret"] ?? "";
-
         showAgentSelector = true;
     }
 
@@ -245,9 +214,6 @@
         editAgentName = "";
         editEnvironmentId = "";
         editSchemaName = "";
-        editTenantId = "";
-        editClientId = "";
-        editClientSecret = "";
     }
 
     private void SelectAgentProfile(AgentProfile profile)
@@ -255,8 +221,6 @@
         editAgentName = profile.Name;
         editEnvironmentId = profile.EnvironmentId;
         editSchemaName = profile.SchemaName;
-        editTenantId = profile.TenantId;
-        editClientId = profile.ClientId;
     }
 
     private async Task DeleteAgentProfile(AgentProfile profile)
@@ -286,12 +250,10 @@
         {
             Name = string.IsNullOrWhiteSpace(editAgentName) ? editSchemaName : editAgentName.Trim(),
             EnvironmentId = editEnvironmentId.Trim(),
-            SchemaName = editSchemaName.Trim(),
-            TenantId = editTenantId.Trim(),
-            ClientId = editClientId.Trim()
+            SchemaName = editSchemaName.Trim()
         };
 
-        // Save/update in profiles list (ClientSecret is NOT saved)
+        // Save only agent identifiers, never authentication configuration.
         savedAgentProfiles.RemoveAll(p => p.Name == profile.Name);
         savedAgentProfiles.Insert(0, profile);
         await SaveAgentProfiles();
@@ -301,9 +263,6 @@
         {
             ["CopilotStudio:EnvironmentId"] = profile.EnvironmentId,
             ["CopilotStudio:SchemaName"] = profile.SchemaName,
-            ["AzureAd:TenantId"] = editTenantId.Trim(),
-            ["AzureAd:ClientId"] = editClientId.Trim(),
-            ["AzureAd:ClientSecret"] = editClientSecret.Trim(),
         };
         var memConfig = new ConfigurationBuilder()
             .AddInMemoryCollection(configData)
@@ -311,7 +270,7 @@
 
         var newSettings = new CopilotStudioConnectionSettings(
             memConfig.GetSection("CopilotStudio"),
-            memConfig.GetSection("AzureAd"));
+            Configuration.GetSection("AzureAd"));
 
         var newScope = CopilotClient.ScopeFromSettings(newSettings);
         var logger = LoggerFactory.CreateLogger<CopilotClient>();
@@ -334,9 +293,6 @@
         editAgentName = "";
         editEnvironmentId = "";
         editSchemaName = "";
-        editTenantId = "";
-        editClientId = "";
-        editClientSecret = "";
 
         await chatInput!.FocusAsync();
     }
@@ -591,7 +547,5 @@
         public string Name { get; set; } = "";
         public string EnvironmentId { get; set; } = "";
         public string SchemaName { get; set; } = "";
-        public string TenantId { get; set; } = "";
-        public string ClientId { get; set; } = "";
     }
 }
