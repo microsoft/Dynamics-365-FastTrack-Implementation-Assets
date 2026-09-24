@@ -68,7 +68,7 @@ thresholds; an empty result does not certify those traces fast. `TopMethods` nat
 durations are likewise NULL/unknown except for same-trace `ps-import-v2` endpoints.
 Do not bypass these readers and assume that physical `dbo.TraceLines` is all ns.
 
-The local analytical candidate preserves the existing `TraceLineId` N+1 key and
+The analytical implementation preserves the existing `TraceLineId` N+1 key and
 strict `DatabaseCalls > 100`, average `< 5 ms` threshold. A caller is suppressed
 only when its immediate child, in the **same thread**, has identical inclusive DB
 count and duration. This collapses redundant call-chain wrappers without merging

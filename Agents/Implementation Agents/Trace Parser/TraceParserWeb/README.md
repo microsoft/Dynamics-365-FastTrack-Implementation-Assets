@@ -22,7 +22,7 @@ totals. Statistics retry starts a fresh read. Concurrent database changes can st
 span different page snapshots; this is not a transactionally consistent snapshot.
 The single-row import-status probes intentionally do not enumerate additional pages.
 
-## Analytical correctness validation (local; rollout requires separate approval)
+## Analytical correctness and validation
 
 ### Coordinated cutover upload admission
 
@@ -60,7 +60,7 @@ This creates and removes only a uniquely named database on the dedicated
 synthetic fixture SHA-256, not merely its filename. Without it, only SQL view and
 DAB-key checks run. No new testing framework is needed.
 
-**Versioned duration contract (local implementation, not deployed):**
+**Versioned duration contract:**
 
 | Recorded importer | Stored duration fields | 80 ms fixture raw value | Normalized detail |
 |---|---|---:|---:|
@@ -93,23 +93,35 @@ zero. Web uncertainty is per trace, not an outage of every trace's statistics.
 Production changes still require separate approval and a writer/worker quiet window.
 Do **not** rerun the legacy bootstrap/reset scripts on an upgraded database.
 
-1. Apply `sql\duration-import-v2.sql` as one transaction against the exact deployed
+These scripts are upgrades for the fingerprinted, materialized baseline, not a
+general fresh-database installer. A different baseline must be reconciled before
+deployment; do not remove hash checks to force an upgrade. Deployment records,
+credentials, customer traces and environment-specific orchestration are not part
+of this source distribution.
+
+1. Record the existing upload-hold setting, coordinate external/legacy writers,
+   and establish a quiet window including pending registrations and active jobs.
+   Configure the hold and deploy the nullable-aware web against the old SQL/DAB
+   contract as described above. Verify reads and deletion remain available before
+   changing SQL. Check for active work before every configuration/deployment restart.
+2. Apply `sql\duration-import-v2.sql` as one transaction against the exact deployed
    9ac6f05 baseline. It verifies all 16 importer module hashes and the coordinated
    deletion hash, changes four procedures, records their new fingerprints, and
    preserves the other twelve modules, historical disabled FKs, root identities/jobs.
-2. Generate (offline) the separate atomic analytical upgrade:
+3. Generate (offline) the separate atomic analytical upgrade:
    `.\sql\Prepare-DurationAnalysis.ps1 -OutputPath .\duration-analysis-upgrade.sql`.
    Its application requires the v2 fingerprints and all eleven captured analytical
    module hashes. It installs only the three call views, all four keyword searches,
    common unit readers and the physical aggregate procedure/views. It adds nullable
    aggregate-version/completeness metadata **without backfilling existing rows**.
    It never installs the reference full-scan session/method aggregate views.
-3. Deploy the DAB source/key/description changes, v2-capable Function, and new web
-   binary coherently before reopening uploads. Verify DAB schema refresh/read grants
-   and unknown-duration rendering. New worker supports both versions; old worker
-   explicitly refuses new v2 receipts. No tenant/auth/deletion configuration changes
-   are part of this candidate.
-4. Rollback must retain the versioned SQL/analytical contract. Stop new v2 registration
+4. Deploy the DAB source/key/description changes, verify its schema refresh/read
+   grants, then deploy the v2-capable Function. Keep the compatible web held until
+   scoped import, real DAB pagination, timer and signed-in UI acceptance pass.
+   Restore the exact original hold setting only after acceptance. New worker
+   supports both versions; old worker explicitly refuses new v2 receipts. Do not
+   change tenant authentication or deletion permissions as part of this upgrade.
+5. Rollback must retain the versioned SQL/analytical contract. Stop new v2 registration
    and drain or hold every v2 receipt before rolling back the worker. Never relabel
    v2 as v1, reinstall old importer SQL, or backfill/reprocess historical traces.
    Keep the uncertainty-aware web reader with the new analytical contract.
@@ -125,7 +137,7 @@ partial staging, fresh Ready restart, lost promotion acknowledgement and duplica
 `tests\DurationConversions.Tests.ps1` invokes only AST-extracted scalar functions,
 never the PowerShell importer/SQL main. See the MCP README for API semantics.
 
-## Durable background deletion (local implementation; disabled by default)
+## Durable background deletion (disabled by default)
 
 The existing net8 isolated Premium Function app now has `DeleteTraceJobs`, a monitored
 one-minute timer. SQL is the durable queue; no new Azure resource, storage queue,
