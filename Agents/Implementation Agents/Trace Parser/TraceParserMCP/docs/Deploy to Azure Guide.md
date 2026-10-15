@@ -18,7 +18,7 @@ Azure App Service (DAB container with dab-config.json)
 MCP Clients (Copilot Studio, Claude Desktop, VS Code, etc.)
 ```
 
-**Key Design Decision:** We use the official DAB Docker image (`mcr.microsoft.com/azure-databases/data-api-builder:1.7.83-rc`) as a container-based App Service, rather than a code-based deployment. This avoids the need to install the .NET SDK or DAB CLI in the container at runtime.
+**Key Design Decision:** We use the official DAB Docker image (`mcr.microsoft.com/azure-databases/data-api-builder:2.0.12`) as a container-based App Service, rather than a code-based deployment. This avoids the need to install the .NET SDK or DAB CLI in the container at runtime.
 
 ---
 
@@ -140,10 +140,10 @@ Skip to [Step 2: Migrate Database](#step-2-migrate-database-to-azure-sql).
 3. **Docker tab:**
     - **Options:** Single Container
     - **Image Source:** Docker Hub or other registries
-    - **Image and tag:** `mcr.microsoft.com/azure-databases/data-api-builder:1.7.83-rc`
+    - **Image and tag:** `mcr.microsoft.com/azure-databases/data-api-builder:2.0.12`
 4. Click **Review + Create** > **Create**
 
-> This sample pins `1.7.83-rc` to match its local tool manifest and configuration schema. Do not substitute `latest` or another release without reviewing and testing the upgrade. Later releases also provide MCP support.
+> This sample pins `2.0.12` to match its local tool manifest and configuration schema. Do not substitute `latest` or another release without reviewing and testing the upgrade.
 
 #### 1.4 Configure App Service Settings
 
@@ -184,7 +184,7 @@ $SqlServer = "sql-traceparser-$(Get-Date -Format 'yyyyMMddHHmm')"
 $SqlAdmin = "sqladmin"
 $SqlPassword = "YourSecureP@ssw0rd!"
 $AppName = "app-traceparser-$(Get-Date -Format 'yyyyMMddHHmm')"
-$DabImage = "mcr.microsoft.com/azure-databases/data-api-builder:1.7.83-rc"
+$DabImage = "mcr.microsoft.com/azure-databases/data-api-builder:2.0.12"
 
 # Register resource providers (required on first deployment)
 az provider register --namespace Microsoft.Sql --wait
@@ -394,7 +394,7 @@ az webapp log tail --name <app-name> --resource-group rg-traceparser-prod
 | Exit code 127 | Wrong startup command format | Startup command should be `--ConfigFileName /home/site/wwwroot/dab-config.json` only |
 | Config file not found | Missing zip deployment | Re-deploy: `az webapp deploy --src-path deploy.zip --type zip` |
 | App starts then stops after ~22s | Port mismatch | Set `WEBSITES_PORT=5000` in app settings |
-| Image pull failure | Wrong image tag | Use `1.7.83-rc` (with `-rc` suffix) |
+| Image pull failure | Wrong image tag | Use `2.0.12` |
 
 ### 503 Service Unavailable on all endpoints
 
@@ -402,7 +402,7 @@ This usually means the container is not running or the port is misconfigured.
 
 1. Check that `WEBSITES_PORT=5000` is set
 2. Check that `WEBSITES_ENABLE_APP_SERVICE_STORAGE=true` is set
-3. Verify the container image: `mcr.microsoft.com/azure-databases/data-api-builder:1.7.83-rc`
+3. Verify the container image: `mcr.microsoft.com/azure-databases/data-api-builder:2.0.12`
 4. Restart: `az webapp restart --name <app-name> --resource-group rg-traceparser-prod`
 
 ### Cannot connect to SQL Database
@@ -503,7 +503,7 @@ function Stop-OnError([string]$StepName) {
 $timestamp = Get-Date -Format "yyyyMMddHHmm"
 $SqlServer = "sql-traceparser-$timestamp"
 $AppName = "app-traceparser-$timestamp"
-$DabImage = "mcr.microsoft.com/azure-databases/data-api-builder:1.7.83-rc"
+$DabImage = "mcr.microsoft.com/azure-databases/data-api-builder:2.0.12"
 
 Write-Host "Starting Azure deployment..." -ForegroundColor Cyan
 

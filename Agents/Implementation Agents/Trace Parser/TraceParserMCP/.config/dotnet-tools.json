@@ -3,7 +3,7 @@
   "isRoot": true,
   "tools": {
     "microsoft.dataapibuilder": {
-      "version": "1.7.83-rc",
+      "version": "2.0.12",
       "commands": [
         "dab"
       ]

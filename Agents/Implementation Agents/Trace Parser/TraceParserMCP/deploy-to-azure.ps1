@@ -33,7 +33,7 @@ function Stop-OnError([string]$StepName) {
 $timestamp = Get-Date -Format "yyyyMMddHHmm"
 $SqlServer = "sql-traceparser-$timestamp"
 $AppName = "app-traceparser-$timestamp"
-$DabImage = "mcr.microsoft.com/azure-databases/data-api-builder:1.7.83-rc"
+$DabImage = "mcr.microsoft.com/azure-databases/data-api-builder:2.0.12"
 
 Write-Host "🚀 Starting Azure deployment..." -ForegroundColor Cyan
 

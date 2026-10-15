@@ -53,7 +53,7 @@ See [`TraceParserMCP/README.md`](TraceParserMCP/README.md) for full instructions
 Run these commands from the `TraceParserMCP` directory:
 
 ```powershell
-# Restore the repository-pinned Data API Builder 1.7.83-rc
+# Restore the repository-pinned Data API Builder 2.0.12
 dotnet tool restore
 dotnet tool run dab --version
 
