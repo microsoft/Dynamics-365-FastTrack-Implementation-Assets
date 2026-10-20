@@ -1,0 +1,23 @@
+{
+  "EnvironmentVariables": [
+    { "SchemaName": "ftc_IFAV2_IVS_BaseUrl", "Value": "" },
+    { "SchemaName": "ftc_IFAV2_IVS_ClientId", "Value": "" },
+    { "SchemaName": "ftc_IFAV2_IVS_ClientSecret", "Value": "" },
+    { "SchemaName": "ftc_IFAV2_IVS_DefaultLegalEntity", "Value": "" },
+    { "SchemaName": "ftc_IFAV2_IVS_EnvironmentId", "Value": "" },
+    { "SchemaName": "ftc_IFAV2_IVS_Scope", "Value": "" },
+    { "SchemaName": "ftc_IFAV2_IVS_TenantId", "Value": "" }
+  ],
+  "ConnectionReferences": [
+    {
+      "LogicalName": "ftc_inventoryfulfilmentagentv2_9kWGCB.cr.shared_commondataserviceforapps.55a1e536-0b75-4f0f-90ab-65ec72e10a6d",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+    },
+    {
+      "LogicalName": "ftc_inventoryfulfilmentagentv2_9kWGCB.cr.shared_dynamicsax.96e68f2b-5d16-41f7-919c-77b16415d9a9",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_dynamicsax"
+    }
+  ]
+}
