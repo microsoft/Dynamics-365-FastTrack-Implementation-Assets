@@ -1,15 +1,15 @@
 # Legacy v1 installation playbook
 
-> **Applies only to:** `InventoryFulfillmentAgent_V1`, version `1.0.0.7`.
-> The original installation guide is retained below for existing v1 deployments; its historical status/date are not a new certification. For new v2 deployments, use [Install v2](install-v2.md). V2 has different identities, tools, variables, and orchestration.
+> **Historical v1 reference — not current v2 deployment guidance.**
+> Applies only to `InventoryFulfillmentAgent_V1`, version `1.0.0.7`. The original guide is retained for existing deployments; its historical status/date are not a new certification. For a supported new v2 deployment, use [Install v2](install-v2.md). Review [version comparison](version-comparison.md) before cutover.
 >
-> Follow the current Microsoft prerequisite guidance: install Dual-write core and Dual-write Application Core before IVS/Product Search Core. All reservation and order prompts below mutate business data and require approved disposable fixtures and cleanup. The downloaded legacy package is unmanaged, regardless of the generic flow-state wording below.
+> Follow current Microsoft prerequisites: install Dual-write core and Dual-write Application Core before IVS/Product Search Core. All reservation and order prompts below mutate business data and require approved disposable fixtures and cleanup. The original legacy ZIP and its download path are unchanged.
 
-# Inventory Fulfillment Agent — Installation Playbook
+## Original v1 installation reference
 
 > **Document:** Installation playbook
 > **Audience:** Customer implementation teams, Power Platform admins, F&O admins, and solution owners
-> **Status:** Deployment-ready working version
+> **Historical status:** Working version described by the original author; not a new target certification
 > **Last updated:** 15 June 2026
 
 > **Before you start:** This guide assumes Inventory Visibility is being configured in a new environment. Save the Entra app registration values, IVS endpoint, environment ID, and default legal entity because they are required during solution import.
@@ -38,9 +38,7 @@
 
 ## Download the Solution
 
-Download the Inventory Fulfillment Agent solution ZIP from the FastTrack implementation assets repository.
-
-[Inventory Fulfillment Agent on GitHub](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets/tree/master/Agents/AI%20ERP%20Agents/Inventory%20Fulfillment%20Agent)
+Download the unchanged **v1** package: [InventoryFulfillmentAgent_V1_1_0_0_7.zip](../Solutions/InventoryFulfillmentAgent_V1_1_0_0_7.zip). Do not substitute the v2 package when following this historical guide.
 
 Download the solution `.zip` file. **Do not extract it before importing.**
 
@@ -73,7 +71,7 @@ During import, enter the values for the target environment. The table below expl
 
 ## Turn On the Cloud Flows
 
-Managed solutions may import cloud flows in a deactivated state. Turn them on in this order — the access-token flow **must** be on first because the others depend on it.
+The retained v1 download is **unmanaged**. Inspect actual flow states after import; do not infer inactivity from the solution type. After configuration is approved, turn on inactive flows in this order — the access-token flow **must** be on first because the others depend on it. Unmanaged import/removal is not a transactional rollback.
 
 1. **Get IVS Access Token** — turn on first; confirm a successful run in the flow run history.
 2. IVS ATP / Inventory Check

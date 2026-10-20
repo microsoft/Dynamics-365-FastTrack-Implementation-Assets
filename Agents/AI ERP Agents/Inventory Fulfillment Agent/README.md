@@ -8,46 +8,37 @@ The agent can resolve products, inspect inventory and available-to-promise (ATP)
 
 > This is an implementation sample, not a turnkey production service. Validate licensing, regional/model availability, security, data, and business policy in your own non-production environment before deployment. Nothing runs locally.
 
-> **V2 validation status:** the exact ZIP passed a fresh import into a separate sandbox, native binding/content verification, Copilot Studio Review with no blocking errors, and a no-tool Preview smoke test on October 20, 2026. This is not connected integration, evaluation, publication, or production certification. See the [validation record](docs/validation.md). The legacy ZIP is unchanged.
+## Start here: deploy v2
 
-## Choose a version
+**For a new deployment, start with v2 when its required Copilot Studio experience and model are available in your target.** V2 uses the GitHub Copilot-based agent harness, sales/transfer skills, and the native Dynamics 365 ERP MCP connector.
 
-Both versions remain available. They are **different solution identities**, not two ZIPs that update the same installation.
+**[Follow the v2 deployment guide](docs/install-v2.md)** — Prepare → Connect → Install → Configure → Verify → Publish.
 
-| | New implementation | Legacy implementation |
-| --- | --- | --- |
-| Version | **2.0.0.1**, unmanaged | **1.0.0.7**, unmanaged |
-| Solution unique name | `InventoryFulfillmentAgent_V2` | `InventoryFulfillmentAgent_V1` |
-| Orchestration | GitHub Copilot-based Copilot Studio harness, `CLICopilotRecognizer`, `Sonnet5` model configuration | Generative orchestration, topics, actions, and order child agents |
-| Order assistance | Sales and transfer skills using the ERP MCP connector | Sales and transfer child agents using ERP MCP |
-| Deployment | Separate installation; requires the new harness/model to be supported in the target | Existing v1 solution and legacy instructions retained |
-| Start here | [Install v2](docs/install-v2.md) | [Legacy installation guide](docs/legacy-v1-installation.md) |
+The guide provides two starting points: verify an existing IVS/Product Search setup, or prepare a new environment first. It explains responsibilities, where to find configuration values, expected results, and when to stop.
 
-The user-facing agent name does not contain "v2". The version suffix in internal identities is intentional and must not be removed.
+> **Already using v1?** Keep your existing deployment. The unchanged [legacy package](Solutions/InventoryFulfillmentAgent_V1_1_0_0_7.zip) and [v1 guide](docs/legacy-v1-installation.md) remain available. V2 installs separately; it is **not an in-place v1 upgrade**.
 
-**Do not import v2 as an in-place upgrade to v1.** The two can coexist, but each needs its own configuration, connection bindings, sharing, channel installation, and acceptance tests. See [version differences and migration](docs/version-comparison.md).
-
-## Download
+## Download v2
 
 | Asset | Purpose |
 | --- | --- |
 | [InventoryFulfillmentAgent_V2_2.0.0.1_unmanaged.zip](Solutions/InventoryFulfillmentAgent_V2_2.0.0.1_unmanaged.zip) | New solution; import the ZIP without extracting it |
 | [SHA-256 checksum](Solutions/InventoryFulfillmentAgent_V2_2.0.0.1_unmanaged.zip.sha256) | Verify the exact download |
 | [Blank v2 deployment settings](Solutions/deployment-settings.v2.example.json) | Seven environment variables and two target connection references |
-| [InventoryFulfillmentAgent_V1_1_0_0_7.zip](Solutions/InventoryFulfillmentAgent_V1_1_0_0_7.zip) | Unchanged legacy solution |
 | [Release notes](docs/release-notes.md) | Changes, known limitations, and package identity |
 
 To download a ZIP from GitHub, open the file and choose **Download raw file**. Do not import the repository's **Code > Download ZIP** archive as a solution.
 
 ## Deployment at a glance
 
-1. Confirm target licenses, Dataverse security roles, connector/DLP policies, and support for the packaged agent harness and model. Do not assume standard Copilot Studio agent compatibility.
-2. Install **Dual-write core**, then **Dual-write Application Core**. Verify completion before installing IVS/Product Search Core. The map importer must exist before Product Search Core imports.
-3. Install/configure Inventory Visibility using Microsoft's supported installer. Verify all six managed Product Search maps; for live product search, apply them and complete company setup and initial synchronization.
-4. Import the v2 ZIP with values and connections for the intended target. Use a protected settings file outside Git.
-5. Verify all five flows, four native workflow registrations, the MCP binding, skills, knowledge, and agent validation. Do not infer correct bindings from tool names alone.
-6. Test read-only operations before allowing any reservation or order changes. Test mutations only with approved disposable fixtures and cleanup.
-7. Publish after acceptance, then test the intended Teams or Microsoft 365 Copilot channel with the actual user identity.
+| Stage | Outcome |
+| --- | --- |
+| **1. Prepare** | Target supports the packaged harness/model; IVS, dual-write, Product Search, and ERP MCP prerequisites are ready |
+| **2. Connect** | Two target connections and all seven settings are ready before import |
+| **3. Install** | The checksum-verified unmanaged v2 ZIP imports successfully with dependencies intact |
+| **4. Configure** | Five flows, four native workflow bindings, MCP, skills, and customer fulfillment policy are checked |
+| **5. Verify** | Native Review and a safe Preview pass, followed by separately approved connected-service acceptance |
+| **6. Publish** | An authorized owner publishes and tests the actual end-user channel |
 
 Detailed steps, exact variable names, verification, and troubleshooting are in [Install v2](docs/install-v2.md).
 
@@ -59,7 +50,9 @@ Keep these evidence levels separate:
 - **Fresh installation (completed):** exact-package import into a second environment, native content/binding inspection, Review, and one no-tool draft Preview turn.
 - **Functional acceptance (deployment-specific):** connected service calls, business-data conversations, approved transaction tests, evaluations, publication, and channel testing.
 
-The prior configured-environment evaluation scored **115/116 evidence-led passes (99.1%)**, with **FUL-014** accepted as a known intermittent location-labeling defect. This does not certify every customer environment or a fresh package import. Native Copilot Studio General quality scores are advisory, not the evidence-led assessment.
+The exact **2.0.0.1** ZIP passed fresh-install structural verification and a no-tool Preview smoke test on **October 20, 2026**. That confirms installation and draft startup, not connected integration or production readiness.
+
+The earlier configured-environment evaluation scored **115/116 evidence-led passes (99.1%)**; it is separate historical evidence. **Known limitation: an intermittent response can label another warehouse's stock as the requested store's stock (FUL-014). Verify location explicitly before acting.**
 
 See the [release validation record](docs/validation.md) for the exact package tested, completed checks, and outstanding gates.
 
@@ -70,6 +63,18 @@ See the [release validation record](docs/validation.md) for the exact package te
 - The agent can change business data. A successful import is not authorization to run order or reservation examples.
 - The IVS client-secret variable uses **String** storage, not an Azure Key Vault secret reference. Protect it, restrict makers, retain secure flow inputs/outputs, and rotate credentials appropriately.
 - Do not shorten instructions, switch models, or disable authentication merely to make an unsupported target accept the sample.
+
+## Existing v1 deployments
+
+| | Current implementation | Retained legacy implementation |
+| --- | --- | --- |
+| Version / unmanaged solution | **2.0.0.1**, `InventoryFulfillmentAgent_V2` | **1.0.0.7**, `InventoryFulfillmentAgent_V1` |
+| Order assistance | Sales/transfer skills | Sales/transfer child agents |
+| Guidance | [Deploy v2](docs/install-v2.md) | [Historical v1 guide](docs/legacy-v1-installation.md) |
+
+Keep working v1 deployments and their backups until a separately configured v2 installation passes your acceptance and cutover plan. Conversations, settings, credentials, channels, and evaluations are not migrated by importing v2. See [version differences and cutover](docs/version-comparison.md).
+
+The packaged display name has no "v2" suffix; internal versioned identities are intentional and must remain unchanged. Use distinguishable channel/display names during side-by-side evaluation.
 
 ## Documentation
 

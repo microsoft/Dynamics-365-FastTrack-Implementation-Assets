@@ -15,17 +15,6 @@
 
 **Fresh-install structural verification passed on October 20, 2026.** The exact ZIP above was imported into a separate sandbox and checked against its actual target content. This is not full integration, evaluation, publication, or production sign-off.
 
-On October 20, 2026, prerequisite installation in the separate sandbox produced these results:
-
-- Dual-write Core completed successfully through its supported application installer, including managed `msdyn_DualWriteCore` and `DualWriteCoreAnchor` version `1.0.26098.0`.
-- The native map component importer (`msdyn_dualwriteentitymap`, component type 500) was verified before Product Search installation.
-- Dual-write Application Core subsequently completed successfully, including managed `msdyn_DualWriteAppCoreMaps` and its anchor at version `2.4.0.337`. Finance and Operations Platform Tools was also confirmed installed.
-- Earlier Core/Application Core attempts failed because Dataverse reported a concurrent `EntityCustomization`. Waiting for competing operations to finish and using controlled supported retries allowed those two application installations to succeed; no internal locks were cleared or dependency checks bypassed.
-- The first Inventory Visibility attempt, submitted through the required admin-center custom wizard using a dedicated test application registration, failed on the same concurrent `EntityCustomization` error. After visible customization activity settled, one controlled retry progressed past that dependency.
-- The retry installed managed `msdyn_ProductSearchCore`, `msdyn_ProductSearchPermissions`, and `msdyn_ProductSearchAnchor` at version `1.1.3403.2`. All **six managed Product Search maps** were verified against the installed Core solution.
-- Inventory Visibility installation completed successfully, including its managed anchor at version `1.3.3432.1`. All three enclosing prerequisite applications reported **Installed** before IFA import.
-- After visible customization activity settled, the exact IFA ZIP was submitted once with dependency checks enabled. Its durable asynchronous operation completed successfully at **13:44:57 UTC**; the import job reached 100% with no warning/failure entries in its log.
-
 ### Imported target verification
 
 | Check | Actual result |
@@ -53,6 +42,21 @@ No connected IVS/F&O tool calls, catalogue synchronization, populated ATP checks
 Native Review and one Preview turn are not exhaustive service-side compilation or execution coverage for every skill/tool path. The new target's missing-evaluation warning is expected: runtime evaluation cases are not included in this ZIP. Customer-specific functional and publication acceptance remains required.
 
 Raw environment IDs, connection details, logs, and bot payloads are retained privately, not included in this public record.
+
+### Prerequisite setup and troubleshooting lesson
+
+The sandbox started without the native dual-write map importer. Setup completed in the supported order before the IFA import:
+
+| Prerequisite | Verified installed result |
+| --- | --- |
+| Dual-write Core | `msdyn_DualWriteCore` / `DualWriteCoreAnchor` `1.0.26098.0`; native `msdyn_dualwriteentitymap` importer (component type 500) present |
+| Dual-write Application Core | `msdyn_DualWriteAppCoreMaps` and anchor `2.4.0.337` |
+| Finance and Operations Platform Tools | Installed before IVS setup |
+| IVS / Product Search | IVS anchor `1.3.3432.1`; Product Search Core, Permissions, and Anchor `1.1.3403.2`; all six managed maps verified |
+
+Earlier first-party installer attempts failed because Dataverse reported a concurrent `EntityCustomization`. Waiting for competing work to finish and using controlled supported retries resolved this. IVS required its custom admin-center wizard; the generic application-package API does not support that wizard. Its retry succeeded and the enclosing prerequisite applications reported **Installed** before IFA import.
+
+The exact IFA ZIP was then submitted once, with dependency checks enabled. Its durable operation completed at **13:44:57 UTC on October 20, 2026**; the import job reached 100% with no warning/failure log entries. No internal lock was cleared, first-party solution deleted, or dependency check skipped. See [installation troubleshooting](install-v2.md#troubleshooting).
 
 ## Offline checks completed
 
@@ -98,6 +102,7 @@ That cycle used the draft harness, followed by authorized publication. It was no
 Treat each line as a separate gate for **each customer deployment**; the completed sample sandbox checks above do not complete these gates for another target:
 
 - [ ] Target supports the packaged harness/model; licenses and DLP permit the intended tools.
+- [ ] Target connector exposes all six packaged MCP tool names, including `data_find_entities_sql`; Product Search's minimum F&O version alone is not sufficient.
 - [ ] Dependencies installed in order; all six managed Product Search maps present.
 - [ ] Import completed successfully for the exact checksum; import warnings reviewed.
 - [ ] All five flows and eleven runtime components present.
