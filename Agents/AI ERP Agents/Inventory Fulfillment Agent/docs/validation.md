@@ -17,13 +17,15 @@
 
 On October 20, 2026, prerequisite installation in the separate sandbox produced these results:
 
-- The managed `msdyn_DualWriteCore` solution imported successfully at version `1.0.26098.0`; its import log reported success.
-- The native map component importer (`msdyn_dualwriteentitymap`, component type 500) was present.
-- The enclosing first-party application installation nevertheless failed with "Solution operation failed due to another import blocking the operation." One controlled retry failed with the same message and created no new solution import job.
-- Application Core and Inventory Visibility/Product Search installation were not started after that failure. No integration maps or data synchronization were enabled.
+- Dual-write Core completed successfully through its supported application installer, including managed `msdyn_DualWriteCore` and `DualWriteCoreAnchor` version `1.0.26098.0`.
+- The native map component importer (`msdyn_dualwriteentitymap`, component type 500) was verified before Product Search installation.
+- Dual-write Application Core subsequently completed successfully, including managed `msdyn_DualWriteAppCoreMaps` and its anchor at version `2.4.0.337`. Finance and Operations Platform Tools was also confirmed installed.
+- Earlier Core/Application Core attempts failed because Dataverse reported a concurrent `EntityCustomization`. Waiting for competing operations to finish and using controlled supported retries allowed those two application installations to succeed; no internal locks were cleared or dependency checks bypassed.
+- Inventory Visibility installation was submitted once through the required admin-center custom wizard, using a dedicated test application registration. The latest observed application state was **Installing**, not successful installation. Its `Dynamics365Company` dependency imports reported the concurrent `EntityCustomization` error while the native installer retried.
+- Product Search Core and its six managed maps have **not yet been verified**. No integration maps or data synchronization were enabled.
 - IFA itself was **not imported**, so target-side flow/tool bindings, agent diagnostics, and service-side compilation remain unverified. No agent publication or business transactions were performed.
 
-Resolve the first-party installation failure through the environment's supported administration/support process before resuming the ordered prerequisites and IFA import. Do not skip dependency checks or treat the successful core solution import alone as a successful application installation.
+Wait for the in-progress first-party installation to reach a terminal state, review its result, and resolve any remaining platform failure through the supported administration/support process. Do not submit a duplicate installation, skip dependency checks, or treat successful prerequisite solution imports alone as IFA deployment acceptance.
 
 The test scope is a new IFA installation in a separate sandbox after first-party prerequisite installation. It does not require linking or synchronizing F&O/IVS, creating business transactions, or exposing a new published agent.
 

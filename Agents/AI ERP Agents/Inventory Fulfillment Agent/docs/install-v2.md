@@ -25,6 +25,10 @@ Record the intended tenant, Power Platform environment, Dataverse URL, F&O URL, 
 
 Use **Power Platform admin center > Dynamics 365 apps** and Microsoft's current setup instructions. Do not start several solution installations concurrently or treat an accepted request as a completed installation.
 
+Before installing Inventory Visibility, also verify that **Dynamics 365 Finance and Operations Platform Tools** is installed. Inventory Visibility uses a **custom setup wizard in the admin center**; the generic application-package install API does not support it. Prepare a dedicated application registration and supply its application ID and tenant ID in that wizard. Do not reuse another environment's IVS registration, even for a structural installation test.
+
+If an installation fails because another import or entity customization is running, retain the failed operation details and let the competing operation finish before a controlled retry. Check the enclosing application's installation result as well as its underlying solution imports; a successful solution import alone is not application-installation sign-off. Do not clear internal locks or cancel unrelated deployments.
+
 A same-version app reinstall can log `SkipSameVersion` and leave a previously incomplete Product Search import untouched. If maps are missing, diagnose installed component ownership and dependency order; do not reset a healthy dual-write link or delete Microsoft solutions blindly.
 
 For a structural import test, prerequisite schemas can be installed without enabling maps or populating data. That does **not** make Product Search or IVS operational.
