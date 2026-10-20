@@ -8,7 +8,7 @@ The agent can resolve products, inspect inventory and available-to-promise (ATP)
 
 > This is an implementation sample, not a turnkey production service. Validate licensing, regional/model availability, security, data, and business policy in your own non-production environment before deployment. Nothing runs locally.
 
-> **V2 candidate status:** fresh-install validation is blocked during first-party prerequisite installation. The v2 ZIP is prepared for review, not signed off as fresh-install verified. See the [validation record](docs/validation.md). The legacy ZIP is unchanged.
+> **V2 validation status:** the exact ZIP passed a fresh import into a separate sandbox, native binding/content verification, Copilot Studio Review with no blocking errors, and a no-tool Preview smoke test on October 20, 2026. This is not connected integration, evaluation, publication, or production certification. See the [validation record](docs/validation.md). The legacy ZIP is unchanged.
 
 ## Choose a version
 
@@ -56,8 +56,8 @@ Detailed steps, exact variable names, verification, and troubleshooting are in [
 Keep these evidence levels separate:
 
 - **Package validation:** structural checks, native associations, configuration hygiene, and offline packaging.
-- **Fresh installation:** import into a second environment and inspection of what actually arrived.
-- **Functional acceptance:** connected service calls, agent conversations, and approved transaction tests.
+- **Fresh installation (completed):** exact-package import into a second environment, native content/binding inspection, Review, and one no-tool draft Preview turn.
+- **Functional acceptance (deployment-specific):** connected service calls, business-data conversations, approved transaction tests, evaluations, publication, and channel testing.
 
 The prior configured-environment evaluation scored **115/116 evidence-led passes (99.1%)**, with **FUL-014** accepted as a known intermittent location-labeling defect. This does not certify every customer environment or a fresh package import. Native Copilot Studio General quality scores are advisory, not the evidence-led assessment.
 

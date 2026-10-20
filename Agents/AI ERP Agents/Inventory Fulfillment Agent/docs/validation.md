@@ -13,7 +13,7 @@
 
 ## Fresh-install record
 
-**Blocked before IFA import; not a deployment sign-off.** The exact ZIP above has not yet passed a fresh-install test. Do not propose this candidate for release approval until that gate is completed.
+**Fresh-install structural verification passed on October 20, 2026.** The exact ZIP above was imported into a separate sandbox and checked against its actual target content. This is not full integration, evaluation, publication, or production sign-off.
 
 On October 20, 2026, prerequisite installation in the separate sandbox produced these results:
 
@@ -23,12 +23,34 @@ On October 20, 2026, prerequisite installation in the separate sandbox produced 
 - Earlier Core/Application Core attempts failed because Dataverse reported a concurrent `EntityCustomization`. Waiting for competing operations to finish and using controlled supported retries allowed those two application installations to succeed; no internal locks were cleared or dependency checks bypassed.
 - The first Inventory Visibility attempt, submitted through the required admin-center custom wizard using a dedicated test application registration, failed on the same concurrent `EntityCustomization` error. After visible customization activity settled, one controlled retry progressed past that dependency.
 - The retry installed managed `msdyn_ProductSearchCore`, `msdyn_ProductSearchPermissions`, and `msdyn_ProductSearchAnchor` at version `1.1.3403.2`. All **six managed Product Search maps** were verified against the installed Core solution.
-- The latest observed Inventory Visibility application state was still **Installing**, not successful installation. IFA import remains on hold rather than competing with that first-party operation. No integration maps or data synchronization were enabled.
-- IFA itself was **not imported**, so target-side flow/tool bindings, agent diagnostics, and service-side compilation remain unverified. No agent publication or business transactions were performed.
+- Inventory Visibility installation completed successfully, including its managed anchor at version `1.3.3432.1`. All three enclosing prerequisite applications reported **Installed** before IFA import.
+- After visible customization activity settled, the exact IFA ZIP was submitted once with dependency checks enabled. Its durable asynchronous operation completed successfully at **13:44:57 UTC**; the import job reached 100% with no warning/failure entries in its log.
 
-Wait for the in-progress first-party installation to reach a terminal state, review its result, and resolve any remaining platform failure through the supported administration/support process. Do not submit a duplicate installation, skip dependency checks, or treat successful prerequisite solution imports alone as IFA deployment acceptance.
+### Imported target verification
 
-The test scope is a new IFA installation in a separate sandbox after first-party prerequisite installation. It does not require linking or synchronizing F&O/IVS, creating business transactions, or exposing a new published agent.
+| Check | Actual result |
+| --- | --- |
+| Solution | Unmanaged `InventoryFulfillmentAgent_V2`, `2.0.0.1` |
+| Runtime components | All 11 present; schema names, types, content, and attachment-parent associations verified |
+| Workflows | All 5 present; definitions and connection-reference metadata matched the exact ZIP |
+| Native workflow registrations | All 4 resolve to the correct imported flows, independently of YAML `workflowId` values |
+| Native MCP registration | Present and bound to the verified target F&O connection |
+| Agent configuration | Full configuration matched the ZIP, including Microsoft authentication, harness/model, instructions, and publication defaults |
+| Skill/policy attachments | All 3 downloaded from the target and matched byte-for-byte by SHA-256 |
+| Target configuration | Both references bound to the verified target connections; all 7 current variables present |
+| Native Copilot Studio Review | No blocking errors; one warning: **No evaluation run** on the newly imported agent |
+| Native Preview | One capability-summary turn passed, explicitly requesting no tools or data changes |
+| Publication | Agent remained unpublished |
+
+All five flows were **active after import**, despite `PublishWorkflows:false`. Read-only Power Automate history confirmed **zero runs across all five imported flows** after the Preview smoke test. Import options must not be treated as a guarantee that flows remain inactive.
+
+### Scope and remaining limits
+
+The test establishes a fresh IFA installation and native draft startup after first-party prerequisite installation. The target's IFA settings referenced an existing IVS service under the permitted shared-service test arrangement. The dedicated app was used only for the target's separate IVS prerequisite installation; the existing IVS service was not re-registered or changed.
+
+No connected IVS/F&O tool calls, catalogue synchronization, populated ATP checks, order/reservation transactions, new evaluations, publication, or published-channel tests were performed. No integration maps or data synchronization were enabled. Skills and knowledge components/attachment bytes were verified and displayed in the editor; this does not certify external knowledge ingestion or business behavior.
+
+Native Review and one Preview turn are not exhaustive service-side compilation or execution coverage for every skill/tool path. The new target's missing-evaluation warning is expected: runtime evaluation cases are not included in this ZIP. Customer-specific functional and publication acceptance remains required.
 
 Raw environment IDs, connection details, logs, and bot payloads are retained privately, not included in this public record.
 
@@ -48,7 +70,7 @@ These checks do not execute Power Platform services.
 
 The Copilot Studio language server (version 1.8.22) checked all 12 authoring YAML documents on October 20, 2026: **zero errors and zero warnings**, with diagnostics received for every document. An isolated negative control with an intentionally invalid bot identity produced the expected error, confirming that the diagnostic check was active.
 
-This validates the local authoring view, not the imported target's connections, service-side compilation, Preview, or publication.
+This validates the local authoring view. The imported target's native Review and Preview checks are separate evidence recorded above; no imported-authoring-clone language-server pass is claimed.
 
 ## Supporting configured-environment evidence
 
@@ -73,7 +95,7 @@ That cycle used the draft harness, followed by authorized publication. It was no
 
 ## Customer acceptance checklist
 
-Treat each line as a separate gate:
+Treat each line as a separate gate for **each customer deployment**; the completed sample sandbox checks above do not complete these gates for another target:
 
 - [ ] Target supports the packaged harness/model; licenses and DLP permit the intended tools.
 - [ ] Dependencies installed in order; all six managed Product Search maps present.

@@ -26,7 +26,7 @@ This is not an in-place v1 upgrade. See [version comparison](version-comparison.
 
 ### Validation and limitations
 
-Fresh-install validation is blocked before IFA import by a first-party prerequisite installation failure. See [validation](validation.md) for completed checks, the blocker, and outstanding gates. Earlier configured-environment testing is supporting evidence, not proof of the current package's fresh installation.
+The exact ZIP passed fresh-install structural verification on October 20, 2026: successful import into a separate sandbox, exact native content/binding readback, Copilot Studio Review with no blocking errors, and one no-tool Preview turn. Review's only warning was that no evaluation had been run on the newly imported agent. See [validation](validation.md) for the evidence and remaining deployment-specific gates. Connected IVS/F&O operations, new evaluations, transactions, publication, and published channels were not tested in this fresh-install run.
 
 - The prior 116-case evaluation scored **115 PASS, 1 FAIL** (99.1%) evidence-led. The native General quality grader reported 86/103 passes and was advisory.
 - **FUL-014 remains open:** an intermittent response can label another warehouse's stock as the requested store's stock. Require explicit location verification and confirmation before acting; do not treat stock from another location as local availability.

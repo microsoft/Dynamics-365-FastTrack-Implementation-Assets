@@ -131,6 +131,8 @@ Expected contents:
 
 Open the agent in Copilot Studio and inspect validation errors, tools, skills, knowledge, authentication, and model. A workflow GUID in tool YAML is not enough: its native association must exist and point to the imported flow.
 
+In the native Review panel, a new installation can show **No evaluation run** because evaluation cases/results are not shipped in the runtime ZIP. Record that warning separately from blocking agent errors. A capability-summary Preview turn that explicitly requests no tool calls is a useful draft-startup smoke test, but it does not verify connected inventory, search, or order behavior.
+
 Once configuration is complete, activate the token-helper flow first, then dependent flows. Verify connections and flow validation before invoking them. There are no separate v2 inventory and ATP flows; they share the exact-item tool.
 
 ## 7. Accept and publish deliberately
