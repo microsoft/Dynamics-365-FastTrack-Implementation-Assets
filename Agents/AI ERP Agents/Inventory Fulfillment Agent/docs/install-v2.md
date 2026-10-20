@@ -145,7 +145,7 @@ Compare against the sidecar. A mismatch is a stop condition. Import the ZIP unch
 2. Select the v2 ZIP. Review dependencies; do not skip failed dependency checks.
 3. Bind both connection references and enter the target environment values.
 4. Complete import. Wait for the terminal result, download/review its import log, and retain it privately. Do not submit a duplicate import while the first is still running.
-5. Confirm **Inventory Fulfilment Agent**, unique name `InventoryFulfillmentAgent_V2`, version **2.0.0.1**, appears under **Solutions**. Review warnings rather than treating progress or HTTP acceptance alone as success.
+5. Confirm the solution **Inventory Fulfillment Agent**, unique name `InventoryFulfillmentAgent_V2`, version **2.0.0.1**, appears under **Solutions**. The agent itself uses **Inventory Fulfilment Agent** as its display name. Review warnings rather than treating progress or HTTP acceptance alone as success.
 
 ### Optional Power Platform CLI
 

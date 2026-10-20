@@ -8,7 +8,7 @@
 | Agent schema | `cr91d_agent9_4ET9z6` | `ftc_inventoryfulfilmentagentv2_9kWGCB` |
 | Orchestration | Generative recognizer, topics/actions, two order child agents | `CLICopilotRecognizer`, `Sonnet5`, two order skills, one ERP MCP tool |
 | IVS integration | Five flows; inventory/ATP and product-search actions | Five isolated flows; exact-item inventory/ATP, product resolver, reserve, unreserve, and token helper |
-| Runtime components | 23 bot components in the legacy ZIP | 11 bot components, including skills, tools, and knowledge |
+| Bot-component records | 24 in the legacy ZIP, including its GPT metadata component | 11, including skills, tools, and knowledge; main configuration is in the bot record |
 | Environment variables | Legacy schema names | Seven `ftc_IFAV2_IVS_*` definitions; values are not migrated automatically |
 | Connections | Legacy references | Separate Dataverse and F&O logical references; bind them in the target |
 | Evaluation definitions | Not a promise of included test certification | Excluded from the runtime ZIP; import/manage test cases separately |
