@@ -18,10 +18,11 @@ By using conversational AI, you can reduce performance troubleshooting in D365 F
 
 ## Components
 
-This agent consists of three components:
+This agent consists of four components:
 
 | Component | Description | Folder |
 |-----------|-------------|--------|
+| **Trace Parser Desktop App** | Official Microsoft Trace Parser MSI installer (v7.0.7690.33) — captures D365 F&O ETW traces and produces the `AxTrace` SQL database the agent reads from | [`Installer/`](Installer/) |
 | **Copilot Studio Agent** | The AI agent solution — import into Copilot Studio | [`Solutions/`](Solutions/) |
 | **TraceParserMCP** | Data API Builder MCP server exposing trace data via REST, GraphQL, and MCP protocol | [`TraceParserMCP/`](TraceParserMCP/) |
 | **TraceParserWeb** | Blazor Server web app + Azure Function for ETL trace upload and import | [`TraceParserWeb/`](TraceParserWeb/) |
@@ -46,7 +47,11 @@ The agent uses a **dual Model Context Protocol (MCP)** architecture:
 
 ## Quick Start
 
-### 1. Set up the MCP Server
+### 1. Install the Trace Parser desktop tool
+
+Download and install the Trace Parser MSI from [`Installer/`](Installer/) — this is the source of trace data the AI agent analyzes. The MSI is Microsoft-signed; verification instructions are in [`Installer/README.md`](Installer/README.md).
+
+### 2. Set up the MCP Server
 
 See [`TraceParserMCP/README.md`](TraceParserMCP/README.md) for full instructions.
 
@@ -61,11 +66,11 @@ dotnet tool restore
 dab start
 ```
 
-### 2. Import the Copilot Studio Agent
+### 3. Import the Copilot Studio Agent
 
 See [`Solutions/readme.md`](Solutions/readme.md) for import instructions.
 
-### 3. (Optional) Deploy TraceParserWeb
+### 4. (Optional) Deploy TraceParserWeb
 
 See [`TraceParserWeb/README.md`](TraceParserWeb/README.md) for the web-based ETL upload interface.
 
