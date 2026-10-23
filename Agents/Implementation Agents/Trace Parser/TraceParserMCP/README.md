@@ -69,6 +69,21 @@ For Azure deployment, you also need:
 - [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) (`az`)
 - An active Azure subscription
 
+## Database Setup (Required)
+
+Before starting DAB, create the analytical views and stored procedures in the target database.
+
+Run both scripts manually in SSMS (or your SQL deployment tool) against your trace database (`AxTrace` locally, `TraceParserDB` in Azure):
+
+```sql
+:r .\Create Views.sql
+:r .\Create Keyword Search SPs.sql
+```
+
+If you skip this step, entities backed by views/stored procedures (for example `SessionSummary`, `TraceLineDetails`, and `Search*`) will fail because the database objects do not exist.
+
+Also ensure the trace delete stored procedure exists as `dbo.DeleteTrace` (without the `sp_` prefix), which matches `dab-config.json`.
+
 ## Local Development
 
 1. **Restore the .NET tool:**
@@ -85,7 +100,11 @@ For Azure deployment, you also need:
    AZURE_SQL_CONNECTION_STRING=Server=localhost\SQLEXPRESS;Database=AxTrace;Trusted_Connection=True;TrustServerCertificate=True;Encrypt=Optional
    ```
 
-3. **Start the server:**
+3. **Run required SQL scripts (if not already done):**
+
+  Execute both scripts from [Database Setup (Required)](#database-setup-required) against your local `AxTrace` database.
+
+4. **Start the server:**
 
    ```bash
    dab start
@@ -134,6 +153,10 @@ The included `deploy-to-azure.ps1` script provisions all Azure resources and dep
    > az sql db delete --name TraceParserDB --server <your-server> --resource-group rg-traceparser-prod --yes
    > az sql db create --name TraceParserDB --server <your-server> --resource-group rg-traceparser-prod --service-objective S1
    > ```
+
+3. **Run required SQL scripts in Azure SQL:**
+
+  After import, execute both scripts from [Database Setup (Required)](#database-setup-required) against `TraceParserDB`.
 
 ### Architecture
 
@@ -214,6 +237,7 @@ All entities are read-only and accessible via REST, GraphQL, and MCP.
 | **SearchSqlStatements** | Search SQL statements by keyword |
 | **SearchMethods** | Search method names by keyword |
 | **SearchMessages** | Search messages by keyword |
+| **DeleteTrace** | Deletes a trace and related data by `TraceId` (mapped to `dbo.DeleteTrace`) |
 
 ## Querying Data
 

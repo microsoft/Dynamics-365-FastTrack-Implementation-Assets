@@ -669,7 +669,7 @@
     "DeleteTrace": {
       "description": "Delete a trace and all related data (TraceLines, UserSessions, etc.) by TraceId.",
       "source": {
-        "object": "dbo.sp_DeleteTrace",
+        "object": "dbo.DeleteTrace",
         "type": "stored-procedure",
         "parameters": [
           {
