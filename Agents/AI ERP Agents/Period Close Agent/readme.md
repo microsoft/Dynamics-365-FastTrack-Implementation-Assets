@@ -32,7 +32,8 @@ close process before you consider production use.
 
 | I want to | Open |
 | --- | --- |
-| Understand the agent in a few minutes | [Introducing the Period Close Agent (PDF)](Presentation/Introducing%20the%20Period%20Close%20Agent.pdf) |
+| Watch the TechTalk recording | [Introducing the Period Close Agent: A Smarter Financial Close (YouTube)](https://www.youtube.com/watch?v=5k7JgLPv-Sk) |
+| Understand the agent in a few minutes | [Introducing the Period Close Agent (PDF)](Presentation/Introducing%20the%20Period%20Close%20Agent.pdf), the slides from the TechTalk |
 | See how it is built | [Architecture](#architecture) |
 | Try it with a guided, interactive lab | [`HOL/PeriodCloseAgent_HOL_Wizard.html`](HOL/PeriodCloseAgent_HOL_Wizard.html), download it and open it in Edge or Chrome (it contains the solution and all sample files) |
 | Follow the same lab as a document | [`HOL/HOL_PeriodCloseAgent_External.docx`](HOL/HOL_PeriodCloseAgent_External.docx) with the [sample journals](HOL/Sample%20journals) and the [sample business skill](HOL/Business%20skill) |
@@ -94,7 +95,9 @@ git sparse-checkout set "Agents/AI ERP Agents/Period Close Agent"
 ## Use case
 
 Period Close Agent supports controllers, accountants, and close program
-managers. For a short overview, see the introduction presentation
+managers. For a short overview, watch the
+[FastTrack TechTalk recording](https://www.youtube.com/watch?v=5k7JgLPv-Sk) or
+see the introduction presentation
 [`Introducing the Period Close Agent.pdf`](Presentation/Introducing%20the%20Period%20Close%20Agent.pdf)
 (Dynamics 365 TechTalk, October 2026).
 
