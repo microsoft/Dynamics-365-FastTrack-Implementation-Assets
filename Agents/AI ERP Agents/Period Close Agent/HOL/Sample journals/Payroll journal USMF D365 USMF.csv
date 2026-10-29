@@ -1,0 +1,5 @@
+LineNumber,AccountType,AccountDisplayValue,Text,CurrencyCode,DebitAmount,CreditAmount,OffsetCompany,OffsetAccountType,OffsetAccountDisplayValue,IsReversing,ReversingDate
+1,Ledger,602100,October 2026 salaries and wages,USD,84650.00,0.00,USMF,Ledger,201100,No,
+2,Ledger,602120,October 2026 employer payroll tax,USD,6475.50,0.00,USMF,Ledger,201180,No,
+3,Ledger,602130,October 2026 group health and life insurance,USD,5320.75,0.00,USMF,Ledger,201140,No,
+4,Ledger,602180,October 2026 pension plan contribution,USD,3800.00,0.00,USMF,Ledger,201120,No,
