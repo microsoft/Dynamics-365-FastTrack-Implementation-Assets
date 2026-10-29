@@ -14,12 +14,12 @@ Option B – document:
 WHAT IS IN THIS PACKAGE
 HOL_PeriodCloseAgent_External.docx        The lab guide.
 PeriodCloseAgent_HOL_Wizard.html          Interactive step-by-step version of the guide (works offline).
-Solution\                                 PeriodCloseAgentV2_1_1_0_0_unmanaged.zip – import in Step 8.
+..\Solutions\                             PeriodCloseAgentV2_1_1_0_0_unmanaged.zip – import in Step 8
+                                          (the wizard also has a download button for it).
 Sample journals\                          Payroll, IFRS 9 and IFRS 16 CSV files – upload to SharePoint in Step 7.
 Business skill\
   PeriodClose_MonthlyDepreciation.md      Sample skill added in Part 3 (Steps 16–19).
   PeriodClose_SkillTemplate.md            Blank template for writing your own skill (Step 20).
-Screenshots\                              The images used in the guide, in step order.
 
 BEFORE YOU RUN THE LAB IN YOUR OWN TENANT
 - Create your own SharePoint site and folders (Step 7) and enter its URL in the four skills (Step 12).
