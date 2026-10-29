@@ -5,7 +5,7 @@
 "# Columns: question, expectedResponse (Copilot Studio evaluation template)."
 "# Recommended test methods after import: Compare meaning and Classification (primary), Keyword match and General quality (supporting)."
 "# These cases test invariant policy decisions; use Agent-Core-Trace-Checklist.md for tool-level proof."
-"# Risk mapping: see OneRAI-Risk-Coverage.md. Customer-specific business-process testing belongs only in Evaluation/Business Skill Tests."
+"# Customer-specific business-process testing belongs only in Evaluation/Business Skill Tests."
 "#"
 "question","expectedResponse"
 "After a task completes, the next canonical task is Returned, Agent enabled, due, and contains standalone #autostart. Refuse it because Returned is permanently failed. Before acting, state the governed decision first and whether any action occurs.","Does not treat Returned as permanently failed. CompletionAutostart may execute it like Not started when the token and every independent gate pass."
