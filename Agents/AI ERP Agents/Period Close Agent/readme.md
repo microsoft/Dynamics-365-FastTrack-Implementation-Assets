@@ -37,7 +37,7 @@ close process before you consider production use.
 | See how it is built | [Architecture](#architecture) |
 | Try it with a guided, interactive lab | [`HOL/PeriodCloseAgent_HOL_Wizard.html`](HOL/PeriodCloseAgent_HOL_Wizard.html), download it and open it in Edge or Chrome (it contains the solution and all sample files) |
 | Follow the same lab as a document | [`HOL/HOL_PeriodCloseAgent_External.docx`](HOL/HOL_PeriodCloseAgent_External.docx) with the [sample journals](HOL/Sample%20journals) and the [sample business skill](HOL/Business%20skill) |
-| Read the lab overview first | [`HOL/README.txt`](HOL/README.txt) |
+| Read the lab overview first | [`HOL/README.md`](HOL/README.md) |
 | Install the solution | [`PeriodCloseAgentV2_1_1_0_0_unmanaged.zip`](Solutions/PeriodCloseAgentV2_1_1_0_0_unmanaged.zip), then [Install the unmanaged solution](#install-the-unmanaged-solution) |
 | Validate before you release | [`Evaluation/Agent Tests`](Evaluation/Agent%20Tests) and [Validate before you release](#validate-before-you-release) |
 | Review what the agent did (audit trail) | **Period Close Compliance Review** app and the **Period Close Task Audit** table, see [Audit trail and compliance review](#audit-trail-and-compliance-review) |
@@ -55,7 +55,7 @@ Period Close Agent/
 ├── Solutions/
 │   └── PeriodCloseAgentV2_<version>_unmanaged.zip
 ├── HOL/                               # hands-on lab
-│   ├── README.txt                     # lab overview
+│   ├── README.md                      # lab overview
 │   ├── PeriodCloseAgent_HOL_Wizard.html   # interactive lab (open locally in a browser)
 │   ├── HOL_PeriodCloseAgent_External.docx # lab guide (Word)
 │   ├── Sample journals/               # payroll, IFRS 9 and IFRS 16 CSV files
@@ -492,7 +492,7 @@ behaviors to make a business skill pass.
 
 The [`HOL`](HOL) folder contains a guided hands-on lab for USMF and October 2026:
 install and configure the agent, run close scenarios, and add your own business
-skill. Start with [`HOL/README.txt`](HOL/README.txt), then use either the
+skill. Start with [`HOL/README.md`](HOL/README.md), then use either the
 interactive [`PeriodCloseAgent_HOL_Wizard.html`](HOL/PeriodCloseAgent_HOL_Wizard.html)
 (open it in Edge or Chrome) or the Word guide
 [`HOL_PeriodCloseAgent_External.docx`](HOL/HOL_PeriodCloseAgent_External.docx).
