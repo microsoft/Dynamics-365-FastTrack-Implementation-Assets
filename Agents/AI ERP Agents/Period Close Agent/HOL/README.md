@@ -1,6 +1,6 @@
 # Period Close Agent – hands-on lab
 
-**Solution:** PeriodCloseAgentV2 1.1.0.0 · **Company:** USMF · **Period:** October 2026
+**Solution:** PeriodCloseAgentV2 1.1.1.0 · **Company:** USMF · **Period:** October 2026
 
 ## Start here
 
@@ -25,7 +25,7 @@ Choose one way to follow the lab:
 | --- | --- |
 | [`HOL_PeriodCloseAgent_External.docx`](HOL_PeriodCloseAgent_External.docx) | The lab guide. |
 | [`PeriodCloseAgent_HOL_Wizard.html`](PeriodCloseAgent_HOL_Wizard.html) | Interactive step-by-step version of the guide (works offline). |
-| [`../Solutions/PeriodCloseAgentV2_1_1_0_0_unmanaged.zip`](../Solutions/PeriodCloseAgentV2_1_1_0_0_unmanaged.zip) | The solution to import in Step 8. The wizard also has a download button for it. |
+| [`../Solutions/PeriodCloseAgentV2_1_1_1_0_unmanaged.zip`](../Solutions/PeriodCloseAgentV2_1_1_1_0_unmanaged.zip) | The solution to import in Step 8. The wizard also has a download button for it. |
 | [`Sample journals/`](Sample%20journals) | Payroll, IFRS 9 and IFRS 16 CSV files to upload to SharePoint in Step 7. |
 | [`Business skill/PeriodClose_MonthlyDepreciation.md`](Business%20skill/PeriodClose_MonthlyDepreciation.md) | Sample skill added in Part 3 (Steps 16–19). |
 | [`Business skill/PeriodClose_SkillTemplate.md`](Business%20skill/PeriodClose_SkillTemplate.md) | Blank template for writing your own skill (Step 20). |

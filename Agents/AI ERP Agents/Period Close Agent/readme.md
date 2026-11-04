@@ -38,7 +38,7 @@ close process before you consider production use.
 | Try it with a guided, interactive lab | [`HOL/PeriodCloseAgent_HOL_Wizard.html`](HOL/PeriodCloseAgent_HOL_Wizard.html), download it and open it in Edge or Chrome (it contains the solution and all sample files) |
 | Follow the same lab as a document | [`HOL/HOL_PeriodCloseAgent_External.docx`](HOL/HOL_PeriodCloseAgent_External.docx) with the [sample journals](HOL/Sample%20journals) and the [sample business skill](HOL/Business%20skill) |
 | Read the lab overview first | [`HOL/README.md`](HOL/README.md) |
-| Install the solution | [`PeriodCloseAgentV2_1_1_0_0_unmanaged.zip`](Solutions/PeriodCloseAgentV2_1_1_0_0_unmanaged.zip), then [Install the unmanaged solution](#install-the-unmanaged-solution) |
+| Install the solution | [`PeriodCloseAgentV2_1_1_1_0_unmanaged.zip`](Solutions/PeriodCloseAgentV2_1_1_1_0_unmanaged.zip), then [Install the unmanaged solution](#install-the-unmanaged-solution) |
 | Validate before you release | [`Evaluation/Agent Tests`](Evaluation/Agent%20Tests) and [Validate before you release](#validate-before-you-release) |
 | Review what the agent did (audit trail) | **Period Close Compliance Review** app and the **Period Close Task Audit** table, see [Audit trail and compliance review](#audit-trail-and-compliance-review) |
 | Add your own close procedure | [Customize the business skills](#customize-the-business-skills) and [`PeriodClose_SkillTemplate.md`](HOL/Business%20skill/PeriodClose_SkillTemplate.md) |
@@ -267,7 +267,7 @@ An unmanaged import can overwrite existing customizations of the same
 components. Use a nonproduction environment with no active close process.
 
 1. Download
-   [`PeriodCloseAgentV2_1_1_0_0_unmanaged.zip`](Solutions/PeriodCloseAgentV2_1_1_0_0_unmanaged.zip).
+   [`PeriodCloseAgentV2_1_1_1_0_unmanaged.zip`](Solutions/PeriodCloseAgentV2_1_1_1_0_unmanaged.zip).
 2. In [Power Apps](https://make.powerapps.com/), select the target environment,
    then **Solutions** > **Import solution**, choose the ZIP, and select
    **Next**.
@@ -544,10 +544,10 @@ need to keep its history.
 | Item | Value |
 | --- | --- |
 | Solution | `PeriodCloseAgentV2` (unmanaged) |
-| Version | 1.1.0.0 |
-| File | `Solutions/PeriodCloseAgentV2_1_1_0_0_unmanaged.zip` |
-| Size | 418,037 bytes |
-| SHA-256 | `413E9A14966B9E36889DC9557B4E64FBA128339AE6EC2CB544156C3336AE495E` |
+| Version | 1.1.1.0 |
+| File | `Solutions/PeriodCloseAgentV2_1_1_1_0_unmanaged.zip` |
+| Size | 410,182 bytes |
+| SHA-256 | `15F239DE4B3B3E096F22DE1551BA0287981B55451060FA1F8531627C5222303B` |
 | Language | English (1033) |
 | Model used for internal testing | Claude Sonnet 5.5 (preselected in the package; you can choose any model Copilot Studio offers) |
 | Responsible AI review | Approved |
@@ -555,8 +555,15 @@ need to keep its history.
 To verify the download in PowerShell:
 
 ```powershell
-Get-FileHash .\PeriodCloseAgentV2_1_1_0_0_unmanaged.zip -Algorithm SHA256
+Get-FileHash .\PeriodCloseAgentV2_1_1_1_0_unmanaged.zip -Algorithm SHA256
 ```
+
+### What changed
+
+| Version | Changes |
+| --- | --- |
+| 1.1.1.0 | Fixes the two event-triggered flows. `PCA - Run human-started task` and `PCA - Auto-run tasks on completion` use the Agents connector's `InvokeAgent` action and a rebuilt duplicate-run check, and the completion flow's agent prompt is correct when the flow is opened and saved in the designer. The agent, business skills and all other components are unchanged from 1.1.0.0. To upgrade, import over 1.1.0.0, then check that both flows are on. |
+| 1.1.0.0 | First public release. |
 
 ## Support, security, and license
 
