@@ -266,7 +266,7 @@ Use a development or validation environment first. UI labels can differ by Copil
 
 ### Phase 1 - Download the Solution Package
 
-1. Download the [solution ZIP](./InventoryStockAvailabilityV1_1_0_0_1.zip) and accompanying release files from this repository or its GitHub Release assets.
+1. Download the [solution ZIP](./InventoryStockAvailabilityV1_1_0_0_1.zip) from this repository or its GitHub Release assets.
 2. Keep the ZIP intact. Do not manually edit its XML or repackage it to repair missing dependencies.
 3. Confirm its identity: solution unique name `InventoryStockAvailabilityV1`, version `1.0.0.1`, unmanaged.
 4. Verify the staged archive's SHA-256 if checking this exact supplied artifact:
@@ -279,16 +279,12 @@ This checksum identifies the staged file only; it is not a digital signature or 
 
 #### Solution Package Structure
 
-Accompanying release files:
+Published files:
 
 ```text
-GitHubRelease/
+Inventory Stock Availability Agent/
 |-- README.md
-|-- InventoryStockAvailabilityV1_1_0_0_1.zip
-|-- agent-instructions.md
-`-- skills/
-    `-- inventory-stock-availability/
-        `-- SKILL.md
+`-- InventoryStockAvailabilityV1_1_0_0_1.zip
 ```
 
 Observed contents of the current ZIP:
@@ -305,7 +301,7 @@ botcomponents/
   ... Work IQ capability definitions and feedback settings ...
 ```
 
-The corrected [instructions](./agent-instructions.md) and [skill](./skills/inventory-stock-availability/SKILL.md) are companion files, **not embedded updates to this ZIP**. Import does not automatically upload them. The current archive contains no inventory skill payload or ERP MCP tool/connection-reference components.
+The agent instructions and inventory skill are not published as separate files or embedded in this ZIP. Configure them in Copilot Studio as described in this guide. The current archive contains no inventory skill payload or ERP MCP tool/connection-reference components.
 
 ### Phase 2 - Import the Solution into Your Environment
 
@@ -348,13 +344,12 @@ Never include access tokens, passwords, or other credentials in GitHub assets.
 #### Step 3.1 - Open the Solution
 
 1. Open the imported solution and its **Inventory Stock Availability** agent.
-2. Replace the agent's Instructions with [agent-instructions.md](./agent-instructions.md).
-3. Add or replace the uploaded inventory skill using [SKILL.md](./skills/inventory-stock-availability/SKILL.md). Its declared name must be `inventory-stock-availability`.
-4. Do not retain duplicate copies of the old skill. Local Markdown changes do not synchronize automatically with Copilot Studio.
-5. Remove the unrelated Work IQ Teams, files, mail, calendar, people, and sites capabilities from the authoring configuration. These are not required for inventory queries. Do not confuse these capabilities with the Teams + Microsoft 365 publishing channel.
-6. If any unwanted capability cannot be removed or verified in the UI, stop distribution and resolve it through supported authoring/export tooling; do not edit the ZIP by hand.
-7. Keep web search and cross-session memory disabled for this inventory-only release.
-8. Review the selected model. The supplied configuration uses GPT 5.5 Chat, and the source screenshot displays a retirement warning. Select a currently supported, tenant-approved model and rerun the tests rather than relying on automatic migration.
+2. Configure the agent instructions and add the inventory skill in Copilot Studio. The published files do not include separate instruction or skill files, and importing the ZIP does not configure them.
+3. Use the behavior and safety requirements in this guide, including explicit legal-entity scoping, read-only inventory lookups, and clear handling of errors and unavailable data.
+4. Remove the unrelated Work IQ Teams, files, mail, calendar, people, and sites capabilities from the authoring configuration. These are not required for inventory queries. Do not confuse these capabilities with the Teams + Microsoft 365 publishing channel.
+5. If any unwanted capability cannot be removed or verified in the UI, stop distribution and resolve it through supported authoring/export tooling; do not edit the ZIP by hand.
+6. Keep web search and cross-session memory disabled for this inventory-only release.
+7. Review the selected model. The supplied configuration uses GPT 5.5 Chat, and the source screenshot displays a retirement warning. Select a currently supported, tenant-approved model and rerun the tests rather than relying on automatic migration.
 
 #### Step 3.2 - Update the F&O Instance URL in Tools
 
@@ -455,7 +450,7 @@ The read-only posture depends on configured capabilities and platform authorizat
 
 ## Limitations & Constraints
 
-- The supplied staging ZIP has unresolved packaging discrepancies; companion Markdown files do not repair its contents automatically.
+- The supplied staging ZIP has unresolved packaging discrepancies; it does not include separate agent-instructions or skill files.
 - F&O and Copilot Studio version, feature, region, licensing, model, connector, and tenant-policy availability can affect deployment.
 - The skill requires the dynamic ERP MCP SQL query tool and the specified `WarehousesOnHandV2` fields.
 - Every lookup requires an explicit legal entity. JSON also requires a warehouse per item.
