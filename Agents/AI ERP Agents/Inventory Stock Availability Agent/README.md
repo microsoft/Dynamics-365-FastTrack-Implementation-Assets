@@ -189,37 +189,6 @@ flowchart TD
     A2 --> U
 ```
 
-The flowchart above summarizes the inventory request and response path. The sequence diagram below shows validation and the bounded schema-discovery fallback in more detail.
-
-```mermaid
-sequenceDiagram
-    actor User as Signed-in user
-    participant Agent as Copilot Studio
-    participant Skill as Inventory skill
-    participant MCP as Dynamics 365 ERP MCP
-    participant FO as F&O application APIs
-    User->>Agent: Natural-language request or JSON array
-    Agent->>Skill: Validate complete request and explicit company
-    alt Missing or invalid input
-        Skill-->>User: Clarification or JSON error; no MCP call
-    else Valid input
-        loop Each requested item
-            Skill->>MCP: data_find_entities_sql(filters, companyId)
-            MCP->>FO: Request under signed-in user's permissions
-            FO-->>MCP: Authorized rows, no records, or error
-            MCP-->>Skill: Query result
-            opt Schema error only; one fallback
-                Skill->>MCP: Discover WarehousesOnHandV2
-                Skill->>MCP: Validate required metadata
-                Skill->>MCP: Retry same filtered query if validation succeeds
-                MCP-->>Skill: Result or final error
-            end
-        end
-        Skill-->>Agent: Inventory rows or error; permitted derived fields
-        Agent-->>User: Natural-language answer or raw JSON
-    end
-```
-
 Authorization, connectivity, and timeout errors stop processing; they do not trigger schema discovery. Local inventory caching is not part of this design. Copilot Studio conversation records and other platform telemetry remain subject to tenant retention policies.
 
 ## Extensibility
