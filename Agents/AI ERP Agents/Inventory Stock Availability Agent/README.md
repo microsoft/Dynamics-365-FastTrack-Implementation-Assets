@@ -333,7 +333,11 @@ Never include access tokens, passwords, or other credentials in GitHub assets.
 4. Remove the unrelated Work IQ Teams, files, mail, calendar, people, and sites capabilities from the authoring configuration. These are not required for inventory queries. Do not confuse these capabilities with the Teams + Microsoft 365 publishing channel.
 5. If any unwanted capability cannot be removed or verified in the UI, stop distribution and resolve it through supported authoring/export tooling; do not edit the ZIP by hand.
 6. Keep web search and cross-session memory disabled for this inventory-only release.
-7. Review the selected model. The supplied configuration uses GPT 5.5 Chat, and the source screenshot displays a retirement warning. Select a currently supported, tenant-approved model and rerun the tests rather than relying on automatic migration.
+7. Review the selected model using the recommendation below.
+
+> **AI model selection:** This agent was created and tested using **GPT 5.5 Chat**. Customers can select a different supported model in Microsoft Copilot Studio to suit their business requirements, balancing response quality, reasoning capabilities, response speed, and cost. Before deploying a model change, validate the agent's inventory responses, tool execution, and security behavior in a non-production environment. Review model availability, retirement schedules, and organizational governance requirements. Experimental models are not recommended for production use.
+>
+> For Microsoft's model-selection guidance, see [Select a primary AI model for your agent](https://learn.microsoft.com/en-us/microsoft-copilot-studio/authoring-select-agent-model).
 
 #### Step 3.2 - Update the F&O Instance URL in Tools
 
@@ -452,6 +456,7 @@ The read-only posture depends on configured capabilities and platform authorizat
 
 ## Microsoft Documentation
 
+- [Select a primary AI model for your agent](https://learn.microsoft.com/en-us/microsoft-copilot-studio/authoring-select-agent-model)
 - [Export and import agents using solutions](https://learn.microsoft.com/en-us/microsoft-copilot-studio/authoring-solutions-import-export)
 - [Use Model Context Protocol for finance and operations apps](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/copilot/copilot-mcp)
 - [Build an agent with Dynamics 365 ERP MCP](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/copilot/build-agent-mcp)
