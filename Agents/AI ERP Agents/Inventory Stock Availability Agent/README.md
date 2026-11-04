@@ -257,14 +257,6 @@ Use a development or validation environment first. UI labels can differ by Copil
 1. Download the [solution ZIP](./InventoryStockAvailabilityV1_1_0_0_1.zip) from this repository.
 2. Keep the ZIP intact. Do not manually edit its XML or repackage it to repair missing dependencies.
 3. Confirm its identity: solution unique name `InventoryStockAvailabilityV1`, version `1.0.0.1`, unmanaged.
-4. Verify the staged archive's SHA-256 if checking this exact supplied artifact:
-
-```text
-CC051AD2F52E32C299E08BEB82976CBDEB016F1CA344FF65D0F5AD7EB62FD77D
-```
-
-This checksum identifies the staged file only; it is not a digital signature or a production-readiness certification. A corrected export needs a new published checksum.
-
 #### Solution Package Structure
 
 Published files:
