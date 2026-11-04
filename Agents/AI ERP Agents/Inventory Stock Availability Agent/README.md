@@ -10,6 +10,7 @@ Ask inventory questions in natural language or submit a JSON array to retrieve c
 
 ## Table of Contents
 
+- [Responsible AI and Usage FAQ](./Responsible-AI-FAQ.md)
 - [Use Case](#use-case)
   - [Overview](#overview)
   - [Target Users](#target-users)
@@ -284,6 +285,7 @@ Published files:
 ```text
 Inventory Stock Availability Agent/
 |-- README.md
+|-- Responsible-AI-FAQ.md
 `-- InventoryStockAvailabilityV1_1_0_0_1.zip
 ```
 
