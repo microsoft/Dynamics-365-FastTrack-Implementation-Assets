@@ -174,6 +174,24 @@ The MCP query tool uses supported F&O application APIs; this architecture does n
 ### Data Flow Diagram
 
 ```mermaid
+flowchart TD
+    U["Signed-in user<br/>Natural-language request or JSON"] --> A["Copilot Studio agent"]
+    A --> V["Inventory skill validates<br/>item, warehouse and legal entity"]
+    V -->|Missing or invalid input| E["Clarification or error<br/>No ERP query"]
+    E --> U
+    V -->|Valid input| M["Dynamics 365 ERP MCP<br/>Read-only query with companyId"]
+    M --> F["F&O application APIs<br/>Enforce signed-in user's permissions"]
+    F --> D["WarehousesOnHandV2"]
+    D --> R["Authorized inventory rows,<br/>no matching records, or error"]
+    R --> M
+    M --> S["Inventory skill<br/>Interpret results and calculate<br/>permitted fulfillment/shortage fields"]
+    S --> A2["Copilot Studio response<br/>Natural language or JSON"]
+    A2 --> U
+```
+
+The flowchart above summarizes the inventory request and response path. The sequence diagram below shows validation and the bounded schema-discovery fallback in more detail.
+
+```mermaid
 sequenceDiagram
     actor User as Signed-in user
     participant Agent as Copilot Studio
