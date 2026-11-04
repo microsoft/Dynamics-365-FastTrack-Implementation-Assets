@@ -6,7 +6,7 @@ An AI-powered Inventory Stock Availability Agent for Dynamics 365 Finance & Oper
 
 Ask inventory questions in natural language or submit a JSON array to retrieve current on-hand, reserved, and available quantities by item, warehouse, and legal entity. The agent is **read-only by design**; it does not reserve, transfer, allocate, purchase, or modify inventory.
 
-> **Release status:** No solution ZIP is included in this contribution. The package inspection and installation notes below describe the previously inspected staging export, not an available download. That export is an unmanaged solution with internal version **1.0.0.1**. Archive inspection did not find the inventory skill or ERP MCP tool/connection-reference components, although those are visible in the source agent's Copilot Studio configuration. The archive also contains unrelated Work IQ capability components declaring write access and sets `publishOnImport: true`. Treat that export as a staging release, not a verified production-ready import. Follow the dependency-repair and validation steps below; a successful import alone is not acceptance.
+> **Release status:** The supplied ZIP is an unmanaged solution with internal version **1.0.0.1**. Archive inspection found the agent instructions, inventory skill, ERP MCP tool, and connection-reference mapping. The archive also contains unrelated Work IQ capability components declaring write access and sets `publishOnImport: true`. Treat this as a staging release, not a verified production-ready import. Follow the configuration and validation steps below; a successful import alone is not acceptance.
 
 ## Table of Contents
 
@@ -266,13 +266,13 @@ Use a development or validation environment first. UI labels can differ by Copil
 
 ### Phase 1 - Download the Solution Package
 
-1. A solution ZIP is not currently included in this contribution. Obtain a corrected, validated export before proceeding with the installation steps below.
+1. Download the [solution ZIP](./InventoryStockAvailabilityV1_1_0_0_1.zip) from this repository.
 2. Keep the ZIP intact. Do not manually edit its XML or repackage it to repair missing dependencies.
 3. Confirm its identity: solution unique name `InventoryStockAvailabilityV1`, version `1.0.0.1`, unmanaged.
 4. Verify the staged archive's SHA-256 if checking this exact supplied artifact:
 
 ```text
-82064D43189633AD405B1082119EDCB26AC01800D183818D4E0AB6349EF64022
+CC051AD2F52E32C299E08BEB82976CBDEB016F1CA344FF65D0F5AD7EB62FD77D
 ```
 
 This checksum identifies the staged file only; it is not a digital signature or a production-readiness certification. A corrected export needs a new published checksum.
@@ -283,10 +283,11 @@ Published files:
 
 ```text
 Inventory Stock Availability Agent/
-`-- README.md
+|-- README.md
+`-- InventoryStockAvailabilityV1_1_0_0_1.zip
 ```
 
-Observed contents of the previously inspected staging ZIP (not included):
+Observed contents of the supplied staging ZIP:
 
 ```text
 solution.xml
@@ -297,10 +298,13 @@ bots/
     bot.xml
     configuration.json
 botcomponents/
+  ... inventory skill and Dynamics 365 ERP MCP tool ...
   ... Work IQ capability definitions and feedback settings ...
+Assets/
+  botcomponent_connectionreferenceset.xml
 ```
 
-The agent instructions and inventory skill are not published as separate files or embedded in this ZIP. Configure them in Copilot Studio as described in this guide. The current archive contains no inventory skill payload or ERP MCP tool/connection-reference components.
+The agent instructions and inventory skill are embedded in this ZIP, not published as separate files. The archive also includes the ERP MCP tool and its connection-reference mapping. Verify these components and their target-environment connections after import.
 
 ### Phase 2 - Import the Solution into Your Environment
 
@@ -325,9 +329,9 @@ The agent instructions and inventory skill are not published as separate files o
 
 #### Step 2.4 - Configure the Connection Reference
 
-For a corrected export that includes the ERP MCP connection reference, map it to a connection targeting your F&O instance. Ensure the tool's runtime authentication remains **User/end-user/invoker**, rather than a shared maker identity.
+Map the ERP MCP connection reference to a connection targeting your F&O instance. Ensure the tool's runtime authentication remains **User/end-user/invoker**, rather than a shared maker identity.
 
-**Current ZIP exception:** this archive has no ERP MCP connection reference. An import wizard that does not request one is therefore not evidence of a working integration. Add or repair the Dynamics 365 ERP MCP connection in Phase 3 and include the required objects in a new export before general distribution.
+If the import wizard does not request a connection, verify the existing connection binding explicitly. A successful import alone is not evidence of a working integration. Repair any unresolved Dynamics 365 ERP MCP connection in Phase 3 before general distribution.
 
 Never include access tokens, passwords, or other credentials in GitHub assets.
 
@@ -343,7 +347,7 @@ Never include access tokens, passwords, or other credentials in GitHub assets.
 #### Step 3.1 - Open the Solution
 
 1. Open the imported solution and its **Inventory Stock Availability** agent.
-2. Configure the agent instructions and add the inventory skill in Copilot Studio. The published files do not include separate instruction or skill files, and importing the ZIP does not configure them.
+2. Verify the imported agent instructions and inventory skill in Copilot Studio. Both are embedded in the ZIP; separate instruction and skill files are not included in this contribution.
 3. Use the behavior and safety requirements in this guide, including explicit legal-entity scoping, read-only inventory lookups, and clear handling of errors and unavailable data.
 4. Remove the unrelated Work IQ Teams, files, mail, calendar, people, and sites capabilities from the authoring configuration. These are not required for inventory queries. Do not confuse these capabilities with the Teams + Microsoft 365 publishing channel.
 5. If any unwanted capability cannot be removed or verified in the UI, stop distribution and resolve it through supported authoring/export tooling; do not edit the ZIP by hand.
@@ -449,7 +453,7 @@ The read-only posture depends on configured capabilities and platform authorizat
 
 ## Limitations & Constraints
 
-- The supplied staging ZIP has unresolved packaging discrepancies; it does not include separate agent-instructions or skill files.
+- The supplied staging ZIP includes unrelated Work IQ capabilities and has not been verified by a clean import and end-to-end acceptance test.
 - F&O and Copilot Studio version, feature, region, licensing, model, connector, and tenant-policy availability can affect deployment.
 - The skill requires the dynamic ERP MCP SQL query tool and the specified `WarehousesOnHandV2` fields.
 - Every lookup requires an explicit legal entity. JSON also requires a warehouse per item.
