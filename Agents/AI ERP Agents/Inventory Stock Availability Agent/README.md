@@ -6,7 +6,7 @@ An AI-powered Inventory Stock Availability Agent for Dynamics 365 Finance & Oper
 
 Ask inventory questions in natural language or submit a JSON array to retrieve current on-hand, reserved, and available quantities by item, warehouse, and legal entity. The agent is **read-only by design**; it does not reserve, transfer, allocate, purchase, or modify inventory.
 
-> **Release status:** The supplied ZIP is an unmanaged solution with internal version **1.0.0.1**. Its filename is not a separate version declaration. Archive inspection did not find the inventory skill or ERP MCP tool/connection-reference components, although those are visible in the source agent's Copilot Studio configuration. The archive also contains unrelated Work IQ capability components declaring write access and sets `publishOnImport: true`. Treat this as a staging release, not a verified production-ready import. Follow the dependency-repair and validation steps below; a successful import alone is not acceptance.
+> **Release status:** No solution ZIP is included in this contribution. The package inspection and installation notes below describe the previously inspected staging export, not an available download. That export is an unmanaged solution with internal version **1.0.0.1**. Archive inspection did not find the inventory skill or ERP MCP tool/connection-reference components, although those are visible in the source agent's Copilot Studio configuration. The archive also contains unrelated Work IQ capability components declaring write access and sets `publishOnImport: true`. Treat that export as a staging release, not a verified production-ready import. Follow the dependency-repair and validation steps below; a successful import alone is not acceptance.
 
 ## Table of Contents
 
@@ -266,7 +266,7 @@ Use a development or validation environment first. UI labels can differ by Copil
 
 ### Phase 1 - Download the Solution Package
 
-1. Download the [solution ZIP](./InventoryStockAvailabilityV1_1_0_0_1.zip) from this repository or its GitHub Release assets.
+1. A solution ZIP is not currently included in this contribution. Obtain a corrected, validated export before proceeding with the installation steps below.
 2. Keep the ZIP intact. Do not manually edit its XML or repackage it to repair missing dependencies.
 3. Confirm its identity: solution unique name `InventoryStockAvailabilityV1`, version `1.0.0.1`, unmanaged.
 4. Verify the staged archive's SHA-256 if checking this exact supplied artifact:
@@ -283,11 +283,10 @@ Published files:
 
 ```text
 Inventory Stock Availability Agent/
-|-- README.md
-`-- InventoryStockAvailabilityV1_1_0_0_1.zip
+`-- README.md
 ```
 
-Observed contents of the current ZIP:
+Observed contents of the previously inspected staging ZIP (not included):
 
 ```text
 solution.xml
