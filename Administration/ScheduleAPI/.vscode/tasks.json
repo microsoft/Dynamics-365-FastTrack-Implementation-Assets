@@ -1,0 +1,41 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Set up application",
+			"type": "shell",
+			"command": "if (-not (Test-Path '.venv\\Scripts\\python.exe')) { python -m venv .venv }; & '.venv\\Scripts\\python.exe' -m pip install --upgrade pip; & '.venv\\Scripts\\python.exe' -m pip install -r requirements.txt",
+			"options": {
+				"shell": {
+					"executable": "powershell.exe",
+					"args": [
+						"-NoProfile",
+						"-ExecutionPolicy",
+						"Bypass",
+						"-Command"
+					]
+				}
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Launch Streamlit application",
+			"type": "process",
+			"command": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"streamlit",
+				"run",
+				"app.py"
+			],
+			"dependsOn": "Set up application",
+			"dependsOrder": "sequence",
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		}
+	]
+}

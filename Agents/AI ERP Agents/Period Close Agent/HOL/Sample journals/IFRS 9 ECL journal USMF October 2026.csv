@@ -1,0 +1,3 @@
+LineNumber,AccountType,AccountDisplayValue,Text,CurrencyCode,DebitAmount,CreditAmount,OffsetCompany,OffsetAccountType,OffsetAccountDisplayValue,IsReversing,ReversingDate
+1,Ledger,618170,IFRS 9 expected credit loss provision - trade receivables,USD,12850.00,0.00,USMF,Ledger,222190,Yes,2026-11-01
+2,Ledger,618170,IFRS 9 expected credit loss provision - other receivables,USD,2140.00,0.00,USMF,Ledger,222190,Yes,2026-11-01

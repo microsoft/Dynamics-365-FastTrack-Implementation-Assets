@@ -1,0 +1,4 @@
+LineNumber,AccountType,AccountDisplayValue,Text,CurrencyCode,DebitAmount,CreditAmount,OffsetCompany,OffsetAccountType,OffsetAccountDisplayValue,IsReversing,ReversingDate
+1,Ledger,607102,IFRS 16 right-of-use amortisation - building lease,USD,8333.33,0.00,USMF,Ledger,180260,No,
+2,Ledger,800601,IFRS 16 lease liability interest - building lease,USD,1625.40,0.00,USMF,Ledger,222310,No,
+3,Ledger,222310,IFRS 16 lease payment - building lease,USD,10500.00,0.00,USMF,Ledger,110110,No,
