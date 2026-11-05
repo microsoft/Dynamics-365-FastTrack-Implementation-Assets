@@ -1,5 +1,5 @@
 {
-  "$schema": "https://github.com/Azure/data-api-builder/releases/download/v1.7.83/dab.draft.schema.json",
+  "$schema": "https://raw.githubusercontent.com/Azure/data-api-builder/c7927fa9885160ed35bcc9b25b13fd59b88f3133/schemas/dab.draft.schema.json",
   "data-source": {
     "database-type": "mssql",
     "connection-string": "@env('AZURE_SQL_CONNECTION_STRING')"
@@ -28,7 +28,7 @@
       }
     },
     "host": {
-      "mode": "Production",
+      "mode": "production",
       "cors": {
         "origins": ["*"],
         "allow-credentials": false
