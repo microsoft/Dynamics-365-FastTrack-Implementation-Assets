@@ -14,7 +14,6 @@ using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Options;
-using Azure.Storage.Sas;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -120,14 +119,19 @@ builder.Services.Configure<EtlImportOptions>(builder.Configuration.GetSection("E
 builder.Services.AddScoped<EtlUploadService>();
 builder.Services.AddScoped<TraceService>();
 builder.Services.AddScoped<TraceDeletionService>();
+builder.Services.AddScoped<TraceParser.Deletion.IDeletionJobStore>(_ =>
+    new TraceParser.Deletion.SqlDeletionJobStore(builder.Configuration["DurableDeletion:WebSqlConnectionString"] ?? ""));
+builder.Services.AddScoped<DeletionJobService>();
 builder.Services.Configure<TraceAdministrationOptions>(builder.Configuration.GetSection("TraceAdministration"));
 builder.Services.AddScoped<ITraceDeletionStore, SqlTraceDeletionStore>();
+builder.Services.AddScoped<IRegisteredImportStore, SqlRegisteredImportStore>();
+builder.Services.AddScoped<RegisteredImportService>();
 builder.Services.AddHttpClient("dab", client =>
 {
     var dabUrl = builder.Configuration["EtlImport:DabBaseUrl"] ?? "";
     if (!string.IsNullOrEmpty(dabUrl))
         client.BaseAddress = new Uri(dabUrl);
-});
+}).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 
 var app = builder.Build();
 
@@ -151,28 +155,10 @@ app.MapRazorComponents<App>()
 
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 
-// SAS endpoint for direct-to-blob uploads from the browser
-app.MapGet("/api/upload/sas", [Microsoft.AspNetCore.Authorization.Authorize]
-    (string sessionName, string fileName, IOptions<EtlImportOptions> opts) =>
-{
-    var blobName = $"{sessionName}/{Path.GetFileName(fileName)}";
-    var serviceClient = new BlobServiceClient(opts.Value.StorageConnectionString);
-    var blobClient = serviceClient
-        .GetBlobContainerClient(opts.Value.ContainerName)
-        .GetBlobClient(blobName);
-
-    var sasBuilder = new BlobSasBuilder
-    {
-        BlobContainerName = opts.Value.ContainerName,
-        BlobName = blobName,
-        Resource = "b",
-        ExpiresOn = DateTimeOffset.UtcNow.AddHours(2),
-    };
-    sasBuilder.SetPermissions(BlobSasPermissions.Create | BlobSasPermissions.Write);
-    var sasUri = blobClient.GenerateSasUri(sasBuilder);
-
-    return Results.Ok(new { sasUrl = sasUri.ToString(), blobName });
-});
+// Registered uploads require tenant checks and anti-forgery validation, not a
+// state-changing GET that hands out overwrite permissions for historical paths.
+app.MapRegisteredImports();
+app.MapDeletionJobs();
 
 // Ensure the upload container exists at startup
 using (var scope = app.Services.CreateScope())

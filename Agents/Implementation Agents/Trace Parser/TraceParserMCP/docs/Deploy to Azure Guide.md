@@ -143,7 +143,7 @@ Skip to [Step 2: Migrate Database](#step-2-migrate-database-to-azure-sql).
     - **Image and tag:** `mcr.microsoft.com/azure-databases/data-api-builder:1.7.83-rc`
 4. Click **Review + Create** > **Create**
 
-> **Critical:** The image tag must be `1.7.83-rc` (with the `-rc` suffix). MCP features are NOT available in the `:latest` tag or non-RC versions.
+> This sample pins `1.7.83-rc` to match its local tool manifest and configuration schema. Do not substitute `latest` or another release without reviewing and testing the upgrade. Later releases also provide MCP support.
 
 #### 1.4 Configure App Service Settings
 
@@ -295,7 +295,7 @@ The DAB configuration file is the same for local and Azure deployment. Key diffe
 | Setting | Value | Notes |
 |---------|-------|-------|
 | `connection-string` | `@env('AZURE_SQL_CONNECTION_STRING')` | Reads from `.env` locally, App Settings on Azure |
-| `host.mode` | `Production` | Disables Swagger UI and detailed errors |
+| `host.mode` | `production` | Disables Swagger UI and detailed errors; lowercase is required by the schema |
 | `mcp.enabled` | `true` | Exposes MCP endpoint at `/mcp` |
 | `cors.origins` | `["*"]` | Allow all origins (tighten for production) |
 

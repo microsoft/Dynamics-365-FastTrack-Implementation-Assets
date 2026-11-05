@@ -2,7 +2,23 @@
 
 ## Overview
 
-The `ParseEtl` Azure Function parses large ETL trace files (up to 2 GB) and imports them
+**Existing-resource retry-safe importer upgrades:** follow the ordered migrations, grants,
+validation gates and rollback contract in `..\README.md`. Do not run resource provisioning,
+change tiers/runtime, interrupt an import, or deploy without an owner-verified quiet window.
+Unregistered historical/direct blob uploads are held for explicit review, not auto-imported.
+The SQL migration creates a dedicated `TPImportPromotionExecutor WITHOUT LOGIN` with
+only `ALTER ON dbo.TraceLines` for the fixed promotion module's `IDENTITY_INSERT`.
+Do not grant that permission, table ownership, broad roles, or executor impersonation
+to the Function identity. Run and review this deployment-owner migration before activation;
+retain the executor with its compatible procedure on rollback. README lists the exact
+runtime object grants and restricted full-lifecycle validation.
+The existing upload policy is 1 GiB, not a guarantee that a file fits the live site's
+free temporary disk or execution budget. SQL/Function admission rejects larger actual
+blob lengths before download and preserves an explicit `RejectedOversize` receipt.
+The SAS itself cannot limit stored bytes; rejected blobs remain for review. Verify
+live resource limits separately without changing tiers, timeout or cleanup policy.
+
+The `ParseEtl` Azure Function parses ETL trace files within the existing 1 GiB upload cap and imports them
 into Azure SQL. It uses `Microsoft.Diagnostics.Tracing.TraceEvent` (ETWTraceEventSource)
 which requires **Windows**. This guide covers the best deployment option and explains the
 architecture decisions.
@@ -48,10 +64,10 @@ The `deploy.ps1` already deploys with **EP1 (Elastic Premium)**. This is the bes
 ### Why EP1 is the right fit
 
 1. **Windows support**: Required for `net8.0-windows` / ETWTraceEventSource
-2. **Unbounded timeout**: `host.json` sets `functionTimeout: "01:00:00"` — fully honored
+2. **Configured timeout**: `host.json` retains `functionTimeout: "02:00:00"`; the importer uses a 110-minute cancellation budget for shutdown margin
 3. **3.5 GB RAM**: Sufficient — the function streams in 200K-row batches (~50-100 MB
    DataTable in memory at a time), not the full 10.2M rows
-4. **21 GB temp disk**: Plenty of room for the 2 GB max ETL file download
+4. **Temporary disk**: Advertised plan capacity is not free space; verify the live site's available disk for admitted files up to 1 GiB.
 5. **VNET integration**: Can connect to Azure SQL via private endpoint (eliminates need
    for public firewall rules)
 6. **Pre-warmed instances**: Reduces cold-start when a user uploads an ETL
@@ -68,13 +84,18 @@ The `deploy.ps1` already deploys with **EP1 (Elastic Premium)**. This is the bes
 ### When to upgrade to EP2
 
 Consider EP2 if:
-- Users upload ETL files close to the 2 GB limit
+- Users upload ETL files close to the existing 1 GiB limit
 - Memory profiling shows the function approaching 3.5 GB
 - You need more CPU for faster ETL parsing
 
 ---
 
-## Performance: Local vs Azure Deployment
+## Historical performance estimates — not protocol release evidence
+
+The following estimates describe the previous importer, including its now-removed index
+disable/rebuild phase. They are not measured retry-safe-protocol performance and must not
+justify a tier change or release. Validate representative large ETL files and the
+prepopulated indexed target within the unchanged timeout before releasing the new importer.
 
 ### The network bottleneck problem
 
@@ -131,18 +152,12 @@ func azure functionapp publish <FUNC_NAME> --dotnet-isolated
 
 ### 3. Upload ETL
 
-Upload via the Blazor web app (EtlUploadService) or via CLI:
+Upload through the registered Blazor workflow described in `..\README.md`.
+Direct CLI uploads without preregistration are not a supported import path for protocol v1.
 
-```bash
-az storage blob upload \
-  --account-name <STORAGE_NAME> \
-  --container-name etl-uploads \
-  --name "<session>/<filename>.etl" \
-  --file "<path-to-etl>" \
-  --overwrite true
-```
-
-The blob trigger fires automatically. Monitor in Application Insights or via SQL queries.
+Each new logical upload gets a fresh registered, create-only path while retaining the
+displayed filename. The trigger imports that immutable registered source. Monitor
+durable receipt status; do not infer completion from a single aggregate row.
 
 ---
 
@@ -241,7 +256,7 @@ All components in the same Azure region (`westus2`). Internal network latency <1
 | File | Purpose |
 |------|---------|
 | `deploy.ps1` | Creates all Azure resources (EP1 plan, Function App, Web App, Storage) |
-| `TraceParserFunction/host.json` | Function timeout: 1 hour |
+| `TraceParserFunction/host.json` | Function timeout: 2 hours (unchanged); 110-minute importer cancellation budget |
 | `TraceParserFunction/local.settings.json` | Local development settings (gitignored) |
 | `TraceParserFunction/ParseEtlFunction.cs` | Blob trigger entry point |
 | `TraceParserFunction/EtlParser.cs` | ETW trace parsing, 200K-row batch streaming |

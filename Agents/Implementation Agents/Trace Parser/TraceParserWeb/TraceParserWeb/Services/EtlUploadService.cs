@@ -1,6 +1,5 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using Azure.Storage.Sas;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
@@ -9,6 +8,11 @@ namespace TraceParserWeb.Services;
 
 public enum ImportStage
 {
+    RejectedOversize = -6,
+    Deleting = -5,
+    LegacyUntracked = -4,
+    Deleted = -3,
+    RetryableFailure = -2,
     Unavailable = -1,
     WaitingForFunction,
     Parsing,
@@ -34,8 +38,17 @@ public class EtlUploadService(
     IOptions<EtlImportOptions> opts,
     IHttpClientFactory httpFactory,
     TraceService traceService,
-    ILogger<EtlUploadService> logger)
+    ILogger<EtlUploadService> logger,
+    RegisteredImportService? registrations = null)
 {
+    public Task<RegisteredUpload> RegisterAsync(string sessionName, string fileName, CancellationToken ct = default)
+        => (registrations ?? throw new InvalidOperationException("Registered uploads are unavailable."))
+            .RegisterAsync(sessionName, fileName, ct);
+
+    public async Task<ImportStatus> GetImportStatusAsync(Guid importId, CancellationToken ct)
+        => RegisteredImportService.ToDisplay(await
+            (registrations ?? throw new InvalidOperationException("Registered import status is unavailable."))
+            .GetAsync(importId, ct));
     /// <summary>
     /// Uploads an ETL file to Azure Blob Storage under {sessionName}/{fileName}.
     /// Returns the blob name.
@@ -44,15 +57,14 @@ public class EtlUploadService(
                                           IProgress<long>? progress = null,
                                           CancellationToken ct = default)
     {
-        var blobName = $"{sessionName}/{Path.GetFileName(file.Name)}";
-        var container = new BlobContainerClient(opts.Value.StorageConnectionString,
-                                                opts.Value.ContainerName);
-        await container.CreateIfNotExistsAsync(cancellationToken: ct);
-        using var raw = file.OpenReadStream(maxAllowedSize: 1_073_741_824L, ct); // 1 GB
+        TraceParser.Shared.ImportFilePolicy.ValidateLength(file.Size);
+        var upload = await RegisterAsync(sessionName, file.Name, ct);
+        using var raw = file.OpenReadStream(maxAllowedSize: TraceParser.Shared.ImportFilePolicy.MaxFileSizeBytes, ct);
         Stream stream = progress != null ? new ProgressStream(raw, file.Size, progress) : raw;
-        await container.GetBlobClient(blobName)
-                       .UploadAsync(stream, overwrite: true, cancellationToken: ct);
-        return blobName;
+        var blobName = new BlobUriBuilder(new Uri(upload.SasUrl)).BlobName;
+        await new BlobClient(opts.Value.StorageConnectionString, opts.Value.ContainerName, blobName)
+            .UploadAsync(stream, overwrite: false, cancellationToken: ct);
+        return upload.ImportId.ToString("D");
     }
 
     /// <summary>
@@ -60,21 +72,7 @@ public class EtlUploadService(
     /// </summary>
     public string GenerateSasUrl(string sessionName, string fileName)
     {
-        var blobName = $"{sessionName}/{Path.GetFileName(fileName)}";
-        var serviceClient = new BlobServiceClient(opts.Value.StorageConnectionString);
-        var blobClient = serviceClient
-            .GetBlobContainerClient(opts.Value.ContainerName)
-            .GetBlobClient(blobName);
-
-        var sasBuilder = new BlobSasBuilder
-        {
-            BlobContainerName = opts.Value.ContainerName,
-            BlobName = blobName,
-            Resource = "b",
-            ExpiresOn = DateTimeOffset.UtcNow.AddHours(2),
-        };
-        sasBuilder.SetPermissions(BlobSasPermissions.Create | BlobSasPermissions.Write);
-        return blobClient.GenerateSasUri(sasBuilder).ToString();
+        throw new InvalidOperationException("Unregistered upload URLs are disabled. Register a fresh upload first.");
     }
 
     /// <summary>
