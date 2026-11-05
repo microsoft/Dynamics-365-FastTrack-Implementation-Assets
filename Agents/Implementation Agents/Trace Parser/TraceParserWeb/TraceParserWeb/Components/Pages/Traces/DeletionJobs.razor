@@ -1,0 +1,112 @@
+@using TraceParser.Deletion
+@using TraceParserWeb.Services
+@inject DeletionJobService Jobs
+@inject ILogger<DeletionJobs> Logger
+@implements IAsyncDisposable
+
+@if (Jobs.Enabled)
+{
+    <section aria-label="Your durable deletion jobs" class="traces-status">
+        <h3>Your deletion jobs</h3>
+        <p>Deletion continues after this page closes. Only committed rows and batches are shown.
+            Cancellation stops future batches; a batch already committing may finish.</p>
+        @if (_error is not null)
+        {
+            <p role="alert">@_error</p>
+        }
+        @if (_jobs.Count == 0)
+        {
+            <p>No recent jobs found for your account.</p>
+        }
+        @foreach (var job in _jobs)
+        {
+            <div @key="job.JobId">
+                <p>Trace @job.TraceId — <strong>@job.State</strong>;
+                    @job.CommittedRows.ToString("N0") committed rows / @job.Sequence.ToString("N0") batches;
+                    last phase: @job.LastPhase. Updated @job.UpdatedUtc.ToString("u")</p>
+                @if (job.ErrorMessage is not null)
+                {
+                    <p>@job.ErrorMessage (SQL code @job.ErrorCode)</p>
+                }
+                @if (job.State == "RetryScheduled")
+                {
+                    <p>Next eligible retry: @job.NextDueUtc.ToString("u"). Worker availability determines actual start.</p>
+                }
+                @if (job.CanCancel)
+                {
+                    <button @onclick='() => Control(job.JobId, "Cancel")' disabled="@_busy">Cancel future batches</button>
+                }
+                @if (job.CanResume)
+                {
+                    <button @onclick='() => Control(job.JobId, "Resume")' disabled="@_busy">Resume after resolving the cause</button>
+                }
+            </div>
+        }
+    </section>
+}
+
+@code {
+    readonly CancellationTokenSource _stop = new();
+    IReadOnlyList<DeletionJob> _jobs = Array.Empty<DeletionJob>();
+    Task? _poll;
+    string? _error;
+    bool _busy;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Jobs.Enabled) return;
+        await Refresh();
+        _poll = Poll();
+    }
+
+    async Task Refresh()
+    {
+        try
+        {
+            _jobs = await Jobs.ReadAsync(ct: _stop.Token);
+            _error = null;
+        }
+        catch (OperationCanceledException) when (_stop.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            _error = "Job status is unavailable. Last confirmed values are retained; no completion is inferred.";
+            Logger.LogWarning(ex, "Durable deletion status refresh failed");
+        }
+    }
+
+    async Task Poll()
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(3));
+        try
+        {
+            while (await timer.WaitForNextTickAsync(_stop.Token))
+                await InvokeAsync(async () => { await Refresh(); StateHasChanged(); });
+        }
+        catch (OperationCanceledException) when (_stop.IsCancellationRequested) { }
+    }
+
+    async Task Control(Guid job, string action)
+    {
+        if (_busy) return;
+        _busy = true;
+        try
+        {
+            await Jobs.ControlAsync(job, action, _stop.Token);
+            await Refresh();
+        }
+        catch (OperationCanceledException) when (_stop.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            _error = "The action was not confirmed. Refresh and inspect the persisted job before retrying.";
+            Logger.LogWarning(ex, "Durable deletion control was not confirmed");
+        }
+        finally { _busy = false; }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _stop.CancelAsync();
+        if (_poll is not null) await _poll;
+        _stop.Dispose();
+    }
+}

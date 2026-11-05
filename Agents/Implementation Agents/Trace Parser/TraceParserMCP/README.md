@@ -47,8 +47,69 @@ The Large Language Model (LLM) used with this MCP server is **entirely customer-
 - **Data accuracy depends on source traces.** The MCP server returns data as-is from the database. Analysis quality depends on the completeness and correctness of imported trace data.
 - **No built-in authentication.** The default configuration uses anonymous read access. Customers must implement appropriate authentication and network security for their deployment.
 - **AI analysis is non-deterministic.** Different AI models and prompts will produce different analysis results for the same trace data. Results should be verified by qualified engineers.
-- **Read-only access.** The MCP server provides read and execute permissions only. It cannot modify trace data.
+- **Read-only access.** Tables and views allow reads only. Procedure execution is limited to the four read-only keyword searches; trace deletion is not exposed by DAB.
 - **View-based analysis thresholds are fixed.** Analytical views (e.g., N+1 pattern detection at >100 DB calls, slow SQL at >5 seconds) use hardcoded thresholds that may not suit all scenarios.
+
+### Duration provenance, call grain and pagination
+
+**Do not infer units from column names.** Recorded `safe-import-v1` proves the old
+100 ns tick output. New `safe-import-v2` and isolated `ps-import-v2` output nanoseconds
+(retaining 100 ns parser resolution). A pinned genuine 80 ms ETL call remains 800,000
+in v1 raw storage, becomes 80,000,000 in v2, and reads as **80 ms** under both proven
+versions. FILETIME timestamps, IDs/counters and negative sentinel codes are unchanged.
+Every other/native version remains **unclassified**; no historical row is rewritten.
+
+Run `Duration units.sql` before the reference view/search scripts. DAB `TraceLines`
+now targets `vw_UnitAwareTraceLines`: six `*Nano` fields are normalized nanoseconds,
+or NULL for unknown provenance. `Stored*` fields retain original values and
+`StoredDurationUnit` explains them. `TraceLineDetails` and all four keyword searches
+normalize milliseconds consistently. Unknown units never satisfy N+1/slow-SQL
+thresholds; an empty result does not certify those traces fast. `TopMethods` native
+durations are likewise NULL/unknown except for same-trace `ps-import-v2` endpoints.
+Do not bypass these readers and assume that physical `dbo.TraceLines` is all ns.
+
+The analytical implementation preserves the existing `TraceLineId` N+1 key and
+strict `DatabaseCalls > 100`, average `< 5 ms` threshold. A caller is suppressed
+only when its immediate child, in the **same thread**, has identical inclusive DB
+count and duration. This collapses redundant call-chain wrappers without merging
+independent repeated invocations, methods, threads or sessions. The retained row
+includes thread, sequence and parent sequence; use `TraceLineDetails` to inspect
+its ancestors. Callers with additional DB work remain separate candidates. These
+are overlapping **call contexts**, not disjoint query groups: do not sum candidate
+DB counts. Negative duration sentinels do not qualify as fast calls.
+
+`vw_SessionMetrics` counts recorded SQL execution rows (`CallTypeId=64`) for DB
+totals, rather than repeatedly adding their inclusive method ancestors. A controlled
+fixture with 36 ancestors and 101 SQL executions reproduces 3,737 summed calls
+(37:1); the corrected total is 101 and its single-work chain has one N+1 candidate.
+Session joins and DAB keys include `TraceId` as well as `SessionId`. Empty threads
+produce zero metrics, not a synthetic root/null totals. Root calls accept both NULL
+and zero parent sentinels. Method-level/RPC inclusive counters remain nonadditive.
+
+REST collection consumers must follow the returned `nextLink` (opaque `$after`),
+not assume the first page is complete or substitute unsupported `$top`. DAB's
+documented default page size is 100. Composite keys also matter to GraphQL/MCP
+continuation. See Microsoft Learn: [REST first](https://learn.microsoft.com/en-us/azure/data-api-builder/keywords/first-rest)
+and [REST after](https://learn.microsoft.com/en-us/azure/data-api-builder/keywords/after-rest).
+
+**Materialized deployments:** use the discrete, guarded migration generator in
+`..\TraceParserWeb\sql\Prepare-DurationAnalysis.ps1`, not the whole reference view
+script. Session/method readers keep their physical tables and indexed joins rather
+than scanning millions of raw rows. Legacy session duration/DB totals are withheld
+because their old grain is unverified; existing counts remain available. Legacy
+v1 method totals normalize x100 on read, with `TotalPrecisionMs=1` to expose prior
+rounding. New aggregates contain normalized ms and execution-grain session DB counts.
+Unfinished/negative/missing durations make new totals uncertain. Inclusive method/RPC
+counts are still nonadditive. No existing aggregates are rebuilt.
+
+**Rollout boundary:** local implementation/testing is not production authorization.
+The Web README documents exact SQL -> Function/web version negotiation, DAB schema
+refresh, and rollback constraints. Old v1 receipts replay unchanged; old workers
+refuse v2. Never downgrade receipts or rerun the old bootstrap over the v2 contract.
+`DAB_ParseEtl.ps1` always creates a fresh `ps-import-v2` trace in an isolated direct-
+import database. Because its legacy shared staging/truncation does not implement
+receipt ownership, it now refuses receipt-managed databases; use web registration
+there. Native historical versions are not classified by these changes.
 
 ### Disclaimers
 
@@ -61,9 +122,11 @@ The Large Language Model (LLM) used with this MCP server is **entirely customer-
 
 ## Prerequisites
 
-- [.NET 8+ Runtime](https://dotnet.microsoft.com/download)
+- [.NET SDK](https://dotnet.microsoft.com/download) for local tool restore, plus the .NET 8 / ASP.NET Core 8 runtimes for the pinned DAB tool
 - SQL Server (local or Azure SQL)
 - The `AxTrace` database populated with trace data
+
+**Optional authenticated web deletion:** fresh and existing installations must use the canonical procedure-only migration in [`..\TraceParserWeb\sql\sp_DeleteTrace.sql`](../TraceParserWeb/sql/sp_DeleteTrace.sql), after reviewing the [schema prerequisites, deployment order and rollback instructions](../TraceParserWeb/README.md#bounded-deletion-procedure-migration-fresh-and-existing-installs). This requires compatible physical aggregates plus MethodAotLayers/TraceInformations, the composite session key/FK, and both TopMethods endpoints; ambiguous cross-trace methods fail with an owner-review error. View-only/base databases fail closed rather than being silently rewritten. The historical solution ZIP and `Create Views.sql` are not installers for this deletion update. DAB remains read-only; do not add a public `DeleteTrace` entity.
 
 For Azure deployment, you also need:
 - [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) (`az`)
@@ -71,10 +134,30 @@ For Azure deployment, you also need:
 
 ## Local Development
 
-1. **Restore the .NET tool:**
+### Import trace data without the web app
 
-   ```bash
+[`DAB_ParseEtl.ps1`](DAB_ParseEtl.ps1) is the standalone headless importer. It does not require a running DAB server, the web app or a Copilot Studio agent. It does require Windows, PowerShell 7+ and an existing compatible AXTrace schema with its import procedures. Read the [importer guide](docs/DAB_ParseEtl_Guide.md) before running it.
+
+Use only an isolated direct-import database, with no other importer running. This legacy script creates a fresh `ps-import-v2` trace each time, uses shared staging and has no receipt-based retry/resume. It refuses a database containing `TPImportReceipts`, or one where the caller lacks database `VIEW DEFINITION`; do not bypass that guard. Use registered web uploads for receipt-managed databases.
+
+From the `TraceParserMCP` folder, with a separately provisioned `AXTrace_Headless` database:
+
+```powershell
+pwsh -File .\DAB_ParseEtl.ps1 -EtlPath "C:\traces\sample.etl" `
+  -SqlServer "localhost\SQLEXPRESS" -Database "AXTrace_Headless" -WhatIf
+```
+
+`-WhatIf` stops before SQL connection/import; it is not a full parse, schema or permission test. After reviewing the database and import scope, omit it to perform the import. Direct ETL decoding is the default; cached XML requires **both** `-UseXml` and `-XmlCacheDir`. Examples, authentication limitations and failure handling are in the guide.
+
+### Start the read-only DAB server
+
+Run these commands from this `TraceParserMCP` directory.
+
+1. **Restore the pinned .NET tool:**
+
+   ```powershell
    dotnet tool restore
+   dotnet tool run dab --version
    ```
 
 2. **Configure the connection string:**
@@ -87,8 +170,8 @@ For Azure deployment, you also need:
 
 3. **Start the server:**
 
-   ```bash
-   dab start
+   ```powershell
+   dotnet tool run dab start
    ```
 
 The server will be available at:
@@ -98,6 +181,24 @@ The server will be available at:
 | REST     | `http://localhost:5000/api`    |
 | GraphQL  | `http://localhost:5000/graphql`|
 | MCP      | `http://localhost:5000/mcp`   |
+
+### DAB version contract
+
+The local tool manifest and Azure deployment image both pin DAB `1.7.83-rc`.
+Use `dotnet tool run dab` to select the local manifest rather than a separately
+installed global `dab`. Do not replace the version with `latest` or install an
+unspecified prerelease.
+
+The configuration schema is pinned to source commit
+`c7927fa9885160ed35bcc9b25b13fd59b88f3133`, recorded in that NuGet package's
+repository metadata. The package's generated `v1.7.83` release-schema URL returns
+404; the commit-pinned schema has the same validation rules (only its `$id`
+differs). Keep the schema, tool manifest and container image aligned when
+reviewing a future upgrade.
+
+Use lowercase `production` for `runtime.host.mode`. Restart DAB after changing
+entities in production mode; do not depend on development-mode hot reload.
+Changing the mode's casing does not change authentication or entity permissions.
 
 ## Azure Deployment
 
@@ -245,7 +346,7 @@ MCP clients can use the `read-records`, `describe-entities`, and `execute-entity
 
 ## Key Concepts
 
-- **Time units differ between tables and views.** Raw tables (`TraceLines`) store durations in **nanoseconds**. Analytical views (`TraceLineDetails`, `SessionMetrics`, etc.) convert to **milliseconds**.
+- **Check duration provenance.** DAB `TraceLines` exposes normalized nanoseconds, analytical views expose milliseconds, and unknown provenance yields NULL. Physical `dbo.TraceLines` may contain v1 ticks or unclassified historical units; `Stored*` values are never rewritten.
 - **Hash-based lookups.** `TraceLines` references method names, SQL statements, and table names via hash columns (`MethodHash`, `QueryStatementHash`, `QueryTableHash`). Use the corresponding lookup tables or the `TraceLineDetails` view which resolves them automatically.
 - **Session-centric organization.** Data is organized around user sessions. Start with `SessionSummary` or `SessionMetrics` to discover sessions, then drill into `TraceLineDetails` for specifics.
 
@@ -256,6 +357,8 @@ TraceParserMCP/
   .config/dotnet-tools.json                   # Data API Builder tool definition (v1.7.83-rc)
   .env                                        # Database connection string (AZURE_SQL_CONNECTION_STRING)
   dab-config.json                             # Data API Builder configuration (entities, permissions, endpoints)
+  DAB_ParseEtl.ps1                             # Legacy headless ETL importer for isolated direct-import databases
+  docs/DAB_ParseEtl_Guide.md                    # Import modes, prerequisites, examples and recovery limits
   Create Views.sql                            # SQL script to create 6 analytical views
   Create Keyword Search SPs.sql               # SQL script to create 4 keyword search stored procedures
   deploy-to-azure.ps1                         # Azure deployment script (provisions all resources)
@@ -269,9 +372,11 @@ All server behavior is defined declaratively in `dab-config.json`. Key settings:
 - **Connection string:** Read from `AZURE_SQL_CONNECTION_STRING` environment variable (`.env` locally, App Settings on Azure)
 - **MCP permissions:** Read and execute only (create, update, delete disabled)
 - **Authentication:** Anonymous read access (customers should configure authentication for their deployment)
-- **Host mode:** Production
+- **Host mode:** `production`
 - **GraphQL introspection:** Enabled
 - **REST request body:** Strict validation
+
+The supplied configuration does not expose `DeleteTrace` and grants no table mutations on REST, GraphQL or MCP. Disabling MCP DML tools alone is not an authorization boundary for the other protocols. Keep deletion out of this public analysis API; [TraceParserWeb](../TraceParserWeb/README.md#authenticated-trace-deletion) provides a separate server-side path for signed-in users.
 
 ## Third-Party Dependencies
 
