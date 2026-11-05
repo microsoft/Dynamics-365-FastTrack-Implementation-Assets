@@ -38,6 +38,7 @@ internal sealed class StageBatchWriter : IDisposable
 
     public void Write(List<StageRow> rows, List<BindParamRow> binds)
     {
+        rows = rows.Select(row => DurationContract.Encode(row, _importer.ParserVersion)).ToList();
         try { _channel.Writer.WriteAsync((rows, binds), _stop.Token).AsTask().GetAwaiter().GetResult(); }
         catch (OperationCanceledException) when (_failure is not null && !_invocationToken.IsCancellationRequested)
         { throw new InvalidOperationException("SQL stage consumer failed.", _failure); }

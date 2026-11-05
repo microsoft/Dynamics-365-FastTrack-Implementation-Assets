@@ -50,15 +50,18 @@ The agent uses a **dual Model Context Protocol (MCP)** architecture:
 
 See [`TraceParserMCP/README.md`](TraceParserMCP/README.md) for full instructions.
 
-```bash
-# Install Data API Builder
+Run these commands from the `TraceParserMCP` directory:
+
+```powershell
+# Restore the repository-pinned Data API Builder 1.7.83-rc
 dotnet tool restore
+dotnet tool run dab --version
 
 # Configure connection string
 # Edit .env with your SQL Server details
 
 # Start the server
-dab start
+dotnet tool run dab start
 ```
 
 ### 2. Import the Copilot Studio Agent
@@ -68,6 +71,10 @@ See [`Solutions/readme.md`](Solutions/readme.md) for import instructions.
 ### 3. (Optional) Deploy TraceParserWeb
 
 See [`TraceParserWeb/README.md`](TraceParserWeb/README.md) for the web-based ETL upload interface.
+
+### Import ETL without the web app
+
+For an isolated, pre-provisioned AXTrace database, the standalone [PowerShell importer](TraceParserMCP/DAB_ParseEtl.ps1) provides a headless import path. Start with its [usage guide](TraceParserMCP/docs/DAB_ParseEtl_Guide.md) for PowerShell 7+, direct ETL versus XML-cache modes, and database prerequisites. It uses legacy shared staging, creates a new trace on each run, and is not retry-safe. It refuses databases managed by the web/Function receipt protocol; use a new registered web upload for those databases.
 
 ## Key Capabilities
 
@@ -81,7 +88,7 @@ See [`TraceParserWeb/README.md`](TraceParserWeb/README.md) for the web-based ETL
 
 ## Prerequisites
 
-- [.NET 8+ Runtime](https://dotnet.microsoft.com/download)
+- [.NET SDK](https://dotnet.microsoft.com/download) for local tool restore, plus the .NET 8 / ASP.NET Core 8 runtimes for the pinned DAB tool
 - SQL Server (LocalDB, SQL Express, or Azure SQL)
 - Microsoft Copilot Studio access
 - Copilot Studio Credits Capacity

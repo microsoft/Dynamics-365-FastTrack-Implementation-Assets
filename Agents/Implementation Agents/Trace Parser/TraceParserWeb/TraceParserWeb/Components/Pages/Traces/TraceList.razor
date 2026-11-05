@@ -95,6 +95,10 @@
                     <div class="trace-row" @key="trace.TraceId">
                         <div class="trace-info">
                             <span class="trace-name">@trace.TraceName</span>
+                            @if (!trace.HasKnownDurationUnits)
+                            {
+                                <span class="stat-item">Duration units unclassified</span>
+                            }
                             <div class="trace-meta">
                                 <span class="trace-id">ID: @trace.TraceId</span>
                                 @if (trace.TimeStampBegin.HasValue)
@@ -121,6 +125,10 @@
                                     <span class="stat-item">@FormatCount(stats.TotalTraceLines) lines</span>
                                     <span class="stat-sep"></span>
                                     <span class="stat-item">@FormatDuration(stats.TotalDurationMs)</span>
+                                    @if (stats.TotalDurationMs is null || stats.TotalDatabaseCalls is null)
+                                    {
+                                        <span class="stat-item">Duration/DB totals uncertain: unclassified units, legacy aggregates or incomplete durations</span>
+                                    }
                                     @if (stats.TotalDatabaseMs > 0)
                                     {
                                         <span class="stat-sep"></span>
@@ -440,8 +448,10 @@
         return count.ToString("N0");
     }
 
-    static string FormatDuration(decimal totalMs)
+    static string FormatDuration(decimal? durationMs)
     {
+        if (durationMs is null) return "Duration unknown";
+        var totalMs = durationMs.Value;
         var ts = TimeSpan.FromMilliseconds((double)totalMs);
         if (ts.TotalHours >= 1) return $"{(int)ts.TotalHours}h {ts.Minutes}m";
         if (ts.TotalMinutes >= 1) return $"{(int)ts.TotalMinutes}m {ts.Seconds}s";

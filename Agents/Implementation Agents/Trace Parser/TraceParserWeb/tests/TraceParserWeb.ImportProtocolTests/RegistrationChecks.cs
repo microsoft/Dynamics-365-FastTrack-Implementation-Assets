@@ -17,6 +17,7 @@ var options = Options.Create(new EtlImportOptions {
 });
 var service = new RegisteredImportService(store,auth,config,options);
 var checks=0;
+Check(!service.AdmissionHeld,"admission defaults open without settings changes");
 await Reject<UnauthorizedAccessException>(()=>service.RegisterAsync("session","test.etl"));
 await Reject<UnauthorizedAccessException>(()=>service.GetAsync(Guid.NewGuid(),default));
 auth.User=User(Guid.NewGuid().ToString());
@@ -79,8 +80,26 @@ foreach(var length in new[]{TraceParser.Shared.ImportFilePolicy.MaxFileSizeBytes
         Check(file.StreamLimit==TraceParser.Shared.ImportFilePolicy.MaxFileSizeBytes,"at/below limit server upload retains the existing bounded stream limit");
     }
 }
+config["UploadAdmission:Hold"]="true";
+var heldCalls=store.Calls;
+await Reject<UploadAdmissionHeldException>(()=>service.RegisterAsync("session","held.etl"));
+await Reject<UploadAdmissionHeldException>(()=>service.RegisterAsync(User(tenant),"session","held.etl",default));
+var heldFile=new UploadBoundaryFile(1024);
+await Reject<UploadAdmissionHeldException>(()=>uploadService.UploadAsync(heldFile,"held"));
+Check(store.Calls==heldCalls && heldFile.StreamLimit is null,"both registration paths stop before SQL, signing and opening upload stream");
+var brokenStorageService=new RegisteredImportService(store,auth,config,Options.Create(new EtlImportOptions()));
+await Reject<UploadAdmissionHeldException>(()=>brokenStorageService.RegisterAsync("session","held.etl"));
+Check((await service.GetAsync(first.ImportId,default)).Phase=="Complete","existing receipt polling continues under hold");
+Check((await service.GetTraceAsync(42,default))!.Phase=="Complete","trace status continues under hold");
+Check(Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(new Uri(first.SasUrl).Query)["se"]==query["se"],
+    "hold does not revoke or extend already-issued SAS expiry");
+config["UploadAdmission:Hold"]="false";
+Check(!service.AdmissionHeld,"explicit restore reopens admission");
+await service.RegisterAsync("restored","restored.etl");
+config["UploadAdmission:Hold"]=null;
+Check(!service.AdmissionHeld,"removing absent-original setting restores default");
 auth.User=new(); // HTTP operations must use their explicit principal, not a Blazor circuit.
-checks+=await EndpointChecks.Run(service,tenant,first.ImportId,()=>store.Calls);
+checks+=await EndpointChecks.Run(service,tenant,first.ImportId,()=>store.Calls,config);
 Console.WriteLine($"{checks} registered-upload boundary checks passed. No network requests or SQL connections.");
 
 ClaimsPrincipal User(string tid)=>new(new ClaimsIdentity([new Claim("tid",tid)],"synthetic"));

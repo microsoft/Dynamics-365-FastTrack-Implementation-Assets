@@ -121,6 +121,7 @@ using (var config = JsonDocument.Parse(File.ReadAllText(configPath)))
     passed++;
 }
 passed += await ImportStatusChecks.RunAsync();
+passed += await PaginationChecks.RunAsync();
 passed += await AgentDestinationChecks.RunAsync();
 passed += await DeletionChecks.RunAsync();
 passed += await DurableDeletionChecks.RunAsync();

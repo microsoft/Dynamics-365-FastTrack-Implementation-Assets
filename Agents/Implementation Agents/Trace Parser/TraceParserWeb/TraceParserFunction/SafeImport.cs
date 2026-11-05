@@ -5,7 +5,7 @@ using Microsoft.Data.SqlClient;
 
 namespace TraceParserFunction;
 
-public sealed record ImportReceipt(Guid ImportId, int TraceId, string Phase)
+public sealed record ImportReceipt(Guid ImportId, int TraceId, string Phase, string ParserVersion)
 {
     public bool IsTerminal => Phase is "Complete" or "Deleted";
 }
@@ -14,6 +14,7 @@ public partial class SqlImporter
 {
     private static readonly JsonSerializerOptions FingerprintOptions = new() { IncludeFields = true };
     public Guid ImportId { get; private set; }
+    public string ParserVersion { get; private set; } = "";
     public CancellationToken ImportCancellation { get; private set; }
     private long _parsedBinds;
     private SqlTransaction? _dimensionTransaction;
@@ -24,6 +25,7 @@ public partial class SqlImporter
     {
         ImportCancellation = ct;
         ImportId = Guid.Empty;
+        ParserVersion = "";
         _parsedBinds = 0;
         using var cmd = conn.CreateCommand();
         cmd.CommandType = CommandType.StoredProcedure;
@@ -33,14 +35,18 @@ public partial class SqlImporter
         cmd.Parameters.Add("@BlobName", SqlDbType.NVarChar, 1024).Value = name;
         cmd.Parameters.Add("@ETag", SqlDbType.NVarChar, 128).Value = etag;
         cmd.Parameters.Add("@ContentLength", SqlDbType.BigInt).Value = contentLength;
+        cmd.Parameters.Add("@WorkerVersion", SqlDbType.VarChar, 40).Value = DurationContract.Nanoseconds;
         while (true)
         {
             try
             {
                 using var reader = await cmd.ExecuteReaderAsync(ct);
                 if (!await reader.ReadAsync(ct)) throw new InvalidOperationException("Import receipt was not returned.");
+                var version = reader.GetString(reader.GetOrdinal("ParserVersion"));
+                DurationContract.Validate(version);
                 ImportId = reader.GetGuid(0);
-                return new(ImportId, reader.GetInt32(1), reader.GetString(2));
+                ParserVersion = version;
+                return new(ImportId, reader.GetInt32(1), reader.GetString(2), version);
             }
             catch (SqlException ex) when (ex.Number == 51103 && waitForOwnership)
             {

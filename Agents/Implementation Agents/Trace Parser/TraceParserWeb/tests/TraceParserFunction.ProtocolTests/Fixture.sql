@@ -48,7 +48,8 @@ CREATE TABLE dbo.QueryBindParameters(QueryBindParameterId int IDENTITY PRIMARY K
  REFERENCES dbo.TraceLines(TraceLineId),ParameterIndex int NULL,BindValue nvarchar(max));
 CREATE TABLE dbo.XppParameters(Id int IDENTITY PRIMARY KEY,TraceLineId bigint REFERENCES dbo.TraceLines(TraceLineId));
 CREATE TABLE dbo.TopMethods(Id int PRIMARY KEY,BeginUspId int REFERENCES dbo.UserSessionProcessThreads(UserSessionProcessThreadId),
- EndUspId int REFERENCES dbo.UserSessionProcessThreads(UserSessionProcessThreadId));
+ EndUspId int REFERENCES dbo.UserSessionProcessThreads(UserSessionProcessThreadId),Name nvarchar(max),Count int,
+ InclusiveTotal bigint,ExclusiveTotal bigint,RpcTotal int,DatabaseCallTotal int,Type nvarchar(20));
 CREATE TABLE dbo.MethodAotLayers(Id int PRIMARY KEY,TraceId int REFERENCES dbo.Traces(TraceId));
 CREATE TABLE dbo.TraceInformations(InfoId int PRIMARY KEY,TraceId int REFERENCES dbo.Traces(TraceId));
 CREATE TABLE dbo.SessionMetrics(TraceId int NOT NULL,SessionId int NOT NULL,
