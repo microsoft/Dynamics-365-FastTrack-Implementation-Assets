@@ -8,6 +8,13 @@ using Microsoft.Extensions.Logging.Abstractions;
 using TraceParserFunction;
 
 // This executable intentionally accepts no connection string or database argument.
+if (args.Contains("--storage-benchmark"))
+{
+    if (args.Length != 3 || args[0] != "--storage-benchmark" || args[1] != "--etl-fixture")
+        throw new ArgumentException("Use --storage-benchmark --etl-fixture <pinned synthetic-small.etl or synthetic-large.etl>.");
+    await StorageBenchmark.RunAsync(args[2]);
+    return;
+}
 var runLarge=false;
 var lockOrderOnly=false;
 var analysisOnly=false;
