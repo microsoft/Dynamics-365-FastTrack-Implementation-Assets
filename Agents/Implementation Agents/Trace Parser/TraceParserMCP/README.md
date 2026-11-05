@@ -134,6 +134,23 @@ For Azure deployment, you also need:
 
 ## Local Development
 
+### Import trace data without the web app
+
+[`DAB_ParseEtl.ps1`](DAB_ParseEtl.ps1) is the standalone headless importer. It does not require a running DAB server, the web app or a Copilot Studio agent. It does require Windows, PowerShell 7+ and an existing compatible AXTrace schema with its import procedures. Read the [importer guide](docs/DAB_ParseEtl_Guide.md) before running it.
+
+Use only an isolated direct-import database, with no other importer running. This legacy script creates a fresh `ps-import-v2` trace each time, uses shared staging and has no receipt-based retry/resume. It refuses a database containing `TPImportReceipts`, or one where the caller lacks database `VIEW DEFINITION`; do not bypass that guard. Use registered web uploads for receipt-managed databases.
+
+From the `TraceParserMCP` folder, with a separately provisioned `AXTrace_Headless` database:
+
+```powershell
+pwsh -File .\DAB_ParseEtl.ps1 -EtlPath "C:\traces\sample.etl" `
+  -SqlServer "localhost\SQLEXPRESS" -Database "AXTrace_Headless" -WhatIf
+```
+
+`-WhatIf` stops before SQL connection/import; it is not a full parse, schema or permission test. After reviewing the database and import scope, omit it to perform the import. Direct ETL decoding is the default; cached XML requires **both** `-UseXml` and `-XmlCacheDir`. Examples, authentication limitations and failure handling are in the guide.
+
+### Start the read-only DAB server
+
 1. **Restore the .NET tool:**
 
    ```bash
@@ -319,6 +336,8 @@ TraceParserMCP/
   .config/dotnet-tools.json                   # Data API Builder tool definition (v1.7.83-rc)
   .env                                        # Database connection string (AZURE_SQL_CONNECTION_STRING)
   dab-config.json                             # Data API Builder configuration (entities, permissions, endpoints)
+  DAB_ParseEtl.ps1                             # Legacy headless ETL importer for isolated direct-import databases
+  docs/DAB_ParseEtl_Guide.md                    # Import modes, prerequisites, examples and recovery limits
   Create Views.sql                            # SQL script to create 6 analytical views
   Create Keyword Search SPs.sql               # SQL script to create 4 keyword search stored procedures
   deploy-to-azure.ps1                         # Azure deployment script (provisions all resources)
