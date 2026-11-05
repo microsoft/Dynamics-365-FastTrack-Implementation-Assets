@@ -121,11 +121,17 @@ using (var config = JsonDocument.Parse(File.ReadAllText(configPath)))
     passed++;
 }
 passed += await ImportStatusChecks.RunAsync();
+passed += await PaginationChecks.RunAsync();
 passed += await AgentDestinationChecks.RunAsync();
 passed += await DeletionChecks.RunAsync();
+passed += await DurableDeletionChecks.RunAsync();
 Console.WriteLine($"{passed} regression checks passed.");
 if (args.Contains("--sql-integration"))
     await DeletionSqlChecks.RunAsync();
+if (args.Contains("--batch-selection"))
+    await BatchSelectionChecks.RunAsync();
+if (args.Contains("--durable-deletion"))
+    await DurableDeletionSqlChecks.RunAsync();
 
 sealed class ProbeAuthentication(ClaimsPrincipal user) : AuthenticationStateProvider
 {

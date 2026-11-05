@@ -10,6 +10,7 @@ namespace TraceParserFunction;
 /// </summary>
 public class StageRow
 {
+    internal StageRow Copy() => (StageRow)MemberwiseClone();
     public long   TraceLineId;  // assigned during flush
     public int    ThreadId;
     public int    CallTypeId;

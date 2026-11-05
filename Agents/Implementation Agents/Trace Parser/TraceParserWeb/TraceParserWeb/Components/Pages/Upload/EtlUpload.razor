@@ -3,6 +3,7 @@
 @using TraceParserWeb.Services
 @attribute [Authorize]
 @inject EtlUploadService UploadSvc
+@inject RegisteredImportService Imports
 @inject IJSRuntime JS
 @inject ILogger<EtlUpload> Logger
 @implements IDisposable
@@ -24,6 +25,10 @@
         </div>
 
         <div class="upload-form">
+            @if (Imports.AdmissionHeld)
+            {
+                <p class="upload-warning" role="status">@UploadAdmissionHeldException.MessageText</p>
+            }
             <div class="form-group">
                 <label class="form-label">Session Name</label>
                 <input class="form-input" @bind="SessionName" @bind:event="oninput"
@@ -75,7 +80,7 @@
 
             <button class="upload-btn"
                     @onclick="StartUpload"
-                    disabled="@(Busy || File == null || string.IsNullOrWhiteSpace(SessionName))">
+                    disabled="@(Imports.AdmissionHeld || Busy || File == null || string.IsNullOrWhiteSpace(SessionName))">
                 @if (Busy)
                 {
                     <span class="btn-spinner"></span>
@@ -256,6 +261,13 @@
             // Step 2: Upload directly from browser to Azure Blob via JS interop
             _dotNetRef = DotNetObjectReference.Create(this);
             await JS.InvokeVoidAsync("blobUpload.upload", registration.SasUrl, "etlFileInput", _dotNetRef);
+        }
+        catch (UploadAdmissionHeldException)
+        {
+            StatusMessage = UploadAdmissionHeldException.MessageText;
+            IsError = true;
+            Busy = false;
+            _isUploading = false;
         }
         catch (Exception ex)
         {

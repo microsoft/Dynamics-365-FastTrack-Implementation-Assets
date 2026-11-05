@@ -17,6 +17,11 @@ public static class RegisteredImportEndpoints
                 return Results.Ok(await imports.RegisterAsync(context.User, request.SessionName, request.FileName, ct));
             }
             catch (UnauthorizedAccessException) { return Results.Forbid(); }
+            catch (UploadAdmissionHeldException)
+            {
+                context.Response.Headers.RetryAfter = "60";
+                return Results.Problem(UploadAdmissionHeldException.MessageText, statusCode: StatusCodes.Status503ServiceUnavailable);
+            }
             catch (AntiforgeryValidationException) { return Results.BadRequest("A valid anti-forgery token is required."); }
             catch (ArgumentException) { return Results.BadRequest("A valid session name and ETL filename are required."); }
         }).RequireAuthorization();

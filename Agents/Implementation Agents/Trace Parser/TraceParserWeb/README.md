@@ -2,6 +2,246 @@
 
 Blazor Server web app + Azure Function for uploading and importing D365 ETL traces.
 
+## Trace-list availability
+
+The trace list renders as soon as trace metadata loads, independently of optional
+statistics. A statistics timeout, HTTP failure or malformed response shows an
+explicit warning and a **Retry statistics** button, not an empty list or fabricated
+zero counts. Failed refreshes hide old statistics rather than presenting them as
+current. Retrying statistics does not reload trace metadata or modify trace data.
+Import status continues to use its own checks; deletion stays disabled while status
+is unknown. A trace-metadata failure has a separate **Retry trace list** action.
+Navigating away cancels pending list, statistics and status reads, not durable jobs.
+
+List and statistics reads follow DAB `nextLink` continuations, preserving opaque
+`$after` tokens. Relative and absolute links must remain on the original origin and
+entity; redirects, repeated pages/identities and malformed responses fail explicitly.
+Each complete read has one 10-second budget, at most 1,000 pages/100,000 rows and
+16 MiB per response. Hitting a limit or failing a later page never returns partial
+totals. Statistics retry starts a fresh read. Concurrent database changes can still
+span different page snapshots; this is not a transactionally consistent snapshot.
+The single-row import-status probes intentionally do not enumerate additional pages.
+
+## Analytical correctness and validation
+
+### Coordinated cutover upload admission
+
+`UploadAdmission__Hold=true` (configuration key `UploadAdmission:Hold`) temporarily
+rejects **new** registrations at the shared service, before SQL registration,
+storage client construction or SAS signing. Default/absent is false. Both HTTP
+(503 with Retry-After) and Blazor (disabled upload button and explicit maintenance
+message) retain tenant/authentication checks. Status, reads, deletion and existing
+worker/retry paths are not gated. App Service environment changes require a brief
+restart; drain/check actual work before each restart, not just before deployment.
+
+The hold has **no automatic expiry**. It does not revoke issued two-hour SAS URLs,
+drain pending Registered receipts, or fence external/legacy importers. Include all
+nonterminal receipts, current Function lifecycle, SQL activity and active deletion
+leases in quiet checks. Preserve and restore the exact prior setting (including
+absence) only after verified cutover and acceptance.
+
+Bootstrap the nullable-aware web with the hold already configured against old
+SQL/DAB. Then commit the guarded SQL/readers migration, refresh DAB, and install
+the v2-capable worker before allowing any v2 registration. Never run the new worker
+against old SQL parameters. After SQL commit, retain compatible web/worker/readers
+and hold admission on failure; old package snapshots are not generic rollback.
+Unknown outcomes require independent reconciliation, not replay.
+
+`tests\TraceParserWeb.RegressionTests` covers multipage metadata/statistics,
+same-origin cursor handling, cancellation, whole-read timeout, failure/retry and
+bounded pagination. The existing Function protocol runner additionally supports:
+
+```powershell
+dotnet run --project tests\TraceParserFunction.ProtocolTests -- --analysis-only --etl-fixture <approved-synthetic-small.etl>
+```
+
+This creates and removes only a uniquely named database on the dedicated
+`(localdb)\TPImporterTests_c100bb02` instance. The optional ETL must match the pinned
+synthetic fixture SHA-256, not merely its filename. Without it, only SQL view and
+DAB-key checks run. No new testing framework is needed.
+
+**Versioned duration contract:**
+
+| Recorded importer | Stored duration fields | 80 ms fixture raw value | Normalized detail |
+|---|---|---:|---:|
+| `safe-import-v1` | Original 100 ns ticks | 800,000 (unchanged) | 80 ms |
+| `safe-import-v2` | Nanoseconds | 80,000,000 | 80 ms |
+| `ps-import-v2` | Nanoseconds, isolated direct writer | 80,000,000 | 80 ms |
+| Any other/native/unclassified version | Unknown | Untouched | NULL, explicitly uncertain |
+
+New web registrations explicitly request v2. Old web registrations still default
+to v1. The Function advertises v2 capability and obtains the **immutable receipt's**
+version before parsing; old workers cannot claim v2, even in Ready/Promoting/terminal
+states. Existing v1 Parsing retries retain their original payload hashes and values;
+Ready/Promoting resumes never reparse. Unknown versions fail closed, never downgrade.
+Parser arithmetic, child/fetch accounting and 100 ns resolution stay unchanged.
+Only the six duration fields are encoded at the channel output boundary, before
+fingerprinting. FILETIME, IDs, counters and negative sentinel codes are not scaled.
+
+Read-only normalization trusts exact recorded versions, not filenames or plausible
+timings. No historical raw row, aggregate, receipt hash or provenance is rewritten.
+Physical session aggregates from the old implementation have unverified grain and
+root/session joins: their duration/DB totals are withheld, while existing counts
+remain visible. Existing method aggregates normalize on read with an explicit
+rounding label (v1 totals have 1 ms precision); their inclusive counters still overlap.
+New completion aggregates use SQL-execution grain and normalized milliseconds.
+Negative/missing durations or unfinished calls make duration totals uncertain, not
+zero. Web uncertainty is per trace, not an outage of every trace's statistics.
+
+### Discrete upgrade and rollback boundary
+
+Production changes still require separate approval and a writer/worker quiet window.
+Do **not** rerun the legacy bootstrap/reset scripts on an upgraded database.
+
+These scripts are upgrades for the fingerprinted, materialized baseline, not a
+general fresh-database installer. A different baseline must be reconciled before
+deployment; do not remove hash checks to force an upgrade. Deployment records,
+credentials, customer traces and environment-specific orchestration are not part
+of this source distribution.
+
+1. Record the existing upload-hold setting, coordinate external/legacy writers,
+   and establish a quiet window including pending registrations and active jobs.
+   Configure the hold and deploy the nullable-aware web against the old SQL/DAB
+   contract as described above. Verify reads and deletion remain available before
+   changing SQL. Check for active work before every configuration/deployment restart.
+2. Apply `sql\duration-import-v2.sql` as one transaction against the exact deployed
+   9ac6f05 baseline. It verifies all 16 importer module hashes and the coordinated
+   deletion hash, changes four procedures, records their new fingerprints, and
+   preserves the other twelve modules, historical disabled FKs, root identities/jobs.
+3. Generate (offline) the separate atomic analytical upgrade:
+   `.\sql\Prepare-DurationAnalysis.ps1 -OutputPath .\duration-analysis-upgrade.sql`.
+   Its application requires the v2 fingerprints and all eleven captured analytical
+   module hashes. It installs only the three call views, all four keyword searches,
+   common unit readers and the physical aggregate procedure/views. It adds nullable
+   aggregate-version/completeness metadata **without backfilling existing rows**.
+   It never installs the reference full-scan session/method aggregate views.
+4. Deploy the DAB source/key/description changes, verify its schema refresh/read
+   grants, then deploy the v2-capable Function. Keep the compatible web held until
+   scoped import, real DAB pagination, timer and signed-in UI acceptance pass.
+   Restore the exact original hold setting only after acceptance. New worker
+   supports both versions; old worker explicitly refuses new v2 receipts. Do not
+   change tenant authentication or deletion permissions as part of this upgrade.
+5. Rollback must retain the versioned SQL/analytical contract. Stop new v2 registration
+   and drain or hold every v2 receipt before rolling back the worker. Never relabel
+   v2 as v1, reinstall old importer SQL, or backfill/reprocess historical traces.
+   Keep the uncertainty-aware web reader with the new analytical contract.
+   Even completed v2 duplicate deliveries are refused by an old worker: retain
+   the v2-capable worker if those blobs may redeliver.
+
+To test the exact captured materialized baseline, append
+`--analysis-baseline <sanitized-capture-directory> --analysis-upgrade <generated.sql>`
+to the existing Function runner. It still accepts **no database/connection override**.
+This tests late-DDL-failure rollback and unchanged historical hashes/jobs/FKs locally.
+The ordinary full suite replays the real bounded ETL under both versions, including
+partial staging, fresh Ready restart, lost promotion acknowledgement and duplicates.
+`tests\DurationConversions.Tests.ps1` invokes only AST-extracted scalar functions,
+never the PowerShell importer/SQL main. See the MCP README for API semantics.
+
+## Durable background deletion (disabled by default)
+
+The existing net8 isolated Premium Function app now has `DeleteTraceJobs`, a monitored
+one-minute timer. SQL is the durable queue; no new Azure resource, storage queue,
+Durable Functions or Durable Task Scheduler is used. The sole new production package
+is `Microsoft.Azure.Functions.Worker.Extensions.Timer` 4.3.1, the isolated-worker
+binding corresponding to the existing Worker/Storage binding pattern.
+
+**Activation is NOT part of local validation.** `DurableDeletion__WebEnabled` defaults
+to `false`; absent/false `DurableDeletion__WorkerEnabled` performs no SQL work. The
+Function requires `DurableDeletion__WorkerSqlConnectionString`; the web requires
+`DurableDeletion__WebSqlConnectionString`. Neither falls back to importer credentials.
+Connection strings belong in approved secret configuration, not this repository.
+The worker needs a **separate EXECUTE-only identity**, never the importer's dbo access.
+See `sql\durable-deletion-permissions.sql` for the narrow provisioning template.
+Existing legacy deletion grants need not be widened: old callers are refused while
+any non-completed durable job reserves the trace, even when cancelled/blocked/failed.
+With the web feature disabled, the existing bounded interactive deletion remains.
+
+**Contract and identity.** `sql\durable-deletion.sql` creates an empty job queue,
+request-key aliases, and a generated `Traces.DeletionIdentity` incarnation column
+(existing roots receive metadata only, not jobs). Existing traces are never adopted
+or queued automatically. Jobs retain immutable root/import IDs and authenticated
+requester tenant/object IDs, not uploader ownership. Existing tenant-wide eligibility
+is preserved, while lists/status/cancel/resume are requester-only. A duplicate from
+another requester returns no job details. Every accepted request key continues to
+resolve to the same job after completion, root removal, refresh or restart.
+HTTP mutations are authorized, tenant/object checked, antiforgery validated and
+`no-store`; request-body identity fields are ignored. Blazor interactive callbacks
+also check the current authenticated circuit identity through the same service.
+No DAB mutation or HTTP worker endpoint is added.
+
+**Atomicity and pacing.** The compatible optional job/token/expected-sequence
+parameters on `sp_DeleteTrace` keep its old call signature and three result columns.
+It still owns each transaction and rejects an outer transaction. Under the trace
+application lock, it checks import eligibility and immutable identity, holds the
+fenced job row through commit, deletes one bounded batch, tombstones the import
+receipt *after data*, and commits sequence/counters/terminal status together.
+Replaying the immediately preceding sequence returns its stored response without
+deleting again. Completion requires a successful root-absence query; neither
+`HasMore=0`, a SQL exception nor a hidden catalog object means completion.
+New counters represent only rows committed by that job, excluding prior cleanup.
+The deployed receipt lock-order and target-thread seek/index guards are retained.
+Blob contents and shared lookup tables are never deleted.
+
+A filtered unique SQL index permits only **one leased job database-wide**, independent
+of process/Function scale. Claim/control/status never acquire trace/data/receipt locks
+after taking job locks. A batch retains its job ownership lock through commit, so
+expired takeover cannot pass an uncommitted batch. Leases last 90 SQL-server seconds;
+the client renews before each step and never estimates expiry from its own clock.
+Each invocation runs at most four 2,000-row batches (SQL accepts 1–10,000), paced one
+second apart, with a 45-second slice budget, 30-second SQL command timeout, 10-second
+connection timeout and at most five seconds for reconciliation/release. Released
+work yields for five seconds. Deadlock, busy, throttling, timeout and selected network
+errors use bounded exponential backoff (5–320 seconds plus 0–4 seconds jitter), then
+fail after nine consecutive failed attempts; lease-loss recovery is bounded too.
+Unknown commit outcomes inspect persisted state before releasing; if SQL is still
+unavailable, ownership expires rather than fabricating progress or retrying a batch.
+Import eligibility changes become `Blocked` and require explicit resume. Permanent
+schema, fingerprint, permission and cross-trace endpoint errors stop as `Failed`.
+Eligibility, identity and endpoint holds commit under the owning job lock before
+SQL reports their error, so losing the worker cannot auto-resume a rejected trace.
+Other catchable server errors persist their classified stop/backoff before returning;
+the worker separately reconciles client-side timeouts and transport uncertainty.
+
+**User experience.** Enabled deletion enqueues and returns; a separate job panel
+polls every three seconds even if trace/statistics loading fails. It displays
+Queued/Running/RetryScheduled/CancelRequested/Cancelled/Blocked/Failed/Completed,
+committed rows/batches and last phase, never a guessed percentage. Refresh/reconnect
+reads SQL jobs including completed jobs whose roots are gone. Closing/disposal stops
+only polling. Cancellation does not undo commits: an already committing batch may
+finish, then future batches stop. Explicit resume preserves history and obtains a
+fresh fenced lease. Stale/offline reads retain last confirmed values with an error.
+
+**Separately approved rollout sequence:** inventory/quiesce incompatible writers;
+back up definitions/permissions and verify existing importer/storage/seek guards;
+apply additive `durable-deletion.sql`, then `sp_DeleteTrace.sql` (its exact definition
+and importer/durable fingerprints update atomically); verify jobs remain empty and
+fingerprints match; provision/audit the two narrow identities; deploy compatible
+web/Function binaries with both features disabled. Only after fresh live gates and
+explicit approval enable the worker and web. No `tp_*` names or module-count checks
+are relaxed. Do not use the broad `deploy.ps1` provisioning script for this rollout.
+Rollback means disable new enqueues/worker, drain or expire the current slice and
+retain all jobs, aliases, root tokens and counters. **Never downgrade deletion SQL
+while non-completed jobs exist.** Cancelling is not deleting the job or reversing data.
+
+**Liveness is separate from `/health`.** The timer uses the Function app's existing
+`AzureWebJobsStorage` host storage for schedule monitoring/host coordination, not a
+new work queue. Validate host storage access, timer listener startup, Premium host
+availability, function-enabled settings, schedule telemetry and advancing SQL job
+timestamps independently. Web health alone cannot establish worker availability.
+No automatic host-level retry loop is configured; the next scheduled tick and SQL
+due time control recovery. Local tests do not certify Azure timer/storage liveness,
+Azure SQL capacity, or real-browser acceptance.
+
+Local console validation (no new test framework; synthetic owned databases only):
+`dotnet run --project tests\TraceParserWeb.RegressionTests -- --durable-deletion --sql-integration --batch-selection`,
+`dotnet run --project tests\TraceParserFunction.ProtocolTests -- --lock-order`,
+and the existing web import protocol harness. LocalDB is exclusively
+`(localdb)\TPImporterTests_c100bb02`; each run creates/removes uniquely named databases.
+Set `NUGET_PACKAGES=C:\.tools\.nuget\packages` and `DOTNET_ROLL_FORWARD=Major` where
+SDK10 is installed without runtime9. The SQL suite uses real restricted principals,
+RCSI off/on, actual transactions, replay/rollback/cancel races and schema/permission
+failures. Manual-clock worker and render/HTTP tests are not real-browser acceptance.
+
 ## Solution Structure
 
 ```
@@ -39,7 +279,7 @@ Before `Ready`, retries reparse the same bytes and verify row/bind fingerprints 
 
 After `Ready`, line promotion resumes from a durable TraceLineId checkpoint. Once all lines exist, a separate `Binding` phase resumes from the `(statement sequence, parameter index)` cursor. Each transaction inserts at most 1,000 lines **or** binds by default and commits its matching checkpoint atomically; bind fan-out cannot turn one line batch into an unbounded transaction. Uncertain acknowledgements are resolved from the receipt on the next attempt. Lines can be visible before all their binds arrive, but the receipt stays explicitly nonterminal and deletion remains blocked. Staging flushes are 10,000 rows; promotion accepts 1–4,000 rows per call. Completion verifies both totals and atomically populates the existing physical aggregates and terminal receipt. Only after durable `Complete` may bounded cleanup remove this import's new staging/mapping rows. Failed staging and all receipts/tombstones remain. Cleanup failure does not revert completion or restart import.
 
-**Ownership and deletion.** Importers acquire database-scoped session lock `TraceParser:Importer:v1`, then `TraceParser:Trace:{TraceId}`, before touching existing trace-owned data. A new trace/receipt pair is first created atomically; any deletion in that short interval sees a nonterminal receipt and is rejected. Every deletion batch acquires the same trace lock with transaction ownership before receipt/root locks, never the global importer lock. Active **and between-attempt retryable** imports cannot be deleted. A successful first deletion batch atomically changes a completed receipt to `Deleted`; that tombstone prevents import while partial deletion remains visible/resumable as `Deleting`. Only absence of the trace root proves deletion finished. All configured-tenant users retain the same authorization; no trace-owner restriction is introduced. Legacy writers do not honor these locks and must be absent at cutover.
+**Ownership and deletion.** Importers acquire database-scoped session lock `TraceParser:Importer:v1`, then `TraceParser:Trace:{TraceId}`, before touching existing trace-owned data. A new trace/receipt pair is first created atomically; any deletion in that short interval sees a nonterminal receipt and is rejected. Every deletion batch acquires the same trace lock with transaction ownership, never the global importer lock. Under that lock, eligibility is a locking read-committed receipt read, not a retained update/range lock; this also works with database RCSI enabled. Trace data is mutated **before** updating the captured completed receipt by ImportId, matching promotion, binding and completion's data-before-checkpoint order. Legacy traces without receipts and already-deleted receipts need no receipt update. Active **and between-attempt retryable** imports cannot be deleted. A successful first deletion batch atomically changes a completed receipt to `Deleted`; that tombstone prevents import while partial deletion remains visible/resumable as `Deleting`. Only absence of the trace root proves deletion finished. All configured-tenant users retain the same authorization; no trace-owner restriction is introduced. Legacy writers do not honor these locks and must be absent at cutover.
 
 The Function uses nonpooled SQL connections with transparent reconnect disabled. Loss of session ownership fails closed; it never silently continues on a replacement session. The parser's bounded channel cancels and joins its SQL consumer on producer failure before the connection/locks can be released. The host timeout remains two hours; a 110-minute invocation budget leaves shutdown margin. Replay before `Ready` must fit this budget: if representative large-file validation fails, **hold release**, not increase the timeout or drop retry guarantees.
 
@@ -68,6 +308,12 @@ Ownership contention waits inside the invocation's 110-minute budget instead of 
 
 ### Isolated importer validation and limits
 
+For an already-installed compatible importer, the deletion lock-order correction is SQL-only: in a verified quiet window, apply only `sql/sp_DeleteTrace.sql`. Its guarded transaction replaces the procedure and fingerprint together, preserving grants, receipts and staging. Do not rerun the full importer migration or redeploy binaries for this correction. Restoring the older receipt-before-data deletion procedure reintroduces its deadlock risk and is not an operational recovery strategy.
+
+Deletion batch selection seeks the requested trace's threads, then seeks their lines using a forced ordered loop join. This prevents a row-goal scan of unrelated traces without increasing the five-minute service budget. Installation requires enabled, unfiltered rowstore indexes with leading keys `UserSessionProcessThreads(TraceId)` and `TraceLines(UserSessionProcessThreadId)`; index names are immaterial. Existing compatible indexes suffice; missing/disabled access paths fail installation with 51007, without creating or repairing indexes. Runtime index removal can cause a seek-plan error and requires owner review, not a silent scan fallback. Selection work includes seeking empty target threads after partial deletion; it is bounded by target-thread count plus the requested batch, not by unrelated trace rows. All write bounds, eligibility, lock order and receipt behavior are unchanged.
+
+The existing regression executable accepts `--batch-selection` for an isolated multi-trace scale test on the dedicated LocalDB instance. It reuses the protocol schema (six TraceLines indexes), deletes a skewed 2,580,000-line/337-thread target through the restricted SQL caller and actual five-minute service, preserves 4,000,000 unrelated lines, and checks sparse, empty-thread, partial-deletion and batch-size variants. It asserts seek plans and bounded logical reads, including after unrelated growth. Missing/filtered/wrong-leading/disabled indexes fail closed; differently named valid indexes work. The old unhinted query and a separately labeled forced production scan/hash shape are measured independently: a good natural LocalDB plan is not a reproduction of the Azure regression. Local timings do not predict Azure SQL S4 end-to-end deletion duration.
+
 The console projects `tests/TraceParserFunction.ProtocolTests` (`net8.0-windows`) and `tests/TraceParserWeb.ImportProtocolTests` (`net9.0`) reuse existing dependencies without a new test framework. The SQL harness accepts no connection override, uses only the already-provisioned `(localdb)\TPImporterTests_c100bb02`, and creates/drops its own `TPImporterProtocol_<guid>` database. Run the compiled DLL where long Windows paths prevent `dotnet run` from launching its apphost:
 
 ```powershell
@@ -79,11 +325,26 @@ dotnet .\tests\TraceParserWeb.ImportProtocolTests\bin\Debug\net9.0\TraceParserWe
 
 `--large` adds two 250,000-row imports, a prepopulated indexed target, independent read-progress checks and bounded-batch assertions. Fault tests exercise real SQL transactions, producer/consumer cancellation, replay, uncertain acknowledgements, legacy holds, allocation failures, physical aggregate atomicity, coordinated deletion/tombstones, disabled-index refusal and restricted grants.
 
-With separately approved **session-local synthetic fixtures**, append `--etl-fixture '<approved-fixture-directory>\synthetic-small.etl'`, `synthetic-large.etl`, or `synthetic-near-limit.etl`. The adjacent `fixture-catalog.json` supplies expected counts; the near-limit fixture also requires its catalog SHA-256 to match. No fixture binary, generator, or private ETL header metadata is included in this repository or approved for redistribution. Never substitute customer ETL. The harness copies only the existing production manifests to its output and compiles the unchanged real `EtlParser`, `StageBatchWriter`/channel, and `SqlImporter`; it does **not** substitute a capture sink.
+Every protocol run also tests unrelated deletion against line promotion, bind promotion and completion, for both absent legacy receipts and completed receipts, with RCSI off and on. `--lock-order` runs only this matrix and installation guards. Test-only table-X pressure and observed SQL lock barriers reproduce the receipt/data inversion without timing-based sleeps or production table-lock hints. Actual procedures run under restricted callers; checkpoints, tombstones, deletion row bounds and the unrelated import are checked.
+
+With separately approved **session-local synthetic fixtures**, append `--etl-fixture '<approved-fixture-directory>\synthetic-small.etl'`, `synthetic-large.etl`, or `synthetic-near-limit.etl`. The adjacent `fixture-catalog.json` supplies expected counts; the near-limit fixture also requires its catalog SHA-256 to match. No fixture binary, generator, or private ETL header metadata is included in this repository or approved for redistribution. Never substitute customer ETL. The harness copies only the existing production manifests and compiles the real `EtlParser`, versioned `StageBatchWriter`/channel, and `SqlImporter`; it does **not** substitute a capture sink.
 
 The real-ETL mode uses exactly the documented restricted Function grants. It retains the first committed parser batch across an injected pre-Ready failure, reparses with fresh parser/importer instances, checks stable IDs and fingerprints, out-of-order/held SELECTs and bind association, then discards a committed promotion result and resumes from another connection. It verifies physical aggregates, durable completion, cleanup, terminal replay, unrelated trace checksums/counts and enabled indexes. Combining `--large --etl-fixture ...` prepopulates the target with 500,000 additional lines before the real ETL path. JSON output separates interrupted parsing, successful replay parsing, promotion/aggregation/cleanup and total test time (including injected failure and assertions).
 
-These fixtures cover 10 events/8 rows/1 bind and 300,000 events/240,000 rows/30,000 binds, including a real 200,000-row parser batch boundary. They are **not** representative maximum-size imports, broad provider/native-ETW compatibility certification, Azure performance estimates, or BlobTrigger/network/host-timeout tests. TraceEvent 3.1.13 was observed to fault in a finalizer after constructing a reader for a four-byte invalid file; preflight rejects such truncated headers, but broader malformed-file behavior is not certified. Existing tick-valued parser fields remain unchanged; no historical duration-unit conversion is included.
+These fixtures cover 10 events/8 rows/1 bind and 300,000 events/240,000 rows/30,000 binds, including a real 200,000-row parser batch boundary. They are **not** representative maximum-size imports, broad provider/native-ETW compatibility certification, Azure performance estimates, or BlobTrigger/network/host-timeout tests. TraceEvent 3.1.13 was observed to fault in a finalizer after constructing a reader for a four-byte invalid file; preflight rejects such truncated headers, but broader malformed-file behavior is not certified. v1 tick-valued output remains unchanged; v2 duration output is nanoseconds. No historical duration rewrite is included.
+
+For an isolated storage/log baseline without injected retries or unrelated prepopulation, use:
+
+```powershell
+dotnet run --project .\tests\TraceParserFunction.ProtocolTests -- --storage-benchmark --etl-fixture '<approved-fixture-directory>\synthetic-small.etl'
+dotnet run --project .\tests\TraceParserFunction.ProtocolTests -- --storage-benchmark --etl-fixture '<approved-fixture-directory>\synthetic-large.etl'
+```
+
+This opt-in mode accepts only those two filenames with pinned sizes and SHA-256 hashes; no connection override or near-limit/customer input is accepted. It creates its own indexed database on the same dedicated LocalDB instance, uses SIMPLE recovery and a dbo test connection, and runs the real v2 parser, staging, promotion, aggregation and cleanup. The existing resource guard and a 15-minute operation budget bound execution. The final `IsolatedStorageBenchmark` JSON is emitted only after row/receipt/duration checks, successful monitor disposal and verified database removal. A nonzero process exit is a failed run, regardless of earlier output.
+
+The report separates 250 ms sampled data/log measurements from phase snapshots and per-table used/reserved/nonclustered-index pages. Baseline setup allocations remain visible. `FinalTables` is the immediate post-cleanup snapshot; `CheckpointTables` follows a separately labeled explicit checkpoint. Empty staging tables can still occupy pages pending background reclamation. Allocated data/log files, used pages and active log are different measurements; sampled active-log peaks are lower bounds, **not cumulative log generation**. A checkpoint does not guarantee complete log reclamation or shrink files. Repeat in separate processes/databases and report ranges rather than treating one snapshot as a stable storage multiplier.
+
+This baseline uses repeated strings and one session/thread in a synthetic schema. It excludes tempdb, failure/retry overhead, Azure throughput, blob transfer and hosting costs. It cannot reproduce or refute a partner's reported 21x database expansion or 4.4 GB log footprint without the corresponding workload, schema, recovery settings and measurement definition.
 
 The near-limit fixture additionally covers **1,060,765,696 bytes (98.79% of the existing cap), four million events, 3.2 million rows and 400,000 binds**. SQL aggregate/checksum assertions avoid capturing the full dataset in memory; only the first retained batch's identity/fingerprint projection is copied to a connection-local SQL table. A read-only one-second watchdog checks this disposable database, process memory and system/disk headroom. It cancels only the test operation before 8 GiB allocated SQL data (below Express's 10 GiB limit), 16 GiB combined data/log, 2 GiB managed memory, 3 GiB process private/working memory, 4 GiB available physical memory, or 16 GiB free database-drive space; initial free-memory/disk requirements are 8/32 GiB. Cancellation uses the real consumer-join path and fixture cleanup, never instance/process termination, configuration changes or resource provisioning.
 
