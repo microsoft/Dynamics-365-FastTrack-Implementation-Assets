@@ -120,7 +120,18 @@ using (var config = JsonDocument.Parse(File.ReadAllText(configPath)))
     Assert(searches.All(name => entities.TryGetProperty(name, out _)), "An analysis procedure was removed");
     passed++;
 }
-Console.WriteLine($"{passed} deletion regression checks passed.");
+passed += await ImportStatusChecks.RunAsync();
+passed += await PaginationChecks.RunAsync();
+passed += await AgentDestinationChecks.RunAsync();
+passed += await DeletionChecks.RunAsync();
+passed += await DurableDeletionChecks.RunAsync();
+Console.WriteLine($"{passed} regression checks passed.");
+if (args.Contains("--sql-integration"))
+    await DeletionSqlChecks.RunAsync();
+if (args.Contains("--batch-selection"))
+    await BatchSelectionChecks.RunAsync();
+if (args.Contains("--durable-deletion"))
+    await DurableDeletionSqlChecks.RunAsync();
 
 sealed class ProbeAuthentication(ClaimsPrincipal user) : AuthenticationStateProvider
 {
@@ -135,7 +146,7 @@ sealed class ProbeStore(params bool[] remaining) : ITraceDeletionStore
     public Exception? Failure { get; init; }
     public Action? AfterCall { get; init; }
 
-    public Task<bool> DeleteBatchAsync(int traceId, CancellationToken ct)
+    public Task<TraceDeletionBatch> DeleteBatchAsync(int traceId, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
         LastTraceId = traceId;
@@ -143,6 +154,6 @@ sealed class ProbeStore(params bool[] remaining) : ITraceDeletionStore
         if (Failure is not null) throw Failure;
         if (Calls > remaining.Length) throw new Exception("Unexpected extra deletion batch");
         AfterCall?.Invoke();
-        return Task.FromResult(remaining[Calls - 1]);
+        return Task.FromResult(new TraceDeletionBatch(remaining[Calls - 1]));
     }
 }

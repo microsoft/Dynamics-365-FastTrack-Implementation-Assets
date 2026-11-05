@@ -1,9 +1,11 @@
 @page "/traces"
 @using Microsoft.AspNetCore.Authorization
 @using TraceParserWeb.Services
+@using System.Text.Json
 @attribute [Authorize]
 @inject TraceService TraceSvc
 @inject TraceDeletionService DeletionSvc
+@inject DeletionJobService DeletionJobsSvc
 @inject ILogger<TraceList> Logger
 @implements IDisposable
 
@@ -21,12 +23,43 @@
             <div>
                 <h2 class="traces-title">Imported Traces</h2>
                 <p class="traces-subtitle">Manage imported ETL trace sessions.</p>
-                @if (!DeletionSvc.IsConfigured)
+                @if (!DeletionJobsSvc.Enabled && !DeletionSvc.IsConfigured)
                 {
                     <p class="traces-subtitle">Deletion is unavailable until the deployment owner configures authenticated trace deletion.</p>
                 }
             </div>
         </div>
+
+        @if (!string.IsNullOrEmpty(_statusMessage))
+        {
+            <div role="status" class="traces-status @(_statusIsError ? "status-error" : "status-success")">
+                @_statusMessage
+            </div>
+        }
+        @if (_deleting && !DeletionJobsSvc.Enabled)
+        {
+            <div role="status" aria-live="polite" class="traces-status">
+                @_deleteProgress
+                <button class="btn-confirm-no" @onclick="StopDeletion" disabled="@(_deleteCancellation?.IsCancellationRequested != false)">Cancel deletion</button>
+            </div>
+        }
+
+        @if (DeletionJobsSvc.Enabled)
+        {
+            <DeletionJobs />
+        }
+
+        @if (_statsLoading)
+        {
+            <div role="status" class="traces-status">Loading statistics; trace details remain available.</div>
+        }
+        else if (_statsError is not null)
+        {
+            <div role="status" class="traces-status status-error">
+                @_statsError
+                <button class="btn-confirm-no" @onclick="RefreshStatsAsync">Retry statistics</button>
+            </div>
+        }
 
         @if (_loading)
         {
@@ -37,7 +70,10 @@
         }
         else if (_error != null)
         {
-            <div class="traces-status status-error">@_error</div>
+            <div role="alert" class="traces-status status-error">
+                @_error
+                <button class="btn-confirm-no" @onclick="LoadTraces">Retry trace list</button>
+            </div>
         }
         else if (_traces.Count == 0)
         {
@@ -59,6 +95,10 @@
                     <div class="trace-row" @key="trace.TraceId">
                         <div class="trace-info">
                             <span class="trace-name">@trace.TraceName</span>
+                            @if (!trace.HasKnownDurationUnits)
+                            {
+                                <span class="stat-item">Duration units unclassified</span>
+                            }
                             <div class="trace-meta">
                                 <span class="trace-id">ID: @trace.TraceId</span>
                                 @if (trace.TimeStampBegin.HasValue)
@@ -71,6 +111,12 @@
                                     }
                                 }
                             </div>
+                            @if (_importingStages.TryGetValue(trace.TraceId, out var stage))
+                            {
+                                <div class="trace-importing">
+                                    <span class="importing-text">@GetImportStageText(stage)</span>
+                                </div>
+                            }
                             @if (_traceStats.TryGetValue(trace.TraceId, out var stats))
                             {
                                 <div class="trace-stats">
@@ -79,6 +125,10 @@
                                     <span class="stat-item">@FormatCount(stats.TotalTraceLines) lines</span>
                                     <span class="stat-sep"></span>
                                     <span class="stat-item">@FormatDuration(stats.TotalDurationMs)</span>
+                                    @if (stats.TotalDurationMs is null || stats.TotalDatabaseCalls is null)
+                                    {
+                                        <span class="stat-item">Duration/DB totals uncertain: unclassified units, legacy aggregates or incomplete durations</span>
+                                    }
                                     @if (stats.TotalDatabaseMs > 0)
                                     {
                                         <span class="stat-sep"></span>
@@ -86,18 +136,11 @@
                                     }
                                 </div>
                             }
-                            else if (_importingStages.TryGetValue(trace.TraceId, out var stage))
-                            {
-                                <div class="trace-importing">
-                                    <span class="importing-spinner"></span>
-                                    <span class="importing-text">@GetImportStageText(stage)</span>
-                                </div>
-                            }
                         </div>
                         <div class="trace-actions">
                             @if (_confirmDeleteId == trace.TraceId)
                             {
-                                <span class="confirm-text">Delete?</span>
+                                <span class="confirm-text">@(IsPartialDeletion(trace.TraceId) ? "Resume deletion?" : "Delete?")</span>
                                 <button class="btn-confirm-yes" @onclick="@(async () => await ConfirmDelete(trace.TraceId))" disabled="@_deleting">
                                     @if (_deleting && _deletingId == trace.TraceId)
                                     {
@@ -112,7 +155,9 @@
                             }
                             else
                             {
-                                <button class="btn-delete" @onclick="@(() => RequestDelete(trace.TraceId))" title="Delete trace" disabled="@(!DeletionSvc.IsConfigured)">
+                                <button class="btn-delete" @onclick="@(() => RequestDelete(trace.TraceId))"
+                                    title="@(IsPartialDeletion(trace.TraceId) ? "Resume partial deletion" : "Delete trace")"
+                                    disabled="@(_deleting || (!DeletionJobsSvc.Enabled && !DeletionSvc.IsConfigured) || IsImportBlocked(trace.TraceId))">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                          stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -126,12 +171,6 @@
             </div>
         }
 
-        @if (!string.IsNullOrEmpty(_statusMessage))
-        {
-            <div class="traces-status @(_statusIsError ? "status-error" : "status-success")">
-                @_statusMessage
-            </div>
-        }
     </div>
 </div>
 
@@ -141,12 +180,20 @@
     Dictionary<int, ImportStage> _importingStages = new();
     bool _loading = true;
     string? _error;
+    bool _statsLoading;
+    string? _statsError;
+    readonly CancellationTokenSource _pageCancellation = new();
     int? _confirmDeleteId;
     bool _deleting;
     int? _deletingId;
     string? _statusMessage;
     bool _statusIsError;
     System.Threading.Timer? _importPollTimer;
+    int _pollInProgress;
+    bool _disposed;
+    CancellationTokenSource? _deleteCancellation;
+    string? _deleteProgress;
+    readonly Dictionary<int, Guid> _deletionRequestKeys = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -155,98 +202,149 @@
 
     async Task LoadTraces()
     {
+        if (_disposed) return;
         _loading = true;
         _error = null;
         StateHasChanged();
 
         try
         {
-            var tracesTask = TraceSvc.GetTracesAsync();
-            var statsTask = TraceSvc.GetTraceStatsAsync();
-            await Task.WhenAll(tracesTask, statsTask);
-            _traces = tracesTask.Result;
-            _traceStats = statsTask.Result;
-
-            // Detect traces without stats — they may be importing
-            await DetectImportingTraces();
+            var traces = await TraceSvc.GetTracesAsync(_pageCancellation.Token);
+            if (_disposed) return;
+            _traces = traces;
+            // Rows render before optional statistics/status requests finish.
+            // Keep deletion unavailable until each row's eligibility is known.
+            _importingStages = traces.ToDictionary(t => t.TraceId, _ => ImportStage.Unavailable);
         }
-        catch (Exception ex)
+        catch (OperationCanceledException) when (_disposed) { }
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or OperationCanceledException)
         {
-            _error = $"Failed to load traces: {ex.Message}";
+            _error = "The trace list is currently unavailable. Retry loading the list.";
             Logger.LogError(ex, "Failed to load traces");
         }
         finally
         {
             _loading = false;
+            if (!_disposed) StateHasChanged();
+        }
+
+        if (_disposed || _error is not null) return;
+        await RefreshStatsAsync();
+        if (!_disposed) await DetectImportingTraces();
+    }
+
+    async Task RefreshStatsAsync()
+    {
+        if (_disposed || _statsLoading) return;
+        _statsLoading = true;
+        StateHasChanged();
+        try
+        {
+            var stats = await TraceSvc.GetTraceStatsAsync(_pageCancellation.Token);
+            if (_disposed) return;
+            _traceStats = stats;
+            _statsError = null;
+        }
+        catch (OperationCanceledException) when (_disposed) { }
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or OperationCanceledException)
+        {
+            _traceStats.Clear();
+            _statsError = "Statistics are unavailable, not zero. Trace details remain available; retry statistics.";
+            Logger.LogWarning(ex, "Trace statistics unavailable; preserving the trace list");
+        }
+        finally
+        {
+            _statsLoading = false;
+            if (!_disposed) StateHasChanged();
         }
     }
 
     async Task DetectImportingTraces()
     {
-        _importingStages.Clear();
         _importPollTimer?.Dispose();
         _importPollTimer = null;
 
-        var tracesWithoutStats = _traces.Where(t => !_traceStats.ContainsKey(t.TraceId)).ToList();
+        var tracesWithoutStats = _traces.Where(t => t.TraceParserVersion == "safe-import-v1"
+            || !_traceStats.ContainsKey(t.TraceId)).ToList();
+        foreach (var trace in _traces.Except(tracesWithoutStats))
+            _importingStages.Remove(trace.TraceId);
         if (tracesWithoutStats.Count == 0) return;
 
-        // Check stage for each trace without stats
+        // Physical aggregates can remain during partial deletion. For protocol imports,
+        // always consult the receipt even when aggregate rows are still present.
         foreach (var trace in tracesWithoutStats)
         {
-            var stage = await TraceSvc.GetImportStageAsync(trace.TraceId);
+            if (_disposed) return;
+            ImportStage stage;
+            try { stage = await TraceSvc.GetImportStageAsync(trace.TraceId, _pageCancellation.Token); }
+            catch (OperationCanceledException) when (_disposed) { return; }
+            if (_disposed) return;
             if (stage != ImportStage.Complete)
                 _importingStages[trace.TraceId] = stage;
+            else
+                _importingStages.Remove(trace.TraceId);
+            StateHasChanged();
         }
 
         if (_importingStages.Count == 0) return;
 
         // Start polling importing traces every 10s
-        _importPollTimer = new System.Threading.Timer(async _ =>
+        _importPollTimer = new System.Threading.Timer(async _ => await PollImportStagesAsync(),
+            null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+    }
+
+    async Task PollImportStagesAsync()
+    {
+        if (Interlocked.CompareExchange(ref _pollInProgress, 1, 0) != 0) return;
+        try
         {
-            try
+            await InvokeAsync(async () =>
             {
-                var changed = false;
+                if (_disposed) return;
+                var completed = false;
                 foreach (var traceId in _importingStages.Keys.ToList())
                 {
-                    var stage = await TraceSvc.GetImportStageAsync(traceId);
+                    var stage = await TraceSvc.GetImportStageAsync(traceId, _pageCancellation.Token);
+                    if (_disposed) return;
+                    if (!_importingStages.TryGetValue(traceId, out var previousStage)) continue;
                     if (stage == ImportStage.Complete)
                     {
                         _importingStages.Remove(traceId);
-                        changed = true;
+                        completed = true;
                     }
-                    else if (_importingStages[traceId] != stage)
+                    else if (previousStage != stage)
                     {
                         _importingStages[traceId] = stage;
-                        changed = true;
                     }
                 }
 
-                if (changed)
+                if (completed)
+                    await RefreshStatsAsync();
+
+                if (_importingStages.Count == 0)
                 {
-                    // If any completed, refresh stats
-                    if (_importingStages.Count < _traces.Count(t => !_traceStats.ContainsKey(t.TraceId)))
-                    {
-                        _traceStats = await TraceSvc.GetTraceStatsAsync();
-                    }
-
-                    if (_importingStages.Count == 0)
-                    {
-                        _importPollTimer?.Dispose();
-                        _importPollTimer = null;
-                    }
+                    _importPollTimer?.Dispose();
+                    _importPollTimer = null;
                 }
 
-                await InvokeAsync(StateHasChanged);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogWarning(ex, "Import poll error on Traces page");
-            }
-        }, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+                if (!_disposed) StateHasChanged();
+            });
+        }
+        catch (OperationCanceledException) when (_disposed) { }
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or OperationCanceledException
+            or Microsoft.Data.SqlClient.SqlException)
+        {
+            Logger.LogWarning(ex, "Import poll error on Traces page");
+        }
+        finally
+        {
+            Volatile.Write(ref _pollInProgress, 0);
+        }
     }
 
     void RequestDelete(int traceId)
     {
+        if (_deleting || _disposed || IsImportBlocked(traceId)) return;
         _confirmDeleteId = traceId;
         _statusMessage = null;
     }
@@ -258,31 +356,89 @@
 
     async Task ConfirmDelete(int traceId)
     {
+        if (_deleting || _disposed) return;
+        if (DeletionJobsSvc.Enabled)
+        {
+            _deleting = true;
+            try
+            {
+                if (!_deletionRequestKeys.TryGetValue(traceId, out var key))
+                    _deletionRequestKeys[traceId] = key = Guid.NewGuid();
+                var job = await DeletionJobsSvc.EnqueueAsync(key, traceId);
+                _statusMessage = $"Trace {traceId}: {job.State}. Progress appears in Your deletion jobs; closing the page does not stop it.";
+                _statusIsError = false;
+            }
+            catch (Exception ex)
+            {
+                _statusMessage = "Deletion request was not confirmed. Check your persisted jobs before retrying. Active imports cannot be deleted.";
+                _statusIsError = true;
+                Logger.LogWarning(ex, "Durable deletion enqueue was not confirmed");
+            }
+            finally { _deleting = false; _confirmDeleteId = null; }
+            return;
+        }
+        using var cancellation = new CancellationTokenSource();
+        _deleteCancellation = cancellation;
         _deleting = true;
         _deletingId = traceId;
         _statusMessage = null;
-        StateHasChanged();
-
+        _deleteProgress = $"Deleting trace {traceId}: waiting for the first SQL batch. Cancelling may leave a partial deletion.";
         try
         {
-            await DeletionSvc.DeleteTraceAsync(traceId);
+            StateHasChanged();
+            await DeletionSvc.DeleteTraceAsync(traceId, cancellation.Token, progress => InvokeAsync(() =>
+            {
+                if (_disposed) return;
+                var rows = progress.AllRowsKnown
+                    ? $"{progress.ConfirmedRowsDeleted:N0} rows deleted"
+                    : "row count unavailable for this procedure version";
+                _deleteProgress = $"Trace {traceId}: {progress.Batches:N0} batches confirmed; {rows}. Last phase: {progress.Phase ?? "legacy procedure"}. Waiting for SQL to confirm completion.";
+                if (progress.ConfirmedRowsDeleted > 0 && !progress.Complete)
+                    _importingStages[traceId] = ImportStage.Deleting;
+                StateHasChanged();
+            }));
+            if (_disposed) return;
             _statusMessage = $"Trace {traceId} deleted successfully.";
             _statusIsError = false;
             _traces.RemoveAll(t => t.TraceId == traceId);
             _traceStats.Remove(traceId);
+            _importingStages.Remove(traceId);
+            if (_importingStages.Count == 0)
+            {
+                _importPollTimer?.Dispose();
+                _importPollTimer = null;
+            }
+        }
+        catch (OperationCanceledException ex)
+        {
+            if (!_disposed)
+            {
+                _statusMessage = $"Trace {traceId}: {ex.Message}";
+                _statusIsError = true;
+            }
         }
         catch (Exception ex)
         {
-            _statusMessage = $"Failed to delete trace {traceId}: {ex.Message}";
-            _statusIsError = true;
+            if (!_disposed)
+            {
+                _statusMessage = $"Failed to delete trace {traceId}: {ex.Message} Deletion may be partial; committed batches remain deleted. Refresh before retrying.";
+                _statusIsError = true;
+            }
             Logger.LogError(ex, "Failed to delete trace {TraceId}", traceId);
         }
         finally
         {
+            _deleteCancellation = null;
             _deleting = false;
             _deletingId = null;
             _confirmDeleteId = null;
         }
+    }
+
+    void StopDeletion()
+    {
+        _deleteCancellation?.Cancel();
+        _deleteProgress = "Cancellation requested; waiting for SQL to stop. Previously committed batches remain deleted.";
     }
 
     static string FormatCount(long count)
@@ -292,8 +448,10 @@
         return count.ToString("N0");
     }
 
-    static string FormatDuration(decimal totalMs)
+    static string FormatDuration(decimal? durationMs)
     {
+        if (durationMs is null) return "Duration unknown";
+        var totalMs = durationMs.Value;
         var ts = TimeSpan.FromMilliseconds((double)totalMs);
         if (ts.TotalHours >= 1) return $"{(int)ts.TotalHours}h {ts.Minutes}m";
         if (ts.TotalMinutes >= 1) return $"{(int)ts.TotalMinutes}m {ts.Seconds}s";
@@ -304,14 +462,33 @@
     static string GetImportStageText(ImportStage stage) => stage switch
     {
         ImportStage.WaitingForFunction => "Waiting for processing...",
-        ImportStage.Parsing => "Parsing ETL events...",
-        ImportStage.ProcessingDimensions => "Importing trace lines...",
-        ImportStage.Finalizing => "Finalizing...",
-        _ => "Importing..."
+        ImportStage.Parsing => "No parsed session data available yet.",
+        ImportStage.ProcessingDimensions => "Waiting for trace lines.",
+        ImportStage.Finalizing => "Waiting for session metrics.",
+        ImportStage.Unavailable => "Import status unavailable; the next poll will retry.",
+        ImportStage.RetryableFailure => "Import interrupted; progress is retained for retry. Deletion remains blocked.",
+        ImportStage.RejectedOversize => "Import rejected: ETL exceeds 1 GiB. Any partial data is retained for review; deletion remains blocked.",
+        ImportStage.Deleting => "Deletion is incomplete while this trace exists. Refresh and resume deletion.",
+        ImportStage.Deleted => "Deletion was completed. Refresh the trace list.",
+        ImportStage.LegacyUntracked => "Legacy trace: no import receipt is available. Missing metrics do not prove an active import.",
+        _ => "Import status not confirmed."
     };
+
+    bool IsPartialDeletion(int traceId) =>
+        _importingStages.TryGetValue(traceId, out var stage) && stage == ImportStage.Deleting;
+
+    bool IsImportBlocked(int traceId) => _importingStages.TryGetValue(traceId, out var stage)
+        && stage is ImportStage.WaitingForFunction or ImportStage.Parsing or ImportStage.ProcessingDimensions
+            or ImportStage.Finalizing or ImportStage.RetryableFailure or ImportStage.RejectedOversize
+            or ImportStage.Unavailable;
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
+        _pageCancellation.Cancel();
+        _pageCancellation.Dispose();
+        _deleteCancellation?.Cancel();
         _importPollTimer?.Dispose();
     }
 }

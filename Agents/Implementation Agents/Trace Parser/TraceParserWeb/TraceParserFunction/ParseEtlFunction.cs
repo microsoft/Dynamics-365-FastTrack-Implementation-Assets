@@ -1,76 +1,117 @@
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Data.SqlClient;
+using System.Security.Cryptography;
 
 namespace TraceParserFunction;
 
-public class ParseEtlFunction(EtlParser parser, SqlImporter importer,
-                               ILogger<ParseEtlFunction> logger)
+public class ParseEtlFunction(EtlParser parser, SqlImporter importer, ILogger<ParseEtlFunction> logger)
 {
+    // Protect mutable parser services even if host concurrency is accidentally increased.
+    // The SQL session lock is the authoritative cross-process/cross-instance ownership.
+    private static readonly SemaphoreSlim WorkerGate = new(1, 1);
+
     [Function("ParseEtl")]
     public async Task RunAsync(
-        [BlobTrigger("etl-uploads/{name}", Connection = "AzureWebJobsStorage")] Stream blobStream,
-        string name)
+        [BlobTrigger("etl-uploads/{name}", Connection = "AzureWebJobsStorage")] BlobClient blob,
+        string name, CancellationToken cancellationToken)
     {
-        logger.LogInformation("ParseEtl triggered. Blob: {Name}", name);
-
-        var tempFile = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.etl");
+        // Leave a bounded shutdown margin before the unchanged two-hour host timeout.
+        using var budget = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        budget.CancelAfter(TimeSpan.FromMinutes(110));
+        var ct = budget.Token;
+        await WorkerGate.WaitAsync(ct);
+        // App Service's package-mounted wwwroot can be read-only. HOME\data is writable.
+        var localPath = Path.Combine(Environment.GetEnvironmentVariable("HOME") ?? AppContext.BaseDirectory,
+            "data", "traceparser-imports", $"{Guid.NewGuid():N}.etl");
+        SqlConnection? conn = null;
         try
         {
-            // ETWTraceEventSource requires a file path — download blob to temp file
-            logger.LogInformation("Downloading blob to temp file: {TempFile}", tempFile);
-            using (var fs = File.Create(tempFile))
-                await blobStream.CopyToAsync(fs);
-
-            var fileInfo = new FileInfo(tempFile);
-            logger.LogInformation("Blob downloaded. Size: {SizeMB} MB", fileInfo.Length / 1_048_576);
-
-            // Derive session name from blob path: "sessionName/fileName.etl" → "sessionName"
-            var sessionName = name.Contains('/') ? name[..name.LastIndexOf('/')] : Path.GetFileNameWithoutExtension(name);
-            sessionName = sessionName.Replace("/", "_").Replace("\\", "_");
-
-            var connStr = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING")
-                ?? throw new InvalidOperationException("AZURE_SQL_CONNECTION_STRING not set");
-
-            using var conn = new SqlConnection(connStr);
-            await conn.OpenAsync();
-
-            // Create Traces row
-            var traceId = await importer.EnsureTraceAsync(conn, sessionName, name);
-            logger.LogInformation("TraceId={TraceId} created for session '{Session}'", traceId, sessionName);
-
-            // Parse ETL and insert staging rows
-            var stats = parser.Parse(tempFile, traceId, conn);
-            await importer.UpdateTraceTimestampsAsync(conn, traceId, stats.MinFileTimeUtc, stats.MaxFileTimeUtc);
-            logger.LogInformation("Parsed {Staged} rows. Enter={Enter} SQL={Stmt} Bind={Bind} Fetch={Fetch} Msg={Msg}",
-                stats.Staged, stats.Enter, stats.Stmt, stats.Bind, stats.Fetch, stats.Msg);
-
-            // Promote staging → TraceLines (direct INSERT with IDENTITY_INSERT, index disable/rebuild)
-            logger.LogInformation("Promoting StageTraceLines → TraceLines for TraceId={TraceId}...", traceId);
-            await importer.PromoteStageToTraceLines(conn);
-
-            // Insert bind parameters (requires TraceLines to exist for FK)
-            await importer.InsertBindParamsAsync(conn, traceId);
-
-            // Pre-compute aggregation tables for fast Copilot queries
-            logger.LogInformation("Populating session aggregations for TraceId={TraceId}...", traceId);
-            await importer.PopulateSessionAggregationsAsync(conn, traceId);
-
-            logger.LogInformation("Import complete. TraceId={TraceId} Session='{Session}' Staged={Staged}",
-                traceId, sessionName, stats.Staged);
+            var properties = (await blob.GetPropertiesAsync(cancellationToken: ct)).Value;
+            var cs = new SqlConnectionStringBuilder(
+                Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING")
+                ?? throw new InvalidOperationException("AZURE_SQL_CONNECTION_STRING not set"))
+            {
+                // A reconnected SQL session has lost its ownership locks. Never reconnect
+                // transparently or return a session with application locks to the pool.
+                ConnectRetryCount = 0, Pooling = false, Encrypt = true,
+                TrustServerCertificate = false, PersistSecurityInfo = false
+            };
+            conn = new SqlConnection(cs.ConnectionString);
+            await conn.OpenAsync(ct);
+            await ProcessRegisteredBlobAsync(blob, name, properties, conn, localPath, ct);
         }
-        catch (Exception ex)
+        catch (SqlException ex) when (ex.Number is 51104 or 51105)
         {
-            logger.LogError(ex, "ParseEtl failed for blob '{Name}'", name);
-            throw; // Let Functions retry/dead-letter
+            // Explicitly held, never claimed/imported. Host retry/poison handling must not
+            // mistake this for a completed import; blob and legacy SQL data remain intact.
+            var sourceHash=Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(name)));
+            logger.LogError("Import HELD for explicit review. SourceHash={SourceHash}, Code={Code}; no trace was created for this delivery.",
+                sourceHash, ex.Number);
+            throw;
+        }
+        catch
+        {
+            if (conn is not null)
+            {
+                try { await importer.RecordFailureAsync(conn); }
+                catch (Exception ex) { logger.LogWarning("Failure status not recorded: {Type}", ex.GetType().Name); }
+            }
+            throw;
         }
         finally
         {
-            if (File.Exists(tempFile))
-            {
-                File.Delete(tempFile);
-                logger.LogInformation("Temp file deleted: {TempFile}", tempFile);
-            }
+            if (conn is not null) await conn.DisposeAsync();
+            try { if (File.Exists(localPath)) File.Delete(localPath); }
+            finally { WorkerGate.Release(); }
         }
+    }
+
+    internal async Task ProcessRegisteredBlobAsync(BlobClient blob, string name, BlobProperties properties,
+        SqlConnection conn, string localPath, CancellationToken ct)
+    {
+        ImportReceipt receipt;
+        try
+        {
+            receipt = await importer.BeginImportAsync(conn, blob.AccountName, blob.BlobContainerName,
+                name, properties.ETag.ToString(), ct, contentLength: properties.ContentLength);
+        }
+        catch (SqlException ex) when (ex.Number == 51127)
+        {
+            // SQL has durably rejected this version. Acknowledge the delivery,
+            // not an import completion; retries must not download or parse it.
+            logger.LogWarning("Import RejectedOversize: {Bytes} bytes exceeds {Limit}. Blob and receipt retained. SourceHash={SourceHash}",
+                properties.ContentLength, TraceParser.Shared.ImportFilePolicy.MaxFileSizeBytes,
+                Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(name))));
+            return;
+        }
+        logger.LogInformation("ImportId={ImportId}, TraceId={TraceId}, Phase={Phase}",
+            receipt.ImportId, receipt.TraceId, receipt.Phase);
+        if (receipt.IsTerminal)
+        {
+            await importer.CleanupCompletedAsync(conn);
+            return;
+        }
+        // Defense in depth: a mismatched SQL deployment must never allow an
+        // oversized download even if it erroneously returns a parsing receipt.
+        TraceParser.Shared.ImportFilePolicy.ValidateLength(properties.ContentLength);
+        if (receipt.Phase == "Parsing")
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(localPath)!);
+            await blob.DownloadToAsync(localPath, new BlobDownloadToOptions
+            {
+                Conditions = new BlobRequestConditions { IfMatch = properties.ETag }
+            }, ct);
+            await using (var stream = File.OpenRead(localPath))
+                await importer.SetContentHashAsync(conn, await SHA256.HashDataAsync(stream, ct));
+            parser.Parse(localPath, receipt.TraceId, conn);
+        }
+        await importer.PromoteStageToTraceLines(conn);
+        await importer.CompleteImportAsync(conn);
+        logger.LogInformation("Import durably completed: ImportId={ImportId}, TraceId={TraceId}",
+            receipt.ImportId, receipt.TraceId);
+        await importer.CleanupCompletedAsync(conn);
     }
 }

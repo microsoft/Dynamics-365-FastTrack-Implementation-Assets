@@ -1,6 +1,5 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using Azure.Storage.Sas;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
@@ -9,6 +8,12 @@ namespace TraceParserWeb.Services;
 
 public enum ImportStage
 {
+    RejectedOversize = -6,
+    Deleting = -5,
+    LegacyUntracked = -4,
+    Deleted = -3,
+    RetryableFailure = -2,
+    Unavailable = -1,
     WaitingForFunction,
     Parsing,
     ProcessingDimensions,
@@ -29,8 +34,21 @@ public class EtlImportOptions
     public string DabBaseUrl { get; set; } = "";
 }
 
-public class EtlUploadService(IOptions<EtlImportOptions> opts, IHttpClientFactory httpFactory)
+public class EtlUploadService(
+    IOptions<EtlImportOptions> opts,
+    IHttpClientFactory httpFactory,
+    TraceService traceService,
+    ILogger<EtlUploadService> logger,
+    RegisteredImportService? registrations = null)
 {
+    public Task<RegisteredUpload> RegisterAsync(string sessionName, string fileName, CancellationToken ct = default)
+        => (registrations ?? throw new InvalidOperationException("Registered uploads are unavailable."))
+            .RegisterAsync(sessionName, fileName, ct);
+
+    public async Task<ImportStatus> GetImportStatusAsync(Guid importId, CancellationToken ct)
+        => RegisteredImportService.ToDisplay(await
+            (registrations ?? throw new InvalidOperationException("Registered import status is unavailable."))
+            .GetAsync(importId, ct));
     /// <summary>
     /// Uploads an ETL file to Azure Blob Storage under {sessionName}/{fileName}.
     /// Returns the blob name.
@@ -39,15 +57,14 @@ public class EtlUploadService(IOptions<EtlImportOptions> opts, IHttpClientFactor
                                           IProgress<long>? progress = null,
                                           CancellationToken ct = default)
     {
-        var blobName = $"{sessionName}/{Path.GetFileName(file.Name)}";
-        var container = new BlobContainerClient(opts.Value.StorageConnectionString,
-                                                opts.Value.ContainerName);
-        await container.CreateIfNotExistsAsync(cancellationToken: ct);
-        using var raw = file.OpenReadStream(maxAllowedSize: 1_073_741_824L, ct); // 1 GB
+        TraceParser.Shared.ImportFilePolicy.ValidateLength(file.Size);
+        var upload = await RegisterAsync(sessionName, file.Name, ct);
+        using var raw = file.OpenReadStream(maxAllowedSize: TraceParser.Shared.ImportFilePolicy.MaxFileSizeBytes, ct);
         Stream stream = progress != null ? new ProgressStream(raw, file.Size, progress) : raw;
-        await container.GetBlobClient(blobName)
-                       .UploadAsync(stream, overwrite: true, cancellationToken: ct);
-        return blobName;
+        var blobName = new BlobUriBuilder(new Uri(upload.SasUrl)).BlobName;
+        await new BlobClient(opts.Value.StorageConnectionString, opts.Value.ContainerName, blobName)
+            .UploadAsync(stream, overwrite: false, cancellationToken: ct);
+        return upload.ImportId.ToString("D");
     }
 
     /// <summary>
@@ -55,21 +72,7 @@ public class EtlUploadService(IOptions<EtlImportOptions> opts, IHttpClientFactor
     /// </summary>
     public string GenerateSasUrl(string sessionName, string fileName)
     {
-        var blobName = $"{sessionName}/{Path.GetFileName(fileName)}";
-        var serviceClient = new BlobServiceClient(opts.Value.StorageConnectionString);
-        var blobClient = serviceClient
-            .GetBlobContainerClient(opts.Value.ContainerName)
-            .GetBlobClient(blobName);
-
-        var sasBuilder = new BlobSasBuilder
-        {
-            BlobContainerName = opts.Value.ContainerName,
-            BlobName = blobName,
-            Resource = "b",
-            ExpiresOn = DateTimeOffset.UtcNow.AddHours(2),
-        };
-        sasBuilder.SetPermissions(BlobSasPermissions.Create | BlobSasPermissions.Write);
-        return blobClient.GenerateSasUri(sasBuilder).ToString();
+        throw new InvalidOperationException("Unregistered upload URLs are disabled. Register a fresh upload first.");
     }
 
     /// <summary>
@@ -80,40 +83,29 @@ public class EtlUploadService(IOptions<EtlImportOptions> opts, IHttpClientFactor
     {
         try
         {
-            var http = httpFactory.CreateClient("dab");
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(10));
+            using var http = httpFactory.CreateClient("dab");
 
             // Step 1: Find the trace
-            var url = $"/api/Traces?$filter=TraceName eq '{Uri.EscapeDataString(sessionName)}'";
-            var resp = await http.GetFromJsonAsync<JsonElement>(url, ct);
-            if (!resp.TryGetProperty("value", out var arr) || arr.GetArrayLength() == 0)
+            var escapedName = Uri.EscapeDataString(sessionName.Replace("'", "''"));
+            var url = $"/api/Traces?$filter=TraceName eq '{escapedName}'&$first=1&$select=TraceId";
+            var resp = await http.GetFromJsonAsync<JsonElement>(url, cts.Token);
+            var arr = TraceService.ReadRows(resp);
+            if (arr.GetArrayLength() == 0)
                 return new ImportStatus { Stage = ImportStage.WaitingForFunction };
 
-            var traceId = arr[0].GetProperty("TraceId").GetInt32();
-
-            // Step 2: Check threads exist (created during BulkInsertDimensions, after staging)
-            var threadUrl = $"/api/UserSessionProcessThreads?$filter=TraceId eq {traceId}&$top=1";
-            var threadResp = await http.GetFromJsonAsync<JsonElement>(threadUrl, ct);
-            if (!threadResp.TryGetProperty("value", out var threadArr) || threadArr.GetArrayLength() == 0)
-                return new ImportStatus { Stage = ImportStage.Parsing, TraceId = traceId };
-
-            // Step 3: Verify TraceLines exist (the final promote step)
-            var threadId = threadArr[0].GetProperty("UserSessionProcessThreadId").GetInt32();
-            var tlUrl = $"/api/TraceLines?$filter=UserSessionProcessThreadId eq {threadId}&$top=1";
-            var tlResp = await http.GetFromJsonAsync<JsonElement>(tlUrl, ct);
-            if (!tlResp.TryGetProperty("value", out var tlArr) || tlArr.GetArrayLength() == 0)
-                return new ImportStatus { Stage = ImportStage.ProcessingDimensions, TraceId = traceId };
-
-            // Step 4: Check SessionMetrics exist (aggregation complete)
-            var smUrl = $"/api/SessionMetrics?$filter=TraceId eq {traceId}&$top=1";
-            var smResp = await http.GetFromJsonAsync<JsonElement>(smUrl, ct);
-            if (!smResp.TryGetProperty("value", out var smArr) || smArr.GetArrayLength() == 0)
-                return new ImportStatus { Stage = ImportStage.Finalizing, TraceId = traceId };
-
-            return new ImportStatus { Stage = ImportStage.Complete, TraceId = traceId };
+            var traceId = TraceService.ReadId(arr[0], "TraceId");
+            return new ImportStatus {
+                Stage = await traceService.GetImportStageAsync(traceId, cts.Token),
+                TraceId = traceId
+            };
         }
-        catch
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or OperationCanceledException)
         {
-            return new ImportStatus { Stage = ImportStage.WaitingForFunction };
+            ct.ThrowIfCancellationRequested();
+            logger.LogWarning(ex, "Import status lookup unavailable");
+            return new ImportStatus { Stage = ImportStage.Unavailable };
         }
     }
 
