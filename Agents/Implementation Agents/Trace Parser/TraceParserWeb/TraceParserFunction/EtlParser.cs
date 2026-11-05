@@ -1,4 +1,3 @@
-using System.Threading.Channels;
 using Microsoft.Diagnostics.Tracing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Data.SqlClient;
@@ -128,16 +127,12 @@ public class EtlParser(SqlImporter importer, ILogger<EtlParser> logger)
 
     public ParseStats Parse(string etlFilePath, int traceId, SqlConnection conn)
     {
+        // Reject an incomplete buffer header before constructing the native reader:
+        // TraceEvent 3.1.13 can fault in its finalizer after failed construction.
+        if (new FileInfo(etlFilePath).Length < 64)
+            throw new InvalidDataException("ETL file is too short to contain an ETW buffer header.");
         var dims = new InMemoryDimensions();
         importer.ClearState();
-
-        // Clean up staging table from any previous/failed run
-        using (var cmd = conn.CreateCommand())
-        {
-            cmd.CommandText = "TRUNCATE TABLE StageTraceLines";
-            cmd.ExecuteNonQuery();
-        }
-        logger.LogInformation("StageTraceLines truncated.");
 
         // Phase 1: Parse ETL + stream rows to StageTraceLines (with temp negative ThreadIds)
         var stats = ParseAndStream(etlFilePath, traceId, dims, conn);
@@ -145,10 +140,7 @@ public class EtlParser(SqlImporter importer, ILogger<EtlParser> logger)
         // Phase 2: Bulk upsert all dimensions, get threadMap
         logger.LogInformation("Phase 1 complete. Enter={Enter} SQL={Stmt} Staged={Staged}. Starting Phase 2 (dimensions + remap)...",
             stats.Enter, stats.Stmt, stats.Staged);
-        var threadMap = importer.BulkInsertDimensions(conn, traceId, dims);
-
-        // Phase 3: Remap temp ThreadIds in StageTraceLines + bind params
-        importer.RemapStageThreadIds(conn, threadMap);
+        importer.FinishDimensions(conn, traceId, dims, stats);
 
         logger.LogInformation("Parse complete. Enter={Enter} Exit={Exit} Stmt={Stmt} Bind={Bind} Fetch={Fetch} Msg={Msg} Staged={Staged} Mismatch={Mismatch}",
             stats.Enter, stats.Exit, stats.Stmt, stats.Bind, stats.Fetch, stats.Msg, stats.Staged, stats.Mismatch);
@@ -174,23 +166,9 @@ public class EtlParser(SqlImporter importer, ILogger<EtlParser> logger)
         long eventCount   = 0;
         int  batchNum     = 0;
 
-        // Channel for parallel parse+SQL: producer (parse) → consumer (SQL flush)
-        var channel = Channel.CreateBounded<(List<StageRow> rows, List<BindParamRow> bps)>(
-            new BoundedChannelOptions(3) { FullMode = BoundedChannelFullMode.Wait });
-        Exception? consumerError = null;
-        var cts = new CancellationTokenSource();
-
-        var consumerTask = Task.Run(async () =>
-        {
-            try
-            {
-                await foreach (var (rows, bps) in channel.Reader.ReadAllAsync())
-                    importer.FlushStageBatch(conn, rows, bps);
-            }
-            catch (Exception ex) { consumerError = ex; cts.Cancel(); }
-        });
-
+        using var writer = new StageBatchWriter(importer, conn);
         using var source = new ETWTraceEventSource(etlFilePath);
+        using var stopParsing = writer.Token.Register(source.StopProcessing);
 
         // Pre-load D365 ETW provider manifests so DynamicTraceEventParser can decode
         // events on machines where the providers aren't registered (e.g. Azure)
@@ -207,6 +185,7 @@ public class EtlParser(SqlImporter importer, ILogger<EtlParser> logger)
         var providersSeen = new HashSet<Guid>();
         source.AllEvents += evt =>
         {
+            writer.CheckCancellation();
             allEventCount++;
             providersSeen.Add(evt.ProviderGuid);
             if (D365Providers.Contains(evt.ProviderGuid)) d365AllCount++;
@@ -407,7 +386,7 @@ public class EtlParser(SqlImporter importer, ILogger<EtlParser> logger)
                         EventId = 4922, EventLevel = 4, EventType = 4,
                     };
                     foreach (var kv in ts2.BindParams)
-                        bpBatch.Add(new BindParamRow { TempSeq = (int)stmtSeq, ThreadId = tid, ParamIdx = kv.Key, BindVal = kv.Value });
+                        bpBatch.Add(new BindParamRow { TempSeq = checked((int)stmtSeq), ThreadId = tid, ParamIdx = kv.Key, BindVal = kv.Value });
                     ts2.BindParams.Clear();
                     if (sql.TrimStart().StartsWith("SELECT", StringComparison.OrdinalIgnoreCase))
                     {
@@ -501,14 +480,14 @@ public class EtlParser(SqlImporter importer, ILogger<EtlParser> logger)
                     batchNum, batch.Count, totalFlushed + batch.Count);
                 totalFlushed += batch.Count;
                 // Hand off batch to consumer; create new lists for next batch
-                channel.Writer.WriteAsync((batch, bpBatch), cts.Token).AsTask().GetAwaiter().GetResult();
+                writer.Write(batch, bpBatch);
                 batch = new List<StageRow>(BATCH_SIZE);
                 bpBatch = new List<BindParamRow>();
-                if (consumerError != null) throw new InvalidOperationException("SQL flush failed", consumerError);
             }
         };
 
         source.Process();
+        writer.CheckCancellation();
 
         // Diagnostic: report manifest coverage
         logger.LogInformation(
@@ -548,17 +527,15 @@ public class EtlParser(SqlImporter importer, ILogger<EtlParser> logger)
         }
 
         // Final flush — send remaining rows to channel and complete
-        if (batch.Count > 0)
+        if (batch.Count > 0 || bpBatch.Count > 0)
         {
             batchNum++;
             logger.LogInformation("  Sending final batch #{Num} ({Count:N0} rows, total: {Total:N0}) to SQL writer...",
                 batchNum, batch.Count, totalFlushed + batch.Count);
             totalFlushed += batch.Count;
-            channel.Writer.WriteAsync((batch, bpBatch), cts.Token).AsTask().GetAwaiter().GetResult();
+            writer.Write(batch, bpBatch);
         }
-        channel.Writer.Complete();
-        consumerTask.GetAwaiter().GetResult(); // wait for all SQL writes to finish
-        if (consumerError != null) throw new InvalidOperationException("SQL flush failed", consumerError);
+        writer.Complete();
 
         stats.Staged = totalFlushed;
         logger.LogInformation("Streaming complete. {Total:N0} rows flushed to StageTraceLines in {Batches} batches.",

@@ -37,6 +37,7 @@ PRINT '';
 --   Body: { "TraceId": 2, "Keyword": "INVENTTABLE", "SearchIn": "ALL", "MaxResults": 100 }
 -- ============================================================
 
+GO
 CREATE OR ALTER PROCEDURE dbo.sp_SearchTracesByKeyword
     @TraceId INT,
     @Keyword NVARCHAR(500),
@@ -56,6 +57,7 @@ BEGIN
         us.SessionId,
         us.SessionName,
         tl.TimeStamp,
+        tl.StoredDurationUnit,
         CAST(tl.InclusiveDurationNano / 1000000.0 AS DECIMAL(18,2)) AS InclusiveMs,
         CAST(tl.ExclusiveDurationNano / 1000000.0 AS DECIMAL(18,2)) AS ExclusiveMs,
         CAST(tl.DatabaseDurationNano / 1000000.0 AS DECIMAL(18,2)) AS DatabaseMs,
@@ -79,7 +81,7 @@ BEGIN
                 CASE WHEN qt.TableNames LIKE @Pattern THEN 'TABLE' ELSE NULL END
             ELSE 'MULTIPLE'
         END AS MatchedIn
-    FROM dbo.TraceLines tl
+    FROM dbo.vw_UnitAwareTraceLines tl
     INNER JOIN dbo.UserSessionProcessThreads uspt 
         ON tl.UserSessionProcessThreadId = uspt.UserSessionProcessThreadId
     INNER JOIN dbo.UserSessions us 
@@ -120,6 +122,7 @@ PRINT '';
 -- Simplified version: Search SQL only
 -- ============================================================
 
+GO
 CREATE OR ALTER PROCEDURE dbo.sp_SearchSqlStatements
     @TraceId INT,
     @Keyword NVARCHAR(500),
@@ -136,12 +139,13 @@ BEGIN
         us.SessionId,
         us.SessionName,
         tl.TimeStamp,
+        tl.StoredDurationUnit,
         CAST(tl.DatabaseDurationNano / 1000000.0 AS DECIMAL(18,2)) AS ExecutionMs,
         mn.Name AS MethodName,
         qs.Statement AS SqlStatement,
         qt.TableNames,
         tl.RowFetchCount
-    FROM dbo.TraceLines tl
+    FROM dbo.vw_UnitAwareTraceLines tl
     INNER JOIN dbo.UserSessionProcessThreads uspt 
         ON tl.UserSessionProcessThreadId = uspt.UserSessionProcessThreadId
     INNER JOIN dbo.UserSessions us 
@@ -169,6 +173,7 @@ PRINT '';
 -- Simplified version: Search Methods only
 -- ============================================================
 
+GO
 CREATE OR ALTER PROCEDURE dbo.sp_SearchMethods
     @TraceId INT,
     @Keyword NVARCHAR(500),
@@ -185,12 +190,13 @@ BEGIN
         us.SessionId,
         us.SessionName,
         tl.TimeStamp,
+        tl.StoredDurationUnit,
         CAST(tl.InclusiveDurationNano / 1000000.0 AS DECIMAL(18,2)) AS InclusiveMs,
         CAST(tl.ExclusiveDurationNano / 1000000.0 AS DECIMAL(18,2)) AS ExclusiveMs,
         mn.Name AS MethodName,
         tl.DatabaseCalls,
         CAST(tl.DatabaseDurationNano / 1000000.0 AS DECIMAL(18,2)) AS DatabaseMs
-    FROM dbo.TraceLines tl
+    FROM dbo.vw_UnitAwareTraceLines tl
     INNER JOIN dbo.UserSessionProcessThreads uspt 
         ON tl.UserSessionProcessThreadId = uspt.UserSessionProcessThreadId
     INNER JOIN dbo.UserSessions us 
@@ -214,6 +220,7 @@ PRINT '';
 -- Simplified version: Search Messages only
 -- ============================================================
 
+GO
 CREATE OR ALTER PROCEDURE dbo.sp_SearchMessages
     @TraceId INT,
     @Keyword NVARCHAR(500),
@@ -230,11 +237,12 @@ BEGIN
         us.SessionId,
         us.SessionName,
         tl.TimeStamp,
+        tl.StoredDurationUnit,
         mn.Name AS MethodName,
         m.MessageText,
         tl.EventType,
         tl.EventName
-    FROM dbo.TraceLines tl
+    FROM dbo.vw_UnitAwareTraceLines tl
     INNER JOIN dbo.UserSessionProcessThreads uspt 
         ON tl.UserSessionProcessThreadId = uspt.UserSessionProcessThreadId
     INNER JOIN dbo.UserSessions us 
