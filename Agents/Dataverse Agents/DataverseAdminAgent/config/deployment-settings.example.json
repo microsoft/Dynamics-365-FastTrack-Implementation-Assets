@@ -1,0 +1,62 @@
+{
+  "EnvironmentVariables": [
+    {
+      "SchemaName": "ft_EnvURL",
+      "Value": "",
+      "Name": {
+        "Default": "Env URL",
+        "ByLcid": {
+          "1033": "Env URL"
+        }
+      },
+      "TypeId": 100000000,
+      "Description": {
+        "Default": "Dataverse Env URL",
+        "ByLcid": {
+          "1033": "Dataverse Env URL"
+        }
+      },
+      "IsRequired": true
+    },
+    {
+      "SchemaName": "ft_LicensingClientId",
+      "Value": "",
+      "Name": {
+        "Default": "Licensing Connector Client ID",
+        "ByLcid": {
+          "1033": "Licensing Connector Client ID"
+        }
+      },
+      "TypeId": 100000000,
+      "Description": {
+        "Default": "Application (client) ID of the Entra ID app registration used by the Get Licensing Info connector. Supplied per customer environment.",
+        "ByLcid": {
+          "1033": "Application (client) ID of the Entra ID app registration used by the Get Licensing Info connector. Supplied per customer environment."
+        }
+      },
+      "IsRequired": true
+    }
+  ],
+  "ConnectionReferences": [
+    {
+      "LogicalName": "ft_DataverseAdminAgent.shared_ft-5fget-20licensing-20info-5f8c04c362324cff68.72b242f9-af77-49fc-8275-99ddbfb8552c",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_ft-5fget-20licensing-20info-5f46956c1a7f123095"
+    },
+    {
+      "LogicalName": "ft_dataverseadminagent_ZHVnVg.cr.shared_commondataser.22ba0dc596924d7c9c321a00933c3270",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+    },
+    {
+      "LogicalName": "ft_dataverseadminagent_ZHVnVg.cr.shared_ft-5fget-20li.97c185c02f7d48bab5ddf6e97f9a8342",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_ft-5fget-20licensing-20info-5f46956c1a7f123095"
+    },
+    {
+      "LogicalName": "ft_sharedcommondataserviceforapps_f0f6b",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+    }
+  ]
+}
