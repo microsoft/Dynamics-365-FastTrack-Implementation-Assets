@@ -38,7 +38,7 @@ dotnet --list-runtimes
 
 ```
 
-The SDK provides tool restore. DAB `1.7.83-rc` targets .NET 8 and ASP.NET Core 8;
+The SDK provides tool restore. DAB `2.0.12` targets .NET 8 and ASP.NET Core 8;
 install both runtimes for this baseline. The .NET 8 SDK includes them.
 
 Download from: https://dotnet.microsoft.com/download/dotnet/8.0
@@ -111,7 +111,7 @@ with the first two commands.
 ```powershell
 # Empty standalone directory only; skip these two commands in the repository
 dotnet new tool-manifest
-dotnet tool install microsoft.dataapibuilder --version 1.7.83-rc
+dotnet tool install microsoft.dataapibuilder --version 2.0.12
 
 # Restore tools
 dotnet tool restore
@@ -126,7 +126,7 @@ dotnet tool list --local
 ```
 Package Id                       Version      Commands
 ------------------------------------------------------------
-microsoft.dataapibuilder         1.7.83-rc    dab
+microsoft.dataapibuilder         2.0.12       dab
 
 ```
 
@@ -553,14 +553,14 @@ MSSQL_CONNECTION_STRING=Server=(LocalDB)\MSSQLLocalDB;Database=AxTrace;Trusted_C
 
 The standalone example below uses lowercase `development` for local testing.
 The repository configuration uses lowercase `production`. Both use the schema
-from the exact source commit for DAB `1.7.83-rc`; see the
+from the DAB `2.0.12` release; see the
 [version contract](../README.md#dab-version-contract) for the pin and upgrade rules.
 
 Create a file named `dab-config.json` in `C:\TraceParserMCP`:
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/Azure/data-api-builder/c7927fa9885160ed35bcc9b25b13fd59b88f3133/schemas/dab.draft.schema.json",
+  "$schema": "https://github.com/Azure/data-api-builder/releases/download/v2.0.12/dab.draft.schema.json",
   "data-source": {
     "database-type": "mssql",
     "connection-string": "@env('MSSQL_CONNECTION_STRING')"
@@ -590,7 +590,8 @@ Create a file named `dab-config.json` in `C:\TraceParserMCP`:
         "read-records": true,
         "update-record": false,
         "delete-record": false,
-        "execute-entity": true
+        "execute-entity": true,
+        "aggregate-records": { "enabled": false }
       }
     }
   },
