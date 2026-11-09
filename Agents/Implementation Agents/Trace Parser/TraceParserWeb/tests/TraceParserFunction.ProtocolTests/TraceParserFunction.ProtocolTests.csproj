@@ -21,6 +21,7 @@
     <None Include="..\..\..\TraceParserMCP\Duration units.sql" Link="Duration units.sql" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\sql\sp_DeleteTrace.sql" Link="sp_DeleteTrace.sql" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\sql\durable-deletion.sql" Link="durable-deletion.sql" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\sql\full-sql-text.sql" Link="full-sql-text.sql" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\TraceParserFunction\Manifests\*.man" Link="Manifests\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Fixture.sql" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
