@@ -70,7 +70,7 @@ The solution uses:
   queries.
 
 `config/deployment-settings.example.json` lists four connection references
-because both the Copilot agent and backend components reference the connectors.
+because both the Copilot agent and cloud flows reference the connectors.
 Populate every `ConnectionId` in a private deployment copy. A connection ID is
 environment-specific even though it isn't a credential.
 
@@ -78,14 +78,38 @@ All Dataverse reads and writes must run in the signed-in user's own Dataverse
 security context. Don't substitute a broadly privileged shared service
 connection. Microsoft Entra ID sign-in is required in every channel.
 
-The managed package is not customizable: its model and instructions are fixed
-to the reviewed configuration. For a different model or other changes, import
-the unmanaged package into a development environment and manage it through your
-own ALM. Any change to the model, instructions, tools, flows, channels, or
+Verify **Run as the signed-in user** on the Microsoft Dataverse connection in
+each of the five agent flows: **Preview Role Assignment**, **Execute Role
+Assignment**, **Preview Team Membership**, **Execute Team Membership**, and
+**Cancel Confirmation**. An active flow or a connected connection reference
+alone does not verify this setting. In exported flow JSON, the Dataverse
+connection reference must contain `"impersonation": {"source": "invoker"}`.
+All five cloud flows must retain this invoker-identity setting.
+
+If this setting is missing in a managed deployment, correct it in the unmanaged
+source and promote a new package. For an unmanaged development installation,
+repair the affected flows, verify they remain active, and export the corrected
+solution. Independently test allowed and denied behavior with appropriate
+operators before production use.
+
+In the managed package, the agent's instructions, skills and tools, and the
+cloud flows, are locked. Customers who need a different model or other changes
+should import the unmanaged package into a development environment and manage
+it through their own ALM. Any change to the model, instructions, tools, flows, channels, or
 connections is the customer's responsibility and is outside the configuration
 Microsoft reviewed. See the [Transparency Note](./transparency-note.md).
 
 ## Dataverse security
+
+All five cloud flows (**Preview Role Assignment**, **Execute Role Assignment**,
+**Preview Team Membership**, **Execute Team Membership**, and
+**Cancel Confirmation**) run with the invoking administrator's identity
+("Use invoker's connection"). Dataverse applies that administrator's
+privileges to every read and write; an administrator cannot assign a role
+containing privileges they do not hold.
+
+Operators need Create, Read and Write privileges on the **Admin Agent Write
+Log** table (`ft_adminagentwritelog`).
 
 The agent doesn't elevate permissions. Operators need only the privileges
 required for the data and actions they are authorized to use. At minimum,
@@ -96,7 +120,8 @@ review access to:
 - Dataverse audit data for audit-history scenarios;
 - association privileges needed to assign an existing role or add an existing
   team member;
-- the solution's write-log table.
+- Create, Read and Write privileges on the **Admin Agent Write Log** table
+  (`ft_adminagentwritelog`).
 
 Use separate test operators to confirm both allowed and denied behavior.
 Results can differ between operators because Dataverse applies each caller's
@@ -133,6 +158,7 @@ group and blocks unapproved connector combinations. See
 - [ ] Connector secret is stored only in the target environment.
 - [ ] All connection references resolve successfully.
 - [ ] Dataverse connections use the intended user context.
+- [ ] All five agent flows have **Run as the signed-in user** enabled.
 - [ ] Flows are enabled and tested.
 - [ ] Auditing and retention are configured.
 - [ ] Data policy allows only approved connector combinations.

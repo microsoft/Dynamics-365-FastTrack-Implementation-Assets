@@ -99,9 +99,13 @@ and then the exact word `CONFIRM`. Resolve ambiguous identities and duplicate
 names before proceeding. Responses such as "yes", "ok", or "proceed" do not
 confirm the action; any other response cancels the pending operation.
 
-Confirmation is operator-bound, single-use, tied to the previewed change, and
-expires after five minutes. These controls are enforced in Power Automate,
-not by the model. One confirmation authorizes only one change. The agent does
+The agent requires the exact word `CONFIRM` before it calls an execution tool.
+This check is performed by the agent, not by Power Automate; the execution
+flows do not receive the confirmation text. Power Automate independently
+verifies that each execution matches a recorded preview (same user, same
+target, same change type), is requested by the same operator who created the
+preview, is single-use, and occurs within five minutes of the preview.
+One confirmation authorizes only one change. The agent does
 not perform unattended or bulk administrative execution.
 
 Read each preview carefully and follow organizational approval and
@@ -157,10 +161,10 @@ their own deployment and any changes.
 
 ## Customization and customer responsibility
 
-The managed package is not customizable. Its model and instructions are fixed
-to the reviewed configuration. Customers who need a different model or other
-changes should import the unmanaged package into a development environment and
-manage it through their own application lifecycle management (ALM).
+In the managed package, the agent's instructions, skills and tools, and the
+cloud flows, are locked. Customers who need a different model or other changes
+should import the unmanaged package into a development environment and manage
+it through their own ALM.
 
 Any change to the model, instructions, tools, flows, channels, or connections
 is the customer's responsibility and is outside the configuration Microsoft

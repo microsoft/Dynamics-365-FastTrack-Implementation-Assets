@@ -18,6 +18,8 @@ Before installation, confirm all of the following:
   grant delegated Microsoft Graph permissions, or help from an Entra
   administrator.
 - Permission to create and use Dataverse and custom-connector connections.
+- Create, Read and Write privileges on the **Admin Agent Write Log** table
+  (`ft_adminagentwritelog`) for operators.
 - A Power Platform data policy that allows Microsoft Dataverse and the included
   custom Microsoft Graph connector to be used together.
 - Dataverse auditing enabled and retained for any audit-history or
@@ -49,7 +51,7 @@ source control.
 2. Select the target environment and verify its name and URL.
 3. Go to **Solutions** and select **Import solution**.
 4. Upload
-   `solutions/DataverseAdminAgent_1_0_0_0_managed.zip`.
+   `solutions/DataverseAdminAgent_1_0_0_1_managed.zip`.
 5. Set **Env URL** to the target environment's HTTPS URL.
 6. Set **Licensing Connector Client ID** to the Entra application's
    application (client) ID.
@@ -87,7 +89,7 @@ pac auth list
 
 pac solution import `
   --environment "https://<environment-name>.crm.dynamics.com" `
-  --path ".\solutions\DataverseAdminAgent_1_0_0_0_managed.zip" `
+  --path ".\solutions\DataverseAdminAgent_1_0_0_1_managed.zip" `
   --settings-file "<secure-path>\deployment-settings.json" `
   --publish-changes
 ```
@@ -131,9 +133,12 @@ account to bypass this step.
 
 If **Get user license details** is visible and connected under **Tools** but the
 agent says it isn't available at runtime, the following tool-binding repair
-requires the unmanaged package in a development environment. The managed
-package is not customizable; do not remove or add tools in the managed
-deployment. Manage changes through your own ALM; they are your responsibility
+requires the unmanaged package in a development environment. In the managed
+package, the agent's instructions, skills and tools, and the cloud flows, are
+locked. Customers who need a different model or other changes should import
+the unmanaged package into a development environment and manage it through
+their own ALM. Do not remove or add tools in the managed deployment.
+Manage changes through your own ALM; they are your responsibility
 and outside the configuration Microsoft reviewed.
 
 1. Remove **Get user license details** from the agent.
@@ -172,6 +177,13 @@ In Copilot Studio, open **Dataverse Admin Agent** and test:
    verify that Dataverse rejects it.
 6. An ambiguous user, role, or team name; verify that the agent asks for
    clarification.
+7. Run a role assignment as an administrator who is not the flow owner; verify
+   Dataverse audit history records that administrator as the user who made the
+   change.
+8. Attempt a role assignment as an operator who lacks privileges contained in
+   that role; verify Dataverse rejects it.
+9. Preview a team-membership change, reply with anything other than `CONFIRM`,
+   and verify the cancellation succeeds.
 
 Check Power Automate run history, Dataverse audit history, and the agent's
 connection status. Resolve every failed connection, disabled flow, or missing
@@ -253,6 +265,39 @@ To include both channels in a managed deployment:
 Channel configuration is separate from sharing or submission to the
 organization's catalog. Don't submit for organization-wide distribution unless
 that audience has been explicitly approved.
+
+## Reinstall as unmanaged for development
+
+A managed installation cannot be converted to unmanaged by importing the
+unmanaged ZIP over it. Use a development environment and assess dependencies
+before removing the managed solution. Uninstalling can delete the agent, flows,
+custom connector, and **Admin Agent Write Log** table and its records. Obtain
+approval for data loss or retain required records first.
+
+Keep the non-secret environment-variable values and connection-reference
+configuration outside source control. Licensing authentication may need to be
+configured again after reinstalling the connector.
+
+1. Uninstall the managed `DataverseAdminAgent` solution.
+2. Verify that it no longer appears in the target environment's solution list
+   before importing `solutions/DataverseAdminAgent_1_0_0_1.zip`.
+3. Complete connector setup and validate the flows as described above. Confirm
+   the new solution reports **Managed: False**.
+
+If the uninstall client loses its connection, check the server-side solution
+list before retrying. A connection failure does not prove that the server
+rolled back the uninstall.
+
+An immediate reimport can fail with **Cannot update a soft deleted connector**
+(`14052`), even when the connector is absent from the maker portal and
+`pac connector list`. Do not treat that as a successful reinstall. Resolve the
+retained connector with Power Platform support, or explicitly approve a
+development-only source rebuild with a fresh connector identity and fresh
+licensing connection-reference logical names. Keep the connector display name
+within 30 characters, update the agent's tool and association bindings together,
+and verify the actual target connector ID after import. The recreated connector
+requires a new connection; do not reuse a connection to the deleted connector.
+Keep such a development rebuild separate from the reviewed release packages.
 
 ## Rollback
 

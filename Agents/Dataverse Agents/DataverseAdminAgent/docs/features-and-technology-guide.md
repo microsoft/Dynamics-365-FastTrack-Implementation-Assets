@@ -1,6 +1,6 @@
 # Dataverse Admin Agent: Features and Technology Guide
 
-**Solution version 1.0.0.0**
+**Solution version 1.0.0.1**
 
 ## At a glance
 
@@ -78,8 +78,10 @@ The agent supports exactly two types of write operation:
 - Assign one existing Dataverse security role to one existing user.
 - Add one existing user to one existing Dataverse team.
 
-Each request is previewed before it can be applied. The backend validates the
-recorded request again before executing the change.
+Each request is previewed before it can be applied. The agent requires the
+exact word `CONFIRM` before it calls an execution tool. Power Automate
+independently verifies that the execution matches a recorded preview by the
+same operator, is single-use, and occurs within five minutes.
 
 ## Example requests
 
@@ -112,15 +114,17 @@ signed-in operator's permissions.
 5. **Check the result:** Review the final status. If verification is
    inconclusive, check Dataverse directly before attempting the change again.
 
-Confirmation is single-use, bound to the operator and previewed target, and
-expires after five minutes. These checks are enforced in Power Automate, not
-by the model. Confirmation is an execution safeguard, not a substitute for an
-approval workflow.
+The agent checks the exact word `CONFIRM`; the execution flows do not receive
+the confirmation text. Power Automate independently verifies that each
+execution matches a recorded preview (same user, same target, same change
+type), is requested by the same operator who created the preview, is
+single-use, and occurs within five minutes of the preview. Confirmation is an
+execution safeguard, not a substitute for an approval workflow.
 
 ## Technology overview
 
 The sample combines conversational assistance with connected administrative
-tools and backend validation.
+tools and independent Power Automate execution checks.
 
 | Component | Role in the solution |
 |---|---|
@@ -129,7 +133,7 @@ tools and backend validation.
 | Power Automate | Provides five cloud flows supporting the controlled-write process |
 | Admin Agent Write Log table | Holds change-control records used by the controlled-write process |
 | Microsoft Graph | Supplies read-only user licensing details |
-| Get Licensing Info custom connector | Connects the agent and backend components to Microsoft Graph using delegated authentication |
+| Get Licensing Info custom connector | Connects the agent to Microsoft Graph using delegated authentication |
 | Microsoft Entra ID | Provides the app registration and delegated authorization used by the licensing connector |
 | Power Platform solutions | Package the agent, connector, flows, table, environment variables, and connection references |
 
@@ -145,10 +149,10 @@ Copilot Studio agent
         |
         +-- License lookups --> Custom connector --> Microsoft Graph
         |
-        +-- Supported change --> Preview --> Exact CONFIRM
+        +-- Supported change --> Preview --> Agent checks exact CONFIRM
                                       |
                                       v
-                          Backend validation and flows
+                          Power Automate execution checks
                                       |
                                       v
                           Dataverse change and write log
@@ -172,6 +176,8 @@ security group or channel.
 - An organizational account authorized to use the published agent.
 - Access to the intended Dataverse environment and the privileges needed for
   each requested lookup or change.
+- Create, Read and Write privileges on the **Admin Agent Write Log** table
+  (`ft_adminagentwritelog`).
 - Any required end-user connection sign-in and consent.
 - Familiarity with Dataverse roles, teams, business units, and the
   organization's access-approval process.

@@ -67,9 +67,12 @@ For a supported write operation:
 5. Review the final status. If verification is inconclusive, treat the outcome
    as unknown and check Dataverse directly.
 
-A confirmation is single-use, operator-bound, tied to the previewed target, and
-expires after five minutes. These checks are enforced in Power Automate, not
-by the model. Never confirm a change you don't independently understand and
+The agent requires the exact word `CONFIRM` before it calls an execution tool.
+The execution flows do not receive the confirmation text. Power Automate
+independently verifies that each execution matches a recorded preview (same
+user, same target, same change type), is requested by the same operator who
+created the preview, is single-use, and occurs within five minutes of the
+preview. Never confirm a change you don't independently understand and
 authorize.
 
 ## Interpreting results
