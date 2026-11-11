@@ -7,9 +7,14 @@ lookups and two controlled write operations:
 - assign an existing security role to one existing user;
 - add one existing user to an existing team.
 
-Every supported write is previewed first. The administrator must reply with the
-exact word `CONFIRM`; the backend then validates the recorded request again
-before applying it. This sample doesn't replace access governance, approval,
+Every supported write is previewed first. The agent requires the exact word
+`CONFIRM` before it calls an execution tool. This check is performed by the
+agent, not by Power Automate; the execution flows do not receive the
+confirmation text. Power Automate independently verifies that each execution
+matches a recorded preview (same user, same target, same change type), is
+requested by the same operator who created the preview, is single-use, and
+occurs within five minutes of the preview.
+This sample doesn't replace access governance, approval,
 or periodic access-review processes.
 
 ## Capabilities
@@ -20,7 +25,7 @@ or periodic access-review processes.
 | Security metadata | Role, team, and business-unit lookup with disambiguation |
 | Housekeeping | Disabled-user and recorded-access reports when required Dataverse auditing is available |
 | Licensing | Read-only Microsoft Graph lookup of assigned SKUs, service plans, and provisioning status |
-| Controlled writes | Assign a role or add a team member after preview and verified confirmation |
+| Controlled writes | Assign a role or add a team member after the agent receives the exact word CONFIRM and Power Automate independently verifies the preview, operator, single-use, and five-minute execution checks |
 
 The agent doesn't create users, reset passwords, change Microsoft Entra
 settings, alter role or team definitions, remove assignments, perform bulk
@@ -40,8 +45,8 @@ DataverseAdminAgent/
 |   |-- transparency-note.md
 |   `-- user-guide.md
 `-- solutions/
-    |-- DataverseAdminAgent_1_0_0_0.zip
-    `-- DataverseAdminAgent_1_0_0_0_managed.zip
+    |-- DataverseAdminAgent_1_0_0_1.zip
+    `-- DataverseAdminAgent_1_0_0_1_managed.zip
 ```
 
 The unmanaged ZIP is provided for development and inspection. The managed ZIP
@@ -91,13 +96,14 @@ prerequisites, see the
 - Output is text only: no images, audio, video, or files.
 - Writes are limited to assigning one existing security role to one existing
   user or adding one existing user to one existing team. Each requires human
-  preview followed by the exact word `CONFIRM`. Confirmation is operator-bound,
-  single-use, expires after five minutes, and is enforced in Power Automate,
-  not by the model.
-- The managed package is not customizable: its model and instructions are
-  fixed to the reviewed configuration. For a different model or other changes,
-  import the unmanaged package into a development environment and manage it
-  through your own ALM.
+  preview followed by the exact word `CONFIRM`. The agent checks that exact word
+  before calling an execution tool. Power Automate independently verifies that
+  the execution matches a recorded preview by the same operator, is single-use,
+  and occurs within five minutes.
+- In the managed package, the agent's instructions, skills and tools, and the
+  cloud flows, are locked. Customers who need a different model or other changes
+  should import the unmanaged package into a development environment and manage
+  it through their own ALM.
 - Any change to the model, instructions, tools, flows, channels, or connections
   is the customer's responsibility and is outside the configuration Microsoft
   reviewed.
@@ -107,7 +113,7 @@ prerequisites, see the
 ## Release information
 
 - Solution unique name: `DataverseAdminAgent`
-- Solution version: `1.0.0.0`
+- Solution version: `1.0.0.1`
 - Publisher unique name: `FastTrackAgenticSolutions`
 - Publisher display name: `FastTrack Agentic Solutions`
 - Publisher prefix: `ft`
@@ -122,3 +128,11 @@ for validating, deploying, operating, and governing it in their environments.
 When published to
 [`microsoft/Dynamics-365-FastTrack-Implementation-Assets`](https://github.com/microsoft/Dynamics-365-FastTrack-Implementation-Assets),
 the sample is provided under that repository's MIT License.
+
+## Release notes
+
+### 1.0.0.1
+
+- All five cloud flows run with the invoking administrator's identity, restoring the behavior of the security-reviewed build (role-assignment and cancellation flows previously used the connection owner).
+- Cloud flows are locked in the managed package.
+- Documentation clarifies which confirmation controls are applied by the agent and which by Power Automate, and the privileges required on the write-log table.

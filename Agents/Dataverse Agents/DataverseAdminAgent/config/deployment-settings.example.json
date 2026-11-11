@@ -39,9 +39,9 @@
   ],
   "ConnectionReferences": [
     {
-      "LogicalName": "ft_DataverseAdminAgent.shared_ft-5fget-20licensing-20info-5f8c04c362324cff68.72b242f9-af77-49fc-8275-99ddbfb8552c",
+      "LogicalName": "ft_adminagentdev_licensing20261106",
       "ConnectionId": "",
-      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_ft-5fget-20licensing-20info-5f46956c1a7f123095"
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_new-5fget-20licensing-20info-5fb3c47c609fd54d20"
     },
     {
       "LogicalName": "ft_dataverseadminagent_ZHVnVg.cr.shared_commondataser.22ba0dc596924d7c9c321a00933c3270",
@@ -49,9 +49,9 @@
       "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
     },
     {
-      "LogicalName": "ft_dataverseadminagent_ZHVnVg.cr.shared_ft-5fget-20li.97c185c02f7d48bab5ddf6e97f9a8342",
+      "LogicalName": "ft_adminagentdev_licensingtool20261106",
       "ConnectionId": "",
-      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_ft-5fget-20licensing-20info-5f46956c1a7f123095"
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_new-5fget-20licensing-20info-5fb3c47c609fd54d20"
     },
     {
       "LogicalName": "ft_sharedcommondataserviceforapps_f0f6b",
