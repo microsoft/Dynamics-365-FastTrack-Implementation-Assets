@@ -86,7 +86,9 @@ On the **Product Search** tab, click **Initialize index** to start the index cre
 
 1. Open a **Sales Order** and click the new **AI Product Search** button.
 2. Enter search text and click **Search**. You can include variant values, for example `red polo XL`.
-   Select a category in the tree to search within that category; select **All** to search all categories again.
+   Select a category in the tree to narrow the results shown. A new search text always searches
+   all categories; click **Search** again with the same text to search only the selected category.
+   The "Searched in" label under the Search button shows which categories were searched.
 3. Select a product and click **Add**. Repeat as needed; once items are selected and dimensions
    entered, click **OK** to add the products to the sales order lines.
 

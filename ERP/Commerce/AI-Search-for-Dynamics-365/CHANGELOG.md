@@ -17,7 +17,9 @@ version. The V7 files are now in `src/CCAISearch_V7_20260815.zip`.
 - **Category counts** in the category tree of the product search screen. New parameter
   **Category counts**: *Off*, *Retrieved results* (counts the results in the grid) or
   *All matches* (counts every match in the index).
-- **Category filter** – selecting a category searches within that category only.
+- **Category filter** – selecting a category in the tree narrows the results shown. A new search
+  text always searches all categories; clicking **Search** again with the same text searches
+  only the selected category. A "Searched in" label under the Search button shows the scope.
 
 ### Changed
 - **Function App (`ProductListStorageWriter`)** converts the new `VARIANTSJSON` and
