@@ -8,7 +8,7 @@ the ERP database.
 > Developed by the **Microsoft FastTrack** team. See the [Disclaimer](#disclaimer).
 
 > [!IMPORTANT]
-> This README always describes the **latest release** (currently **V7-20260815**).
+> This README always describes the **latest release** (currently **V8-20261116**).
 > If you are running an **older deployment package**, check out the matching Git tag on the
 > [Releases][releases] page to view the documentation as it was for that version, or read
 > [`CHANGELOG.md`](CHANGELOG.md) to see what has changed since your version.
@@ -43,6 +43,9 @@ This solution replaces **SQL-based product search in Dynamics 365** with **Azure
   conceptual matches
 - **Reduced ERP load** — search no longer burdens the database; all queries hit Azure AI Search
 - **Enterprise-grade** — fully managed, secure, scalable, with document-level access control
+- **Variant search** — finds products by variant color, size and style *(new in V8)*
+- **Category counts and filter** — product counts per category and search within a category
+  *(new in V8)*
 
 ## Architecture
 
@@ -53,8 +56,9 @@ This solution replaces **SQL-based product search in Dynamics 365** with **Azure
 1. **Data Export** – Dynamics 365 product master data is exported as CSV (via DMF) to Azure Blob
    Storage.
 2. **Data Transformation** – The **Function App** (`ProductListStorageWriter`) is triggered,
-   downloads the CSV, parses it into records, and uploads them as JSON chunks to a destination
-   blob container. It receives only the storage **endpoint URL** from D365 and authenticates to
+   downloads the CSV, parses it into records (converting the variant and category columns into
+   index fields), and uploads them as JSON chunks to a destination blob container. It receives
+   only the storage **endpoint URL** from D365 and authenticates to
    storage with its own **managed identity** — no storage key or connection string is sent or
    stored on the function.
 3. **Indexing** – **Azure AI Search** discovers and indexes the JSON chunks in near-real-time,
@@ -73,7 +77,7 @@ This solution replaces **SQL-based product search in Dynamics 365** with **Azure
 |---|---|---|
 | **Cloud indexing** | Azure AI Search (Semantic Ranker) | Semantic search, re-ranking, NLP |
 | **Data storage** | Azure Blob Storage | CSV source + JSON index data |
-| **Transformation** | .NET 8 Azure Function (isolated) | CSV ▸ JSON chunking + upload |
+| **Transformation** | .NET 10 Azure Function (isolated) | CSV ▸ JSON chunking + upload |
 | **Secrets mgmt** | Azure Key Vault | Secure credential storage |
 | **UI Integration** | Dynamics 365 X++ (FTA model) | Sales Order search form extension |
 
@@ -81,7 +85,7 @@ This solution replaces **SQL-based product search in Dynamics 365** with **Azure
 
 | Component | Location | Type | Deploy method |
 |---|---|---|---|
-| **Function App code & deployment** | `src/CCAISearch-Deploy/` | .NET 8 C# | See [Azure setup](docs/azure-setup.md) Step 4 |
+| **Function App code & deployment** | `src/CCAISearch-Deploy/` | .NET 10 C# | See [Azure setup](docs/azure-setup.md) Step 4 |
 | **D365 X++ source & deployment** | `src/Dynamics365/` | X++/XML | See [Dynamics 365 Model Deployment](docs/fno-model-deployment.md) |
 | **Azure resources** | n/a | Azure | See [Azure setup](docs/azure-setup.md) Steps 1–3, 5–7 |
 | **Configuration** | n/a | D365 forms | See [F&O configuration](docs/fno-configuration.md) |
@@ -103,11 +107,15 @@ Follow these guides **in order** to deploy the solution:
 
 All deployment packages are available in the [`src/`][releases] folder of this repository:
 
-- **Function App deployment package** – `CCAISearch-Deploy-v1.0.zip` (.NET 8 source code)
-- **Dynamics 365 model package** – `FTA_CCAISearch_V7_20260815.axpp` (pre-built X++ model)
+| Release | Dynamics 365 model package | Function App package | What's new |
+|---|---|---|---|
+| **V8-20261116** (latest) | `FTA_CCAISearch_V8_20261116.axpp` | `CCAISearch-Deploy-V8_20261116.zip` (.NET 10 source) | `What-is-new-in-V8_20261116.pdf` |
+| V7-20260815 | `FTA_CCAISearch_V7_20260815.axpp` | `CCAISearch-Deploy-v1.0.zip` (.NET 8 source) | `What-is-new-in-V7_20260815.pdf` |
 
 > Each release includes **both** artifacts. Always deploy the Function App package and the
-> D365 model package from the **same release** to keep the two sides in sync.
+> D365 model package from the **same release** to keep the two sides in sync, then run
+> **Initialize index**. To roll back, deploy both packages of the previous release.
+> From V8 the Function App package carries the release version in its name.
 
 See the deployment guides for instructions on how to use each package.
 

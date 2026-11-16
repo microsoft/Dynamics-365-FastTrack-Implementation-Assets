@@ -2,6 +2,39 @@
 
 All notable changes to this project are documented here.
 
+## [V8-20261116] – 2026-11-16
+
+Release artifacts: `FTA_CCAISearch_V8_20261116.axpp`, `CCAISearch-Deploy-V8_20261116.zip`,
+`What-is-new-in-V8_20261116.pdf`. The Function App package now follows the release version.
+
+### Added
+- **Variant search** – products are found by their variant color, size and style. Three new
+  parameters (**Include variant colors / sizes / styles in search**) choose which dimensions are
+  used for ranking and semantic search; cleared dimensions stay available as filters.
+- **Category counts** in the category tree of the product search screen. New parameter
+  **Category counts**: *Off*, *Retrieved results* (counts the results in the grid) or
+  *All matches* (counts every match in the index).
+- **Category filter** – selecting a category searches within that category only.
+
+### Changed
+- **Function App (`ProductListStorageWriter`)** converts the new `VARIANTSJSON` and
+  `CATEGORYRECIDSJSON` export columns into index fields. Function name and URL are unchanged;
+  both columns are optional, so data from older D365 versions still works. Runtime is now
+  **.NET 10 (isolated)**. Invalid request input returns `400 Bad Request`.
+- **Index schema** adds the variant and category fields, scoring and semantic configuration.
+- **Search** returns only the fields needed by the screen, without a total count, and uses one
+  database query for all result rows; fewer grid reloads.
+- **Search calls** time out after 60 seconds; Azure error details are written to the
+  integration log. A failed search shows a message and an empty result.
+- **Initialize index** switches search to the new index only after it completes successfully.
+- The data export blocks a comma or colon as column separator (they occur in variant data).
+
+### Upgrade notes
+- Deploy the D365 package (with **database synchronization**) and the Function App from this
+  release together, then run **Initialize index**. Roll back both together.
+- Set the Function App runtime to **.NET 10 (isolated)** before deploying the new package.
+- Existing parameters, Function URL and function key are unchanged.
+
 ## [V7-20260815] – 2026-08-15
 
 ### Changed

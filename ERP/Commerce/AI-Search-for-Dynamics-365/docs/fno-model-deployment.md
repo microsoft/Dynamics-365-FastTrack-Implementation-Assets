@@ -1,7 +1,7 @@
 # Dynamics 365 F&O – X++ source (FTA_CCAISearch)
 
 This folder contains the extracted X++ source of the **AI Product Search** D365 Finance &
-Operations model, as shipped in `FTA_CCAISearch_V7.axpp`.
+Operations model, as shipped in `FTA_CCAISearch_V8_20261116.axpp`.
 
 ## Structure
 
@@ -25,13 +25,14 @@ Key objects under `ProjectItem/`:
 
 ## How to build / deploy
 
-You normally deploy using the packaged **`FTA_CCAISearch_V7.axpp`** from the
+You normally deploy using the packaged **`FTA_CCAISearch_V8_20261116.axpp`** from the
 [`src/`][releases] folder rather than these loose files:
 
 1. On a D365 F&O development VM, open Visual Studio.
 2. **Dynamics 365 ▸ Import Project** and select the `.axpp` file.
 3. Build the model, then **Dynamics 365 ▸ Deploy** (or create a deployable package for a
    sandbox/production environment).
+4. Run **database synchronization** (V8 adds new fields to the data entity and parameters).
 
 To work from this source directly, place the `FTA` model under your
 `PackagesLocalDirectory` / metadata folder and open `Project/FTA_CCAISearch.rnrproj`.
