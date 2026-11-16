@@ -105,17 +105,17 @@ Follow these guides **in order** to deploy the solution:
 
 ## Downloads
 
-All deployment packages are available in the [`src/`][releases] folder of this repository:
+Each release is one zip in the [`src/`][releases] folder of this repository, containing the
+Dynamics 365 model package, the Function App source and the What's new document:
 
-| Release | Dynamics 365 model package | Function App package | What's new |
-|---|---|---|---|
-| **V8-20261116** (latest) | `FTA_CCAISearch_V8_20261116.axpp` | `CCAISearch-Deploy-V8_20261116.zip` (.NET 10 source) | `What-is-new-in-V8_20261116.pdf` |
-| V7-20260815 | `FTA_CCAISearch_V7_20260815.axpp` | `CCAISearch-Deploy-v1.0.zip` (.NET 8 source) | `What-is-new-in-V7_20260815.pdf` |
+| Release | Download | Contents |
+|---|---|---|
+| **V8-20261116** (latest) | `CCAISearch_V8_20261116.zip` | `FTA_CCAISearch_V8_20261116.axpp`, `CCAISearch-Deploy-V8_20261116/` (.NET 10 source), `What-is-new-in-V8_20261116.pdf` |
+| V7-20260815 | `CCAISearch_V7_20260815.zip` | `FTA_CCAISearch_V7_20260815.axpp`, `CCAISearch-Deploy-v1.0/` (.NET 8 source), `What-is-new-in-V7_20260815.pdf` |
 
-> Each release includes **both** artifacts. Always deploy the Function App package and the
-> D365 model package from the **same release** to keep the two sides in sync, then run
-> **Initialize index**. To roll back, deploy both packages of the previous release.
-> From V8 the Function App package carries the release version in its name.
+> Always deploy the Function App and the D365 model package from the **same release zip** to keep
+> the two sides in sync, then run **Initialize index**. To roll back, deploy both from the
+> previous release zip.
 
 See the deployment guides for instructions on how to use each package.
 

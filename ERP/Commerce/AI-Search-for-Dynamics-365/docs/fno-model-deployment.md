@@ -25,8 +25,8 @@ Key objects under `ProjectItem/`:
 
 ## How to build / deploy
 
-You normally deploy using the packaged **`FTA_CCAISearch_V8_20261116.axpp`** from the
-[`src/`][releases] folder rather than these loose files:
+You normally deploy using the packaged **`FTA_CCAISearch_V8_20261116.axpp`** from the release
+zip `CCAISearch_V8_20261116.zip` in the [`src/`][releases] folder rather than these loose files:
 
 1. On a D365 F&O development VM, open Visual Studio.
 2. **Dynamics 365 ▸ Import Project** and select the `.axpp` file.

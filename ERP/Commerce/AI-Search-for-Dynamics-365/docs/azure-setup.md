@@ -91,7 +91,7 @@ Now deploy the Function App code to the resource you just created.
 
 1. **Prepare the code folder:**
    - If cloned: Open `src/CCAISearch-Deploy` in VS Code
-   - If downloaded zip: Extract `CCAISearch-Deploy-V8_20261116.zip` and open the extracted folder in VS Code
+   - If downloaded zip: Extract `src/CCAISearch_V8_20261116.zip` and open the `CCAISearch-Deploy-V8_20261116` folder in VS Code
 
 2. In VS Code, press `Ctrl+Shift+P` ▸ **Azure Functions: Deploy to Function App…**
 
