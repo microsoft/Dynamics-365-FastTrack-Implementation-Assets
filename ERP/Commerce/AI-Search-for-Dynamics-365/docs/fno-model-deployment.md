@@ -25,11 +25,16 @@ Key objects under `ProjectItem/`:
 
 ## How to build / deploy
 
-You normally deploy using the packaged **`FTA_CCAISearch_V8_20261116.axpp`** from the release
-zip `CCAISearch_V8_20261116.zip` in the [`src/`][releases] folder rather than these loose files:
+You normally deploy using a packaged `.axpp` from the release zip `CCAISearch_V8_20261116.zip`
+in the [`src/`][releases] folder rather than these loose files. The zip contains two packages:
+
+| Package | Use when |
+|---|---|
+| `FTA_CCAISearch_V8_20261116.axpp` (full) | New customer – installs every object of the solution. |
+| `FTA_CCAISearch_V8_20261116_Delta.axpp` (delta) | Upgrade from V7 – contains only the 18 objects changed or added in V8. |
 
 1. On a D365 F&O development VM, open Visual Studio.
-2. **Dynamics 365 ▸ Import Project** and select the `.axpp` file.
+2. **Dynamics 365 ▸ Import Project** and select the full or delta `.axpp` file.
 3. Build the model, then **Dynamics 365 ▸ Deploy** (or create a deployable package for a
    sandbox/production environment).
 4. Run **database synchronization** (V8 adds new fields to the data entity and parameters).

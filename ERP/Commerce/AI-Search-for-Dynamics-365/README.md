@@ -110,7 +110,7 @@ Dynamics 365 model package, the Function App source and the What's new document:
 
 | Release | Download | Contents |
 |---|---|---|
-| **V8-20261116** (latest) | `CCAISearch_V8_20261116.zip` | `FTA_CCAISearch_V8_20261116.axpp`, `CCAISearch-Deploy-V8_20261116/` (.NET 10 source), `What-is-new-in-V8_20261116.pdf` |
+| **V8-20261116** (latest) | `CCAISearch_V8_20261116.zip` | `FTA_CCAISearch_V8_20261116.axpp` (full), `FTA_CCAISearch_V8_20261116_Delta.axpp` (upgrade from V7), `CCAISearch-Deploy-V8_20261116/` (.NET 10 source), `What-is-new-in-V8_20261116.pdf` |
 | V7-20260815 | `CCAISearch_V7_20260815.zip` | `FTA_CCAISearch_V7_20260815.axpp`, `CCAISearch-Deploy-v1.0/` (.NET 8 source), `What-is-new-in-V7_20260815.pdf` |
 
 > Always deploy the Function App and the D365 model package from the **same release zip** to keep
