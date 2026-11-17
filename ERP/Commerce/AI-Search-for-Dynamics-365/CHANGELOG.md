@@ -8,7 +8,7 @@ Release package: `src/CCAISearch_V8_20261116.zip` containing `FTA_CCAISearch_V8_
 (full package, for new customers), `FTA_CCAISearch_V8_20261116_Delta.axpp` (only the 18 objects
 changed or added since V7, for upgrades from V7), the Function App source folder `CCAISearch-Deploy-V8_20261116/` and `What-is-new-in-V8_20261116.pdf`.
 From V8 each release is shipped as one zip, and the Function App package follows the release
-version. The V7 files are now in `src/CCAISearch_V7_20260815.zip`.
+version. `src/` holds only the current release zip; earlier release files remain in Git history.
 
 ### Added
 - **Variant search** – products are found by their variant color, size and style. Three new
