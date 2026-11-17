@@ -33,23 +33,19 @@ in the [`src/`][releases] folder rather than these loose files. The zip contains
 | `FTA_CCAISearch_V8_20261116.axpp` (full) | New customer – installs every object of the solution. |
 | `FTA_CCAISearch_V8_20261116_Delta.axpp` (delta) | Upgrade from V7 – contains only the 18 objects changed or added in V8. |
 
-The `.axpp` packages contain the resource and label objects but not their content files. The
-zip therefore also contains the folder `FTA_ResourceContent_V8_20261116/FTA/` with the 5 resource
-JSON files and the label text file `FTA.en-US.label.txt`.
+Both packages include the resource JSON files and the label text, and use the same package
+format as V7, so they import on both cloud-hosted/VHD development VMs and unified developer
+environments.
 
-1. On a D365 F&O development VM, open Visual Studio.
-2. **Dynamics 365 ▸ Import Project** and select the full or delta `.axpp` file.
-3. Copy the contents of `FTA_ResourceContent_V8_20261116/FTA/` into the `FTA` model folder of
-   your metadata location (for example `PackagesLocalDirectory\FTA\FTA\`), overwriting existing
-   files. This places the JSON files in `AxResource\ResourceContent\Data\` and the label text in
-   `AxLabelFile\LabelResources\en-US\`.
-4. **Rebuild** the `FTA` model (a full rebuild is needed to pick up resource and label content),
+1. On a D365 F&O development environment, open Visual Studio.
+2. **Dynamics 365 ▸ Import Project** and select the full or delta `.axpp` file
+   (tick **Overwrite Elements** when upgrading).
+3. **Rebuild** the `FTA` model (a full rebuild is needed to pick up resource and label content),
    then **Dynamics 365 ▸ Deploy** (or create a deployable package for a sandbox/production
    environment).
-5. Run **database synchronization** (V8 adds new fields to the data entity and parameters).
+4. Run **database synchronization** (V8 adds new fields to the data entity and parameters).
 
-If the build reports *Resource content file '…Json' not found* or labels show as `@FTA:…`,
-step 3 was skipped or copied to the wrong folder.
+If labels show as `@FTA:…` after the import, run a full **Rebuild** of the `FTA` model.
 
 To work from this source directly, place the `FTA` model under your
 `PackagesLocalDirectory` / metadata folder and open `Project/FTA_CCAISearch.rnrproj`.
