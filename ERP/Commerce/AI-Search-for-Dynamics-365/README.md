@@ -37,9 +37,9 @@ users can type the way they talk and still get the right products.
 the exact item number or name, typos return nothing, and in large catalogs the search is slow
 and adds load to the ERP database.
 
-**The result with CCAISearch.**
+**The result with Azure AI Search.**
 
-| | Standard item search | With CCAISearch |
+| | Standard item search | With Azure AI Search |
 |---|---|---|
 | **What users type** | Exact item number or name | Everyday words, e.g. "red running shoes size 42" |
 | **Typos and synonyms** | No result | Still finds the right products |
