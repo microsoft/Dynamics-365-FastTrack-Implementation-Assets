@@ -107,6 +107,6 @@
     <text x="104" y="0" class="lbl">data / request flow</text>
     <line x1="230" y1="-4" x2="270" y2="-4" class="flow flow-dash"/>
     <text x="276" y="0" class="lbl">secret reference / invoke</text>
-    <text x="470" y="0" class="lbl">Deployables (one release zip in src/): Function App · X++ model package (.axpp)</text>
+    <text x="470" y="0" class="lbl">Deployables (release zip): Function App · X++ model (.axpp)</text>
   </g>
 </svg>
