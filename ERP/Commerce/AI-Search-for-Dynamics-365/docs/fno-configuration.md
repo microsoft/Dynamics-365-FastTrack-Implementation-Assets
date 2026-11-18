@@ -60,13 +60,23 @@ On the same **Product Search** tab:
    **Include variant styles in search**. Cleared dimensions remain available as filters only.
    These settings are applied when the index is created, so run **Initialize index** after
    changing them.
-2. **Category counts** – product counts shown in the category tree of the product search screen:
-   - **Off** – no counts (fastest).
-   - **Retrieved results** – counts only the results loaded into the grid.
-   - **All matches** – counts every match in the search index, which can be more than the
-     retrieved results.
+2. **Category counts** – after a search, the category tree on the product search screen shows
+   the number of matching products next to each category, e.g. **Shoes (12)**. Categories with
+   matches are shown in **bold**. A parent category includes the products of its subcategories.
+   Before a search (empty search text) the tree shows only the category names.
 
-   This setting applies on the next search; no index rebuild is needed.
+   | Option | What the number means | When to use |
+   |---|---|---|
+   | **Off** | No numbers | Fastest; users don't need counts |
+   | **Retrieved results** | Products loaded into the grid (at most **Number of Records Retrieved**) | The number must always match what the grid shows |
+   | **All matches** | Every matching product in the Azure AI Search index, also those not loaded into the grid | Users want to see where more results are, then click a category to search inside it |
+
+   *Example:* **Number of Records Retrieved** is 50 and a search for "running shoes" matches
+   200 products, 80 of them in *Shoes*. If 30 of the 50 loaded results are in *Shoes*, the tree
+   shows **Shoes (30)** with *Retrieved results* and **Shoes (80)** with *All matches*.
+
+   *All matches* gets the counts with the same search request (no extra call). The setting
+   applies on the next search; no index rebuild is needed.
 
 > The data export **source separator** cannot be a comma or a colon, because these characters
 > occur in variant data. Use **VerticalBarSeparated** (`|`).
