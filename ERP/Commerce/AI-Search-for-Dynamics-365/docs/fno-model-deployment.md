@@ -1,7 +1,7 @@
 # Dynamics 365 F&O – X++ source (FTA_CCAISearch)
 
 This folder contains the extracted X++ source of the **AI Product Search** D365 Finance &
-Operations model, as shipped in `FTA_CCAISearch_V7.axpp`.
+Operations model, as shipped in `FTA_CCAISearch_V8_20261116.axpp`.
 
 ## Structure
 
@@ -25,13 +25,27 @@ Key objects under `ProjectItem/`:
 
 ## How to build / deploy
 
-You normally deploy using the packaged **`FTA_CCAISearch_V7.axpp`** from the
-[`src/`][releases] folder rather than these loose files:
+You normally deploy using a packaged `.axpp` from the release zip `CCAISearch_V8_20261116.zip`
+in the [`src/`][releases] folder rather than these loose files. The zip contains two packages:
 
-1. On a D365 F&O development VM, open Visual Studio.
-2. **Dynamics 365 ▸ Import Project** and select the `.axpp` file.
-3. Build the model, then **Dynamics 365 ▸ Deploy** (or create a deployable package for a
-   sandbox/production environment).
+| Package | Use when |
+|---|---|
+| `FTA_CCAISearch_V8_20261116.axpp` (full) | New customer – installs every object of the solution. |
+| `FTA_CCAISearch_V8_20261116_Delta.axpp` (delta) | Upgrade from V7 – contains only the 18 objects changed or added in V8. |
+
+Both packages include the resource JSON files and the label text, and use the same package
+format as V7, so they import on both cloud-hosted/VHD development VMs and unified developer
+environments.
+
+1. On a D365 F&O development environment, open Visual Studio.
+2. **Dynamics 365 ▸ Import Project** and select the full or delta `.axpp` file
+   (tick **Overwrite Elements** when upgrading).
+3. **Rebuild** the `FTA` model (a full rebuild is needed to pick up resource and label content),
+   then **Dynamics 365 ▸ Deploy** (or create a deployable package for a sandbox/production
+   environment).
+4. Run **database synchronization** (V8 adds new fields to the data entity and parameters).
+
+If labels show as `@FTA:…` after the import, run a full **Rebuild** of the `FTA` model.
 
 To work from this source directly, place the `FTA` model under your
 `PackagesLocalDirectory` / metadata folder and open `Project/FTA_CCAISearch.rnrproj`.

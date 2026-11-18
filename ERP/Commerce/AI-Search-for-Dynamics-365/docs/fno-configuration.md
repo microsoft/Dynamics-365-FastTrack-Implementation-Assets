@@ -51,6 +51,26 @@ On the **Product Search** tab, configure the search index:
 
 ![Number of Records Retrieved caveat (recommended ≤ 50)](images/records-retrieved-caveat.png)
 
+### Variant search and category counts (V8)
+
+On the same **Product Search** tab:
+
+1. **Variant search** – select which variant dimensions are used to rank results:
+   **Include variant colors in search**, **Include variant sizes in search**,
+   **Include variant styles in search**. Cleared dimensions remain available as filters only.
+   These settings are applied when the index is created, so run **Initialize index** after
+   changing them.
+2. **Category counts** – product counts shown in the category tree of the product search screen:
+   - **Off** – no counts (fastest).
+   - **Retrieved results** – counts only the results loaded into the grid.
+   - **All matches** – counts every match in the search index, which can be more than the
+     retrieved results.
+
+   This setting applies on the next search; no index rebuild is needed.
+
+> The data export **source separator** cannot be a comma or a colon, because these characters
+> occur in variant data. Use **VerticalBarSeparated** (`|`).
+
 ## Step 3 – Initialize & update index
 
 On the **Product Search** tab, click **Initialize index** to start the index creation process:
@@ -65,7 +85,10 @@ On the **Product Search** tab, click **Initialize index** to start the index cre
 ## Step 4 – Use product search on a Sales Order
 
 1. Open a **Sales Order** and click the new **AI Product Search** button.
-2. Enter search text and click **Search**.
+2. Enter search text and click **Search**. You can include variant values, for example `red polo XL`.
+   Select a category in the tree to narrow the results shown. A new search text always searches
+   all categories; click **Search** again with the same text to search only the selected category.
+   The "Searched in" label under the Search button shows which categories were searched.
 3. Select a product and click **Add**. Repeat as needed; once items are selected and dimensions
    entered, click **OK** to add the products to the sales order lines.
 

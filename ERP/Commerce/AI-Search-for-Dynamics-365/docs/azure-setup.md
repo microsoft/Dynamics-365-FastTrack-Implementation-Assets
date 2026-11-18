@@ -54,13 +54,13 @@ periodic updates from the ERP.
 
 ## Step 4 – Deploy the Function App
 
-The Function App (.NET 8 isolated-worker) transforms CSV product data into JSON chunks indexed by Azure AI Search.
+The Function App (.NET 10 isolated-worker) transforms CSV product data into JSON chunks indexed by Azure AI Search.
 
 ### Prerequisites
 
 - [Visual Studio Code](https://code.visualstudio.com/) with the
   [Azure Functions extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azurefunctions)
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - An active Azure subscription with **Contributor** or **Owner** permissions on the
   Resource Group from Step 1
 
@@ -76,7 +76,7 @@ Creating the Function App in the portal first ensures your permissions are corre
    - **Function App name**: Enter a globally unique name (e.g., `ccaisearch-prod-001`)
      > Naming rules: lowercase, digits, hyphens only; 3–24 characters; must be unique across Azure
    - **Runtime stack**: **.NET** (Isolated)
-   - **Runtime version**: **8.0**
+   - **Runtime version**: **10.0**
    - **Region**: Same as your Resource Group
    - **Storage Account**: Select the account from Step 3
      > Azure Function Apps require a storage account for runtime infrastructure (logs, metadata, state).
@@ -91,7 +91,7 @@ Now deploy the Function App code to the resource you just created.
 
 1. **Prepare the code folder:**
    - If cloned: Open `src/CCAISearch-Deploy` in VS Code
-   - If downloaded zip: Extract `CCAISearch-Deploy-v1.0.zip` and open the extracted folder in VS Code
+   - If downloaded zip: Extract `src/CCAISearch_V8_20261116.zip` and open the `CCAISearch-Deploy-V8_20261116` folder in VS Code
 
 2. In VS Code, press `Ctrl+Shift+P` ▸ **Azure Functions: Deploy to Function App…**
 
@@ -147,7 +147,17 @@ The function accepts HTTP POST requests (function-level auth) with this body:
 | `baseFileName` | ❌ | `s` | Prefix for generated JSON files |
 | `resetContainer` | ❌ | `false` | `"true"` deletes existing blobs before upload |
 
-Response: `200 OK` with message `Successfully processed and uploaded JSON files.`
+The CSV may contain the optional columns `VARIANTSJSON` and `CATEGORYRECIDSJSON` (exported by
+D365 from V8). The function converts them into the `VARIANTS`, `VARIANTCOLORS`, `VARIANTSIZES`,
+`VARIANTSTYLES` and `CATEGORYRECIDS` index fields. A CSV without these columns is processed as
+plain text columns, as before.
+
+Response: `200 OK` with message `Successfully processed <n> records into <n> JSON files. Invalid variant JSON rows: <n>.`
+An empty or invalid request body returns `400 Bad Request` with the reason.
+
+> **Upgrading an existing Function App (V7 ▸ V8).** Set **Settings ▸ Configuration ▸ General
+> settings ▸ .NET version** to **.NET 10 (isolated)**, then deploy the new package right away.
+> The function name `ProductListStorageWriter`, its URL and its key do not change.
 
 > **Security — storage credential.** The storage **account key is never transmitted**. D365 reads
 > the connection string from Key Vault, extracts only the blob **endpoint URL**, and sends that

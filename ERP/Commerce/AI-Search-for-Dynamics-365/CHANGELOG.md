@@ -2,6 +2,44 @@
 
 All notable changes to this project are documented here.
 
+## [V8-20261116] – 2026-11-16
+
+Release package: `src/CCAISearch_V8_20261116.zip` containing `FTA_CCAISearch_V8_20261116.axpp`
+(full package, for new customers), `FTA_CCAISearch_V8_20261116_Delta.axpp` (only the 18 objects
+changed or added since V7, for upgrades from V7), the Function App source folder `CCAISearch-Deploy-V8_20261116/` and `What-is-new-in-V8_20261116.pdf`.
+From V8 each release is shipped as one zip, and the Function App package follows the release
+version. `src/` holds only the current release zip; earlier release files remain in Git history.
+
+### Added
+- **Variant search** – products are found by their variant color, size and style. Three new
+  parameters (**Include variant colors / sizes / styles in search**) choose which dimensions are
+  used for ranking and semantic search; cleared dimensions stay available as filters.
+- **Category counts** in the category tree of the product search screen. New parameter
+  **Category counts**: *Off*, *Retrieved results* (counts the results in the grid) or
+  *All matches* (counts every match in the index).
+- **Category filter** – selecting a category in the tree narrows the results shown. A new search
+  text always searches all categories; clicking **Search** again with the same text searches
+  only the selected category. A "Searched in" label under the Search button shows the scope.
+
+### Changed
+- **Function App (`ProductListStorageWriter`)** converts the new `VARIANTSJSON` and
+  `CATEGORYRECIDSJSON` export columns into index fields. Function name and URL are unchanged;
+  both columns are optional, so data from older D365 versions still works. Runtime is now
+  **.NET 10 (isolated)**. Invalid request input returns `400 Bad Request`.
+- **Index schema** adds the variant and category fields, scoring and semantic configuration.
+- **Search** returns only the fields needed by the screen, without a total count, and uses one
+  database query for all result rows; fewer grid reloads.
+- **Search calls** time out after 60 seconds; Azure error details are written to the
+  integration log. A failed search shows a message and an empty result.
+- **Initialize index** switches search to the new index only after it completes successfully.
+- The data export blocks a comma or colon as column separator (they occur in variant data).
+
+### Upgrade notes
+- Deploy the D365 package (with **database synchronization**) and the Function App from this
+  release together, then run **Initialize index**. Roll back both together.
+- Set the Function App runtime to **.NET 10 (isolated)** before deploying the new package.
+- Existing parameters, Function URL and function key are unchanged.
+
 ## [V7-20260815] – 2026-08-15
 
 ### Changed
