@@ -8,15 +8,23 @@ Release package: `src/CCAISearch_V8_20261116.zip` containing `FTA_CCAISearch_V8_
 (full package, for new customers), `FTA_CCAISearch_V8_20261116_Delta.axpp` (only the 18 objects
 changed or added since V7, for upgrades from V7), the Function App source folder `CCAISearch-Deploy-V8_20261116/` and `What-is-new-in-V8_20261116.pdf`.
 From V8 each release is shipped as one zip, and the Function App package follows the release
-version. `src/` holds only the current release zip; earlier release files remain in Git history.
+version. `src/` holds only the current release zip; earlier releases are kept as one zip each in
+`src/archive/` (for example `src/archive/CCAISearch_V7_20260815.zip`).
 
 ### Added
 - **Variant search** – products are found by their variant color, size and style. Three new
   parameters (**Include variant colors / sizes / styles in search**) choose which dimensions are
   used for ranking and semantic search; cleared dimensions stay available as filters.
-- **Category counts** in the category tree of the product search screen. New parameter
-  **Category counts**: *Off*, *Retrieved results* (counts the results in the grid) or
-  *All matches* (counts every match in the index).
+- **Category counts** in the category tree of the product search screen. After a search, each
+  category shows how many products match, e.g. **Shoes (12)**; categories with matches are shown
+  in **bold**, so users see at a glance where the results are. A parent category includes the
+  products of its subcategories. New parameter **Category counts**:
+  - *Off* – no counts; the tree shows only category names (fastest).
+  - *Retrieved results* – counts only the products loaded into the grid (limited by **Number of
+    Records Retrieved**). The count always matches what the grid shows for that category.
+  - *All matches* – counts every matching product in the Azure AI Search index, also those not
+    loaded into the grid. Use it to see where more results are, then click the category to
+    search inside it. The counts come back with the same search request (no extra call).
 - **Category filter** – selecting a category in the tree narrows the results shown. A new search
   text always searches all categories; clicking **Search** again with the same text searches
   only the selected category. A "Searched in" label under the Search button shows the scope.
