@@ -176,6 +176,8 @@ product warranty and is **outside the scope of D365 support services**.
 
 ## Package contents
 
+`CCAISearch` is the technical name used in package and file names.
+
 | Folder / file | What it is |
 |---|---|
 | `src/CCAISearch_VN_YYYYMMDD.zip` | The current release (one zip) |
