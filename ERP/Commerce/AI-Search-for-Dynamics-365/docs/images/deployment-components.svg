@@ -34,7 +34,7 @@
     <rect x="80" y="300" width="240" height="96" class="box" fill="#fff3e6" stroke="#e08a2b"/>
     <text x="200" y="330" text-anchor="middle" class="title" fill="#a85e12">Function App</text>
     <text x="200" y="350" text-anchor="middle" class="sub">ProductListStorageWriter</text>
-    <text x="200" y="368" text-anchor="middle" class="sub">.NET 8 isolated · v4</text>
+    <text x="200" y="368" text-anchor="middle" class="sub">.NET 10 isolated · v4</text>
     <text x="200" y="384" text-anchor="middle" class="sub">CSV ▸ chunked JSON</text>
   </g>
 
@@ -107,6 +107,6 @@
     <text x="104" y="0" class="lbl">data / request flow</text>
     <line x1="230" y1="-4" x2="270" y2="-4" class="flow flow-dash"/>
     <text x="276" y="0" class="lbl">secret reference / invoke</text>
-    <text x="470" y="0" class="lbl">Deployables: Function App (src/CCAISearch-Deploy) · X++ package (src/Dynamics365)</text>
+    <text x="470" y="0" class="lbl">Deployables (one release zip in src/): Function App · X++ model package (.axpp)</text>
   </g>
 </svg>
