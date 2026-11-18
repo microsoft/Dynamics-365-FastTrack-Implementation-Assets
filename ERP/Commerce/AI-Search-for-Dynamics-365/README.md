@@ -74,6 +74,18 @@ and adds load to the ERP database.
 - **Lighter ERP** – searches go to Azure AI Search, not to the D365 database.
 - **Enterprise-grade** – fully managed, secure and scalable Azure service.
 
+### New in V8: variant search and category counts
+
+![V8 variant search and category counts demo](docs/images/v8-variant-search-demo.gif)
+
+The demo shows two searches on the sales order **Add products** screen:
+
+1. **"winter coat"** – the category tree shows how many products match in each category. Click
+   **Kids** and search again to look only inside it, then add a kid's coat with its size and color.
+2. **"red handbag"** – Azure AI Search also finds bags whose name doesn't say red but that come in
+   a **red variant**, such as *Genuine Leather Suede Handbag Purse*, which is added with color
+   **Red**.
+
 ## Download
 
 Download **one zip** – it contains everything for the release.
