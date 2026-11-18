@@ -1,4 +1,4 @@
-# CCAISearch – Azure AI Search for Item Search in Dynamics 365 F&O
+# Azure AI Search for Item Search in Dynamics 365 F&O
 
 Find products faster on the **Dynamics 365 Finance & Operations** sales order. Instead of the
 standard SQL keyword lookup, item search uses **Azure AI Search** with its *Semantic Ranker*, so
