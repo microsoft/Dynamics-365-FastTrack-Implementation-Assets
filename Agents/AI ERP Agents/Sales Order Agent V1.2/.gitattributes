@@ -1,0 +1,7 @@
+# Keep the checksummed files byte-for-byte as shipped
+PowerPlatform/** -text
+azure-content-understanding/** -text
+SHA256SUMS.txt text eol=lf
+*.docx binary
+*.mp4 binary
+*.png binary

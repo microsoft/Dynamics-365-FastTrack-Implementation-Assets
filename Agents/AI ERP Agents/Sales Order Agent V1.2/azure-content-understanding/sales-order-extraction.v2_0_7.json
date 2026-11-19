@@ -1,0 +1,188 @@
+{
+  "description": "Sales order and purchase order extraction for the staging pipeline with deterministic source-order line identity, explicit customer-supplier party boundaries, and single-reading header rules. productcoderaw is derived from productcode by the intake flow and is not extracted. v2.0.7 adds shiptocustomeraddress; every other field is unchanged from v2.0.6.",
+  "baseAnalyzerId": "prebuilt-document",
+  "processingLocation": "geography",
+  "models": {
+    "completion": "gpt-4.1",
+    "embedding": "prebuilt-analyzer-embedding"
+  },
+  "config": {
+    "returnDetails": true,
+    "enableOcr": true,
+    "enableLayout": true,
+    "enableFormula": true,
+    "enableFigureDescription": false,
+    "enableFigureAnalysis": false,
+    "chartFormat": "chartjs",
+    "tableFormat": "html",
+    "enableSegment": false,
+    "omitContent": false,
+    "segmentPerPage": false,
+    "annotationFormat": "markdown"
+  },
+  "fieldSchema": {
+    "name": "SalesOrderExtraction",
+    "fields": {
+      "documenttype": {
+        "type": "string",
+        "method": "extract",
+        "description": "Printed document title normalised to lowercase without spaces, such as purchaseorder or salesorder."
+      },
+      "deliverycustomername": {
+        "type": "string",
+        "method": "extract",
+        "description": "The buying organisation. On a purchase order this is the issuing organisation; on a sales order use the Bill To block."
+      },
+      "deliverycustomeremail": {
+        "type": "string",
+        "method": "extract",
+        "description": "Email printed for the buying organisation: in its Bill To, Sold To or ordering block, including a line labelled Email inside the Bill To block. Return the same address as buyersemail when that is the only buying-organisation email. Never use a supplier, seller, vendor, or document-letterhead email. Empty only when no such email is printed."
+      },
+      "billtocustomername": {
+        "type": "string",
+        "method": "extract",
+        "description": "Name in the Bill To or Sold To block."
+      },
+      "shiptocustomername": {
+        "type": "string",
+        "method": "extract",
+        "description": "Name in the Ship To or Deliver To block."
+      },
+      "shiptocustomeraddress": {
+        "type": "string",
+        "method": "extract",
+        "description": "Address printed inside the Ship To or Deliver To block, excluding its name, email, phone and attention lines. Empty when the document has no separate Ship To or Deliver To block. Never copy the Bill To, Sold To, ordering-party, supplier or letterhead address into this field."
+      },
+      "buyersemail": {
+        "type": "string",
+        "method": "extract",
+        "description": "Email of the buyer, ordering contact, or Bill To contact. If the Bill To section includes a line labelled Email, return that address. Never use a supplier, seller, vendor, or document-letterhead email."
+      },
+      "purchasingagent": {
+        "type": "string",
+        "method": "extract",
+        "description": "Named person under Buyer, Purchasing Agent, Ordered By or Contact. Empty if only a company or location code is shown."
+      },
+      "deliverycustomerphonenumber": {
+        "type": "string",
+        "method": "extract",
+        "description": "Phone number printed inside the buying organisation's Bill To or ordering-party block. Never use the supplier, seller, vendor, or document-letterhead phone. Leave empty when only a supplier phone is printed."
+      },
+      "deliverycustomeraddress": {
+        "type": "string",
+        "method": "extract",
+        "description": "Address printed inside the buying organisation's Bill To or ordering-party block, excluding its name, email, and phone. Never use the supplier, seller, vendor, or document-letterhead address. Preserve the Bill To address even when no delivery customer name was extracted."
+      },
+      "deliverycustomernumber": {
+        "type": "string",
+        "method": "extract",
+        "description": "Customer or account number tied to the ordering organisation."
+      },
+      "customerpurchaseordernumber": {
+        "type": "string",
+        "method": "extract",
+        "description": "Value labelled PO Number, Purchase Order Number or Customer PO. Empty when only a sales order number is printed."
+      },
+      "deliverydate": {
+        "type": "date",
+        "method": "extract",
+        "description": "Requested, required or promised delivery or ship date as printed. Not the order date."
+      },
+      "suppliername": {
+        "type": "string",
+        "method": "extract",
+        "description": "The selling organisation. Use the Vendor or Supplier block when present. On a sales order, the supplier is the organisation named in the letterhead or masthead at the top of the document even when it is not labelled; always return it when a letterhead organisation is printed. Never a buying, bill-to or ship-to party."
+      },
+      "supplieraddress": {
+        "type": "string",
+        "method": "extract",
+        "description": "Address printed with the supplier block, or with the letterhead organisation on a sales order. Always return it when printed."
+      },
+      "suppliercontact": {
+        "type": "string",
+        "method": "extract",
+        "description": "Contact name in the supplier block."
+      },
+      "supplieremail": {
+        "type": "string",
+        "method": "extract",
+        "description": "Email address of the selling organisation. Use the email in the Vendor or Supplier block when present. On a sales order, return the email printed in the letterhead or masthead contact line of the issuing organisation, for example 'Email: sales@example.com' printed next to its phone number; if it is not there, use the selling organisation's email in the footer, for example 'contact us at sales@example.com'. Always return it when any such email is printed. Never a buyer, bill-to or ship-to email."
+      },
+      "supplierphonenumber": {
+        "type": "string",
+        "method": "extract",
+        "description": "Phone number of the selling organisation. Use the phone in the Vendor or Supplier block when present. On a sales order, return the phone printed in the letterhead or masthead contact line of the issuing organisation, for example 'Phone: (555) 123-4567' printed next to its email. Always return it when any such phone is printed. Never a buyer, bill-to or ship-to phone."
+      },
+      "items": {
+        "type": "array",
+        "method": "extract",
+        "description": "One entry per ordered product row. Ignore subtotals, freight and tax rows.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "linenumber": {
+              "type": "string",
+              "method": "generate",
+              "description": "The row's numeric source-order identity. If the document has a dedicated printed line or sequence-number column, preserve that value. A column labelled Item, Item #, Item Code, SKU, Part Number, Product Code, or similar is a product identifier, not a line number. If no dedicated line-number column exists, generate 1 for the first ordered product row, 2 for the second, and continue by source-document row order. Return digits only. Never copy productcode, never leave this empty, and never repeat a value within the order."
+            },
+            "productcode": {
+              "type": "string",
+              "method": "extract",
+              "description": "Item code, SKU or part number."
+            },
+            "productname": {
+              "type": "string",
+              "method": "extract",
+              "description": "Product name for the row. If the table has a separate printed product-name column, return that value. Otherwise return exactly the same text as productdescription. Never leave this empty when productdescription is not empty."
+            },
+            "productdescription": {
+              "type": "string",
+              "method": "extract",
+              "description": "Full printed item text. When the row has a single text column, put it here."
+            },
+            "productunitofmeasure": {
+              "type": "string",
+              "method": "extract",
+              "description": "Unit or UOM value as printed."
+            },
+            "productquantity": {
+              "type": "number",
+              "method": "extract",
+              "description": "Ordered quantity, not received or backordered."
+            },
+            "productprice": {
+              "type": "number",
+              "method": "extract",
+              "description": "Per-unit price without currency symbols."
+            },
+            "productlinetotal": {
+              "type": "number",
+              "method": "extract",
+              "description": "Printed extended amount. Never calculated."
+            },
+            "extractedvendoritem": {
+              "type": "string",
+              "method": "extract",
+              "description": "Supplier or vendor item number printed for this row."
+            },
+            "baselineproductcode": {
+              "type": "string",
+              "method": "extract",
+              "description": "Leave empty."
+            },
+            "productcodesource": {
+              "type": "string",
+              "method": "extract",
+              "description": "Leave empty."
+            },
+            "productcoderule": {
+              "type": "string",
+              "method": "extract",
+              "description": "Leave empty."
+            }
+          }
+        }
+      }
+    }
+  }
+}

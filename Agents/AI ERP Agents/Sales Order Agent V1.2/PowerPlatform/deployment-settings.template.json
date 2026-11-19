@@ -1,0 +1,90 @@
+{
+  "EnvironmentVariables": [
+    {
+      "SchemaName": "aipod_MailboxToMonitor",
+      "Value": ""
+    },
+    {
+      "SchemaName": "aipod_MailboxFolderToMonitor",
+      "Value": "Inbox"
+    },
+    {
+      "SchemaName": "aipod_ReviewerEmailAddress",
+      "Value": ""
+    },
+    {
+      "SchemaName": "aipod_CompanyCode",
+      "Value": ""
+    },
+    {
+      "SchemaName": "aipod_SharedMailboxToMonitor",
+      "Value": ""
+    },
+    {
+      "SchemaName": "aipod_SharedMailboxFolderToMonitor",
+      "Value": ""
+    }
+  ],
+  "ConnectionReferences": [
+    {
+      "LogicalName": "aipod_salesOrderAgent.shared_commondataserviceforapps.shared-commondataser-c3a42af9-e21c-4ea4-b861-36dc7547bebe",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+    },
+    {
+      "LogicalName": "aipod_salesorderagentv1.2_byW5hK.cr.shared_dynamicsax.937fc884-b424-427b-bf76-e803310108c5",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_dynamicsax"
+    },
+    {
+      "LogicalName": "aipod_salesorderagentv1.cr.shared_commondataserviceforapps.7827c6a9-a2ba-439b-adaf-a628129660b2",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+    },
+    {
+      "LogicalName": "aipod_salesorderagentv1.cr.shared_dynamicsax.shared-dynamicsax-59f69c22-fbd2-4130-bf75-658ff5f1c886",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_dynamicsax"
+    },
+    {
+      "LogicalName": "aipod_sharedcommondataserviceforapps_02e02",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+    },
+    {
+      "LogicalName": "aipod_sharedcommondataserviceforapps_294c8",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+    },
+    {
+      "LogicalName": "aipod_sharedwebcontents_customermatch",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_webcontents"
+    },
+    {
+      "LogicalName": "cr875_sharedmicrosoftcopilotstudio_db931",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_microsoftcopilotstudio"
+    },
+    {
+      "LogicalName": "crde4_aipod.cr.shared_commondataserviceforapps.c3a42af9-e21c-4ea4-b861-36dc7547bebe",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+    },
+    {
+      "LogicalName": "new_sharedagentnode_1b241228",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_agentnode"
+    },
+    {
+      "LogicalName": "new_sharedcontentunderstanding_64342",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_contentunderstanding"
+    },
+    {
+      "LogicalName": "new_sharedoffice365_deb36",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+    }
+  ]
+}
