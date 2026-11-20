@@ -157,7 +157,7 @@ public partial class SqlImporter
         // Shared content-addressed dimensions are safe to replay. Trace-owned dimensions
         // and the immutable mapping publish atomically, so an uncertain commit resumes Ready.
         BulkUpsertHashDim(conn, dims.GetAllMethodNames(), "MethodNames", "MethodHash", "Name", 500, true);
-        BulkUpsertHashDim(conn, dims.GetAllQueryStatements(), "QueryStatements", "QueryStatementHash", "Statement", 4000, false);
+        BulkUpsertHashDim(conn, dims.GetAllQueryStatements(), "QueryStatements", "QueryStatementHash", "Statement", QueryStatementsSupportFullText(conn) ? -1 : 4000, false);
         BulkUpsertHashDim(conn, dims.GetAllQueryTables(), "QueryTables", "QueryTableHash", "TableNames", 1000, false);
         BulkUpsertHashDim(conn, dims.GetAllMessages(), "Messages", "MessageHash", "MessageText", 4000, false);
         ImportCancellation.ThrowIfCancellationRequested();

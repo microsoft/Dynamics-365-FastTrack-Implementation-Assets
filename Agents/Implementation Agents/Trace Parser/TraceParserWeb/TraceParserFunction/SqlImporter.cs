@@ -82,6 +82,19 @@ public partial class SqlImporter(ILogger<SqlImporter> logger)
     private readonly Dictionary<long, bool>   _cacheTable   = new();
     private readonly Dictionary<long, bool>   _cacheMsg     = new();
     private readonly List<BindParamRow>        _allBindParams = new();
+    private bool? _stmtFullText;
+
+    // Full SQL text is stored only after sql\full-sql-text.sql widens the column to nvarchar(max).
+    public bool QueryStatementsSupportFullText(SqlConnection conn)
+    {
+        if (_stmtFullText is bool known) return known;
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT COL_LENGTH('dbo.QueryStatements','Statement')";
+        var result = cmd.ExecuteScalarAsync(ImportCancellation).GetAwaiter().GetResult();
+        var full = result is not null and not DBNull && Convert.ToInt32(result) == -1;
+        _stmtFullText = full;
+        return full;
+    }
 
     // ----- Hash -----
     public static long ComputeHash(string text)
@@ -200,7 +213,10 @@ public partial class SqlImporter(ILogger<SqlImporter> logger)
             IF NOT EXISTS(SELECT 1 FROM QueryStatements WHERE QueryStatementHash=@h)
                 INSERT INTO QueryStatements(QueryStatementHash,Statement) VALUES(@h,@s)";
         cmd.Parameters.AddWithValue("@h", h);
-        cmd.Parameters.AddWithValue("@s", stmt.Length > 4000 ? stmt[..4000] : stmt);
+        if (QueryStatementsSupportFullText(conn))
+            cmd.Parameters.Add("@s", SqlDbType.NVarChar, -1).Value = stmt;
+        else
+            cmd.Parameters.AddWithValue("@s", stmt.Length > 4000 ? stmt[..4000] : stmt);
         cmd.ExecuteNonQuery();
         _cacheStmt[h] = true;
         return h;
@@ -543,14 +559,14 @@ public partial class SqlImporter(ILogger<SqlImporter> logger)
             dt.Columns.Add("TextVal", typeof(string));
             foreach (var (hash, text) in chunk)
             {
-                var truncated = text.Length > maxLen ? text[..maxLen] : text;
+                var truncated = maxLen > 0 && text.Length > maxLen ? text[..maxLen] : text;
                 dt.Rows.Add(hash, truncated);
             }
 
             // Create temp table
             using (var cmd = conn.CreateCommand())
             {
-                cmd.CommandText = $"CREATE TABLE #HashStage (HashVal BIGINT PRIMARY KEY, TextVal NVARCHAR({maxLen}))";
+                cmd.CommandText = $"CREATE TABLE #HashStage (HashVal BIGINT PRIMARY KEY, TextVal NVARCHAR({(maxLen > 0 ? maxLen.ToString() : "MAX")}))";
                 cmd.ExecuteNonQueryAsync(ImportCancellation).GetAwaiter().GetResult();
             }
 
