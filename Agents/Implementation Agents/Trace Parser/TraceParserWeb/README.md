@@ -306,6 +306,16 @@ Ownership contention waits inside the invocation's 110-minute budget instead of 
 
 **Rollback is not a schema drop or old-importer redeployment.** Stop admitting new protocol uploads through the approved operational process, establish a quiet window, and retain every receipt, tombstone and staged row. Do not run old importer binaries against queued protocol uploads: they ignore this protocol and can duplicate data. Restoring an old deletion definition changes its fingerprint and intentionally blocks new imports. Restore only a reviewed compatible application/procedure pair; any committed deletion remains deleted. Do not automate cleanup/adoption of historical partial data.
 
+### Optional: keep full SQL statement text (#571)
+
+By default `QueryStatements.Statement` is `nvarchar(4000)`, so the web importer stores only the first 4,000 characters of long SQL. To keep the full text for future imports, apply `sql/full-sql-text.sql` once, in a quiet window:
+
+```powershell
+sqlcmd -S "<approved-server>" -d "<approved-database>" -G -b -i ".\sql\full-sql-text.sql"
+```
+
+The script widens only that column to `nvarchar(max)`, keeps its nullability, and does nothing if it is already widened. No binary redeployment is needed: the Function checks the column width at import time and stops truncating once the column is widened. Statements that were already stored truncated stay truncated; re-import the trace to get the full text. `Messages`, `MethodNames` and `QueryTables` limits are unchanged.
+
 ### Isolated importer validation and limits
 
 For an already-installed compatible importer, the deletion lock-order correction is SQL-only: in a verified quiet window, apply only `sql/sp_DeleteTrace.sql`. Its guarded transaction replaces the procedure and fingerprint together, preserving grants, receipts and staging. Do not rerun the full importer migration or redeploy binaries for this correction. Restoring the older receipt-before-data deletion procedure reintroduces its deadlock risk and is not an operational recovery strategy.

@@ -104,6 +104,7 @@ try
             await Exec(master,$"ALTER DATABASE [{database}] SET READ_COMMITTED_SNAPSHOT {(snapshot?"ON":"OFF")};");
             await LockOrderChecks(snapshot);
         }
+        if(!lockOrderOnly) checks += await SqlTextChecks.RunAsync(databaseString);
     }
     Console.WriteLine($"PASS {checks} protocol checks. Fixture={database}");
 }
