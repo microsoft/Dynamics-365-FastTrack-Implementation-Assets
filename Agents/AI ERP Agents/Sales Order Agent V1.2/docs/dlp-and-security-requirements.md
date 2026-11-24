@@ -1,6 +1,6 @@
 # DLP, Azure and Dataverse requirements - Sales Order Agent
 
-Release 1.0.9.0, 3 November 2026. These are deployment requirements. They do not configure a policy, role or
+Release 1.1.0.0, 24 November 2026. These are deployment requirements. They do not configure a policy, role or
 connection for you; each must be approved and tested in the target.
 
 ## 1. DLP data policy - connector classification

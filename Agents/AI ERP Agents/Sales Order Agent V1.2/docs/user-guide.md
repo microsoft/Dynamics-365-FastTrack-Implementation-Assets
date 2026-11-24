@@ -79,10 +79,37 @@ The result is **Accepted** only when the score reaches the threshold (default 70
 | `CustomerMatchPolicyUnavailable` | The published rules could not be read | Ask an administrator: the publish flow, the connection and the setup script (deployment guide, section 12) |
 | `CustomerMatchPolicyChanged` | The rules changed while the order was in flight | Ask an administrator to re-run the order |
 | `CustomerMatchStateOrInputChanged` | The header or saved proof changed after the match | Ask an administrator to re-run the order |
-| `CustomerMatchReleaseDisabled` | Matched and held; release is off, so nothing was sent to the ERP | Expected. An owner turns release on after the checks pass |
+| `CustomerMatchReleaseDisabled` | Matched and held; release is off, so nothing was sent to the ERP | Expected. An administrator sets the environment variable `aipod_ReleaseHeaders` to `true` after the checks pass. To release one order by hand, check the customer, set Valid Customer to Yes and set the order status to New |
 | `CustomerMatchReused` | An unchanged, still valid proof was reused | Informational |
 
 The full scoring tables and worked examples are in [Customer Matching Rules](customer-matching-rules.md).
+
+### When you know the right customer: decide it yourself (release 1.1.0.0)
+
+Use this when an order is in **Manual Review** with a customer reason (the **Customer Match Status** is *Review Required*), for example two customers tied, and you know which customer and company the order belongs to. The system never picks between tied customers on its own.
+
+1. Open the order, tab **Processed Data**, section **Extracted Customer Data**. The **ERP Customer Number** and **Company Code** fields are editable only while the Customer Match Status is Review Required.
+2. Type the ERP customer number and the company (legal entity) code.
+3. Fill **Customer Override Reason** with why you chose it (for example "confirmed by phone with the buyer"). The reason is required.
+4. Set **Valid Customer** to **Yes**.
+5. Set the order **Processing Status** to **Valid** (**New** also works) and save.
+
+The agent then records your decision (your name, the time and the reason) in the saved evidence, keeps the system's own result in the **Customer Match** tab, checks that the customer exists in that company in the ERP, validates every line and creates the ERP order. The **Customer Match** tab shows a notice that the customer was chosen by a reviewer.
+
+If you chose the wrong customer, correct the two fields and set the status again. This works until an ERP order exists; after that the fields are locked. If the ERP does not have that customer in that company, the order stops with `ManualOverrideCustomerNotFound`. Fix the customer number and set the status again.
+
+### When one line is the problem: decide the line yourself
+
+Use this when the customer is accepted but a line stopped for review (for example the item code on the document is not an ERP item).
+
+1. Open the line (select it in the **Items** list).
+2. Type the correct **ERP Product Code**.
+3. Set **Manual Override** to **Yes** and fill **Override Reason**. Both the code and the reason are required, otherwise the line stops with `ManualOverrideIncomplete`.
+4. Go back to the order and set **Processing Status** to **Valid**.
+
+The agent validates every line again. A line you overrode is accepted with your ERP product code without an ERP item lookup; the quantity must still be valid. The ERP checks that protect the order are not skipped: the unit of measure, the Site and Warehouse, and the read-back of the created ERP order. An overridden line that the ERP cannot accept still stops the order with the ERP reason.
+
+Anyone who can edit orders can use both overrides, so give the edit right only to people who may decide customers and products. Never edit the saved evidence yourself.
 
 ## 6. Other reasons an order stops
 

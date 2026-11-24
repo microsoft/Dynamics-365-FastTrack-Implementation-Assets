@@ -66,6 +66,17 @@ Otherwise the order goes to Review with one of these reasons.
 | `CustomerMatchReused` | An unchanged, still valid proof was reused (Accepted, no new search). |
 | `CustomerMatchReleaseDisabled` | Matched and held; the release switch is off, so the order was not sent to ERP. |
 
+### Reviewer override (release 1.1.0.0)
+
+The rules never pick between customers they cannot separate. A reviewer who knows the customer can decide it on the
+order: type the ERP customer number and company code, fill the override reason, set Valid Customer to Yes and set the
+status to Valid. The decision is saved as evidence of its own kind (`schemaVersion` 5, `source` manual): the selected
+company and account, who decided, when and why. The system's own result stays in the *Original Match Evidence* column
+and in the Customer Match tab. The status flow, the update-status flow and the three business skills accept a
+reviewer decision only while the saved company and account equal the order's current values and the order has no ERP
+number; the agent also checks that the customer exists in ERP in that company before it validates any line. Changing
+the fields afterwards starts a new decision. Schemas 3 and 4 are unchanged. See the user guide, section 5.
+
 ## 4. Safety floors (cannot be lowered)
 
 The publish flow rejects a rule set that breaks any of these. The form shows the same checks live.
@@ -191,15 +202,23 @@ column definitions.
 
 Assign roles to people, not the profile. Users without the Reader profile see secured columns masked.
 
+The reviewer override (section 3) needs no extra role: whoever can edit an order can decide its customer and its lines.
+Each customer decision records the user name and time in the saved evidence. Restrict who can edit orders if you need
+fewer people to decide customers.
+
 ## 9. Environment settings that interact with matching
 
 * **Address basis** is a property of the Published policy (Bill-To or Ship-To); choose it when the first policy
-  is created (section 10). The environment variable `aipod_CustomerMatchAddressBasis` is read only by orders
-  matched under an earlier fixed-rule version and should keep its shipped default.
-* **Release holds.** The resolver parameter `ReleaseHeaders` stays `false` until release is separately approved.
-  A matched order is therefore held (`CustomerMatchReleaseDisabled`), never sent to ERP by the matching step.
-* **ERP host.** The resolver parameter `FinanceOperationsInstance` must name the environment's own F&O host
-  (for example `<your-environment>.operations.dynamics.com`).
+  is created (section 10) and change it by publishing a new version (section 6.1). There is no environment variable for
+  it. Release 1.0.10.0 removed the old variable `aipod_CustomerMatchAddressBasis`, which only the earlier fixed-rule
+  proofs (before release 1.0.9.0) used. An order that still carries such a proof and is not yet in ERP stops for
+  review and is re-run under the Published rules.
+* **Release holds.** The environment variable `aipod_ReleaseHeaders` ships `false` and stays `false` until release is
+  separately approved. A matched order is therefore held (`CustomerMatchReleaseDisabled`), never sent to ERP by the
+  matching step. Set its Current Value to `true` to release; only the text `true` releases.
+* **ERP host.** The environment variable `aipod_FinanceOperationsInstance` must name the environment's own F&O host
+  (for example `<your-environment>.operations.dynamics.com`). While it is empty, matching stops with
+  `CustomerMatchConfigurationMissing`.
 
 ## 10. First-time setup
 
@@ -241,7 +260,7 @@ Read this before changing anything other than the values on the Setup screen.
 | Points, threshold, margin, address basis, fallback, name switches | **Policy table** (Setup > Matching rules). The resolver reads the Published snapshot on every run, so no flow or skill changes. | Minutes, no deployment |
 | Tooltip text | The column description in the table designer | Small |
 | The safety floors, what counts as a name, street, ZIP, city, state or email match, name cleaning, which customers are searched in ERP, the accept/review decision, or a new signal such as a phone number or tax ID | Not configurable. These are part of the delivered resolver flow and skills. | A change to the delivered solution; see 12.3 |
-| What happens after a match (release to ERP, notifications) | The consumer flows and the `ReleaseHeaders` setting | Needs separate approval; matched orders stay held while `ReleaseHeaders` is false |
+| What happens after a match (release to ERP, notifications) | The consumer flows and the environment variable `aipod_ReleaseHeaders` | Needs separate approval; matched orders stay held while `aipod_ReleaseHeaders` is `false` |
 
 ### 12.2 The pieces and who is the authority
 
@@ -258,10 +277,10 @@ The flows are the authority at run time. The skills and the viewer must agree wi
 
 ### 12.3 Changing the delivered flows or skills
 
-* Do not edit the delivered flows or skill bodies in place. In the portal you may change only connection bindings, turn a flow on or off (keep intake stopped while you do), and the parameters `FinanceOperationsInstance` (the environment's own F&O host) and `ReleaseHeaders` (keep false).
+* Do not edit the delivered flows or skill bodies in place. In the portal you may change only connection bindings, turn a flow on or off (keep intake stopped while you do), and the environment variable values `aipod_FinanceOperationsInstance` (the environment's own F&O host) and `aipod_ReleaseHeaders` (keep `false` until release is approved).
 * A logic change is made as a controlled change to the solution, in a development environment, and delivered as a new solution version through the upgrade process in the deployment guide.
-* Before a logic change goes live, test it with representative orders, including the negative cases, with intake stopped and `ReleaseHeaders` false.
+* Before a logic change goes live, test it with representative orders, including the negative cases, with intake stopped and `aipod_ReleaseHeaders` set to `false`.
 
 ### 12.4 What you must not change by hand
 
-Saved proof or evidence JSON, the policy snapshot, Published or Retired policy rows, the evidence `schemaVersion`, delivered flow definitions, delivered skill text, ERP data to force a match, and the `ReleaseHeaders` switch without separate approval.
+Saved proof or evidence JSON, the policy snapshot, Published or Retired policy rows, the evidence `schemaVersion`, delivered flow definitions, delivered skill text, ERP data to force a match, and the `aipod_ReleaseHeaders` switch without separate approval.

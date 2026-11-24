@@ -27,7 +27,7 @@ This is version 1.2 of the template. The earlier version is in the [Sales Order 
 | Orchestration | Power Automate in a rigid, tightly coupled workflow | The agent validates and creates the order with the ERP MCP and the Dataverse MCP |
 | Extraction | AI Builder prompt, limited in the number of documents and the document types it could process | Azure AI Content Understanding with a field schema, so a new layout usually needs no change |
 
-V1.2 also adds configurable customer matching with a logged decision for every order, an editable unit-of-measure alias list, and guarded release. See the [release notes](docs/release-notes.md).
+V1.2 also adds configurable customer matching with a logged decision for every order, an editable unit-of-measure alias list, and guarded release. Since 1.1.0.0 a reviewer can still settle a tie or a stuck line by hand: type the ERP customer and company (or the ERP product on a line), give a reason and set the status; the decision is saved with who, when and why, and the ERP checks still apply. See the [release notes](docs/release-notes.md).
 
 ## Supported document formats
 

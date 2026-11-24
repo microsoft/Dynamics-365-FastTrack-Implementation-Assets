@@ -1,12 +1,29 @@
 # Sales Order Agent V1.2
 
-Deployment Guide - Release 1.0.9.0
+Deployment Guide - Release 1.1.0.0
 
-3 November 2026
+24 November 2026
 
 Start with Part A and work through Parts B-F in order. Complete every step in a test environment before connecting a production mailbox.
 
-**What this release adds**
+**What release 1.1.0.0 adds**
+
+* **Reviewer overrides** (section 9.12). When two customers tie, a reviewer can type the ERP customer number and company code, give a reason, set Valid Customer to Yes and set the order status to Valid; the agent then validates every line and creates the order. A reviewer can also decide a single line (ERP product code, Manual Override, reason). Decisions are saved with who, when and why, and the ERP checks at creation still apply.
+* **New columns:** Customer Override Reason and Original Match Evidence on the order, Manual Override and Override Reason on the order line. The order form and the line form show them.
+* **Every component of the managed solution is customizable**, and the build fails if one is locked.
+* **The release switch is the environment variable `aipod_ReleaseHeaders`** (section 5), set under Environment variables like the other settings. It ships `false`; set it to `true` to release accepted matches after the checks in section 8 pass.
+
+Upgrading from 1.0.10.0: see section 11.1.
+
+**What release 1.0.10.0 fixed**
+
+* **The Finance and Operations host is now an environment variable** (`aipod_FinanceOperationsInstance`, section 5). In earlier releases it was a flow parameter with the placeholder `your-environment.operations.dynamics.com` that could not be edited in the designer, so turning the resolver flow on failed with a BadGateway error. The variable ships empty: until you set it, customer matching stops with `CustomerMatchConfigurationMissing` instead of calling a host that does not exist.
+* **The agent's own notification emails are no longer read as orders.** Both intake flows skip any email whose subject contains `Sales Order Agent - `, so a notification that lands in the monitored folder can no longer be processed as a new order and trigger another notification.
+* **Connection binding is documented** (section 4.3): which connection reference each flow needs, and what `ConnectionAuthorizationFailed` means.
+
+Upgrading from 1.0.9.0: see section 11.1.
+
+**What release 1.0.9.0 added**
 
 * **Configurable customer matching.** Rules (points, threshold, margin, address basis, fallback and name switches) are edited under **Setup > Matching rules** and take effect on the next order, with safety floors that cannot be lowered. See [Customer Matching Rules](customer-matching-rules.md) and sections 5.2 and 9.10.
 * **Unit-of-measure aliases.** The printed unit (EA, EACH, PCS, Pc, E and others) is normalized by an editable alias list under **Setup > Units of measure**. See section 5.3.
@@ -55,7 +72,7 @@ Package contents:
 
 | File | Purpose |
 | --- | --- |
-| PowerPlatform/SalesOrderAgentProcessingTemplateV12_1_0_9_0_managed.zip | Managed solution for test and production environments. Its components are customizable (section 10.9). |
+| PowerPlatform/SalesOrderAgentProcessingTemplateV12_1_1_0_0_managed.zip | Managed solution for test and production environments. Its components are customizable (section 10.9). |
 | PowerPlatform/Initialize-SalesOrderAgent.ps1 | First-time data setup (section 7.2). |
 | PowerPlatform/deployment-settings.template.json | Connection references and environment variables to fill in for a command-line import. |
 | azure-content-understanding/ | Analyzer v2.0.7 definition plus Deploy-Analyzer, Test-AnalyzerContract and Test-CuReadiness scripts |
@@ -204,9 +221,11 @@ https://<your-environment>.crm.dynamics.com
 
 5. Select **Create** and sign in as the identity that owns the flows (section 7.1 and the DLP and Security Requirements). That identity needs Read access to the **Customer Match Policy** table and to the sales order header table, including the customer match evidence, and the **Customer Match Policy Reader** field security profile.
 
-6. To correct a connection that already exists, for example after moving to another environment, open it in **Connections**, select **Edit**, change both URL fields, and select **Update**.
+6. To correct a connection that already exists, for example after moving to another environment, open it in **Connections**, select **Edit**, change both URL fields, and select **Update**. The edit form is different from the create form: it has no "How do you want to connect" choice, and the authentication type is fixed as "Log in with Microsoft Entra ID". That is expected. Remove any trailing slash from both URLs before selecting **Update**.
 
 IMPORTANT  Both URL fields must name the **target** environment. A connection that still points at another environment makes the flows read that environment's rules and evidence, or fail. Do not reuse a connection copied from another environment, and do not add a path or a trailing slash.
+
+IMPORTANT  A connection can be used to turn a flow on only by the person who owns it. If the flow reports `ConnectionAuthorizationFailed`, create the connection while signed in as the person who will turn the flows on (or have the connection's owner turn them on). See section 4.3.
 
 During the import (section 4.2), map `aipod_sharedwebcontents_customermatch` to this connection. If you imported without it, open the solution, select **Connection references**, open `aipod_sharedwebcontents_customermatch` and choose the connection.
 
@@ -220,17 +239,36 @@ IMPORTANT  Required connector IDs are shared_office365, shared_commondataservice
 
 2. Go to Solutions, then Import solution.
 
-3. Select SalesOrderAgentProcessingTemplateV12_1_0_9_0_managed.zip for a test or production environment.
+3. Select SalesOrderAgentProcessingTemplateV12_1_1_0_0_managed.zip for a test or production environment.
 
 4. Map every connection when prompted. Do not leave any unmapped.
 
-5. Supply the target environment-variable current values listed in section 5.
+5. Supply the target environment-variable current values listed in section 5, including `aipod_FinanceOperationsInstance`.
 
 6. Start the import and wait for it to complete.
 
-7. Confirm the solution appears with version 1.0.9.0. Record the import job ID and inspect warnings/dependencies before enabling anything.
+7. Confirm the solution appears with version 1.1.0.0. Record the import job ID and inspect warnings/dependencies before enabling anything.
 
 IMPORTANT  Import success does not mean the solution works. Sections 5 to 8 contain steps that the import cannot perform, and the solution will not process a single document until they are complete.
+
+### 4.3 Bind every connection reference to the connections of the person who turns the flows on
+
+A flow can be turned on only with connections that the person turning it on owns. Imports often map the references to whoever imported, so bind all of them before turning anything on, instead of fixing one error at a time. Open the solution, select **Connection references**, open each reference below and choose (or create) the connection of that connector.
+
+| Connection reference | Connector | Used by |
+| --- | --- | --- |
+| `aipod_salesorderagentv1.2_…shared_dynamicsax…` | Fin & Ops Apps (Dynamics 365) | SOA - Resolve Customer Company Exact V1 |
+| `aipod_sharedwebcontents_customermatch` | HTTP with Microsoft Entra ID (preauthorized) | Resolver, Publish Customer Match Policy V1, WhenStatusChanges, Update Processing Status to Valid |
+| `aipod_sharedcommondataserviceforapps_02e02` | Microsoft Dataverse | Loader, both publish flows, both Notify flows, both intake flows, Update Processing Status to Valid, Reprocess |
+| `aipod_sharedcommondataserviceforapps_294c8` | Microsoft Dataverse | WhenStatusChanges |
+| `crde4_aipod.cr.shared_commondataserviceforapps…` | Microsoft Dataverse | WhenStatusChanges |
+| `new_sharedagentnode_1b241228` | Agents / Microsoft Copilot Studio | WhenStatusChanges |
+| `new_sharedcontentunderstanding_64342` | Azure AI Content Understanding | Both intake flows |
+| `new_sharedoffice365_deb36` | Office 365 Outlook | Both intake flows, both Notify flows |
+
+The solution also lists other connection references that no flow uses; leave them as they are.
+
+If a flow still will not turn on with `ConnectionAuthorizationFailed`, the message names the reference. Open that reference, choose a connection you own, save, and turn the flow on again.
 
 ## 5. Part C — Environment variables
 
@@ -240,14 +278,15 @@ The package contains no environment-variable current values, so every environmen
 | --- | --- | --- |
 | aipod_AzureContentUnderstandingAnalyzerId | Yes | sales_order_extraction_v2_0_7; shipped definition default |
 | aipod_AllowSmallPdfAttachments | No | false by default; change only after explicit approval and a test with an original document |
-| aipod_CustomerMatchAddressBasis | No | Keep the shipped default BillTo. The address basis used for matching is part of the matching policy (section 5.2); this variable applies only to orders matched by an earlier fixed-rule version |
 | aipod_CompanyCode | Where consumed | Target legal entity for remaining consumers; not an override of the resolver's per-order matched company |
 | aipod_MailboxToMonitor | Personal route | Intended mailbox; no overlap with another active route |
 | aipod_MailboxFolderToMonitor | Personal route | Existing folder; Inbox default or intended subfolder |
-| aipod_ReviewerEmailAddress | Yes | Approved reviewer/support recipient; verify actual notification delivery. Use an address that is **not** the monitored mailbox: if notifications land in the monitored folder they are read as new orders |
+| aipod_ReviewerEmailAddress | Yes | Approved reviewer/support recipient; verify actual notification delivery. The agent's notification emails (subject contains `Sales Order Agent - `) are skipped by intake, but a separate reviewer address or folder is still the cleaner setup |
 | aipod_UomAliasMap | No | Shipped with the starter list of 66 unit aliases. Do not edit it by hand: it is maintained from Setup > Units of measure (section 5.3) |
 | aipod_SharedMailboxToMonitor | Shared route only | Shared mailbox address; keep the shared route stopped until approved |
 | aipod_SharedMailboxFolderToMonitor | Shared route only | Existing shared mailbox folder; both shared variables required |
+| aipod_FinanceOperationsInstance | Yes | Host name of the target Finance and Operations environment, for example contoso.operations.dynamics.com. No https:// and no trailing slash. Ships empty: while empty, customer matching stops with `CustomerMatchConfigurationMissing` |
+| aipod_ReleaseHeaders | No | The release switch. Ships `false`: accepted customer matches are held (`CustomerMatchReleaseDisabled`). Set the Current Value to `true` to release accepted matches to the agent and the ERP, only after the checks in section 8 pass. Only the text `true` releases; any other value holds the orders |
 
 To change a value after import, open the target solution, select the environment variable and set its Current Value. Keep environment-specific values out of the shipped solution.
 
@@ -255,14 +294,15 @@ The intake flows read their configured mailbox, folder, analyzer and small-PDF s
 
 ### 5.1 Connections and settings outside the environment variables
 
-The ten variables above are the only environment-variable definitions in the package. The following are configured in their own surfaces:
+The eleven variables in this section are the only environment-variable definitions in the package. Bill-To or Ship-To matching is **not** a variable: it is the **Address basis** of the Published matching policy (section 5.2). The following are configured in their own surfaces:
 
 | Setting | Where to configure and verify |
 | --- | --- |
 | CU endpoint and key | Azure AI Content Understanding connection; use the services.ai.azure.com endpoint and matching target credential. |
 | Dataverse / ERP MCP | Agent tool connection references and invoking-user consent/permissions; use connections that belong to the target environment. |
 | Matching HTTP/Entra connection | The connection created in section 4.1 (both URL fields hold the target Dataverse environment URL), mapped to `aipod_sharedwebcontents_customermatch`; verify under the actual runtime identity. |
-| FinanceOperationsInstance | Open the stopped flow "SOA - Resolve Customer Company Exact V1" and set its parameter FinanceOperationsInstance to the host name of the target Finance and Operations environment only (for example contoso.operations.dynamics.com, without https://). It ships as your-environment.operations.dynamics.com. Keep ReleaseHeaders=false. |
+| F&O host | The environment variable `aipod_FinanceOperationsInstance` (table above). It ships empty. Set the host name of the target Finance and Operations environment only, for example contoso.operations.dynamics.com, without https://. Until it is set, customer matching stops with `CustomerMatchConfigurationMissing`. |
+| Release switch | The environment variable `aipod_ReleaseHeaders` (table above). It ships `false`, a safety switch: keep it `false` until the checks in section 8 pass, then set the Current Value to `true`. Releases before 1.1.0.0 had it as a resolver flow parameter that the portal does not show. |
 | Publish flows' connections | "SOA - Publish Customer Match Policy V1" and "SOA - Publish Unit Alias Map" need a Dataverse connection owned by a System Administrator, because the second writes an environment variable value. |
 
 How matching works in brief. Each candidate customer in every legal entity is scored on name, email and address. BillTo mode compares the document's billing party and address with the ERP invoice address; ShipTo mode needs an explicit ShipTo address on the document and a valid ERP default delivery address, and it never substitutes the Bill-To address as ShipTo evidence. A customer is accepted only when candidate retrieval was complete, the score reaches the threshold, the lead over the next candidate reaches the margin, and the saved proof is current. Ties across companies and fuzzy suggestions are held for review and can never authorize ERP processing. The points, threshold and margin come from the Published matching rules (section 5.2); the standard values are name exact 40, name contains 20, email 15, street 10, ZIP 20, city 10 and state 5, threshold 70 and margin 15.
@@ -282,7 +322,7 @@ What you do in a new environment, in this order:
 1. Import the solution and create the connections (Parts B and C).
 2. Turn on the publish flow and run the first-time setup script (sections 7.1 and 7.2). The script creates and publishes the first `default` policy and assigns the reader field security to the business-unit default teams.
 3. Assign **Sales Order Matching Administrator** to the people who may change rules. Do not give it to reviewers.
-4. Set the resolver parameter `FinanceOperationsInstance` (section 5.1) and keep `ReleaseHeaders=false` until the controlled release in section 8.
+4. Set the environment variable `aipod_FinanceOperationsInstance` (section 5) and keep `aipod_ReleaseHeaders` at `false` until the controlled release in section 8.
 
 ### 5.3 Unit-of-measure normalization
 
@@ -354,7 +394,7 @@ Keep target intake and dispatch stopped while importing, binding and configuring
 
 ### 7.2 Run the first-time setup script
 
-The solution carries no data. The script in the PowerPlatform folder of the package adds what a new environment needs: the first Published matching policy, the starter unit aliases, and the reader field security for the business-unit default teams. Run it as a System Administrator of the target environment, from PowerShell 7 with the Azure CLI signed in:
+The solution carries no data. The script in the PowerPlatform folder of the package adds what a new environment needs: the first Published matching policy, the starter unit aliases, and the reader field security for the business-unit default teams. Run it as a System Administrator of the target environment, from PowerShell 7 with the Azure CLI signed in. If PowerShell reports that the script "is not digitally signed", first run `Unblock-File .\Initialize-SalesOrderAgent.ps1` (a downloaded file is marked as coming from the internet), or see the troubleshooting table in section 12.
 
 ```powershell
 az login
@@ -370,7 +410,7 @@ Confirm the result in the Sales Order Agent app: **Setup > Matching rules** show
 
 1. Open Cloud flows and confirm the exact intended mailbox/folder, target connections, DLP approval, permissions, reviewer routing and the Published matching rules.
 
-2. In an isolated target with no queued customer documents, enable only the loader and resolver needed for held validation. Preserve resolver ReleaseHeaders=false. Verify complete loading and customer-match evidence without an ERP write.
+2. In an isolated target with no queued customer documents, enable only the loader and resolver needed for held validation. Keep `aipod_ReleaseHeaders` at `false`. Verify complete loading and customer-match evidence without an ERP write.
 
 3. After the owner approves a controlled test, enable the status and readiness flows. Current proof, load-complete and state guards must pass; never force New or Valid to bypass them.
 
@@ -485,14 +525,14 @@ Least-privilege runtime identities, DLP, auditing and retention, notification de
 
 ### 9.10 Changing the customer matching rules
 
-Rule changes are made only through **Setup > Matching rules** (see [Customer Matching Rules](customer-matching-rules.md), section 6.1): create a new row for the `default` key, adjust values until the warning banner is empty, enter a change reason, set Publish request to Yes and save. Published and Retired rows are read only. A rule change takes effect for the next order; an order matched under the previous version that is not yet in ERP stops for review (`CustomerMatchPolicyChanged`) and is re-run. Never edit saved proof JSON or the policy snapshot, and do not lower a value to force a particular order through; fix customer master data or the document instead. Test every rule change in a development environment with representative orders before changing production. Matched orders stay held while `ReleaseHeaders` is false.
+Rule changes are made only through **Setup > Matching rules** (see [Customer Matching Rules](customer-matching-rules.md), section 6.1): create a new row for the `default` key, adjust values until the warning banner is empty, enter a change reason, set Publish request to Yes and save. Published and Retired rows are read only. A rule change takes effect for the next order; an order matched under the previous version that is not yet in ERP stops for review (`CustomerMatchPolicyChanged`) and is re-run. Never edit saved proof JSON or the policy snapshot, and do not lower a value to force a particular order through; fix customer master data or the document instead. Test every rule change in a development environment with representative orders before changing production. Matched orders stay held while `aipod_ReleaseHeaders` is `false`.
 
 ### 9.11 Processing rules at a glance
 
 | Rule | What it means |
 | --- | --- |
 | Customer match | A customer is accepted only when complete candidates were scored, the score reaches the threshold, the margin over the next candidate is met and the proof is current. Everything else is held for review with a reason code. |
-| Release | While `ReleaseHeaders` is false, every accepted match is held. Keep it false until the checks in section 8 pass. |
+| Release | While `aipod_ReleaseHeaders` is `false`, every accepted match is held. Keep it `false` until the checks in section 8 pass, then set it to `true` (section 5). |
 | Validation | The agent validates an order only when its status is New and it has no ERP order number. |
 | ERP creation | The agent creates an ERP order only when the header has no ERP order number, so an order cannot be created twice from the same record. |
 | Guard stops | A run that stops because the saved proof, the matching rules or the load state changed is recorded as Cancelled, not Failed, and leaves the order unchanged so it can be re-run. |
@@ -501,7 +541,20 @@ Rule changes are made only through **Setup > Matching rules** (see [Customer Mat
 | Line count | The extracted row count must equal the source row count, with no tolerance. |
 | Prices | Finance and Operations calculates every price; document prices are stored for audit only. |
 | Mailboxes | One active intake flow per mailbox and folder. |
+| Notification emails | Intake skips any email whose subject contains `Sales Order Agent - `, so the agent's own notifications are never read as orders. |
+| Reviewer overrides | A reviewer may decide the customer and company of an order that waits in Review Required, and the ERP product of a line. The decision is saved as evidence (schema 5: who, when, why); the agent checks the customer in ERP and every ERP check at creation still runs (section 9.12). |
 | Agent model | Claude Sonnet or Auto (section 6.2). |
+
+### 9.12 Reviewer overrides
+
+Release 1.1.0.0 lets a reviewer settle what the rules cannot. The reviewer steps are in the [User guide](user-guide.md), section 5.
+
+| Override | Who and when | What the solution does |
+| --- | --- | --- |
+| Customer and company | Anyone who can edit the order, while Customer Match Status is Review Required (also to correct an earlier decision until an ERP order exists). Needs ERP Customer Number, Company Code, **Customer Override Reason** and Valid Customer = Yes, then the status Valid or New. | The status flow writes schema 5 evidence (selected company and account, who, when, why), keeps the system result in **Original Match Evidence**, sets Customer Match Status to Accepted, clears the product validation and runs validation again. The agent confirms in ERP that the customer exists in that company (`ManualOverrideCustomerNotFound` otherwise). |
+| Line | Anyone who can edit the order. On the line: ERP Product Code, **Manual Override** = Yes and **Override Reason**; then the order status Valid. | The status flow validates every line again (a Valid status with lines that are not valid goes back to New first). A line with the override is accepted with the typed ERP product code without an item lookup (`ManualOverrideIncomplete` when the code or reason is empty). |
+
+The override does not skip the ERP checks at creation (unit of measure, Site and Warehouse, read-back). The `aipod_ReleaseHeaders` switch only controls whether the resolver sends its own accepted matches on. A reviewer who sets the status of an order is releasing that order by hand, so it is created in the ERP even while `aipod_ReleaseHeaders` is `false`. Control who may decide customers and products through who can edit orders. Test both overrides in a test environment with an order held for review before you rely on them (section 8).
 
 ## 10. Adding support for a new document template
 
@@ -654,7 +707,7 @@ Use this to confirm nothing was missed.
 
 ### 10.9 What you may and may not change
 
-The solution is managed and its components are customizable (the tables, columns, forms, views, flows, apps and roles; the only locked component is the alternate key that keeps one Published matching policy per key). Make your changes in a separate approved unmanaged layer or solution in the target; editing does not alter the managed layer, and managed deployment does not mean automatic approval to change guarded processing.
+The solution is managed and every component is customizable (the tables, columns, keys, forms, views, flows, apps, roles, connection references and the agent's tools). Make your changes in a separate approved unmanaged layer or solution in the target; editing does not alter the managed layer, and managed deployment does not mean automatic approval to change guarded processing.
 
 Record every change you make. An upgrade to a later release can overwrite an edited flow, and your change will need to be reapplied. Keep customisations in your own solution layer wherever possible, and prefer adding a column over changing the meaning of a supplied one.
 
@@ -666,7 +719,11 @@ Record every change you make. An upgrade to a later release can overwrite an edi
 
 2. Test the managed import in a sandbox first and review component/layer/deletion impact. Choose update or upgrade according to that plan; applying an upgrade can remove components and must not be automatic.
 
-3. Re-check target current values, all connection/Invoker bindings and the resolver ERP host name. New releases may add required configuration.
+3. Re-check target current values, all connection/Invoker bindings (section 4.3) and the F&O host. New releases may add required configuration.
+
+   **Upgrading from 1.0.10.0 to 1.1.0.0:** no setting is required. The import adds four columns and the variable `aipod_ReleaseHeaders` (default `false`, as the old resolver parameter), and changes the order and line forms, the status flow, the resolver flow, the update-status flow and the three business skills. If you changed the resolver's old `ReleaseHeaders` parameter in your own customization layer, remove that customization first so the managed definition applies, then set the variable. Confirm the skills are available (step 4) and publish the agent if your release plan requires it. Orders already in Manual Review for a customer reason can be decided with the override after the upgrade.
+
+   **Upgrading from 1.0.9.0 to 1.0.10.0:** the resolver's host moves from a flow parameter to the environment variable `aipod_FinanceOperationsInstance`, which has no value after the import. Set it (section 5) before turning the resolver flow on. If you edited the resolver's old `FinanceOperationsInstance` parameter or the Instance field of its search actions in your own customization layer, remove that customization first so the managed definition applies.
 
 4. Confirm target business-skill availability and publish the intended agent if the release plan requires it; keep intake/release held during setup.
 
@@ -695,6 +752,11 @@ Record every change you make. An upgrade to a later release can overwrite an edi
 | Policy not published, or orders stop with CustomerMatchPolicyUnavailable, although the publish flow is On | The HTTP with Microsoft Entra ID connection points at the wrong environment, has a path or trailing slash in the URL, or its identity cannot read the policy table | Open the connection (section 4.1), set both URL fields to the target environment URL, sign in as the flow owner, and check Read access to the Customer Match Policy table. Then run the setup script again. |
 | No matching release despite high score | Ambiguity, incomplete retrieval, missing/duplicate configuration or stale proof | Inspect saved evidence/current value. Preserve hold; do not fabricate company or edit proof JSON. |
 | Setup area missing in the app | User has no Write permission on the Customer Match Policy table, or the role is not on the app | Assign Sales Order Matching Administrator; confirm the role is associated with the Sales Order Agent app (section 5.2). |
+| Turn on failed: `ConnectionAuthorizationFailed`, "cannot be used to activate this flow" | The connection reference named in the message is bound to a connection the person turning the flow on does not own | Section 4.3: open that connection reference, choose or create a connection you own, save, and turn the flow on again. Or have the connection's owner turn the flow on. |
+| Turn on failed: BadGateway, "The remote name could not be resolved" for a `…operations.dynamics.com` host | The F&O host is wrong or still the placeholder from release 1.0.9.0 | Release 1.0.10.0 or later: set `aipod_FinanceOperationsInstance` (section 5). On 1.0.9.0, upgrade to 1.0.10.0. |
+| Orders stop with `CustomerMatchConfigurationMissing` | `aipod_FinanceOperationsInstance` has no value | Set it to the F&O host name (section 5) and re-run the order. |
+| The HTTP with Microsoft Entra ID connection cannot be created or no longer exists; error AADSTS65002 | The connection was deleted, or the sign-in cannot get a token for the Dataverse URL | Section 4.1: create it again with both URL fields set to the plain target environment URL (no trailing slash), signed in as the person who turns the flows on, then rebind `aipod_sharedwebcontents_customermatch` (section 4.3). If AADSTS65002 persists with correct values, the tenant has not allowed this connector's first-party app for Dataverse: ask a tenant administrator. |
+| Notification emails turn into new orders (release 1.0.9.0) | The reviewer address is the monitored mailbox and the notification landed in the monitored folder | Fixed in 1.0.10.0: intake skips subjects containing `Sales Order Agent - `. On 1.0.9.0 use a reviewer address that is not the monitored mailbox. |
 | Policy row rejected / form read only | A safety rule is not met, the change reason is empty, or the row is Published or Retired | Read the Validation message on the Status tab, fix the values and request publishing again; create a new row to change a Published rule set. |
 | Orders stop with CustomerMatchPolicyUnavailable or CustomerMatchPolicyChanged | No Published default, missing Reader field-security profile, or rules changed while the order was in flight | Publish or verify the default policy and profile assignment; re-run the order. See Customer Matching Rules, section 3. |
 | Documents stop with count message | LineCountMismatch or LineCountUnverifiable | Compare original source and persisted JSON; never waive count or create a short ERP order. |
@@ -706,6 +768,8 @@ Record every change you make. An upgrade to a later release can overwrite an edi
 | Agent answers but every VALIDATE stops with a product-lookup failure and the flow shows Succeeded | The agent model does not call the ERP tool | Set the agent model to Claude Sonnet or Auto (section 6.2), publish, and repeat section 6.1. |
 | A status flow run shows Cancelled and the order is unchanged | A guard stopped the run because the saved proof, the matching rules or the load state changed | Expected. Re-run the order. See section 9.11. |
 | Setup > Matching rules is empty, or orders stop with CustomerMatchPolicyUnavailable | The first policy was not created or published | Turn on the publish flow, run `Initialize-SalesOrderAgent.ps1` (section 7.2) and confirm one Published `default` row. |
+| `Initialize-SalesOrderAgent.ps1` fails with "is not digitally signed" or "cannot be loaded" | Windows marks a downloaded script as coming from the internet, and the execution policy requires such scripts to be signed | In the folder that holds the script run `Unblock-File .\Initialize-SalesOrderAgent.ps1`. If policy still blocks it, run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` in that window only (it does not change the machine policy). Then run the script again. |
+| "You do not have permission to access these records" on every screen, or on Setup > Matching rules, right after a role was assigned | The browser session still holds the security of the sign-in from before the role change | Close the app and open it again in a new InPrivate/incognito window, or sign out and sign in. Confirm the user has the Sales Order Matching Administrator and Sales Orders Reviewer roles in the user's own business unit; only then investigate further. |
 | Small PDF or XLSX not processed | Size filter or provider support | Check original byte size/runtime response. No padding or silent XLSX-to-PDF conversion. |
 | No ERP order despite Succeeded | Wrapper/connector success without persisted business outcome | Read Dataverse status/JSON/header/lines and independent ERP outcome. Preserve failure evidence, no blind replay. |
 
@@ -738,7 +802,7 @@ The full reference, with examples and reason codes, is [Customer Matching Rules]
 | Points, threshold, margin, address basis, fallback, name switches | **Setup > Matching rules** (the policy table). The resolver reads the Published rules on every run, so no flow or skill changes. | Minutes, no deployment |
 | Tooltip text | The column description in the table designer | Small |
 | The safety floors, what counts as a name, street, ZIP, city, state or email match, name cleaning, which customers are searched in ERP, the accept/review decision, or a new matching signal | Not configurable. These are part of the delivered resolver flow and skills. | A change to the delivered solution; see 14.3 |
-| What happens after a match (release to ERP, notifications) | The consumer flows and the `ReleaseHeaders` setting | Needs separate approval; matched orders stay held while `ReleaseHeaders` is false |
+| What happens after a match (release to ERP, notifications) | The consumer flows and the environment variable `aipod_ReleaseHeaders` | Needs separate approval; matched orders stay held while `aipod_ReleaseHeaders` is `false` |
 
 ### 14.2 The pieces and who is the authority
 
@@ -756,7 +820,7 @@ The flows are the authority at run time. Skills and the viewer must agree with t
 
 ### 14.3 Changing the delivered flows or skills
 
-* Do not edit the delivered flows or skill bodies in place. In the portal you may change only connection bindings, turn a flow on or off (keep intake stopped while you do), and the parameters `FinanceOperationsInstance` (the environment's own F&O host) and `ReleaseHeaders` (keep false).
+* Do not edit the delivered flows or skill bodies in place. In the portal you may change only connection bindings, turn a flow on or off (keep intake stopped while you do), the environment variable values in section 5, and `aipod_ReleaseHeaders` (keep `false` until release is approved).
 * A logic change is made as a controlled change to the solution by the team that owns it, in a development environment, and delivered as a new solution version through the upgrade process in section 11.
-* Before any logic change goes live, run the held checks in section 8.4 with representative orders, including the negative cases, and keep `ReleaseHeaders` false until they pass.
+* Before any logic change goes live, run the held checks in section 8.4 with representative orders, including the negative cases, and keep `aipod_ReleaseHeaders` set to `false` until they pass.
 * A change in your own customization layer can be overwritten by a later release; record every change so it can be reapplied.
