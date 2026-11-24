@@ -72,7 +72,7 @@ flowchart TD
 
 ## Deployment state
 
-Shared intake and the resolver's `ReleaseHeaders` ship stopped/false. Those controls are part of the package and are
+Shared intake and the release switch (the environment variable `aipod_ReleaseHeaders`) ship stopped/false. Those controls are part of the package and are
 not permission to activate processing in a target. Connections, API/Entra base-resource bindings and actual Invoker
 access do not travel as usable credentials in a solution ZIP, and the resolver's ERP host name is set per target.
 No Azure Function or custom connector is required by this CU route.

@@ -23,6 +23,14 @@
     {
       "SchemaName": "aipod_SharedMailboxFolderToMonitor",
       "Value": ""
+    },
+    {
+      "SchemaName": "aipod_FinanceOperationsInstance",
+      "Value": ""
+    },
+    {
+      "SchemaName": "aipod_ReleaseHeaders",
+      "Value": ""
     }
   ],
   "ConnectionReferences": [
@@ -75,6 +83,11 @@
       "LogicalName": "new_sharedagentnode_1b241228",
       "ConnectionId": "",
       "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_agentnode"
+    },
+    {
+      "LogicalName": "new_sharedcommondataserviceforapps_03ac0932",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
     },
     {
       "LogicalName": "new_sharedcontentunderstanding_64342",

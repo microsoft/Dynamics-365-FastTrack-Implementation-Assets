@@ -1,10 +1,20 @@
-# Deployment and troubleshooting FAQ - 1.0.9.0
+# Deployment and troubleshooting FAQ - 1.1.0.0
 
-Date: 2026-11-03. For the Content Understanding and customer-matching release. Entries describe a symptom, what it
+Date: 2026-11-24. For the Content Understanding and customer-matching release. Entries describe a symptom, what it
 means and the safe action.
 
 | Symptom/error | Meaning and safe action |
 |---|---|
+| Two customers tie and the order sits in Manual Review (`CustomerMatchAmbiguous`) | A reviewer can decide it: type ERP Customer Number and Company Code, fill Customer Override Reason, set Valid Customer to Yes and set the status to Valid (user guide, section 5). The order then validates and is created in the ERP. |
+| One line stops for review but the customer is fine | Type the ERP Product Code on the line, set Manual Override to Yes with a reason, then set the order status to Valid (user guide, section 5). ERP checks at creation still apply. |
+| ERP Customer Number and Company Code cannot be edited | They are editable only while Customer Match Status is Review Required, or after a reviewer decision until an ERP order exists. They are read only for system-matched orders and for orders already created. |
+| The order stops with `ManualOverrideCustomerNotFound` | The ERP has no such customer in that company. Correct the customer number or the company and set the status again. |
+| A line stops with `ManualOverrideIncomplete` | Manual Override is Yes but the ERP Product Code or the Override Reason is empty. |
+| Turn on failed: `ConnectionAuthorizationFailed`, "cannot be used to activate this flow" | A connection reference is bound to a connection that the person turning the flow on does not own. Bind every reference to that person's connections (deployment guide, section 4.3), or have the connection's owner turn the flow on. |
+| Turn on failed: BadGateway, "The remote name could not be resolved" for a `…operations.dynamics.com` host | The Finance and Operations host is wrong or is the placeholder from release 1.0.9.0. Set the environment variable `aipod_FinanceOperationsInstance` (section 5), or upgrade from 1.0.9.0. |
+| Orders stop with `CustomerMatchConfigurationMissing` | `aipod_FinanceOperationsInstance` has no value. Set it to the F&O host name and re-run the order. |
+| The HTTP with Microsoft Entra ID connection cannot be created (AADSTS65002) or no longer exists | Create it again with both URLs set to the plain target environment URL (no trailing slash), signed in as the person who turns the flows on, then rebind `aipod_sharedwebcontents_customermatch`. If the error persists with correct values, a tenant administrator must allow the connector's first-party app for Dataverse. |
+| Notification emails became new orders | Fixed in 1.0.10.0: intake skips subjects containing `Sales Order Agent - `. On 1.0.9.0 use a reviewer address that is not the monitored mailbox. |
 | CU connection says Connected, but `Analyze_content` returns 401 | Verify subscription state, matching resource endpoint/key and authentication mode. Recreate or rebind credentials only through approved connection administration. Connected is not an execution test. |
 | `SubscriptionNotRegistered` or Azure subscription Disabled | The service owner must restore the subscription/provider/resource. Do not repeat document submissions. Provider registration alone does not repair a Disabled subscription. Recheck the actual analyzer and connector afterward. |
 | `401 PermissionDenied` on CU defaults/analyzer | Check the target identity's data-plane role as well as management-plane permissions. Obtain approved access. |
@@ -15,6 +25,8 @@ means and the safe action.
 | DLP blocks `shared_agentnode` with Dataverse | An admin must evaluate all applicable policies and put the required connectors in compatible approved groups. Include `shared_webcontents` for the customer resolver. Keep intake held during remediation. |
 | The agent answers but VALIDATE stops with a product-lookup failure and the flow shows Succeeded | The agent model does not call the ERP tool. Set the model to Claude Sonnet or Auto, publish, and repeat the skill check (deployment guide, sections 6.1 and 6.2). |
 | Setup > Matching rules is empty; orders stop with `CustomerMatchPolicyUnavailable` | The first policy was not created. Turn on the publish flow and run `Initialize-SalesOrderAgent.ps1` (deployment guide, section 7.2). |
+| `Initialize-SalesOrderAgent.ps1` is "not digitally signed" and will not run | Windows marks a downloaded script as coming from the internet. Run `Unblock-File .\Initialize-SalesOrderAgent.ps1` in its folder, or `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` in that window only (the machine policy is unchanged). |
+| "You do not have permission to access these records" after a role was assigned | The session still holds the previous security. Open the app in a new InPrivate window or sign out and in. If it persists, check the roles in the user's own business unit. |
 | Matching stays held with a high score | Score alone is insufficient: company ambiguity, runner-up margin, candidate completeness, policy freshness and current proof all matter. Review the saved evidence; fuzzy suggestions do not authorize a write. |
 | The same customer identity appears in multiple companies | Cross-company identities can be identical. The order is held for review rather than silently selecting a company. |
 | ShipTo selected but address points absent | ShipTo matching needs an explicit source address and a valid ERP default delivery address. The operational Bill-to fallback is not ShipTo evidence. |
