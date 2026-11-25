@@ -22,20 +22,11 @@ Run from the `Extensions` directory at that short path. Supply the `apimGatewayU
     -CommerceSdkPackagesVersion "<exact-sdk-version-for-your-release>"
 ```
 
-The script uses Visual Studio MSBuild to restore and build the CSU package and Windows Store Commerce installer. Supply `-MSBuildPath` if automatic discovery cannot find your installation. `-BuildNumber` defaults to `1.0`; the package version combines the source's major version with that build number.
+The script builds the React panel, generates Commerce proxies and POS SDK development files, and uses Visual Studio MSBuild to restore and build the CSU package and Windows Store Commerce installer. No separate npm build commands are required. Supply `-MSBuildPath` if automatic discovery cannot find your installation. `-BuildNumber` defaults to `1.0`; the package version combines the source's major version with that build number.
+
+Package restore requires access to the configured NuGet and npm feeds. If a corporate network blocks a feed or causes TLS errors, configure an approved reachable mirror through NuGet or MSBuild's `RestoreSources` setting before running the script; do not disable certificate validation.
 
 `ContosoApimEndpoint` is packaged as CRT setting `ext.Contoso.ApimEndpoint`. The POS client reads it through `GetApimEndpoint` and appends its operation paths. Do not put keys, credentials, query strings, or fragments in this URL. Build CSU and Windows packages using the same endpoint, SDK version, and package version.
-
-For panel-only development:
-
-```powershell
-Set-Location Pos\Create\SideChatPanel
-npm ci --no-audit --no-fund
-npx --no-install tsc --project app.tsconfig.json --noEmit
-npm run build
-```
-
-This produces `Pos\Libraries\ContosoSideChat.js`, not an installable POS package. The full Commerce build also generates the Commerce proxy and POS SDK development files.
 
 ## Generated artifacts and installation
 
