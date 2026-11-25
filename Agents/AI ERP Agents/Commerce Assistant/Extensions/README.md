@@ -12,9 +12,9 @@ Build and install the Commerce Assistant chat experience for Cloud POS or Window
 
 ## Build
 
-Extract or copy `Commerce Assistant` to a short path such as `C:\CommerceAssistant` before building to avoid Windows path-length errors.
+Run the build from the `Extensions` directory. If you encounter Windows path-length errors, copy the complete `Commerce Assistant` folder to a short path such as `C:\CommerceAssistant` and retry.
 
-Run from the `Extensions` directory at that short path. Supply the `apimGatewayUrl` returned by Azure deployment, without `/chat` or `/attachments`:
+Supply the `apimGatewayUrl` returned by Azure deployment, without `/chat` or `/attachments`:
 
 ```powershell
 .\Build-ExtensionArtifacts.ps1 `
@@ -30,6 +30,8 @@ Do not put keys, credentials, query strings, or fragments in the endpoint URL. U
 
 ## Generated artifacts and installation
 
+The package identity is `Contoso.PosExtensions`. Do not install it beside another package using that identity.
+
 The build script reports the generated files:
 
 | Output | Use |
@@ -43,12 +45,7 @@ For Windows Store Commerce, keep the generated installer and companion files tog
 
 Configure authentication and allowed POS origins using the [Azure deployment guide](../AzureResources/README.md). For Windows Store Commerce, also allow `https://local.storecommerce.dynamics.com` in the gateway's CORS settings.
 
-## Validate in your environment
+## Next step
 
-1. Sign in, open the chat icon, and send a normal question. Verify authentication, the APIM endpoint, and a response from the configured model.
-2. Search your channel's products; verify cards, filters, variant selection, comparison, and Add to sale.
-3. Add a product and verify cart suggestions. Exercise shipping/customer-order actions with valid Commerce data.
-4. Open the assistant menu and test **Customer order lookup** and **Counter order**. Photo entry needs attachments, an image-capable model, and cart tools; verify partial failures do not cause duplicate additions.
-5. Test attachments, a new conversation, sign-out, and terminal lock. Verify no conversation is inherited by another operator.
-
-Customer-order lookup intentionally simulates an outage. Set `SIMULATE_OUTAGE_BY_DEFAULT` in `Pos\Extend\Agent\CustomerOrderLookup.ts` to `false` and rebuild for real lookups.
+Follow [Configure and use Commerce Assistant](../docs/using-commerce-assistant.md)
+to try product search, cart suggestions, counter orders, and customer-order lookup.
