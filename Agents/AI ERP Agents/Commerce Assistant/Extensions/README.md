@@ -1,12 +1,12 @@
 # Commerce Assistant POS extension
 
-This is the POS assistant portion of Commerce-Samples-InStore PR 350, including the CRT endpoints needed by POS. It does not contain the PR's MCP implementation.
+This sample provides the Commerce Assistant POS extension and its supporting CRT endpoints. It does not include a custom Commerce MCP implementation.
 
 ## Prerequisites
 
 - Windows and Visual Studio with MSBuild and the .NET development tools required by the [Store Commerce extension SDK](https://learn.microsoft.com/dynamics365/commerce/dev-itpro/pos-extension/pos-extension-overview), including .NET Framework 4.7.2 targeting support for the installers.
 - Node.js and npm on `PATH`.
-- Access to Commerce SDK NuGet packages matching the target Commerce release. The source snapshot targets the **9.61** SDK family in `repo.props`; do not assume earlier prebuilt 9.59 packages match this source.
+- Access to Commerce SDK NuGet packages matching the target Commerce release. This sample targets the **9.61** SDK family in `repo.props`.
 - An activated POS device and a signed-in associate, with channel/product/customer/order data appropriate to the scenario.
 - The [Azure resources](../AzureResources/README.md), configured for your environment, and an external Commerce MCP service exposing the tools used by the assistant.
 

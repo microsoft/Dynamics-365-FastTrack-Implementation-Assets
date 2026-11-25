@@ -31,13 +31,4 @@ Configure authentication, allowed POS origins, model capabilities, assistant ins
 - Customer-order lookup simulates an outage by default. See the extension guide before enabling real lookups.
 - Voice input requires browser support and microphone permission. Attachments and photo-based cart entry require compatible model capabilities and Commerce tools.
 - Retain the included [Commerce SDK license](Extensions/LICENSE) and source notices. Publication approval and target-release compatibility must be established before redistributing generated packages.
-
-## Source snapshots
-
-The Azure files originate from `Commerce-ConceptValidations`, commit `d0c34172ad0838d62340872427a0de1cf0bc9d28`, under `MCP/APIM/commerce-assistant-azure-resources`.
-
-The POS implementation originates from `Commerce-Samples-InStore` PR 350, commit `2f595cdad495d3c6223789b4ad05f7fd46cce8b9`. Only the POS assistant functionality and its required CRT/build support were extracted. The PR's MCP folder, MCP tests, unrelated POS samples, and forced product-sale error demo are excluded.
-
-Packaging adaptations are limited to the standalone build-property import, assistant-only menu/manifest registrations, removal of MCP build references, customer-facing documentation, and artifact/build hygiene. The npm lockfile uses public registry URLs with the original versions and integrity hashes; npm restoration uses `npm ci`. The original package identity `Contoso.PosExtensions` is retained across the manifest and CRT registration trigger; do not install it beside another package using that identity.
-
-Maintainer-only Azure deployment notes and development-environment screenshots are intentionally omitted from the customer package.
+- The package identity is `Contoso.PosExtensions`; do not install it beside another package using that identity.
