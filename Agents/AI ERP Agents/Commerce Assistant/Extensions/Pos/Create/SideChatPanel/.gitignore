@@ -1,0 +1,16 @@
+# Docked chat side panel build artifacts and dependencies.
+
+# Installed packages (React, Fluent UI, webpack, ...) — restored via `npm ci`.
+node_modules/
+
+# TypeScript incremental build info.
+*.tsbuildinfo
+
+# The generated AMD bundle is emitted to ../../Libraries/ContosoSideChat.js and is
+# already covered by the repository-wide "*.js" ignore rule, so it is not committed.
+
+# webpack.config.js is build *source*, but the repository-wide "*.js" rule ignores it.
+# ContosoSideChat.d.ts is authored typings the POS build needs, but the repo-wide "*.d.ts"
+# rule ignores it. Re-include both so the extension builds from a clean clone.
+!webpack.config.js
+!ContosoSideChat.d.ts

@@ -1,0 +1,312 @@
+<!--
+    HTMLLint is an internal tool that fails on this file due to non-localized example labels,
+    there is no need for this comment and the one below in real-world extensions.
+-->
+<!-- HTMLLint Disable LabelExistsValidator -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>CounterOrderView</title>
+    <link href="CounterOrderView.css" rel="stylesheet" />
+</head>
+<body>
+    <!-- Every piece of text sits in a POS text class (h2 to h6, label or button); POS sizes anything else at 4px. -->
+    <div class="CounterOrderView">
+        <!-- While the dialog is open, the page behind it can't be reached. -->
+        <div class="counterOrderPage" data-bind="attr: { inert: isDialogOpen() ? '' : null }">
+            <div class="counterOrderMain">
+                <div class="counterOrderBar">
+                    <form class="counterOrderEntry" data-bind="submit: submitEntry">
+                        <svg class="counterOrderEntryIcon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
+                            <path fill="currentColor" d="M7.25 2h1.5v5.25H14v1.5H8.75V14h-1.5V8.75H2v-1.5h5.25z" />
+                        </svg>
+                        <input type="text" class="counterOrderEntryInput" autocomplete="off" spellcheck="false"
+                               aria-label="Item ID and quantity" placeholder="Enter an item ID and quantity, or paste a list"
+                               data-bind="textInput: entryText, event: { paste: onEntryPaste }, attr: { maxlength: maxTextLength }" />
+                    </form>
+                    <button type="button" class="counterOrderAskButton" aria-label="Ask Copilot" title="Ask Copilot" data-bind="click: askCopilot">
+                        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
+                            <path fill="currentColor" d="M8 1l1.6 4.8L14.5 7.5l-4.9 1.7L8 14l-1.6-4.8L1.5 7.5l4.9-1.7z" />
+                        </svg>
+                    </button>
+                    <button type="button" class="primaryButton counterOrderBulkAddButton" data-bind="click: openBulkAdd">Bulk add items</button>
+                    <span class="h4 secondaryFontColor counterOrderLineCount" data-bind="text: lineCountText"></span>
+                </div>
+
+                <div class="counterOrderGrid">
+                    <table class="counterOrderTable" aria-label="Order lines">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="h6 counterOrderProductColumn">Product</th>
+                                <th scope="col" class="h6 counterOrderNumberColumn">Qty</th>
+                                <th scope="col" class="h6">Unit</th>
+                                <th scope="col" class="h6 counterOrderNumberColumn">Net price</th>
+                                <th scope="col" class="h6">Fulfillment</th>
+                            </tr>
+                        </thead>
+                        <tbody data-bind="foreach: cartLines">
+                            <tr>
+                                <td class="counterOrderProductColumn">
+                                    <div class="h5 primaryFontColor counterOrderProductName" data-bind="text: name"></div>
+                                    <div class="h4 secondaryFontColor counterOrderProductId" data-bind="text: itemId"></div>
+                                </td>
+                                <td class="h5 primaryFontColor counterOrderNumberColumn" data-bind="text: quantity"></td>
+                                <td class="h5 primaryFontColor" data-bind="text: unit"></td>
+                                <td class="h5 primaryFontColor counterOrderNumberColumn" data-bind="text: netPrice"></td>
+                                <td class="h5 primaryFontColor" data-bind="text: fulfillment"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- ko if: cartStatus() === 'ready' && cartLines().length === 0 -->
+                    <div class="counterOrderGridMessage">
+                        <svg class="counterOrderGridIcon" viewBox="0 0 24 24" width="32" height="32" aria-hidden="true" focusable="false">
+                            <path fill="currentColor" fill-rule="evenodd" d="M4 3h16v18H4z M5.5 4.5v15h13v-15z M7.5 7h9v1.5h-9z M7.5 11h9v1.5h-9z M7.5 15h9v1.5h-9z" />
+                        </svg>
+                        <h2 class="h3 primaryFontColor counterOrderGridTitle">Start a counter order</h2>
+                        <div class="h4 secondaryFontColor">Enter an item or paste the customer's item list</div>
+                    </div>
+                    <!-- /ko -->
+
+                    <!-- ko if: cartStatus() === 'loading' -->
+                    <div class="counterOrderGridMessage">
+                        <span class="counterOrderSpinner" aria-hidden="true"></span>
+                        <div class="h4 secondaryFontColor" role="status">Loading the cart...</div>
+                    </div>
+                    <!-- /ko -->
+
+                    <!-- ko if: cartStatus() === 'failed' -->
+                    <div class="counterOrderGridMessage" role="alert">
+                        <h2 class="h3 primaryFontColor counterOrderGridTitle">The cart couldn't be loaded</h2>
+                        <div class="h4 secondaryFontColor">Check the connection, then try again.</div>
+                        <button type="button" class="secondaryButton counterOrderRetryButton" data-bind="click: retryCart">Try again</button>
+                    </div>
+                    <!-- /ko -->
+                </div>
+            </div>
+
+            <div class="counterOrderFooter">
+                <div class="counterOrderFooterActions">
+                    <button type="button" class="primaryButton" data-bind="click: takePayment, enable: cartLines().length > 0">Take payment</button>
+                </div>
+                <dl class="counterOrderTotals">
+                    <div class="counterOrderTotal">
+                        <dt class="h6 secondaryFontColor">Lines</dt>
+                        <dd class="h3 primaryFontColor" data-bind="text: cartLines().length"></dd>
+                    </div>
+                    <div class="counterOrderTotal">
+                        <dt class="h6 secondaryFontColor">Subtotal</dt>
+                        <dd class="h3 primaryFontColor" data-bind="text: subtotalText"></dd>
+                    </div>
+                    <div class="counterOrderTotal">
+                        <dt class="h6 secondaryFontColor">Savings</dt>
+                        <dd class="h3 primaryFontColor" data-bind="text: savingsText"></dd>
+                    </div>
+                    <div class="counterOrderTotal">
+                        <dt class="h6 secondaryFontColor">Order total</dt>
+                        <dd class="h3 primaryFontColor" data-bind="text: totalText"></dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <!-- ko if: isDialogOpen -->
+        <div class="counterOrderDialogLayer" data-bind="event: { dragover: onDialogDragOver, drop: onDialogDrop }">
+            <div class="counterOrderDialog" role="dialog" tabindex="-1" aria-labelledby="counterOrderDialogTitle"
+                 data-bind="event: { keydown: onDialogKeyDown, paste: onDialogPaste }, attr: { 'aria-modal': isAdding() && step() !== 'photo' ? null : 'true', 'aria-busy': isBusy() ? 'true' : null }">
+                <div class="counterOrderDialogHeader">
+                    <h2 id="counterOrderDialogTitle" class="h3 primaryFontColor counterOrderDialogTitle">Bulk add items</h2>
+                    <button type="button" class="counterOrderIconButton" aria-label="Close" title="Close" data-bind="click: closeDialog, enable: !isBusy()">
+                        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
+                            <path fill="currentColor" d="M3.4 2.3L8 6.9l4.6-4.6 1.1 1.1L9.1 8l4.6 4.6-1.1 1.1L8 9.1l-4.6 4.6-1.1-1.1L6.9 8 2.3 3.4z" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="counterOrderDialogBody">
+                    <!-- ko if: step() === 'choose' -->
+                    <div class="counterOrderChoose">
+                        <div class="counterOrderTiles">
+                            <button type="button" class="counterOrderTile counterOrderPhotoTile" data-bind="click: choosePhoto">
+                                <svg class="counterOrderTileIcon" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" focusable="false">
+                                    <path fill="currentColor" fill-rule="evenodd" d="M3 3h18v18H3z M5 5v14h14V5z M8 8h8v8H8z" />
+                                </svg>
+                                <span class="h3 primaryFontColor counterOrderTileTitle">Add from photo</span>
+                                <span class="h5 secondaryFontColor counterOrderTileText">Copilot adds the listed items and quantities directly to this cart</span>
+                            </button>
+                            <button type="button" class="counterOrderTile counterOrderPasteTile" data-bind="click: choosePaste">
+                                <svg class="counterOrderTileIcon" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" focusable="false">
+                                    <path fill="currentColor" fill-rule="evenodd" d="M3 3h18v18H3z M5 5v14h14V5z M7 7.5h10v2H7z M7 11h10v2H7z M7 14.5h10v2H7z" />
+                                </svg>
+                                <span class="h3 primaryFontColor counterOrderTileTitle">Paste item list</span>
+                                <span class="h5 secondaryFontColor counterOrderTileText">Item IDs and quantities from email or spreadsheet</span>
+                            </button>
+                        </div>
+                        <!-- Opened by Add from photo. A photo can also be dropped on the dialog or pasted. -->
+                        <input type="file" class="counterOrderPhotoInput" tabindex="-1" aria-hidden="true"
+                               accept="image/png,image/jpeg,image/webp,image/gif,.png,.jpg,.jpeg,.webp,.gif"
+                               data-bind="event: { change: onPhotoChosen }" />
+                        <!-- ko if: photoMessage -->
+                        <div class="counterOrderMessageBar counterOrderPhotoMessage"
+                             data-bind="css: { counterOrderErrorBar: photoMessageKind() === 'error', counterOrderInfoBar: photoMessageKind() !== 'error' }">
+                            <!-- ko if: photoMessageKind() === 'error' -->
+                            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+                                <path fill="currentColor" fill-rule="evenodd" d="M12 2a10 10 0 1 1 0 20a10 10 0 1 1 0-20z M11 6.75h2v7.5h-2z M12 15.75a1.25 1.25 0 1 1 0 2.5a1.25 1.25 0 1 1 0-2.5z" />
+                            </svg>
+                            <!-- /ko -->
+                            <!-- ko if: photoMessageKind() !== 'error' -->
+                            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+                                <path fill="currentColor" fill-rule="evenodd" d="M12 2a10 10 0 1 1 0 20a10 10 0 1 1 0-20z M11 9.75h2v7.5h-2z M12 5.75a1.25 1.25 0 1 1 0 2.5a1.25 1.25 0 1 1 0-2.5z" />
+                            </svg>
+                            <!-- /ko -->
+                            <span class="h4 primaryFontColor" data-bind="text: photoMessage"></span>
+                        </div>
+                        <!-- /ko -->
+                    </div>
+                    <!-- /ko -->
+
+                    <!-- ko if: step() === 'photo' -->
+                    <div class="counterOrderPhotoStep">
+                        <div class="counterOrderPhotoFrame">
+                            <!-- ko if: photoPreview -->
+                            <img class="counterOrderPhotoPreview" alt="" data-bind="attr: { src: photoPreview }" />
+                            <!-- /ko -->
+                            <!-- ko ifnot: photoPreview -->
+                            <svg class="counterOrderPhotoPlaceholder" viewBox="0 0 24 24" width="40" height="40" aria-hidden="true" focusable="false">
+                                <path fill="currentColor" fill-rule="evenodd" d="M3 3h18v18H3z M5 5v14h14V5z M8 8h8v8H8z" />
+                            </svg>
+                            <!-- /ko -->
+                        </div>
+                        <div class="counterOrderPhotoProgress">
+                            <span class="counterOrderSpinner" aria-hidden="true"></span>
+                            <h3 class="h3 primaryFontColor counterOrderPhotoStatus" tabindex="-1" data-bind="text: photoStatus"></h3>
+                        </div>
+                        <!-- ko if: photoName -->
+                        <div class="h5 secondaryFontColor counterOrderPhotoName" data-bind="text: photoName"></div>
+                        <!-- /ko -->
+                        <div class="h4 secondaryFontColor counterOrderHint">Copilot finds and adds the listed items, then refreshes the cart. This can take up to a minute.</div>
+                    </div>
+                    <!-- /ko -->
+
+                    <!-- ko if: step() === 'paste' -->
+                    <div id="counterOrderPasteHint" class="h4 primaryFontColor counterOrderHint">Enter or paste a list of Item IDs and quantities to add items in bulk. Use one line per item.</div>
+                    <!-- /ko -->
+
+                    <!-- ko if: step() === 'review' -->
+                    <div class="counterOrderReviewHeading">
+                        <h3 class="h3 primaryFontColor counterOrderReviewTitle" tabindex="-1" data-bind="text: reviewTitle"></h3>
+                        <div class="h4 secondaryFontColor counterOrderHint">Check the items, then add them to the cart.</div>
+                    </div>
+                    <!-- /ko -->
+
+                    <!-- ko if: (step() === 'paste' || step() === 'review') && addedCount() > 0 -->
+                    <div class="counterOrderMessageBar counterOrderSuccessBar" role="status">
+                        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+                            <path fill="currentColor" fill-rule="evenodd" d="M12 2a10 10 0 1 1 0 20a10 10 0 1 1 0-20z M6.6 12.4L7.9 11.1L10.5 13.7L16.1 8.1L17.4 9.4L10.5 16.3z" />
+                        </svg>
+                        <span class="h4 primaryFontColor" data-bind="text: addedText"></span>
+                    </div>
+                    <!-- /ko -->
+
+                    <!-- ko if: (step() === 'paste' || step() === 'review') && errors().length > 0 -->
+                    <div class="counterOrderErrors" role="group" aria-label="Errors">
+                        <!-- ko if: errors().length < 3 -->
+                        <div class="counterOrderErrorItems" aria-live="polite" data-bind="foreach: errors">
+                            <div class="counterOrderMessageBar counterOrderErrorBar">
+                                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+                                    <path fill="currentColor" fill-rule="evenodd" d="M12 2a10 10 0 1 1 0 20a10 10 0 1 1 0-20z M11 6.75h2v7.5h-2z M12 15.75a1.25 1.25 0 1 1 0 2.5a1.25 1.25 0 1 1 0-2.5z" />
+                                </svg>
+                                <span class="h4 primaryFontColor" data-bind="text: message"></span>
+                            </div>
+                        </div>
+                        <!-- /ko -->
+
+                        <!-- ko if: errors().length >= 3 -->
+                        <div class="counterOrderErrorGroup">
+                            <div class="counterOrderErrorHeader">
+                                <span class="h4 primaryFontColor counterOrderErrorCount" data-bind="text: errorCountText"></span>
+                                <button type="button" class="counterOrderErrorToggle" aria-controls="counterOrderErrorList"
+                                        data-bind="click: toggleErrors, attr: { 'aria-expanded': errorsExpanded() ? 'true' : 'false' }">
+                                    <span class="h4" data-bind="text: errorsExpanded() ? 'Hide errors' : 'Show errors'"></span>
+                                    <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false" data-bind="css: { counterOrderChevronCollapsed: !errorsExpanded() }">
+                                        <path fill="currentColor" d="M2.6 5.2L8 10.6l5.4-5.4 1 1L8 12.6 1.6 6.2z" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <!-- ko if: errorsExpanded -->
+                            <div id="counterOrderErrorList" class="counterOrderErrorItems" aria-live="polite" data-bind="foreach: errors">
+                                <div class="counterOrderMessageBar counterOrderErrorBar">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+                                        <path fill="currentColor" fill-rule="evenodd" d="M12 2a10 10 0 1 1 0 20a10 10 0 1 1 0-20z M11 6.75h2v7.5h-2z M12 15.75a1.25 1.25 0 1 1 0 2.5a1.25 1.25 0 1 1 0-2.5z" />
+                                    </svg>
+                                    <span class="h4 primaryFontColor" data-bind="text: message"></span>
+                                </div>
+                            </div>
+                            <!-- /ko -->
+                        </div>
+                        <!-- /ko -->
+                    </div>
+                    <!-- /ko -->
+
+                    <!-- ko if: step() === 'paste' -->
+                    <div class="h4 secondaryFontColor counterOrderLiveCount" aria-live="polite" data-bind="text: lineCountToAddText"></div>
+                    <textarea class="counterOrderBulkText" autocomplete="off" spellcheck="false"
+                              aria-label="Item ID and quantity, one pair per line" aria-describedby="counterOrderPasteHint"
+                              placeholder="Type or paste items&#10;ITEMSKU-001 3&#10;ITEMSKU-002 x3&#10;ITEMSKU-002,3"
+                              data-bind="textInput: bulkText, enable: !isBusy(), attr: { maxlength: maxTextLength }"></textarea>
+                    <!-- /ko -->
+
+                    <!-- ko if: step() === 'review' -->
+                    <ul class="counterOrderFoundList" aria-label="Items found" data-bind="foreach: foundItems">
+                        <li class="counterOrderFoundItem">
+                            <div class="counterOrderFoundText">
+                                <div class="h5 primaryFontColor counterOrderFoundName" data-bind="text: name"></div>
+                                <div class="h4 secondaryFontColor counterOrderFoundDetail" data-bind="text: detail"></div>
+                                <!-- ko if: readAs -->
+                                <div class="h4 secondaryFontColor counterOrderFoundReadAs" data-bind="text: readAs"></div>
+                                <!-- /ko -->
+                                <!-- ko if: needsOptions -->
+                                <div class="h4 primaryFontColor counterOrderFoundNote">Choose options when adding</div>
+                                <!-- /ko -->
+                            </div>
+                            <div class="h5 primaryFontColor counterOrderFoundQuantity" data-bind="text: quantity"></div>
+                        </li>
+                    </ul>
+                    <!-- /ko -->
+                </div>
+
+                <!-- ko if: step() === 'photo' -->
+                <div class="counterOrderDialogFooter">
+                    <button type="button" class="secondaryButton" data-bind="click: cancelPhoto, enable: !isBusy()">Cancel</button>
+                </div>
+                <!-- /ko -->
+
+                <!-- ko if: step() === 'paste' -->
+                <div class="counterOrderDialogFooter">
+                    <button type="button" class="secondaryButton" data-bind="click: backToChoose, enable: !isBusy()">Back</button>
+                    <button type="button" class="primaryButton" data-bind="click: findItems, enable: lineCountToAdd() > 0 && !isBusy()">Find items</button>
+                </div>
+                <!-- /ko -->
+
+                <!-- ko if: step() === 'review' -->
+                <div class="counterOrderDialogFooter">
+                    <button type="button" class="secondaryButton" data-bind="click: editList, enable: !isBusy()">Edit list</button>
+                    <button type="button" class="primaryButton" data-bind="click: addToCart, enable: !isBusy()">Add to cart</button>
+                </div>
+                <!-- /ko -->
+
+                <!-- ko if: isBusy() && step() !== 'photo' -->
+                <div class="counterOrderBusy" aria-hidden="true">
+                    <span class="counterOrderSpinner"></span>
+                    <span class="h4 primaryFontColor" data-bind="text: busyText"></span>
+                </div>
+                <!-- /ko -->
+            </div>
+        </div>
+        <!-- /ko -->
+
+        <div class="counterOrderVisuallyHidden" role="status" aria-live="polite" data-bind="text: statusText"></div>
+    </div>
+</body>
+</html>

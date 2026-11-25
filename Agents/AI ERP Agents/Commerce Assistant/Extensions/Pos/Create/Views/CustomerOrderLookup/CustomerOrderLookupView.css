@@ -1,0 +1,328 @@
+/*
+ * Styles for CustomerOrderLookupView.
+ *
+ * POS sizes body text at 4px and gives every div a line height of 1em, so all text on the page sits in a POS text
+ * class (h2 to h6, label or button), which also follows POS's adaptive font size. These rules lay the page out,
+ * set the result titles in semibold and colour the page. POS puts its theme on the body as "light" or "dark"; the
+ * light colours are the default.
+ */
+
+.CustomerOrderLookupView {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.CustomerOrderLookupView .customerOrderLookupPage {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 auto;
+    gap: 20px;
+    width: 100%;
+    max-width: 960px;
+    padding: 24px 40px 48px;
+}
+
+/* Cards. */
+.CustomerOrderLookupView .customerOrderLookupCard {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #E1DFDD;
+    border-radius: 8px;
+    background-color: #FFFFFF;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), 0 0 2px rgba(0, 0, 0, 0.06);
+    overflow: hidden; /* Keeps the result bands inside the rounded corners. */
+}
+
+.dark .CustomerOrderLookupView .customerOrderLookupCard {
+    border-color: #3B3A39;
+    background-color: #252423;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4), 0 0 2px rgba(0, 0, 0, 0.3);
+}
+
+.CustomerOrderLookupView .customerOrderLookupSearch {
+    padding: 24px 24px 12px; /* The status line below the box keeps its space, so the bottom needs less. */
+}
+
+.CustomerOrderLookupView .customerOrderLookupTitle {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.CustomerOrderLookupView .customerOrderLookupHint {
+    margin-top: 4px;
+}
+
+/* The search. */
+.CustomerOrderLookupView .customerOrderLookupForm {
+    display: flex;
+    flex-direction: column;
+    height: auto; /* POS stretches every form to the height of its parent. */
+    margin-top: 20px;
+}
+
+.CustomerOrderLookupView .customerOrderLookupForm > label {
+    flex: 0 0 auto;
+}
+
+.CustomerOrderLookupView .customerOrderLookupSearchRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 600px;
+}
+
+.CustomerOrderLookupView .customerOrderLookupSearchRow input[type=text] {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    height: 40px;
+    padding: 0 12px;
+}
+
+.CustomerOrderLookupView .customerOrderLookupSearchRow button {
+    flex: 0 0 auto;
+    min-width: 120px;
+    white-space: nowrap;
+}
+
+.CustomerOrderLookupView .customerOrderLookupFeedback {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 24px;
+    margin-top: 8px;
+}
+
+.CustomerOrderLookupView .customerOrderLookupStatus,
+.CustomerOrderLookupView .customerOrderLookupInputMessage {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.CustomerOrderLookupView .customerOrderLookupInputMessage {
+    color: #A4262C;
+}
+
+.dark .CustomerOrderLookupView .customerOrderLookupInputMessage {
+    color: #F1707B;
+}
+
+.CustomerOrderLookupView .customerOrderLookupInputMessage svg {
+    flex: 0 0 auto;
+}
+
+.CustomerOrderLookupView .customerOrderLookupSpinner {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(128, 128, 128, 0.35);
+    border-top-color: var(--accent-color, #0F6FC6);
+    border-radius: 50%;
+    animation: customerOrderLookupSpin 0.9s linear infinite;
+}
+
+@keyframes customerOrderLookupSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .CustomerOrderLookupView .customerOrderLookupSpinner {
+        animation-duration: 3s;
+    }
+}
+
+/* What the lookup found, or why it failed: a band that says what happened, then the details. */
+.CustomerOrderLookupView .customerOrderLookupResultHeader {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 24px;
+    background-color: #F3F2F1;
+}
+
+.dark .CustomerOrderLookupView .customerOrderLookupResultHeader {
+    background-color: #323130;
+}
+
+.CustomerOrderLookupView .customerOrderLookupIcon {
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+}
+
+.CustomerOrderLookupView .customerOrderLookupResultHeading {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    gap: 4px;
+    min-width: 0;
+    padding-top: 2px; /* Centres the title's first line on the icon. */
+}
+
+.CustomerOrderLookupView .customerOrderLookupResultTitle {
+    font-family: "Segoe UI Semibold", "Segoe UI", sans-serif;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.CustomerOrderLookupView .customerOrderLookupMessage {
+    overflow-wrap: anywhere;
+}
+
+.CustomerOrderLookupView .customerOrderLookupResultBody {
+    display: flex;
+    flex-direction: column;
+    padding: 20px 24px 24px;
+    border-top: 1px solid #EDEBE9;
+}
+
+.dark .CustomerOrderLookupView .customerOrderLookupResultBody {
+    border-top-color: #3B3A39;
+}
+
+.CustomerOrderLookupView .customerOrderLookupSectionLabel {
+    margin: 0 0 16px;
+    font-family: "Segoe UI Semibold", "Segoe UI", sans-serif;
+}
+
+.CustomerOrderLookupView .customerOrderLookupDetails {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px 24px;
+    margin: 0;
+    padding: 0;
+}
+
+.CustomerOrderLookupView .customerOrderLookupDetail {
+    min-width: 0;
+}
+
+.CustomerOrderLookupView .customerOrderLookupDetails dt {
+    margin: 0;
+}
+
+.CustomerOrderLookupView .customerOrderLookupDetails dd {
+    margin: 2px 0 0;
+    overflow-wrap: anywhere;
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+.CustomerOrderLookupView .customerOrderLookupNote {
+    margin-top: 20px;
+    font-family: "Segoe UI Semibold", "Segoe UI", sans-serif;
+}
+
+.CustomerOrderLookupView .customerOrderLookupResultFooter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+    padding: 16px 24px;
+    border-top: 1px solid #EDEBE9;
+    background-color: #FAF9F8;
+}
+
+.dark .CustomerOrderLookupView .customerOrderLookupResultFooter {
+    border-top-color: #3B3A39;
+    background-color: #201F1E;
+}
+
+.CustomerOrderLookupView .customerOrderLookupFooterHint {
+    flex: 1 1 240px;
+    min-width: 0;
+}
+
+.CustomerOrderLookupView .customerOrderLookupActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.CustomerOrderLookupView .customerOrderLookupActions button {
+    min-width: 120px;
+}
+
+/* A failure: red, so it stands out on a busy screen. */
+.CustomerOrderLookupView .customerOrderLookupFailure {
+    border-color: #F1BBBC;
+}
+
+.CustomerOrderLookupView .customerOrderLookupFailure .customerOrderLookupResultHeader {
+    background-color: #FDE7E9;
+}
+
+.CustomerOrderLookupView .customerOrderLookupFailure .customerOrderLookupResultBody {
+    border-top-color: #F1BBBC;
+}
+
+.CustomerOrderLookupView .customerOrderLookupFailure .customerOrderLookupIcon,
+.CustomerOrderLookupView .customerOrderLookupFailure .customerOrderLookupResultTitle {
+    color: #A4262C;
+}
+
+.dark .CustomerOrderLookupView .customerOrderLookupFailure {
+    border-color: #751D1F;
+}
+
+.dark .CustomerOrderLookupView .customerOrderLookupFailure .customerOrderLookupResultHeader {
+    background-color: #3E1C1E;
+}
+
+.dark .CustomerOrderLookupView .customerOrderLookupFailure .customerOrderLookupResultBody {
+    border-top-color: #751D1F;
+}
+
+.dark .CustomerOrderLookupView .customerOrderLookupFailure .customerOrderLookupIcon,
+.dark .CustomerOrderLookupView .customerOrderLookupFailure .customerOrderLookupResultTitle {
+    color: #F1707B;
+}
+
+/* A found order: green. */
+.CustomerOrderLookupView .customerOrderLookupFound .customerOrderLookupResultHeader {
+    background-color: #F1FAF1;
+}
+
+.CustomerOrderLookupView .customerOrderLookupFound .customerOrderLookupIcon {
+    color: #107C10;
+}
+
+.dark .CustomerOrderLookupView .customerOrderLookupFound .customerOrderLookupResultHeader {
+    background-color: #102A10;
+}
+
+.dark .CustomerOrderLookupView .customerOrderLookupFound .customerOrderLookupIcon {
+    color: #54B054;
+}
+
+/* No such order: grey. */
+.CustomerOrderLookupView .customerOrderLookupNotFound .customerOrderLookupIcon {
+    color: #605E5C;
+}
+
+.dark .CustomerOrderLookupView .customerOrderLookupNotFound .customerOrderLookupIcon {
+    color: #A19F9D;
+}
+
+@media (max-width: 640px) {
+    .CustomerOrderLookupView .customerOrderLookupPage {
+        padding: 16px;
+    }
+
+    .CustomerOrderLookupView .customerOrderLookupSearch,
+    .CustomerOrderLookupView .customerOrderLookupResultHeader,
+    .CustomerOrderLookupView .customerOrderLookupResultBody,
+    .CustomerOrderLookupView .customerOrderLookupResultFooter {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+}

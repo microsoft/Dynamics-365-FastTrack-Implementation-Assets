@@ -1,0 +1,858 @@
+/*
+ * Styles for CounterOrderView.
+ *
+ * POS sizes body text at 4px and gives every div a line height of 1em, so all text on the page sits in a POS text
+ * class (h2 to h6, label or button), which also follows POS's adaptive font size. POS's text classes also make an
+ * element a block, so the table cells set their display back. These rules lay the page and the bulk add dialog out
+ * and colour them. POS puts its theme on the body as "light" or "dark"; the light colours are the default.
+ */
+
+.CounterOrderView {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* The page: the entry bar and the order lines fill the height, and the totals sit at the bottom. */
+.CounterOrderView .counterOrderPage {
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 auto;
+}
+
+.CounterOrderView .counterOrderMain {
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 auto;
+    gap: 12px;
+    padding: 16px 20px;
+}
+
+/* The entry bar. */
+.CounterOrderView .counterOrderBar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.CounterOrderView .counterOrderEntry {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: auto; /* POS stretches every form to the height of its parent. */
+    margin: 0;
+}
+
+.CounterOrderView .counterOrderEntryIcon {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    margin-top: -8px;
+    pointer-events: none;
+}
+
+.CounterOrderView .counterOrderEntry input[type=text] {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    height: 40px;
+    padding: 0 12px 0 38px;
+}
+
+.CounterOrderView .counterOrderBulkAddButton {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.CounterOrderView .counterOrderLineCount {
+    flex: 0 0 auto;
+    min-width: 48px;
+    white-space: nowrap;
+}
+
+/* Buttons that only show an icon, and the error list toggle. POS doesn't style a plain button. */
+.CounterOrderView .counterOrderAskButton,
+.CounterOrderView .counterOrderIconButton,
+.CounterOrderView .counterOrderErrorToggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background-color: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.CounterOrderView .counterOrderAskButton,
+.CounterOrderView .counterOrderIconButton {
+    width: 40px;
+    height: 40px;
+}
+
+.CounterOrderView .counterOrderAskButton {
+    border-color: var(--accent-color, #0F6FC6);
+    background-color: #FFFFFF;
+    color: var(--accent-color, #0F6FC6);
+}
+
+.dark .CounterOrderView .counterOrderAskButton {
+    background-color: transparent;
+}
+
+.CounterOrderView .counterOrderAskButton:hover,
+.CounterOrderView .counterOrderIconButton:hover,
+.CounterOrderView .counterOrderErrorToggle:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+}
+
+.dark .CounterOrderView .counterOrderAskButton:hover,
+.dark .CounterOrderView .counterOrderIconButton:hover,
+.dark .CounterOrderView .counterOrderErrorToggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.CounterOrderView .counterOrderIconButton:disabled {
+    background-color: transparent;
+    opacity: 0.4;
+    cursor: default;
+}
+
+.CounterOrderView .counterOrderAskButton:focus-visible,
+.CounterOrderView .counterOrderIconButton:focus-visible,
+.CounterOrderView .counterOrderErrorToggle:focus-visible,
+.CounterOrderView .counterOrderTile:focus-visible {
+    outline: 2px solid #1B1A19;
+    outline-offset: 2px;
+}
+
+.dark .CounterOrderView .counterOrderAskButton:focus-visible,
+.dark .CounterOrderView .counterOrderIconButton:focus-visible,
+.dark .CounterOrderView .counterOrderErrorToggle:focus-visible,
+.dark .CounterOrderView .counterOrderTile:focus-visible {
+    outline-color: #FFFFFF;
+}
+
+/* The order lines. The card scrolls, so the column headings and the totals stay in view. */
+.CounterOrderView .counterOrderGrid {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0px;
+    min-height: 240px;
+    overflow: auto;
+    border: 1px solid #E1DFDD;
+    background-color: #FFFFFF;
+}
+
+.dark .CounterOrderView .counterOrderGrid {
+    border-color: #3B3A39;
+    background-color: #252423;
+}
+
+.CounterOrderView .counterOrderTable {
+    flex: 0 0 auto;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.CounterOrderView .counterOrderTable th,
+.CounterOrderView .counterOrderTable td {
+    display: table-cell;
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.CounterOrderView .counterOrderTable th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    border-bottom: 1px solid #E1DFDD;
+    background-color: #F3F2F1;
+    text-transform: none;
+}
+
+.dark .CounterOrderView .counterOrderTable th {
+    border-bottom-color: #3B3A39;
+    background-color: #323130;
+}
+
+.CounterOrderView .counterOrderTable td {
+    border-bottom: 1px solid #EDEBE9;
+}
+
+.dark .CounterOrderView .counterOrderTable td {
+    border-bottom-color: #3B3A39;
+}
+
+.CounterOrderView .counterOrderTable .counterOrderProductColumn {
+    width: 100%;
+    min-width: 160px;
+    white-space: normal;
+}
+
+.CounterOrderView .counterOrderTable .counterOrderNumberColumn {
+    text-align: right;
+}
+
+.CounterOrderView .counterOrderProductName {
+    font-family: "Segoe UI Semibold", "Segoe UI", sans-serif;
+    overflow-wrap: anywhere;
+}
+
+.CounterOrderView .counterOrderProductId {
+    overflow-wrap: anywhere;
+}
+
+/* The empty, loading and failed states fill the card under the column headings. */
+.CounterOrderView .counterOrderGridMessage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 auto;
+    gap: 4px;
+    padding: 32px 24px;
+    text-align: center;
+}
+
+.CounterOrderView .counterOrderGridIcon {
+    margin-bottom: 8px;
+    color: #8A8886;
+}
+
+.dark .CounterOrderView .counterOrderGridIcon {
+    color: #A19F9D;
+}
+
+.CounterOrderView .counterOrderGridTitle {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.CounterOrderView .counterOrderRetryButton {
+    margin-top: 12px;
+}
+
+/* The totals. */
+.CounterOrderView .counterOrderFooter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+    padding: 16px 20px;
+    border-top: 1px solid #E1DFDD;
+}
+
+.dark .CounterOrderView .counterOrderFooter {
+    border-top-color: #3B3A39;
+}
+
+.CounterOrderView .counterOrderFooterActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.CounterOrderView .counterOrderFooterActions button {
+    min-width: 120px;
+}
+
+.CounterOrderView .counterOrderTotals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 40px;
+    margin: 0;
+    padding: 0;
+}
+
+.CounterOrderView .counterOrderTotal {
+    min-width: 96px;
+}
+
+.CounterOrderView .counterOrderTotals dt {
+    margin: 0;
+    text-transform: none;
+}
+
+.CounterOrderView .counterOrderTotals dd {
+    margin: 2px 0 0;
+    font-family: "Segoe UI Semibold", "Segoe UI", sans-serif;
+}
+
+/* The bulk add dialog. The layer dims everything behind it; POS's own dialogs, such as the variant picker, sit above it. */
+.CounterOrderView .counterOrderDialogLayer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+.dark .CounterOrderView .counterOrderDialogLayer {
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.CounterOrderView .counterOrderDialog {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 920px;
+    max-height: 100%;
+    border: 1px solid #E1DFDD;
+    background-color: #FFFFFF;
+    box-shadow: 0 25.6px 57.6px rgba(0, 0, 0, 0.22), 0 4.8px 14.4px rgba(0, 0, 0, 0.18);
+    outline: none;
+}
+
+.dark .CounterOrderView .counterOrderDialog {
+    border-color: #3B3A39;
+    background-color: #252423;
+    box-shadow: 0 25.6px 57.6px rgba(0, 0, 0, 0.55), 0 4.8px 14.4px rgba(0, 0, 0, 0.45);
+}
+
+.CounterOrderView .counterOrderDialogHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 0 0 auto;
+    gap: 12px;
+    padding: 16px 12px 16px 24px;
+    border-bottom: 1px solid #E1DFDD;
+}
+
+.dark .CounterOrderView .counterOrderDialogHeader {
+    border-bottom-color: #3B3A39;
+}
+
+.CounterOrderView .counterOrderDialogTitle {
+    font-family: "Segoe UI Semibold", "Segoe UI", sans-serif;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.CounterOrderView .counterOrderDialogBody {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    gap: 12px;
+    min-height: 0;
+    padding: 20px 24px;
+    overflow-y: auto;
+}
+
+.CounterOrderView .counterOrderDialogFooter {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    flex: 0 0 auto;
+    gap: 8px;
+    padding: 16px 24px;
+    border-top: 1px solid #E1DFDD;
+}
+
+.dark .CounterOrderView .counterOrderDialogFooter {
+    border-top-color: #3B3A39;
+}
+
+.CounterOrderView .counterOrderDialogFooter button {
+    min-width: 120px;
+}
+
+/* The two ways to add items. */
+.CounterOrderView .counterOrderChoose {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.CounterOrderView .counterOrderPhotoInput {
+    display: none;
+}
+
+.CounterOrderView .counterOrderTiles {
+    display: flex;
+    gap: 16px;
+}
+
+.CounterOrderView .counterOrderTile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 0px;
+    gap: 8px;
+    min-width: 0;
+    min-height: 200px;
+    margin: 0;
+    padding: 24px;
+    border: 1px solid #8A8886;
+    border-radius: 0;
+    background-color: #F4F4F4;
+    color: inherit;
+    font: inherit;
+    text-align: center;
+    cursor: pointer;
+}
+
+.CounterOrderView .counterOrderTile:hover {
+    background-color: #EDEBE9;
+}
+
+.CounterOrderView .counterOrderTile:active {
+    background-color: #E1DFDD;
+}
+
+.dark .CounterOrderView .counterOrderTile {
+    border-color: #797775;
+    background-color: #323130;
+}
+
+.dark .CounterOrderView .counterOrderTile:hover {
+    background-color: #3B3A39;
+}
+
+.dark .CounterOrderView .counterOrderTile:active {
+    background-color: #484644;
+}
+
+.CounterOrderView .counterOrderTileIcon {
+    margin-bottom: 4px;
+    color: var(--accent-color, #0F6FC6);
+}
+
+.CounterOrderView .counterOrderTileTitle {
+    font-family: "Segoe UI Semibold", "Segoe UI", sans-serif;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.CounterOrderView .counterOrderTileText {
+    max-width: 340px;
+    overflow-wrap: anywhere;
+}
+
+/* Reading a photo: the photo, what is happening, and how long it can take. */
+.CounterOrderView .counterOrderPhotoStep {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 280px;
+    text-align: center;
+}
+
+.CounterOrderView .counterOrderPhotoFrame {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 240px;
+    height: 180px;
+    max-width: 100%;
+    overflow: hidden;
+    border: 1px solid #E1DFDD;
+    background-color: #F4F4F4;
+}
+
+.dark .CounterOrderView .counterOrderPhotoFrame {
+    border-color: #3B3A39;
+    background-color: #323130;
+}
+
+.CounterOrderView .counterOrderPhotoPreview {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.CounterOrderView .counterOrderPhotoPlaceholder {
+    color: #8A8886;
+}
+
+.CounterOrderView .counterOrderPhotoProgress {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    max-width: 100%;
+}
+
+.CounterOrderView .counterOrderPhotoStatus {
+    margin: 0;
+    font-family: "Segoe UI Semibold", "Segoe UI", sans-serif;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    outline: none;
+}
+
+.CounterOrderView .counterOrderPhotoName {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+/* The steps' text. */
+.CounterOrderView .counterOrderHint {
+    overflow-wrap: anywhere;
+}
+
+.CounterOrderView .counterOrderReviewHeading {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.CounterOrderView .counterOrderReviewTitle {
+    font-family: "Segoe UI Semibold", "Segoe UI", sans-serif;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+/* What was added, and the lines that couldn't be. */
+.CounterOrderView .counterOrderMessageBar {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid transparent;
+}
+
+.CounterOrderView .counterOrderMessageBar svg {
+    flex: 0 0 auto;
+    margin-top: 2px;
+}
+
+.CounterOrderView .counterOrderMessageBar span {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.CounterOrderView .counterOrderSuccessBar {
+    border-color: #9FD89F;
+    background-color: #F1FAF1;
+}
+
+.CounterOrderView .counterOrderSuccessBar svg {
+    color: #107C10;
+}
+
+.dark .CounterOrderView .counterOrderSuccessBar {
+    border-color: #2E5E2E;
+    background-color: #102A10;
+}
+
+.dark .CounterOrderView .counterOrderSuccessBar svg {
+    color: #54B054;
+}
+
+.CounterOrderView .counterOrderErrors,
+.CounterOrderView .counterOrderErrorItems {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.CounterOrderView .counterOrderErrorBar {
+    border-color: #F1BBBC;
+    background-color: #FDE7E9;
+}
+
+.CounterOrderView .counterOrderErrorBar svg {
+    color: #A4262C;
+}
+
+.dark .CounterOrderView .counterOrderErrorBar {
+    border-color: #751D1F;
+    background-color: #3E1C1E;
+}
+
+.dark .CounterOrderView .counterOrderErrorBar svg {
+    color: #F1707B;
+}
+
+/* Copilot read the photo but found no list in it. */
+.CounterOrderView .counterOrderInfoBar {
+    border-color: #C8C6C4;
+    background-color: #F3F2F1;
+}
+
+.CounterOrderView .counterOrderInfoBar svg {
+    color: #605E5C;
+}
+
+.dark .CounterOrderView .counterOrderInfoBar {
+    border-color: #484644;
+    background-color: #323130;
+}
+
+.dark .CounterOrderView .counterOrderInfoBar svg {
+    color: #C8C6C4;
+}
+
+/* Three or more errors: one red box with a count that stays in view, and the list scrolls inside it. */
+.CounterOrderView .counterOrderErrorGroup {
+    max-height: 320px;
+    overflow-y: auto;
+    border: 1px solid #F1BBBC;
+    background-color: #FDE7E9;
+}
+
+.dark .CounterOrderView .counterOrderErrorGroup {
+    border-color: #751D1F;
+    background-color: #3E1C1E;
+}
+
+.CounterOrderView .counterOrderErrorHeader {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 6px 6px 12px;
+    background-color: #FDE7E9;
+}
+
+.dark .CounterOrderView .counterOrderErrorHeader {
+    background-color: #3E1C1E;
+}
+
+.CounterOrderView .counterOrderErrorCount {
+    font-family: "Segoe UI Semibold", "Segoe UI", sans-serif;
+}
+
+.CounterOrderView .counterOrderErrorToggle {
+    gap: 6px;
+    padding: 6px 8px;
+}
+
+.CounterOrderView .counterOrderErrorToggle svg {
+    flex: 0 0 auto;
+}
+
+.CounterOrderView .counterOrderErrorToggle .counterOrderChevronCollapsed {
+    transform: rotate(-90deg);
+}
+
+.CounterOrderView .counterOrderErrorGroup .counterOrderErrorItems {
+    gap: 0;
+    padding: 0 0 6px;
+}
+
+.CounterOrderView .counterOrderErrorGroup .counterOrderErrorBar {
+    padding: 6px 12px;
+    border-width: 0;
+    background-color: transparent;
+}
+
+/* The pasted list. */
+.CounterOrderView .counterOrderBulkText {
+    display: block;
+    flex: 0 0 auto;
+    width: 100%;
+    height: 240px;
+    min-height: 200px;
+    padding: 8px 12px;
+    line-height: 1.4286;
+    resize: none;
+    overflow-y: auto;
+}
+
+/* The items that were found. */
+.CounterOrderView .counterOrderFoundList {
+    margin: 0;
+    padding: 0;
+    border: 1px solid #E1DFDD;
+    list-style: none;
+}
+
+.dark .CounterOrderView .counterOrderFoundList {
+    border-color: #3B3A39;
+}
+
+.CounterOrderView .counterOrderFoundItem {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #EDEBE9;
+}
+
+.dark .CounterOrderView .counterOrderFoundItem {
+    border-bottom-color: #3B3A39;
+}
+
+.CounterOrderView .counterOrderFoundItem:last-child {
+    border-bottom-width: 0;
+}
+
+.CounterOrderView .counterOrderFoundText {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    gap: 2px;
+    min-width: 0;
+}
+
+.CounterOrderView .counterOrderFoundName {
+    font-family: "Segoe UI Semibold", "Segoe UI", sans-serif;
+    overflow-wrap: anywhere;
+}
+
+.CounterOrderView .counterOrderFoundDetail,
+.CounterOrderView .counterOrderFoundReadAs {
+    overflow-wrap: anywhere;
+}
+
+.CounterOrderView .counterOrderFoundNote {
+    font-family: "Segoe UI Semibold", "Segoe UI", sans-serif;
+}
+
+.CounterOrderView .counterOrderFoundQuantity {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+/* Finding or adding: the dialog waits under a veil, so nothing in it can be changed until the work is done. */
+.CounterOrderView .counterOrderBusy {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+.dark .CounterOrderView .counterOrderBusy {
+    background-color: rgba(37, 36, 35, 0.85);
+}
+
+.CounterOrderView .counterOrderSpinner {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(128, 128, 128, 0.35);
+    border-top-color: var(--accent-color, #0F6FC6);
+    border-radius: 50%;
+    animation: counterOrderSpin 0.9s linear infinite;
+}
+
+@keyframes counterOrderSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .CounterOrderView .counterOrderSpinner {
+        animation-duration: 3s;
+    }
+}
+
+/* Read by screen readers, not shown. */
+.CounterOrderView .counterOrderVisuallyHidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+    .CounterOrderView .counterOrderMain {
+        padding: 12px;
+    }
+
+    .CounterOrderView .counterOrderBar {
+        flex-wrap: wrap;
+    }
+
+    .CounterOrderView .counterOrderEntry {
+        flex-basis: 100%;
+    }
+
+    .CounterOrderView .counterOrderBulkAddButton {
+        flex: 1 1 auto;
+    }
+
+    .CounterOrderView .counterOrderFooter {
+        padding: 12px;
+    }
+
+    .CounterOrderView .counterOrderTotals {
+        gap: 12px 24px;
+    }
+
+    .CounterOrderView .counterOrderDialogLayer {
+        padding: 12px;
+    }
+
+    .CounterOrderView .counterOrderDialogHeader {
+        padding-left: 16px;
+    }
+
+    .CounterOrderView .counterOrderDialogBody,
+    .CounterOrderView .counterOrderDialogFooter {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .CounterOrderView .counterOrderTiles {
+        flex-direction: column;
+    }
+
+    .CounterOrderView .counterOrderTile {
+        flex-basis: auto;
+        min-height: 160px;
+    }
+
+    .CounterOrderView .counterOrderPhotoStep {
+        min-height: 240px;
+    }
+
+    .CounterOrderView .counterOrderPhotoFrame {
+        width: 200px;
+        height: 150px;
+    }
+
+    .CounterOrderView .counterOrderErrorGroup {
+        max-height: 220px;
+    }
+}

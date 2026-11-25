@@ -1,0 +1,27 @@
+{
+    "extends": "./devDependencies/pos-tsconfig-base.json",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "knockout": [
+                "Libraries/knockout"
+            ]
+        },
+        "noImplicitAny": false,
+        "noUnusedLocals": false,
+        "removeComments": true
+    },
+    "exclude": [
+        "obj",
+        "node_modules",
+        "Create/SideChatPanel/node_modules",
+        "Create/SideChatPanel/**/*.tsx",
+        "Create/SideChatPanel/productResults",
+        "Create/SideChatPanel/productFilters",
+        "Create/SideChatPanel/sideChatClient.ts",
+        "Create/SideChatPanel/panelState.ts",
+        "Create/SideChatPanel/cartSuggestionState.ts",
+        "Create/SideChatPanel/posErrorState.ts",
+        "Create/SideChatPanel/tabsterCompatibility.ts"
+    ]
+}

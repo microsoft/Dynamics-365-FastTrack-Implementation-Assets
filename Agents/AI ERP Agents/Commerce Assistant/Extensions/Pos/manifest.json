@@ -1,0 +1,120 @@
+{
+  "$schema": "./devDependencies/schemas/manifestSchema.json",
+  "name": "Contoso.PosExtensions",
+  "publisher": "Contoso",
+  "version": "1.0.0.0",
+  "minimumPosVersion": "9.28.0.0",
+  "description": "Commerce Assistant POS chat, product discovery, customer orders and counter order entry.",
+  "dependencies": [
+    {
+      "alias": "knockout",
+      "format": "amd",
+      "modulePath": "Libraries/knockout"
+    },
+    {
+      "alias": "ContosoSideChat",
+      "format": "amd",
+      "modulePath": "Libraries/ContosoSideChat"
+    }
+  ],
+  "components": {
+    "resources": {
+      "supportedUICultures": [
+        "en-US",
+        "es-ES"
+      ],
+      "fallbackUICulture": "en-US",
+      "culturesDirectoryPath": "Resources",
+      "stringResourcesFileName": "strings.resjson"
+    },
+    "extend": {
+      "header": {
+        "customPackingItems": [
+          {
+            "name": "Samples View Header Item",
+            "description": "An item links to the extension samples on the POS header.",
+            "modulePath": "Extend/Header/SamplesViewPackingItem",
+            "htmlPath": "Extend/Header/SamplesViewPackingItem.html"
+          },
+          {
+            "name": "Copilot Side Panel Header Item",
+            "description": "Header icon that opens and closes the docked Copilot side panel.",
+            "modulePath": "Extend/Header/SideChatPackingItem",
+            "htmlPath": "Extend/Header/SideChatPackingItem.html"
+          }
+        ]
+      },
+      "triggers": [
+        {
+          "name": "ShowSideChatPanelTrigger",
+          "description": "Shows the docked Copilot side panel once an operator signs in. The panel is rendered into a container on document.body so it persists across every view, out-of-box and custom.",
+          "triggerType": "PostLogOn",
+          "modulePath": "Extend/Triggers/ShowSideChatPanelPostLogOnTrigger"
+        },
+        {
+          "name": "HideSideChatPanelOnLogOffTrigger",
+          "description": "Removes the docked Copilot side panel on sign out so the next operator does not inherit the conversation.",
+          "triggerType": "PostLogOff",
+          "modulePath": "Extend/Triggers/HideSideChatPanelPostLogOffTrigger"
+        },
+        {
+          "name": "HideSideChatPanelOnLockTrigger",
+          "description": "Removes the docked Copilot side panel when the terminal is locked.",
+          "triggerType": "PostLockTerminal",
+          "modulePath": "Extend/Triggers/HideSideChatPanelPostLockTerminalTrigger"
+        },
+        {
+          "name": "CartSuggestionsPostProductSaleTrigger",
+          "description": "After products are added to the cart, asks the Copilot agent which products would go well with it and shows them in the side panel as product cards.",
+          "triggerType": "PostProductSale",
+          "modulePath": "Extend/Triggers/CartSuggestionsPostProductSaleTrigger"
+        },
+        {
+          "name": "CartUpdatesPostProductSaleTrigger",
+          "description": "After products are added to the cart, from any view or the side panel, passes the updated cart to the custom views that show it, such as Counter order.",
+          "triggerType": "PostProductSale",
+          "modulePath": "Extend/Triggers/CartUpdatesPostProductSaleTrigger"
+        }
+      ]
+    },
+    "create": {
+      "views": [
+        {
+          "title": "Compare products",
+          "pageName": "AgentProductCompareView",
+          "phonePageName": "AgentProductCompareView",
+          "viewDirectory": "Create/Views/AgentProductCompare/",
+          "viewControllerPath": "Create/Views/AgentProductCompare/AgentProductCompareView"
+        },
+        {
+          "title": "Recommended products",
+          "pageName": "AgentProductResultsView",
+          "phonePageName": "AgentProductResultsView",
+          "viewDirectory": "Create/Views/AgentProductResults/",
+          "viewControllerPath": "Create/Views/AgentProductResults/AgentProductResultsView"
+        },
+        {
+          "title": "Customer order lookup",
+          "pageName": "CustomerOrderLookupView",
+          "phonePageName": "CustomerOrderLookupView",
+          "viewDirectory": "Create/Views/CustomerOrderLookup/",
+          "viewControllerPath": "Create/Views/CustomerOrderLookup/CustomerOrderLookupView"
+        },
+        {
+          "title": "Counter order",
+          "pageName": "CounterOrderView",
+          "phonePageName": "CounterOrderView",
+          "viewDirectory": "Create/Views/CounterOrder/",
+          "viewControllerPath": "Create/Views/CounterOrder/CounterOrderView"
+        },
+        {
+          "title": "Samples View",
+          "pageName": "SamplesView",
+          "phonePageName": "SamplesView",
+          "viewDirectory": "Create/Views/",
+          "viewControllerPath": "Create/Views/SamplesView"
+        }
+      ]
+    }
+  }
+}

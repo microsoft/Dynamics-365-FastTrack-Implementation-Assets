@@ -1,0 +1,213 @@
+<policies>
+  <inbound>
+    <base />
+    <cors allow-credentials="false">
+      <allowed-origins>
+        <origin>{{pos-origin}}</origin>
+        <origin>{{additional-pos-origin}}</origin>
+        <origin>{{c2-origin}}</origin>
+      </allowed-origins>
+      <allowed-methods>
+        <method>DELETE</method>
+        <method>OPTIONS</method>
+      </allowed-methods>
+      <allowed-headers>
+        <header>Authorization</header>
+        <header>DeviceToken</header>
+        <header>x-correlation-id</header>
+      </allowed-headers>
+      <expose-headers>
+        <header>x-correlation-id</header>
+        <header>x-apim-request-id</header>
+      </expose-headers>
+    </cors>
+    <set-variable name="correlationId" value='@{
+        var supplied = context.Request.Headers.GetValueOrDefault("x-correlation-id", string.Empty);
+        return System.Text.RegularExpressions.Regex.IsMatch(supplied, @"\A[A-Za-z0-9][A-Za-z0-9._-]{0,127}\z")
+            ? supplied : context.RequestId.ToString();
+    }' />
+    <set-header name="x-correlation-id" exists-action="override">
+      <value>@((string)context.Variables["correlationId"])</value>
+    </set-header>
+    <set-header name="x-ms-client-request-id" exists-action="override">
+      <value>@((string)context.Variables["correlationId"])</value>
+    </set-header>
+    <trace source="CommerceAssistant" severity="information">
+      <message>Request received</message>
+      <metadata name="phase" value="received" />
+      <metadata name="correlationId" value='@((string)context.Variables["correlationId"])' />
+      <metadata name="apimRequestId" value="@(context.RequestId.ToString())" />
+    </trace>
+    <set-variable name="fileId"
+                  value="@((string)context.Request.MatchedParameters.GetValueOrDefault(&quot;fileId&quot;, string.Empty))" />
+    <choose>
+      <when condition="@(!System.Text.RegularExpressions.Regex.IsMatch((string)context.Variables[&quot;fileId&quot;], &quot;^(?:file|assistant)-[A-Za-z0-9_-]{1,194}$&quot;))">
+        <return-response>
+          <set-status code="400" reason="Bad Request" />
+          <set-header name="x-correlation-id" exists-action="override">
+            <value>@((string)context.Variables["correlationId"])</value>
+          </set-header>
+          <set-header name="x-apim-request-id" exists-action="override">
+            <value>@(context.RequestId.ToString())</value>
+          </set-header>
+          <set-header name="Content-Type" exists-action="override">
+            <value>application/json</value>
+          </set-header>
+          <set-body>{"error":{"message":"The file ID is invalid."}}</set-body>
+        </return-response>
+      </when>
+    </choose>
+    <set-variable name="commerceTransportAuthorization"
+                  value="@(context.Request.Headers.GetValueOrDefault(&quot;Authorization&quot;, string.Empty))" />
+    <set-variable name="commerceToken"
+                  value="@(((string)context.Variables[&quot;commerceTransportAuthorization&quot;]).IndexOf(' ') &gt; 0 ? ((string)context.Variables[&quot;commerceTransportAuthorization&quot;]).Substring(((string)context.Variables[&quot;commerceTransportAuthorization&quot;]).IndexOf(' ') + 1).Trim() : string.Empty)" />
+    <set-variable name="tokenIssuer" value='@{
+        var token = ((string)context.Variables["commerceToken"]).AsJwt();
+        return token == null ? string.Empty : token.Issuer;
+    }' />
+    <set-variable name="customerToken" value="@(false)" />
+    <set-variable name="customerRequiredScope" value="__not-configured__" />
+    <set-variable name="customerPolicy" value="__not-configured__" />
+    <choose>
+      <when condition='@("{{b2c-enabled}}" == "true" &amp;&amp; "{{b2c-token-issuer}}" != "__not-configured__" &amp;&amp; "{{b2c-token-audience}}" != "__not-configured__" &amp;&amp; string.Equals((string)context.Variables["tokenIssuer"], "{{b2c-token-issuer}}", StringComparison.Ordinal))'>
+        <validate-jwt token-value='@((string)context.Variables["commerceToken"])'
+                      require-expiration-time="true" require-signed-tokens="true"
+                      failed-validation-httpcode="401"
+                      failed-validation-error-message="The customer token is not valid for the configured B2C provider."
+                      output-token-variable-name="commerceJwt">
+          <openid-config url="{{b2c-openid-config-url}}" validate-connectivity="false" />
+          <audiences><audience>{{b2c-token-audience}}</audience></audiences>
+          <issuers><issuer>{{b2c-token-issuer}}</issuer></issuers>
+        </validate-jwt>
+        <set-variable name="customerToken" value="@(true)" />
+        <set-variable name="customerRequiredScope" value="{{b2c-required-scope}}" />
+        <set-variable name="customerPolicy" value="{{b2c-policy}}" />
+      </when>
+      <when condition='@("{{external-id-enabled}}" == "true" &amp;&amp; "{{external-id-token-issuer}}" != "__not-configured__" &amp;&amp; "{{external-id-token-audience}}" != "__not-configured__" &amp;&amp; string.Equals((string)context.Variables["tokenIssuer"], "{{external-id-token-issuer}}", StringComparison.Ordinal))'>
+        <validate-jwt token-value='@((string)context.Variables["commerceToken"])'
+                      require-expiration-time="true" require-signed-tokens="true"
+                      failed-validation-httpcode="401"
+                      failed-validation-error-message="The customer token is not valid for the configured External ID provider."
+                      output-token-variable-name="commerceJwt">
+          <openid-config url="{{external-id-openid-config-url}}" validate-connectivity="false" />
+          <audiences><audience>{{external-id-token-audience}}</audience></audiences>
+          <issuers><issuer>{{external-id-token-issuer}}</issuer></issuers>
+        </validate-jwt>
+        <set-variable name="customerToken" value="@(true)" />
+        <set-variable name="customerRequiredScope" value="{{external-id-required-scope}}" />
+      </when>
+      <otherwise>
+        <validate-jwt token-value="@((string)context.Variables[&quot;commerceToken&quot;])"
+                      require-expiration-time="true"
+                      require-signed-tokens="true"
+                      failed-validation-httpcode="401"
+                      failed-validation-error-message="The POS user token is missing or is not valid for a configured identity provider."
+                      output-token-variable-name="commerceJwt">
+          <openid-config url="https://login.microsoftonline.com/{{entra-tenant-id}}/.well-known/openid-configuration" />
+          <openid-config url="https://login.microsoftonline.com/{{entra-tenant-id}}/v2.0/.well-known/openid-configuration" />
+          <openid-config url="{{commerce-openid-config-url}}" />
+          <issuers>
+            <issuer>https://sts.windows.net/{{entra-tenant-id}}/</issuer>
+            <issuer>https://login.microsoftonline.com/{{entra-tenant-id}}/v2.0</issuer>
+            <issuer>{{commerce-token-issuer}}</issuer>
+          </issuers>
+        </validate-jwt>
+        <choose>
+          <when condition="@(!string.Equals(((Jwt)context.Variables[&quot;commerceJwt&quot;]).Issuer, &quot;{{commerce-token-issuer}}&quot;, StringComparison.Ordinal) &amp;&amp; !((Jwt)context.Variables[&quot;commerceJwt&quot;]).Audiences.Any(a =&gt; string.Equals(a, &quot;{{entra-token-audience}}&quot;, StringComparison.Ordinal)))">
+            <return-response>
+              <set-status code="401" reason="Unauthorized" />
+              <set-header name="x-correlation-id" exists-action="override">
+                <value>@((string)context.Variables["correlationId"])</value>
+              </set-header>
+              <set-header name="x-apim-request-id" exists-action="override">
+                <value>@(context.RequestId.ToString())</value>
+              </set-header>
+              <set-header name="Content-Type" exists-action="override">
+                <value>application/json</value>
+              </set-header>
+              <set-body>{"error":{"message":"The Microsoft Entra user token has an invalid audience."}}</set-body>
+            </return-response>
+          </when>
+        </choose>
+      </otherwise>
+    </choose>
+    <set-variable name="customerClaimsValid" value='@{
+        if (!(bool)context.Variables["customerToken"]) { return true; }
+        var token = (Jwt)context.Variables["commerceJwt"];
+        var scope = (string)context.Variables["customerRequiredScope"];
+        var policy = (string)context.Variables["customerPolicy"];
+        return !string.IsNullOrWhiteSpace(token.Subject)
+            &amp;&amp; (scope == "__not-configured__" || (token.Claims.ContainsKey("scp") &amp;&amp; token.Claims["scp"].Any(value =&gt; value.Split((char)32).Contains(scope))))
+            &amp;&amp; (policy == "__not-configured__" || (token.Claims.ContainsKey("{{b2c-policy-claim}}") &amp;&amp; token.Claims["{{b2c-policy-claim}}"].Any(value =&gt; string.Equals(value, policy, StringComparison.Ordinal))));
+    }' />
+    <choose>
+      <when condition='@(!(bool)context.Variables["customerClaimsValid"])'>
+        <return-response>
+          <set-status code="401" reason="Unauthorized" />
+          <set-header name="x-correlation-id" exists-action="override"><value>@((string)context.Variables["correlationId"])</value></set-header>
+          <set-header name="x-apim-request-id" exists-action="override"><value>@(context.RequestId.ToString())</value></set-header>
+          <set-header name="Content-Type" exists-action="override"><value>application/json</value></set-header>
+          <set-body>{"error":{"message":"The customer token is missing a required subject, policy or permission."}}</set-body>
+        </return-response>
+      </when>
+    </choose>
+    <rate-limit-by-key calls="{{attachment-rate-limit-calls}}"
+                       renewal-period="60"
+                       counter-key="@(((Jwt)context.Variables[&quot;commerceJwt&quot;]).Issuer + &quot;|&quot; + ((Jwt)context.Variables[&quot;commerceJwt&quot;]).Subject)" />
+    <set-header name="DeviceToken" exists-action="delete" />
+    <authentication-managed-identity resource="https://ai.azure.com"
+                                     output-token-variable-name="foundryAccessToken"
+                                     ignore-error="false" />
+    <set-header name="Authorization" exists-action="override">
+      <value>@("Bearer " + (string)context.Variables["foundryAccessToken"])</value>
+    </set-header>
+    <set-backend-service base-url="{{foundry-project-endpoint}}" />
+    <rewrite-uri template="@(&quot;/openai/v1/files/&quot; + (string)context.Variables[&quot;fileId&quot;])" />
+    <set-variable name="backendStartedMs" value="@(context.Elapsed.TotalMilliseconds)" />
+    <trace source="CommerceAssistant" severity="information">
+      <message>Forwarding to Foundry</message>
+      <metadata name="phase" value="backend" />
+      <metadata name="correlationId" value='@((string)context.Variables["correlationId"])' />
+      <metadata name="apimRequestId" value="@(context.RequestId.ToString())" />
+      <metadata name="gatewayPreparationMs" value="@(context.Elapsed.TotalMilliseconds.ToString())" />
+    </trace>
+  </inbound>
+  <backend>
+    <forward-request timeout="30" />
+  </backend>
+  <outbound>
+    <base />
+    <set-header name="x-correlation-id" exists-action="override">
+      <value>@((string)context.Variables["correlationId"])</value>
+    </set-header>
+    <set-header name="x-apim-request-id" exists-action="override">
+      <value>@(context.RequestId.ToString())</value>
+    </set-header>
+    <trace source="CommerceAssistant" severity="information">
+      <message>Request completed</message>
+      <metadata name="phase" value="completed" />
+      <metadata name="correlationId" value='@((string)context.Variables["correlationId"])' />
+      <metadata name="apimRequestId" value="@(context.RequestId.ToString())" />
+      <metadata name="statusCode" value="@(context.Response.StatusCode.ToString())" />
+      <metadata name="elapsedMs" value="@(context.Elapsed.TotalMilliseconds.ToString())" />
+      <metadata name="foundryWithRetriesMs" value='@((context.Elapsed.TotalMilliseconds - (double)context.Variables["backendStartedMs"]).ToString())' />
+    </trace>
+  </outbound>
+  <on-error>
+    <base />
+    <set-header name="x-correlation-id" exists-action="override">
+      <value>@(context.Variables.GetValueOrDefault&lt;string&gt;("correlationId", context.RequestId.ToString()))</value>
+    </set-header>
+    <set-header name="x-apim-request-id" exists-action="override">
+      <value>@(context.RequestId.ToString())</value>
+    </set-header>
+    <trace source="CommerceAssistant" severity="error">
+      <message>Request failed</message>
+      <metadata name="phase" value="failed" />
+      <metadata name="correlationId" value='@(context.Variables.GetValueOrDefault&lt;string&gt;("correlationId", context.RequestId.ToString()))' />
+      <metadata name="apimRequestId" value="@(context.RequestId.ToString())" />
+      <metadata name="elapsedMs" value="@(context.Elapsed.TotalMilliseconds.ToString())" />
+      <metadata name="reason" value="@(context.LastError.Reason)" />
+    </trace>
+  </on-error>
+</policies>

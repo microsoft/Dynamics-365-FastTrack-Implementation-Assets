@@ -1,0 +1,102 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Copilot Side Panel Header Item Templates</title>
+</head>
+<body>
+    <!--
+        The icon is the Copilot mark, drawn as an inline SVG rather than a DynamicsFont glyph class: the
+        POS icon font has no Copilot glyph. It keeps its own gradient colours, so it reads the same in
+        every POS theme. Gradient ids are document-wide, so each template uses its own. The packed copy
+        is drawn at 20px, like the other packed header items, so its row in the overflow list matches
+        theirs.
+
+        While the panel is open the unpacked button is shaded darker with an inset shadow, which sits
+        over whatever background the POS theme gives the header, so it follows the theme's accent colour
+        and still changes on hover. aria-expanded tells assistive technology the same thing.
+    -->
+    <script id="UnpackedSideChatItem" type="text/html">
+        <button class="pad0 center row" data-bind="click: onItemClickedHandler, attr: { title: label, 'aria-label': label, 'aria-expanded': isOpen() ? 'true' : 'false' }, style: { boxShadow: isOpen() ? 'inset 0 0 0 48px rgba(0, 0, 0, 0.24)' : '' }">
+            <div class="buttonIcon width48 height24 center row">
+                <svg width="20" height="20" viewBox="0 0 18 18" fill="none" focusable="false" aria-hidden="true">
+                    <path fill="url(#contosoCopilotHeaderPaint0)" d="M9.49857 0H5.55069C3.71936 0 2.12192 1.24368 1.67283 3.0191L0.0931075 9.26432C-0.386344 11.1598 1.04636 13 3.00151 13H5.90934L7.36017 7.26432C7.69699 5.93276 8.89507 5 10.2686 5H12.0876L12.4072 3.73481C12.886 1.83957 11.4533 0 9.49857 0Z" />
+                    <path fill="url(#contosoCopilotHeaderPaint1)" d="M9.49857 0H5.55069C3.71936 0 2.12192 1.24368 1.67283 3.0191L0.0931075 9.26432C-0.386344 11.1598 1.04636 13 3.00151 13H5.90934L7.36017 7.26432C7.69699 5.93276 8.89507 5 10.2686 5H12.0876L12.4072 3.73481C12.886 1.83957 11.4533 0 9.49857 0Z" />
+                    <path fill="url(#contosoCopilotHeaderPaint2)" d="M9.49857 0H5.55069C3.71936 0 2.12192 1.24368 1.67283 3.0191L0.0931075 9.26432C-0.386344 11.1598 1.04636 13 3.00151 13H5.90934L7.36017 7.26432C7.69699 5.93276 8.89507 5 10.2686 5H12.0876L12.4072 3.73481C12.886 1.83957 11.4533 0 9.49857 0Z" />
+                    <path fill="#D9D9D9" d="M16.3261 14.9797L17.9038 8.73481C18.3826 6.83957 16.9499 5 14.9951 5H12.0877L10.6389 10.7348C10.3024 12.0668 9.10414 13 7.7303 13H5.9095L5.58969 14.2643C5.11024 16.1598 6.54294 18 8.49809 18H12.4479C14.2797 18 15.8774 16.7557 16.3261 14.9797Z" />
+                    <path fill="url(#contosoCopilotHeaderPaint3)" d="M16.3261 14.9797L17.9038 8.73481C18.3826 6.83957 16.9499 5 14.9951 5H12.0877L10.6389 10.7348C10.3024 12.0668 9.10414 13 7.7303 13H5.9095L5.58969 14.2643C5.11024 16.1598 6.54294 18 8.49809 18H12.4479C14.2797 18 15.8774 16.7557 16.3261 14.9797Z" />
+                    <path fill="url(#contosoCopilotHeaderPaint4)" d="M16.3261 14.9797L17.9038 8.73481C18.3826 6.83957 16.9499 5 14.9951 5H12.0877L10.6389 10.7348C10.3024 12.0668 9.10414 13 7.7303 13H5.9095L5.58969 14.2643C5.11024 16.1598 6.54294 18 8.49809 18H12.4479C14.2797 18 15.8774 16.7557 16.3261 14.9797Z" />
+                    <defs>
+                        <linearGradient id="contosoCopilotHeaderPaint0" x1="4.35213" y1="1.5752" x2="4.46455" y2="13.5682" gradientUnits="userSpaceOnUse">
+                            <stop offset="0.178346" stop-color="#109DF2" />
+                            <stop offset="0.720089" stop-color="#AAD445" />
+                            <stop offset="0.965335" stop-color="#FFD000" />
+                        </linearGradient>
+                        <radialGradient id="contosoCopilotHeaderPaint1" cx="0" cy="0" r="1" gradientTransform="matrix(-8.51115 14.9834 -33.9182 -11.9115 10.0757 -3.54954e-08)" gradientUnits="userSpaceOnUse">
+                            <stop offset="0.252408" stop-color="#109DF2" />
+                            <stop offset="0.720089" stop-color="#AAD445" />
+                            <stop offset="0.965335" stop-color="#FFD400" />
+                        </radialGradient>
+                        <linearGradient id="contosoCopilotHeaderPaint2" x1="5.51984" y1="-1.2237e-08" x2="5.45548" y2="13.0002" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#3DCBFF" />
+                            <stop offset="0.246674" stop-color="#0588F7" stop-opacity="0" />
+                        </linearGradient>
+                        <radialGradient id="contosoCopilotHeaderPaint3" cx="0" cy="0" r="1" gradientTransform="matrix(6.91174 -16.0666 40.525 13.8604 6.97427 19.0341)" gradientUnits="userSpaceOnUse">
+                            <stop offset="0.0739513" stop-color="#FFB152" />
+                            <stop offset="0.5" stop-color="#F2598A" />
+                            <stop offset="0.94786" stop-color="#8C48FF" />
+                        </radialGradient>
+                        <linearGradient id="contosoCopilotHeaderPaint4" x1="13.4081" y1="4.21212" x2="13.4239" y2="8.05308" gradientUnits="userSpaceOnUse">
+                            <stop offset="0.109668" stop-color="#F8ADFA" />
+                            <stop offset="0.708063" stop-color="#A86EDD" stop-opacity="0" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+        </button>
+    </script>
+    <script id="PackedSideChatItem" type="text/html">
+        <button class="row pad0" data-bind="click: onItemClickedHandler, attr: { title: label, 'aria-label': label, 'aria-expanded': isOpen() ? 'true' : 'false' }">
+            <div class="buttonIcon height20 margin12 center row">
+                <svg width="20" height="20" viewBox="0 0 18 18" fill="none" focusable="false" aria-hidden="true">
+                    <path fill="url(#contosoCopilotPackedPaint0)" d="M9.49857 0H5.55069C3.71936 0 2.12192 1.24368 1.67283 3.0191L0.0931075 9.26432C-0.386344 11.1598 1.04636 13 3.00151 13H5.90934L7.36017 7.26432C7.69699 5.93276 8.89507 5 10.2686 5H12.0876L12.4072 3.73481C12.886 1.83957 11.4533 0 9.49857 0Z" />
+                    <path fill="url(#contosoCopilotPackedPaint1)" d="M9.49857 0H5.55069C3.71936 0 2.12192 1.24368 1.67283 3.0191L0.0931075 9.26432C-0.386344 11.1598 1.04636 13 3.00151 13H5.90934L7.36017 7.26432C7.69699 5.93276 8.89507 5 10.2686 5H12.0876L12.4072 3.73481C12.886 1.83957 11.4533 0 9.49857 0Z" />
+                    <path fill="url(#contosoCopilotPackedPaint2)" d="M9.49857 0H5.55069C3.71936 0 2.12192 1.24368 1.67283 3.0191L0.0931075 9.26432C-0.386344 11.1598 1.04636 13 3.00151 13H5.90934L7.36017 7.26432C7.69699 5.93276 8.89507 5 10.2686 5H12.0876L12.4072 3.73481C12.886 1.83957 11.4533 0 9.49857 0Z" />
+                    <path fill="#D9D9D9" d="M16.3261 14.9797L17.9038 8.73481C18.3826 6.83957 16.9499 5 14.9951 5H12.0877L10.6389 10.7348C10.3024 12.0668 9.10414 13 7.7303 13H5.9095L5.58969 14.2643C5.11024 16.1598 6.54294 18 8.49809 18H12.4479C14.2797 18 15.8774 16.7557 16.3261 14.9797Z" />
+                    <path fill="url(#contosoCopilotPackedPaint3)" d="M16.3261 14.9797L17.9038 8.73481C18.3826 6.83957 16.9499 5 14.9951 5H12.0877L10.6389 10.7348C10.3024 12.0668 9.10414 13 7.7303 13H5.9095L5.58969 14.2643C5.11024 16.1598 6.54294 18 8.49809 18H12.4479C14.2797 18 15.8774 16.7557 16.3261 14.9797Z" />
+                    <path fill="url(#contosoCopilotPackedPaint4)" d="M16.3261 14.9797L17.9038 8.73481C18.3826 6.83957 16.9499 5 14.9951 5H12.0877L10.6389 10.7348C10.3024 12.0668 9.10414 13 7.7303 13H5.9095L5.58969 14.2643C5.11024 16.1598 6.54294 18 8.49809 18H12.4479C14.2797 18 15.8774 16.7557 16.3261 14.9797Z" />
+                    <defs>
+                        <linearGradient id="contosoCopilotPackedPaint0" x1="4.35213" y1="1.5752" x2="4.46455" y2="13.5682" gradientUnits="userSpaceOnUse">
+                            <stop offset="0.178346" stop-color="#109DF2" />
+                            <stop offset="0.720089" stop-color="#AAD445" />
+                            <stop offset="0.965335" stop-color="#FFD000" />
+                        </linearGradient>
+                        <radialGradient id="contosoCopilotPackedPaint1" cx="0" cy="0" r="1" gradientTransform="matrix(-8.51115 14.9834 -33.9182 -11.9115 10.0757 -3.54954e-08)" gradientUnits="userSpaceOnUse">
+                            <stop offset="0.252408" stop-color="#109DF2" />
+                            <stop offset="0.720089" stop-color="#AAD445" />
+                            <stop offset="0.965335" stop-color="#FFD400" />
+                        </radialGradient>
+                        <linearGradient id="contosoCopilotPackedPaint2" x1="5.51984" y1="-1.2237e-08" x2="5.45548" y2="13.0002" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#3DCBFF" />
+                            <stop offset="0.246674" stop-color="#0588F7" stop-opacity="0" />
+                        </linearGradient>
+                        <radialGradient id="contosoCopilotPackedPaint3" cx="0" cy="0" r="1" gradientTransform="matrix(6.91174 -16.0666 40.525 13.8604 6.97427 19.0341)" gradientUnits="userSpaceOnUse">
+                            <stop offset="0.0739513" stop-color="#FFB152" />
+                            <stop offset="0.5" stop-color="#F2598A" />
+                            <stop offset="0.94786" stop-color="#8C48FF" />
+                        </radialGradient>
+                        <linearGradient id="contosoCopilotPackedPaint4" x1="13.4081" y1="4.21212" x2="13.4239" y2="8.05308" gradientUnits="userSpaceOnUse">
+                            <stop offset="0.109668" stop-color="#F8ADFA" />
+                            <stop offset="0.708063" stop-color="#A86EDD" stop-opacity="0" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <div class="grow col marginLeft8 padTop12">
+                <div class="h4 row" data-bind="text: label"></div>
+            </div>
+        </button>
+    </script>
+</body>
+</html>

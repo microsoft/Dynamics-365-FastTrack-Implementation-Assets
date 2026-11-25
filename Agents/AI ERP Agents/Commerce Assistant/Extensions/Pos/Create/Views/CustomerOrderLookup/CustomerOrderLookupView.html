@@ -1,0 +1,117 @@
+<!--
+    HTMLLint is an internal tool that fails on this file due to non-localized example labels,
+    there is no need for this comment and the one below in real-world extensions.
+-->
+<!-- HTMLLint Disable LabelExistsValidator -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>CustomerOrderLookupView</title>
+    <link href="CustomerOrderLookupView.css" rel="stylesheet" />
+</head>
+<body>
+    <!-- Every piece of text sits in a POS text class (h2 to h6, label or button); POS sizes anything else at 4px. -->
+    <div class="CustomerOrderLookupView">
+        <div class="customerOrderLookupPage">
+            <div class="customerOrderLookupCard customerOrderLookupSearch">
+                <h2 class="h3 primaryFontColor customerOrderLookupTitle">Look up a customer order</h2>
+                <div class="h4 secondaryFontColor customerOrderLookupHint">Enter the order number from the customer's receipt or order confirmation.</div>
+
+                <form class="customerOrderLookupForm" data-bind="submit: lookUp">
+                    <label for="customerOrderLookupNumber" class="primaryFontColor">Order number</label>
+                    <div class="customerOrderLookupSearchRow">
+                        <input id="customerOrderLookupNumber" type="text" maxlength="40" autocomplete="off" spellcheck="false"
+                               placeholder="For example, 012345" aria-describedby="customerOrderLookupInputMessage"
+                               data-bind="textInput: orderNumber, enable: !isSearching()" />
+                        <button type="submit" class="primaryButton" data-bind="enable: !isSearching()">Look up</button>
+                    </div>
+                    <div class="customerOrderLookupFeedback">
+                        <div class="customerOrderLookupStatus">
+                            <span class="customerOrderLookupSpinner" aria-hidden="true" data-bind="visible: isSearching"></span>
+                            <span class="h4 primaryFontColor" role="status" aria-live="polite" data-bind="text: statusText"></span>
+                        </div>
+                        <div id="customerOrderLookupInputMessage" class="customerOrderLookupInputMessage" role="alert">
+                            <!-- ko if: inputMessage().length > 0 -->
+                            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+                                <path fill="currentColor" fill-rule="evenodd" d="M12 2a10 10 0 1 1 0 20a10 10 0 1 1 0-20z M11 6.75h2v7.5h-2z M12 15.75a1.25 1.25 0 1 1 0 2.5a1.25 1.25 0 1 1 0-2.5z" />
+                            </svg>
+                            <span class="h4" data-bind="text: inputMessage"></span>
+                            <!-- /ko -->
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ko if: hasFailed -->
+            <div class="customerOrderLookupCard customerOrderLookupFailure">
+                <div class="customerOrderLookupResultHeader">
+                    <svg class="customerOrderLookupIcon" viewBox="0 0 24 24" width="36" height="36" aria-hidden="true" focusable="false">
+                        <path fill="currentColor" fill-rule="evenodd" d="M12 2a10 10 0 1 1 0 20a10 10 0 1 1 0-20z M11 6.75h2v7.5h-2z M12 15.75a1.25 1.25 0 1 1 0 2.5a1.25 1.25 0 1 1 0-2.5z" />
+                    </svg>
+                    <div class="customerOrderLookupResultHeading" role="alert">
+                        <h2 class="h2 customerOrderLookupResultTitle" data-bind="text: failureTitle"></h2>
+                        <div class="h5 primaryFontColor customerOrderLookupMessage" data-bind="text: failureMessage"></div>
+                    </div>
+                </div>
+                <div class="customerOrderLookupResultBody">
+                    <h3 class="h6 primaryFontColor customerOrderLookupSectionLabel">Details for IT support</h3>
+                    <dl class="customerOrderLookupDetails" data-bind="foreach: failureDetails">
+                        <div class="customerOrderLookupDetail">
+                            <dt class="h6 secondaryFontColor" data-bind="text: label"></dt>
+                            <dd class="h5 primaryFontColor" data-bind="text: value"></dd>
+                        </div>
+                    </dl>
+                    <div class="h4 primaryFontColor customerOrderLookupNote" data-bind="visible: retriedText().length > 0, text: retriedText"></div>
+                </div>
+                <div class="customerOrderLookupResultFooter">
+                    <div class="h4 secondaryFontColor customerOrderLookupFooterHint">Copilot can walk you through the fix from the IT support guide.</div>
+                    <div class="customerOrderLookupActions">
+                        <!-- ko if: canRetry -->
+                        <button type="button" class="secondaryButton" data-bind="click: retry, enable: !isSearching()">Retry</button>
+                        <!-- /ko -->
+                        <button type="button" class="primaryButton" data-bind="click: askCopilot">Ask Copilot</button>
+                    </div>
+                </div>
+            </div>
+            <!-- /ko -->
+
+            <!-- ko if: hasOrder -->
+            <div class="customerOrderLookupCard customerOrderLookupFound">
+                <div class="customerOrderLookupResultHeader">
+                    <svg class="customerOrderLookupIcon" viewBox="0 0 24 24" width="36" height="36" aria-hidden="true" focusable="false">
+                        <path fill="currentColor" fill-rule="evenodd" d="M12 2a10 10 0 1 1 0 20a10 10 0 1 1 0-20z M6.6 12.4L7.9 11.1L10.5 13.7L16.1 8.1L17.4 9.4L10.5 16.3z" />
+                    </svg>
+                    <div class="customerOrderLookupResultHeading">
+                        <h2 class="h2 primaryFontColor customerOrderLookupResultTitle" data-bind="text: orderTitle"></h2>
+                    </div>
+                </div>
+                <div class="customerOrderLookupResultBody">
+                    <dl class="customerOrderLookupDetails" data-bind="foreach: orderDetails">
+                        <div class="customerOrderLookupDetail">
+                            <dt class="h6 secondaryFontColor" data-bind="text: label"></dt>
+                            <dd class="h5 primaryFontColor" data-bind="text: value"></dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+            <!-- /ko -->
+
+            <!-- ko if: notFoundText().length > 0 -->
+            <div class="customerOrderLookupCard customerOrderLookupNotFound">
+                <div class="customerOrderLookupResultHeader">
+                    <svg class="customerOrderLookupIcon" viewBox="0 0 24 24" width="36" height="36" aria-hidden="true" focusable="false">
+                        <path fill="currentColor" fill-rule="evenodd" d="M12 2a10 10 0 1 1 0 20a10 10 0 1 1 0-20z M12 6.5a1.25 1.25 0 1 1 0 2.5a1.25 1.25 0 1 1 0-2.5z M11 10.5h2v7h-2z" />
+                    </svg>
+                    <div class="customerOrderLookupResultHeading">
+                        <h2 class="h2 primaryFontColor customerOrderLookupResultTitle">Order not found</h2>
+                        <div class="h5 primaryFontColor customerOrderLookupMessage" data-bind="text: notFoundText"></div>
+                        <div class="h4 secondaryFontColor customerOrderLookupMessage">Check the number and try again.</div>
+                    </div>
+                </div>
+            </div>
+            <!-- /ko -->
+        </div>
+    </div>
+</body>
+</html>

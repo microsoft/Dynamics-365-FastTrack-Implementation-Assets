@@ -1,0 +1,20 @@
+{
+    // TypeScript configuration for the docked chat side panel bundle (compiled by webpack/esbuild-loader).
+    // This is intentionally separate from the POS extension's tsconfig.json: the POS build emits
+    // SystemJS/ES5 and must NOT compile these .tsx sources (they are excluded there).
+    "compilerOptions": {
+        "target": "ES2019",
+        "module": "ESNext",
+        "moduleResolution": "node",
+        "lib": ["DOM", "DOM.Iterable", "ES2020"],
+        "jsx": "react-jsx",
+        "strict": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "skipLibCheck": true,
+        "noEmit": true,
+        "types": []
+    },
+    "include": ["SideChatPanel.tsx", "index.tsx", "sideChatClient.ts", "panelState.ts", "cartSuggestionState.ts"]
+}

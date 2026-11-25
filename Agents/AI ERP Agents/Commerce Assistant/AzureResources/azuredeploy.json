@@ -1,0 +1,1061 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "description": "Deploys the Commerce assistant Azure AI Foundry, Blob Storage, API Management, managed identities, and least-privilege role assignments."
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for API Management and Storage."
+      }
+    },
+    "foundryLocation": {
+      "type": "string",
+      "defaultValue": "eastus",
+      "metadata": {
+        "description": "Location where the selected Foundry model is available."
+      }
+    },
+    "commerceScaleUnitId": {
+      "type": "string",
+      "defaultValue": "[first(split(first(split(last(split(parameters('retailServerBaseUrl'), '//')), '.')), '-rs'))]",
+      "minLength": 3,
+      "maxLength": 21,
+      "metadata": {
+        "description": "Lowercase CSU environment identifier used to name all resources. Derived from the standard <id>-rs Retail Server hostname; override only for a nonstandard hostname."
+      }
+    },
+    "apimServiceName": {
+      "type": "string",
+      "defaultValue": "[concat(parameters('commerceScaleUnitId'), '-apim')]"
+    },
+    "apimPublisherName": {
+      "type": "string",
+      "defaultValue": "Commerce MCP"
+    },
+    "apimPublisherEmail": {
+      "type": "string"
+    },
+    "apimSkuName": {
+      "type": "string",
+      "defaultValue": "BasicV2",
+      "allowedValues": [
+        "Developer",
+        "BasicV2",
+        "StandardV2",
+        "PremiumV2"
+      ],
+      "metadata": {
+        "description": "BasicV2 is the paid customer nonproduction baseline with an SLA. Review StandardV2 or PremiumV2 for production."
+      }
+    },
+    "apimSkuCapacity": {
+      "type": "int",
+      "defaultValue": 1,
+      "minValue": 1
+    },
+    "storageAccountName": {
+      "type": "string",
+      "defaultValue": "[concat(parameters('commerceScaleUnitId'), 'stg')]",
+      "minLength": 3,
+      "maxLength": 24
+    },
+    "storageSkuName": {
+      "type": "string",
+      "defaultValue": "Standard_ZRS",
+      "allowedValues": [
+        "Standard_LRS",
+        "Standard_ZRS",
+        "Standard_GRS",
+        "Standard_RAGRS",
+        "Standard_GZRS",
+        "Standard_RAGZRS"
+      ],
+      "metadata": {
+        "description": "Standard_ZRS is the customer baseline. Choose redundancy based on regional support and recovery requirements."
+      }
+    },
+    "assistantContainerName": {
+      "type": "string",
+      "defaultValue": "assistant-config"
+    },
+    "assistantBlobName": {
+      "type": "string",
+      "defaultValue": "assistant-instructions.txt"
+    },
+    "promptPublisherPrincipalId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional Entra object ID granted Storage Blob Data Contributor on the prompt container."
+      }
+    },
+    "foundryAccountName": {
+      "type": "string",
+      "defaultValue": "[concat(parameters('commerceScaleUnitId'), '-foundry')]"
+    },
+    "foundryProjectName": {
+      "type": "string",
+      "defaultValue": "[concat(parameters('commerceScaleUnitId'), '-assistant')]"
+    },
+    "modelDeploymentName": {
+      "type": "string",
+      "defaultValue": "gpt-5.5"
+    },
+    "deployModel": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Deploy the model. Set false when regional model quota must be requested first."
+      }
+    },
+    "modelName": {
+      "type": "string",
+      "defaultValue": "gpt-5.5"
+    },
+    "modelVersion": {
+      "type": "string",
+      "defaultValue": "2026-04-24"
+    },
+    "modelSkuName": {
+      "type": "string",
+      "defaultValue": "GlobalStandard"
+    },
+    "modelCapacity": {
+      "type": "int",
+      "defaultValue": 600,
+      "minValue": 1,
+      "metadata": {
+        "description": "Initial quota allocation in thousands of tokens per minute. The 600K TPM default accommodates the checked-in instructions, MCP tool schemas, bounded model output, and moderate request bursts. Tune from observed demand and available quota; model usage remains token billed."
+      }
+    },
+    "modelMaxOutputTokens": {
+      "type": "int",
+      "defaultValue": 25000,
+      "minValue": 1,
+      "maxValue": 128000,
+      "metadata": {
+        "description": "Maximum Responses API output tokens, including reasoning tokens. Bounds each request's estimated TPM reservation."
+      }
+    },
+    "embeddingDeploymentName": {
+      "type": "string",
+      "defaultValue": "text-embedding-3-large"
+    },
+    "embeddingModelName": {
+      "type": "string",
+      "defaultValue": "text-embedding-3-large"
+    },
+    "embeddingModelVersion": {
+      "type": "string",
+      "defaultValue": "1"
+    },
+    "embeddingModelSkuName": {
+      "type": "string",
+      "defaultValue": "Standard"
+    },
+    "embeddingModelCapacity": {
+      "type": "int",
+      "defaultValue": 30,
+      "minValue": 1,
+      "metadata": {
+        "description": "Embedding deployment capacity in thousands of tokens per minute for Foundry IQ file ingestion."
+      }
+    },
+    "searchServiceName": {
+      "type": "string",
+      "defaultValue": "[concat(parameters('commerceScaleUnitId'), '-search')]"
+    },
+    "searchSkuName": {
+      "type": "string",
+      "defaultValue": "basic",
+      "allowedValues": [
+        "basic",
+        "standard",
+        "standard2",
+        "standard3"
+      ],
+      "metadata": {
+        "description": "Azure AI Search tier. Basic is the minimum recommended tier for managed-identity access to Foundry models."
+      }
+    },
+    "knowledgeRetrievalPlan": {
+      "type": "string",
+      "defaultValue": "free",
+      "allowedValues": [
+        "free",
+        "standard"
+      ],
+      "metadata": {
+        "description": "Foundry IQ agentic retrieval billing plan. Free caps usage at the monthly allowance; standard permits billable usage beyond it."
+      }
+    },
+    "foundryIqKnowledgeSourceName": {
+      "type": "string",
+      "defaultValue": "commerce-documents"
+    },
+    "foundryIqKnowledgeBaseName": {
+      "type": "string",
+      "defaultValue": "commerce-knowledge"
+    },
+    "foundryIqConnectionName": {
+      "type": "string",
+      "defaultValue": "commerce-search"
+    },
+    "retailServerBaseUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "Retail Server base URL including https:// and without a trailing slash."
+      }
+    },
+    "commerceIssuerPath": {
+      "type": "string",
+      "defaultValue": "auth",
+      "metadata": {
+        "description": "Commerce issuer path without leading or trailing slashes. Defaults to the standard Commerce path; override only for a nonstandard environment."
+      }
+    },
+    "commerceOpenIdConfigUrl": {
+      "type": "string",
+      "defaultValue": "[format('{0}/{1}/.well-known/openid-configuration', parameters('retailServerBaseUrl'), parameters('commerceIssuerPath'))]"
+    },
+    "commerceTokenIssuer": {
+      "type": "string",
+      "defaultValue": "[format('{0}/{1}', parameters('retailServerBaseUrl'), parameters('commerceIssuerPath'))]",
+      "metadata": {
+        "description": "Exact Commerce token issuer. Override only when it differs from the Retail Server base URL plus Commerce issuer path."
+      }
+    },
+    "entraTenantId": {
+      "type": "string",
+      "defaultValue": "[subscription().tenantId]"
+    },
+    "entraTokenAudience": {
+      "type": "string",
+      "defaultValue": "__entra-not-configured__",
+      "metadata": {
+        "description": "Retail Server Application ID URI (AADRetailServerResourceId). Override when accepting Microsoft Entra-issued tokens; the default supports Commerce-issued tokens only."
+      }
+    },
+    "anonymousEnabled": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": { "description": "Allow chat requests without an Authorization header. Anonymous callers are rate limited by client IP, cannot send attachments, and reach Commerce MCP without a user token." }
+    },
+    "b2cEnabled": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": { "description": "Enable the separately configured Azure AD B2C customer-token validator." }
+    },
+    "b2cOpenIdConfigUrl": {
+      "type": "string",
+      "defaultValue": "https://identity.invalid/.well-known/openid-configuration",
+      "metadata": { "description": "Exact HTTPS discovery URL for the trusted B2C policy. Required when b2cEnabled is true." }
+    },
+    "b2cTokenIssuer": {
+      "type": "string",
+      "defaultValue": "__not-configured__",
+      "metadata": { "description": "Exact B2C issuer from discovery metadata, including any trailing slash." }
+    },
+    "b2cTokenAudience": {
+      "type": "string",
+      "defaultValue": "__not-configured__",
+      "metadata": { "description": "Exact audience accepted for C2 B2C tokens; not necessarily an api:// URI." }
+    },
+    "b2cPolicyClaim": {
+      "type": "string",
+      "defaultValue": "tfp",
+      "allowedValues": [ "tfp", "acr" ]
+    },
+    "b2cPolicy": {
+      "type": "string",
+      "defaultValue": "__not-configured__",
+      "metadata": { "description": "Optional approved B2C policy claim value. Configure when issuer/audience do not distinguish permitted flows." }
+    },
+    "b2cRequiredScope": {
+      "type": "string",
+      "defaultValue": "__not-configured__",
+      "metadata": { "description": "Optional single required scp permission for B2C access tokens. Leave unconfigured only when the CSU token contract permits it." }
+    },
+    "externalIdEnabled": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": { "description": "Enable the separately configured Microsoft Entra External ID customer-tenant validator." }
+    },
+    "externalIdOpenIdConfigUrl": {
+      "type": "string",
+      "defaultValue": "https://identity.invalid/.well-known/openid-configuration",
+      "metadata": { "description": "Exact HTTPS discovery URL for the External ID customer tenant, typically on ciamlogin.com." }
+    },
+    "externalIdTokenIssuer": {
+      "type": "string",
+      "defaultValue": "__not-configured__",
+      "metadata": { "description": "Exact External ID issuer from discovery metadata." }
+    },
+    "externalIdTokenAudience": {
+      "type": "string",
+      "defaultValue": "__not-configured__",
+      "metadata": { "description": "Exact audience accepted for C2 External ID tokens." }
+    },
+    "externalIdRequiredScope": {
+      "type": "string",
+      "defaultValue": "__not-configured__",
+      "metadata": { "description": "Optional single required scp permission for External ID access tokens." }
+    },
+    "commerceChannelId": {
+      "type": "string"
+    },
+    "mcpServerLabel": {
+      "type": "string",
+      "defaultValue": "commerce-mcp-inline"
+    },
+    "mcpServerUrl": {
+      "type": "string",
+      "defaultValue": "[concat(parameters('retailServerBaseUrl'), '/mcp')]"
+    },
+    "posOrigin": {
+      "type": "string"
+    },
+    "additionalPosOrigin": {
+      "type": "string",
+      "defaultValue": "[parameters('posOrigin')]",
+      "metadata": {
+        "description": "Optional second exact browser origin for local POS validation. Defaults to the primary POS origin."
+      }
+    },
+    "c2Origin": {
+      "type": "string",
+      "defaultValue": "[parameters('posOrigin')]",
+      "metadata": { "description": "C2 HTTPS browser origin (scheme and host). Defaults to the POS origin. Explicit * permits all origins with non-credentialed CORS; not recommended for production." }
+    },
+    "rateLimitCalls": {
+      "type": "int",
+      "defaultValue": 15,
+      "minValue": 1,
+      "maxValue": 1000
+    },
+    "attachmentRateLimitCalls": {
+      "type": "int",
+      "defaultValue": 10,
+      "minValue": 1,
+      "maxValue": 1000
+    },
+    "attachmentMaxBytes": {
+      "type": "int",
+      "defaultValue": 5308416,
+      "minValue": 1,
+      "maxValue": 6291456,
+      "metadata": {
+        "description": "Maximum multipart request size. The default permits a 5 MB file plus 64 KB of multipart fields and boundaries."
+      }
+    },
+    "commerceAssistantPolicy": {
+      "type": "string",
+      "metadata": {
+        "description": "Raw XML operation policy. The deployment wrapper reads commerce-assistant-policy.xml and supplies it."
+      }
+    },
+    "commerceAssistantAttachmentUploadPolicy": {
+      "type": "string",
+      "metadata": {
+        "description": "Raw XML upload operation policy supplied by the deployment wrapper."
+      }
+    },
+    "commerceAssistantAttachmentDeletePolicy": {
+      "type": "string",
+      "metadata": {
+        "description": "Raw XML delete operation policy supplied by the deployment wrapper."
+      }
+    }
+  },
+  "variables": {
+    "storageBlobDataReaderRoleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1')]",
+    "storageBlobDataContributorRoleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
+    "foundryUserRoleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '53ca6127-db72-4b80-b1b0-d745d6d5456d')]",
+    "cognitiveServicesUserRoleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'a97b65f3-24c7-4388-baec-2e87135dc908')]",
+    "searchServiceContributorRoleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7ca78c08-252a-4471-8644-bb5ff32d4ba0')]",
+    "searchIndexDataContributorRoleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '8ebe5a00-799e-43f5-93ac-243d3dce84a7')]",
+    "searchIndexDataReaderRoleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '1407120a-92aa-4202-b7e9-c0e197c71c8f')]",
+    "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
+    "containerId": "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('storageAccountName'), 'default', parameters('assistantContainerName'))]",
+    "foundryAccountId": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('foundryAccountName'))]",
+    "foundryProjectId": "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('foundryAccountName'), parameters('foundryProjectName'))]",
+    "searchServiceId": "[resourceId('Microsoft.Search/searchServices', parameters('searchServiceName'))]",
+    "foundryProjectEndpoint": "[concat('https://', parameters('foundryAccountName'), '.services.ai.azure.com/api/projects/', parameters('foundryProjectName'))]",
+    "foundryOpenAIEndpoint": "[concat('https://', parameters('foundryAccountName'), '.openai.azure.com')]",
+    "searchServiceEndpoint": "[concat('https://', parameters('searchServiceName'), '.search.windows.net')]",
+    "foundryIqMcpUrl": "[concat(variables('searchServiceEndpoint'), '/knowledgebases/', parameters('foundryIqKnowledgeBaseName'), '/mcp?api-version=2026-08-01-preview')]",
+    "assistantBlobUrl": "[concat('https://', parameters('storageAccountName'), '.blob.core.windows.net/', parameters('assistantContainerName'), '/', parameters('assistantBlobName'))]",
+    "namedValues": [
+      {
+        "name": "commerce-openid-config-url",
+        "value": "[parameters('commerceOpenIdConfigUrl')]"
+      },
+      {
+        "name": "commerce-token-issuer",
+        "value": "[parameters('commerceTokenIssuer')]"
+      },
+      {
+        "name": "entra-tenant-id",
+        "value": "[parameters('entraTenantId')]"
+      },
+      {
+        "name": "entra-token-audience",
+        "value": "[parameters('entraTokenAudience')]"
+      },
+      {
+        "name": "anonymous-enabled",
+        "value": "[if(parameters('anonymousEnabled'), 'true', 'false')]"
+      },
+      {
+        "name": "b2c-enabled",
+        "value": "[if(parameters('b2cEnabled'), 'true', 'false')]"
+      },
+      {
+        "name": "b2c-openid-config-url",
+        "value": "[parameters('b2cOpenIdConfigUrl')]"
+      },
+      {
+        "name": "b2c-token-issuer",
+        "value": "[parameters('b2cTokenIssuer')]"
+      },
+      {
+        "name": "b2c-token-audience",
+        "value": "[parameters('b2cTokenAudience')]"
+      },
+      {
+        "name": "b2c-policy-claim",
+        "value": "[parameters('b2cPolicyClaim')]"
+      },
+      {
+        "name": "b2c-policy",
+        "value": "[parameters('b2cPolicy')]"
+      },
+      {
+        "name": "b2c-required-scope",
+        "value": "[parameters('b2cRequiredScope')]"
+      },
+      {
+        "name": "external-id-enabled",
+        "value": "[if(parameters('externalIdEnabled'), 'true', 'false')]"
+      },
+      {
+        "name": "external-id-openid-config-url",
+        "value": "[parameters('externalIdOpenIdConfigUrl')]"
+      },
+      {
+        "name": "external-id-token-issuer",
+        "value": "[parameters('externalIdTokenIssuer')]"
+      },
+      {
+        "name": "external-id-token-audience",
+        "value": "[parameters('externalIdTokenAudience')]"
+      },
+      {
+        "name": "external-id-required-scope",
+        "value": "[parameters('externalIdRequiredScope')]"
+      },
+      {
+        "name": "c2-origin",
+        "value": "[parameters('c2Origin')]"
+      },
+      {
+        "name": "foundry-project-endpoint",
+        "value": "[variables('foundryProjectEndpoint')]"
+      },
+      {
+        "name": "foundry-model-deployment",
+        "value": "[parameters('modelDeploymentName')]"
+      },
+      {
+        "name": "assistant-instructions-blob-url",
+        "value": "[variables('assistantBlobUrl')]"
+      },
+      {
+        "name": "commerce-channel-id",
+        "value": "[parameters('commerceChannelId')]"
+      },
+      {
+        "name": "mcp-server-label",
+        "value": "[parameters('mcpServerLabel')]"
+      },
+      {
+        "name": "mcp-server-url",
+        "value": "[parameters('mcpServerUrl')]"
+      },
+      {
+        "name": "foundry-iq-mcp-url",
+        "value": "[variables('foundryIqMcpUrl')]"
+      },
+      {
+        "name": "pos-origin",
+        "value": "[parameters('posOrigin')]"
+      },
+      {
+        "name": "additional-pos-origin",
+        "value": "[parameters('additionalPosOrigin')]"
+      },
+      {
+        "name": "rate-limit-calls",
+        "value": "[string(parameters('rateLimitCalls'))]"
+      },
+      {
+        "name": "foundry-max-output-tokens",
+        "value": "[string(parameters('modelMaxOutputTokens'))]"
+      },
+      {
+        "name": "attachment-rate-limit-calls",
+        "value": "[string(parameters('attachmentRateLimitCalls'))]"
+      },
+      {
+        "name": "attachment-max-bytes",
+        "value": "[string(parameters('attachmentMaxBytes'))]"
+      }
+    ]
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-05-01",
+      "name": "[parameters('storageAccountName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[parameters('storageSkuName')]"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "accessTier": "Hot",
+        "allowBlobPublicAccess": false,
+        "allowSharedKeyAccess": false,
+        "minimumTlsVersion": "TLS1_2",
+        "supportsHttpsTrafficOnly": true,
+        "publicNetworkAccess": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}/default', parameters('storageAccountName'))]",
+      "dependsOn": [
+        "[variables('storageAccountId')]"
+      ],
+      "properties": {
+        "deleteRetentionPolicy": {
+          "enabled": false
+        },
+        "isVersioningEnabled": false
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}/default/{1}', parameters('storageAccountName'), parameters('assistantContainerName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccountName'), 'default')]"
+      ],
+      "properties": {
+        "publicAccess": "None"
+      }
+    },
+    {
+      "type": "Microsoft.CognitiveServices/accounts",
+      "apiVersion": "2025-06-01",
+      "name": "[parameters('foundryAccountName')]",
+      "location": "[parameters('foundryLocation')]",
+      "kind": "AIServices",
+      "sku": {
+        "name": "S0"
+      },
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "allowProjectManagement": true,
+        "customSubDomainName": "[parameters('foundryAccountName')]",
+        "disableLocalAuth": true,
+        "publicNetworkAccess": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.CognitiveServices/accounts/projects",
+      "apiVersion": "2025-06-01",
+      "name": "[format('{0}/{1}', parameters('foundryAccountName'), parameters('foundryProjectName'))]",
+      "location": "[parameters('foundryLocation')]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "dependsOn": [
+        "[variables('foundryAccountId')]"
+      ],
+      "properties": {}
+    },
+    {
+      "condition": "[parameters('deployModel')]",
+      "type": "Microsoft.CognitiveServices/accounts/deployments",
+      "apiVersion": "2025-06-01",
+      "name": "[format('{0}/{1}', parameters('foundryAccountName'), parameters('modelDeploymentName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('foundryAccountName'), parameters('foundryProjectName'))]"
+      ],
+      "sku": {
+        "name": "[parameters('modelSkuName')]",
+        "capacity": "[parameters('modelCapacity')]"
+      },
+      "properties": {
+        "model": {
+          "format": "OpenAI",
+          "name": "[parameters('modelName')]",
+          "version": "[parameters('modelVersion')]"
+        },
+        "versionUpgradeOption": "NoAutoUpgrade",
+        "textWatermarking": "AlwaysEnabled"
+      }
+    },
+    {
+      "condition": "[parameters('deployModel')]",
+      "type": "Microsoft.CognitiveServices/accounts/deployments",
+      "apiVersion": "2025-06-01",
+      "name": "[format('{0}/{1}', parameters('foundryAccountName'), parameters('embeddingDeploymentName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.CognitiveServices/accounts/deployments', parameters('foundryAccountName'), parameters('modelDeploymentName'))]"
+      ],
+      "sku": {
+        "name": "[parameters('embeddingModelSkuName')]",
+        "capacity": "[parameters('embeddingModelCapacity')]"
+      },
+      "properties": {
+        "model": {
+          "format": "OpenAI",
+          "name": "[parameters('embeddingModelName')]",
+          "version": "[parameters('embeddingModelVersion')]"
+        },
+        "versionUpgradeOption": "NoAutoUpgrade"
+      }
+    },
+    {
+      "type": "Microsoft.Search/searchServices",
+      "apiVersion": "2026-03-01-preview",
+      "name": "[parameters('searchServiceName')]",
+      "location": "[parameters('foundryLocation')]",
+      "sku": {
+        "name": "[parameters('searchSkuName')]"
+      },
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "disableLocalAuth": true,
+        "hostingMode": "default",
+        "knowledgeRetrieval": "[parameters('knowledgeRetrievalPlan')]",
+        "networkRuleSet": {
+          "ipRules": []
+        },
+        "partitionCount": 1,
+        "publicNetworkAccess": "Enabled",
+        "replicaCount": 1,
+        "semanticSearch": "free"
+      }
+    },
+    {
+      "type": "Microsoft.CognitiveServices/accounts/projects/connections",
+      "apiVersion": "2025-06-01",
+      "name": "[format('{0}/{1}/{2}', parameters('foundryAccountName'), parameters('foundryProjectName'), parameters('foundryIqConnectionName'))]",
+      "dependsOn": [
+        "[variables('foundryProjectId')]",
+        "[variables('searchServiceId')]"
+      ],
+      "properties": {
+        "category": "CognitiveSearch",
+        "target": "[variables('searchServiceEndpoint')]",
+        "authType": "AAD",
+        "isSharedToAll": true,
+        "useWorkspaceManagedIdentity": true,
+        "metadata": {
+          "ApiType": "Azure",
+          "ResourceId": "[variables('searchServiceId')]",
+          "location": "[parameters('foundryLocation')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service",
+      "apiVersion": "2024-05-01",
+      "name": "[parameters('apimServiceName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[parameters('apimSkuName')]",
+        "capacity": "[parameters('apimSkuCapacity')]"
+      },
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "publisherEmail": "[parameters('apimPublisherEmail')]",
+        "publisherName": "[parameters('apimPublisherName')]",
+        "publicNetworkAccess": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/namedValues",
+      "apiVersion": "2024-05-01",
+      "copy": {
+        "name": "namedValueCopy",
+        "count": "[length(variables('namedValues'))]"
+      },
+      "name": "[format('{0}/{1}', parameters('apimServiceName'), variables('namedValues')[copyIndex()].name)]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', parameters('apimServiceName'))]"
+      ],
+      "properties": {
+        "displayName": "[variables('namedValues')[copyIndex()].name]",
+        "secret": false,
+        "value": "[variables('namedValues')[copyIndex()].value]"
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/apis",
+      "apiVersion": "2024-05-01",
+      "name": "[format('{0}/commerce-assistant', parameters('apimServiceName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', parameters('apimServiceName'))]"
+      ],
+      "properties": {
+        "displayName": "Commerce assistant",
+        "path": "commerce-assistant",
+        "protocols": [
+          "https"
+        ],
+        "serviceUrl": "[variables('foundryProjectEndpoint')]",
+        "subscriptionRequired": false
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/apis/operations",
+      "apiVersion": "2024-05-01",
+      "name": "[format('{0}/commerce-assistant/chat', parameters('apimServiceName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apimServiceName'), 'commerce-assistant')]"
+      ],
+      "properties": {
+        "displayName": "Chat",
+        "method": "POST",
+        "urlTemplate": "/chat",
+        "templateParameters": [],
+        "responses": []
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/apis/operations/policies",
+      "apiVersion": "2024-05-01",
+      "name": "[format('{0}/commerce-assistant/chat/policy', parameters('apimServiceName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis/operations', parameters('apimServiceName'), 'commerce-assistant', 'chat')]",
+        "namedValueCopy",
+        "[extensionResourceId(variables('containerId'), 'Microsoft.Authorization/roleAssignments', guid(variables('containerId'), parameters('apimServiceName'), 'blob-reader'))]",
+        "[extensionResourceId(variables('foundryAccountId'), 'Microsoft.Authorization/roleAssignments', guid(variables('foundryAccountId'), parameters('apimServiceName'), 'foundry-user'))]",
+        "[extensionResourceId(variables('searchServiceId'), 'Microsoft.Authorization/roleAssignments', guid(variables('searchServiceId'), parameters('apimServiceName'), 'search-reader'))]"
+      ],
+      "properties": {
+        "format": "rawxml",
+        "value": "[parameters('commerceAssistantPolicy')]"
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/apis/operations",
+      "apiVersion": "2024-05-01",
+      "name": "[format('{0}/commerce-assistant/attachment-upload', parameters('apimServiceName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apimServiceName'), 'commerce-assistant')]"
+      ],
+      "properties": {
+        "displayName": "Upload attachment",
+        "method": "POST",
+        "urlTemplate": "/attachments",
+        "templateParameters": [],
+        "responses": []
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/apis/operations/policies",
+      "apiVersion": "2024-05-01",
+      "name": "[format('{0}/commerce-assistant/attachment-upload/policy', parameters('apimServiceName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis/operations', parameters('apimServiceName'), 'commerce-assistant', 'attachment-upload')]",
+        "namedValueCopy",
+        "[extensionResourceId(variables('foundryAccountId'), 'Microsoft.Authorization/roleAssignments', guid(variables('foundryAccountId'), parameters('apimServiceName'), 'foundry-user'))]"
+      ],
+      "properties": {
+        "format": "rawxml",
+        "value": "[parameters('commerceAssistantAttachmentUploadPolicy')]"
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/apis/operations",
+      "apiVersion": "2024-05-01",
+      "name": "[format('{0}/commerce-assistant/attachment-delete', parameters('apimServiceName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apimServiceName'), 'commerce-assistant')]"
+      ],
+      "properties": {
+        "displayName": "Delete attachment",
+        "method": "DELETE",
+        "urlTemplate": "/attachments/{fileId}",
+        "templateParameters": [
+          {
+            "name": "fileId",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": []
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/apis/operations/policies",
+      "apiVersion": "2024-05-01",
+      "name": "[format('{0}/commerce-assistant/attachment-delete/policy', parameters('apimServiceName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis/operations', parameters('apimServiceName'), 'commerce-assistant', 'attachment-delete')]",
+        "namedValueCopy",
+        "[extensionResourceId(variables('foundryAccountId'), 'Microsoft.Authorization/roleAssignments', guid(variables('foundryAccountId'), parameters('apimServiceName'), 'foundry-user'))]"
+      ],
+      "properties": {
+        "format": "rawxml",
+        "value": "[parameters('commerceAssistantAttachmentDeletePolicy')]"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(variables('containerId'), parameters('apimServiceName'), 'blob-reader')]",
+      "scope": "[variables('containerId')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', parameters('apimServiceName'))]",
+        "[variables('containerId')]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables('storageBlobDataReaderRoleDefinitionId')]",
+        "principalId": "[reference(resourceId('Microsoft.ApiManagement/service', parameters('apimServiceName')), '2024-05-01', 'Full').identity.principalId]",
+        "principalType": "ServicePrincipal"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(variables('searchServiceId'), variables('foundryProjectId'), 'search-service-contributor')]",
+      "scope": "[variables('searchServiceId')]",
+      "dependsOn": [
+        "[variables('foundryProjectId')]",
+        "[variables('searchServiceId')]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables('searchServiceContributorRoleDefinitionId')]",
+        "principalId": "[reference(variables('foundryProjectId'), '2025-06-01', 'Full').identity.principalId]",
+        "principalType": "ServicePrincipal"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(variables('searchServiceId'), variables('foundryProjectId'), 'search-data-contributor')]",
+      "scope": "[variables('searchServiceId')]",
+      "dependsOn": [
+        "[variables('foundryProjectId')]",
+        "[variables('searchServiceId')]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables('searchIndexDataContributorRoleDefinitionId')]",
+        "principalId": "[reference(variables('foundryProjectId'), '2025-06-01', 'Full').identity.principalId]",
+        "principalType": "ServicePrincipal"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(variables('searchServiceId'), variables('foundryProjectId'), 'search-data-reader')]",
+      "scope": "[variables('searchServiceId')]",
+      "dependsOn": [
+        "[variables('foundryProjectId')]",
+        "[variables('searchServiceId')]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables('searchIndexDataReaderRoleDefinitionId')]",
+        "principalId": "[reference(variables('foundryProjectId'), '2025-06-01', 'Full').identity.principalId]",
+        "principalType": "ServicePrincipal"
+      }
+    },
+    {
+      "condition": "[not(empty(parameters('promptPublisherPrincipalId')))]",
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(variables('containerId'), parameters('promptPublisherPrincipalId'), 'blob-contributor')]",
+      "scope": "[variables('containerId')]",
+      "dependsOn": [
+        "[variables('containerId')]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables('storageBlobDataContributorRoleDefinitionId')]",
+        "principalId": "[parameters('promptPublisherPrincipalId')]",
+        "principalType": "User"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(variables('foundryAccountId'), parameters('apimServiceName'), 'foundry-user')]",
+      "scope": "[variables('foundryAccountId')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', parameters('apimServiceName'))]",
+        "[variables('foundryAccountId')]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables('foundryUserRoleDefinitionId')]",
+        "principalId": "[reference(resourceId('Microsoft.ApiManagement/service', parameters('apimServiceName')), '2024-05-01', 'Full').identity.principalId]",
+        "principalType": "ServicePrincipal"
+      }
+    },
+    {
+      "condition": "[not(empty(parameters('promptPublisherPrincipalId')))]",
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(variables('foundryAccountId'), parameters('promptPublisherPrincipalId'), 'foundry-user')]",
+      "scope": "[variables('foundryAccountId')]",
+      "dependsOn": [
+        "[variables('foundryAccountId')]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables('foundryUserRoleDefinitionId')]",
+        "principalId": "[parameters('promptPublisherPrincipalId')]",
+        "principalType": "User"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(variables('foundryAccountId'), parameters('searchServiceName'), 'cognitive-services-user')]",
+      "scope": "[variables('foundryAccountId')]",
+      "dependsOn": [
+        "[variables('foundryAccountId')]",
+        "[variables('searchServiceId')]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables('cognitiveServicesUserRoleDefinitionId')]",
+        "principalId": "[reference(variables('searchServiceId'), '2026-03-01-preview', 'Full').identity.principalId]",
+        "principalType": "ServicePrincipal"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(variables('searchServiceId'), parameters('apimServiceName'), 'search-reader')]",
+      "scope": "[variables('searchServiceId')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', parameters('apimServiceName'))]",
+        "[variables('searchServiceId')]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables('searchIndexDataReaderRoleDefinitionId')]",
+        "principalId": "[reference(resourceId('Microsoft.ApiManagement/service', parameters('apimServiceName')), '2024-05-01', 'Full').identity.principalId]",
+        "principalType": "ServicePrincipal"
+      }
+    },
+    {
+      "condition": "[not(empty(parameters('promptPublisherPrincipalId')))]",
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(variables('searchServiceId'), parameters('promptPublisherPrincipalId'), 'search-service-contributor')]",
+      "scope": "[variables('searchServiceId')]",
+      "dependsOn": [
+        "[variables('searchServiceId')]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables('searchServiceContributorRoleDefinitionId')]",
+        "principalId": "[parameters('promptPublisherPrincipalId')]",
+        "principalType": "User"
+      }
+    },
+    {
+      "condition": "[not(empty(parameters('promptPublisherPrincipalId')))]",
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(variables('searchServiceId'), parameters('promptPublisherPrincipalId'), 'search-data-contributor')]",
+      "scope": "[variables('searchServiceId')]",
+      "dependsOn": [
+        "[variables('searchServiceId')]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables('searchIndexDataContributorRoleDefinitionId')]",
+        "principalId": "[parameters('promptPublisherPrincipalId')]",
+        "principalType": "User"
+      }
+    },
+    {
+      "condition": "[not(empty(parameters('promptPublisherPrincipalId')))]",
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(variables('searchServiceId'), parameters('promptPublisherPrincipalId'), 'search-data-reader')]",
+      "scope": "[variables('searchServiceId')]",
+      "dependsOn": [
+        "[variables('searchServiceId')]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables('searchIndexDataReaderRoleDefinitionId')]",
+        "principalId": "[parameters('promptPublisherPrincipalId')]",
+        "principalType": "User"
+      }
+    }
+  ],
+  "outputs": {
+    "apimGatewayUrl": {
+      "type": "string",
+      "value": "[concat('https://', parameters('apimServiceName'), '.azure-api.net/commerce-assistant/chat')]"
+    },
+    "apimAttachmentUrl": {
+      "type": "string",
+      "value": "[concat('https://', parameters('apimServiceName'), '.azure-api.net/commerce-assistant/attachments')]"
+    },
+    "apimPrincipalId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.ApiManagement/service', parameters('apimServiceName')), '2024-05-01', 'Full').identity.principalId]"
+    },
+    "assistantBlobUrl": {
+      "type": "string",
+      "value": "[variables('assistantBlobUrl')]"
+    },
+    "foundryProjectEndpoint": {
+      "type": "string",
+      "value": "[variables('foundryProjectEndpoint')]"
+    },
+    "searchServiceEndpoint": {
+      "type": "string",
+      "value": "[variables('searchServiceEndpoint')]"
+    },
+    "foundryOpenAIEndpoint": {
+      "type": "string",
+      "value": "[variables('foundryOpenAIEndpoint')]"
+    },
+    "foundryIqKnowledgeSourceName": {
+      "type": "string",
+      "value": "[parameters('foundryIqKnowledgeSourceName')]"
+    },
+    "foundryIqKnowledgeBaseName": {
+      "type": "string",
+      "value": "[parameters('foundryIqKnowledgeBaseName')]"
+    },
+    "embeddingDeploymentName": {
+      "type": "string",
+      "value": "[parameters('embeddingDeploymentName')]"
+    },
+    "embeddingModelName": {
+      "type": "string",
+      "value": "[parameters('embeddingModelName')]"
+    },
+    "foundryIqMcpUrl": {
+      "type": "string",
+      "value": "[variables('foundryIqMcpUrl')]"
+    }
+  }
+}
