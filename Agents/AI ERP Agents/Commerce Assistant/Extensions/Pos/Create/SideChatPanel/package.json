@@ -1,0 +1,26 @@
+{
+    "name": "contoso-pos-sidechat",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Self-contained React + Fluent UI v9 docked chat side panel, bundled as an AMD module for the Contoso.PosExtensions POS extension.",
+    "license": "SEE LICENSE IN sample code notice",
+    "scripts": {
+        "build": "webpack --mode production",
+        "build:dev": "webpack --mode development"
+    },
+    "dependencies": {
+        "@fluentui/react-components": "^9.54.17",
+        "@fluentui/react-icons": "^2.0.245",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1"
+    },
+    "devDependencies": {
+        "@types/react": "^18.3.12",
+        "@types/react-dom": "^18.3.1",
+        "esbuild-loader": "^4.2.2",
+        "terser-webpack-plugin": "^5.3.10",
+        "typescript": "^5.5.4",
+        "webpack": "^5.95.0",
+        "webpack-cli": "^5.1.4"
+    }
+}

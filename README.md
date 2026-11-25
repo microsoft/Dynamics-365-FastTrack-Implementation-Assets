@@ -27,6 +27,7 @@ Outline the file contents of the repository. It helps users navigate the codebas
 
 | File/folder                            | Description                                |
 |----------------------------------------|--------------------------------------------|
+| [`Agents`](Agents)                        | Dynamics 365 agent templates and guides     |
 | [`Finance`](ERP/Finance)                   | Dynamics 365 Finance guides                |
 | [`Commerce`](ERP/Commerce)                 | Dynamics 365 Commerce guides               |
 | [`Analytics`](Administration/Analytics)               | Dynamics 365 Analytics guides              |

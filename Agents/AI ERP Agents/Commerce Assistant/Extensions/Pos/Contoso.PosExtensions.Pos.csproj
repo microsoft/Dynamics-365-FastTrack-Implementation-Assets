@@ -1,0 +1,95 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\CustomizationPackage.props" />
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Dynamics.Commerce.Sdk.Pos" Version="$(CommerceSdkPackagesVersion)" />
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="$(TypeScriptPackagesVersion)" />
+    <PackageReference Include="knockoutjs" Version="3.5.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CommerceRuntime\Contoso.PosExtensions.CommerceRuntime.csproj" />
+  </ItemGroup>
+
+  <Target Name="ContentIncludeKnockoutLibrary" BeforeTargets="AssignTargetPaths" DependsOnTargets="RunResolvePackageDependencies">
+    <PropertyGroup>
+      <KnockoutLibraryFilePath Condition="'%(PackageDefinitions.Name)' == 'knockoutjs'">%(PackageDefinitions.ResolvedPath)\Content\Scripts\knockout-%(PackageDefinitions.Version).js</KnockoutLibraryFilePath>
+      <KnockoutjsFile>Libraries/knockout.js</KnockoutjsFile>
+    </PropertyGroup>
+    <Copy SourceFiles="$(KnockoutLibraryFilePath)" DestinationFiles="$(KnockoutjsFile)" SkipUnchangedFiles="true" /> <!-- Necessary for CPOS -->
+    <ItemGroup>
+      <Content Include="$(KnockoutjsFile)"></Content>
+    </ItemGroup>
+  </Target>
+
+  <!--
+    The docked Copilot side panel (Create/SideChatPanel) is a React + Fluent UI v9 app built by
+    webpack, not by the POS TypeScript compiler. Exclude its app sources and its installed npm
+    dependencies from the POS compile; otherwise the default TypeScriptCompile glob (**/*.ts(x))
+    sweeps node_modules and the Fluent-based sources and fails to compile them. The POS-side files
+    (the header packing item and the triggers) are intentionally left in the POS compile.
+  -->
+  <ItemGroup>
+    <TypeScriptCompile Remove="Create\SideChatPanel\node_modules\**\*.ts" />
+    <TypeScriptCompile Remove="Create\SideChatPanel\node_modules\**\*.tsx" />
+    <TypeScriptCompile Remove="Create\SideChatPanel\**\*.tsx" />
+    <TypeScriptCompile Remove="Create\SideChatPanel\productResults\**\*.ts" />
+    <TypeScriptCompile Remove="Create\SideChatPanel\sideChatClient.ts" />
+    <TypeScriptCompile Remove="Create\SideChatPanel\panelState.ts" />
+    <TypeScriptCompile Remove="Create\SideChatPanel\cartSuggestionState.ts" />
+    <Content Remove="Create\SideChatPanel\node_modules\**\*" />
+    <None Remove="Create\SideChatPanel\node_modules\**\*" />
+  </ItemGroup>
+
+  <!--
+    Defensive: ensure the React app's node_modules is never swept into the POS extension package,
+    regardless of item ordering. Runs before the SDK computes the packaged content set.
+  -->
+  <Target Name="ExcludeSideChatNodeModulesFromPackage" BeforeTargets="AssignTargetPaths">
+    <ItemGroup>
+      <Content Remove="Create\SideChatPanel\node_modules\**\*" />
+      <None Remove="Create\SideChatPanel\node_modules\**\*" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Docked chat side panel bundle (Libraries/ContosoSideChat.js).
+
+    The POS host loads modules via SystemJS and consumes third-party libraries as AMD (see the
+    "dependencies" section of manifest.json), so the app and all of its npm dependencies (React,
+    ReactDOM, Fluent UI) are bundled into a single self-contained AMD module by webpack. These
+    targets run that bundle build as part of dotnet build and package the output as Content, so the
+    extension package is fully self-contained. Node.js and npm must be on PATH.
+  -->
+  <PropertyGroup>
+    <SideChatAppDir>Create\SideChatPanel</SideChatAppDir>
+    <SideChatBundleFile>Libraries\ContosoSideChat.js</SideChatBundleFile>
+  </PropertyGroup>
+
+  <Target Name="RestoreSideChatDependencies"
+          BeforeTargets="BuildSideChatBundle"
+          Condition="!Exists('$(SideChatAppDir)\node_modules')">
+    <Message Importance="high" Text="Restoring npm dependencies for the docked chat side panel (first build only)..." />
+    <Exec Command="npm ci --no-audit --no-fund" WorkingDirectory="$(SideChatAppDir)" />
+  </Target>
+
+  <Target Name="BuildSideChatBundle"
+          BeforeTargets="AssignTargetPaths"
+          Inputs="$(SideChatAppDir)\*.ts;$(SideChatAppDir)\*.tsx;$(SideChatAppDir)\productResults\*.ts;$(SideChatAppDir)\productResults\*.tsx;$(SideChatAppDir)\app.tsconfig.json;$(SideChatAppDir)\package.json;$(SideChatAppDir)\webpack.config.js"
+          Outputs="$(SideChatBundleFile)">
+    <Message Importance="high" Text="Building the docked chat side panel AMD bundle ($(SideChatBundleFile))..." />
+    <Exec Command="npm run build" WorkingDirectory="$(SideChatAppDir)" />
+  </Target>
+
+  <Target Name="IncludeSideChatBundleContent"
+          BeforeTargets="AssignTargetPaths"
+          DependsOnTargets="BuildSideChatBundle">
+    <ItemGroup>
+      <Content Include="$(SideChatBundleFile)" />
+    </ItemGroup>
+  </Target>
+</Project>

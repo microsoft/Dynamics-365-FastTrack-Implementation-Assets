@@ -1,0 +1,33 @@
+﻿<!--
+    HTMLLint is an internal tool that fails on this file due to non-localized example labels,
+    there is no need for this comment and the one below in real-world extensions.
+-->
+<!-- HTMLLint Disable LabelExistsValidator -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Samples view</title>
+</head>
+<body>
+    <div class="SamplesView">
+        <script id="SamplesView_SamplesSection" type="text/html">
+            <div class="width300 col">
+                <div class="h4 pad8" data-bind="text: label"></div>
+                <div class="grow scrollY col" data-bind="template: { name: 'SamplesView_SampleButtonTemplate', foreach: items }"></div>
+            </div>
+        </script>
+        <script id="SamplesView_SampleButtonTemplate" type="text/html">
+            <div>
+                <a href="#" class="accentColor" data-bind="click: $root.sampleClick.bind($root)">
+                    <div class="h4 pad8" data-bind="text: label"></div>
+                </a>
+            </div>
+        </script>
+        <div class="grow pad20 scrollX col">
+            <div class="grow row" data-bind="template: { name: 'SamplesView_SamplesSection', foreach: samplesList }">
+            </div>
+        </div>
+    </div>
+</body>
+</html>

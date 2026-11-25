@@ -1,0 +1,30 @@
+<Project>
+  <PropertyGroup>
+    <BuildNumber Condition="'$(BuildNumber)' == ''">0.0</BuildNumber>
+    <Build_BuildNumber>$(BuildNumber)</Build_BuildNumber>
+    <MajorVersion>9.61</MajorVersion>
+    <Version>$(MajorVersion).$(Build_BuildNumber)</Version>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Publisher Condition="'$(Publisher)' == ''">CN=Contoso Ltd.</Publisher>
+    <PublisherDisplayName Condition="'$(PublisherDisplayName)' == ''">Contoso Ltd.</PublisherDisplayName>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Workaround for breaking changes in PackageDefinitions metadata. https://github.com/dotnet/sdk/issues/30809 -->
+    <!-- TODO: avoid of the PackageDefinitions usage. -->
+    <EmitLegacyAssetsFileItems>true</EmitLegacyAssetsFileItems>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <CommerceSdkPackagesVersion>[9.61.*-*,9.62)</CommerceSdkPackagesVersion>
+    <CommercePosPackagesVersion>[9.61.*-*,9.62)</CommercePosPackagesVersion>
+    <CommerceChannelPackagesVersion>[9.61.*-*,9.62)</CommerceChannelPackagesVersion>
+    <CommerceHwsPackagesVersion>[9.61.*-*,9.62)</CommerceHwsPackagesVersion>
+    <CommerceToolsPackagesVersion>[10.61.*,10.62)</CommerceToolsPackagesVersion>
+    <CommercePaymentsPackagesVersion>[10.61.*-*,10.62)</CommercePaymentsPackagesVersion>
+    <TypeScriptPackagesVersion>4.7.*</TypeScriptPackagesVersion>
+    <MauiVersion>10.0.71</MauiVersion>
+  </PropertyGroup>
+</Project>

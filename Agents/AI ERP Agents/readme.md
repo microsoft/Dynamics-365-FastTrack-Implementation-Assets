@@ -13,6 +13,7 @@ agent's README below to explore its capabilities and available artifacts.
 | Agent template | Scenario | Start here |
 | --- | --- | --- |
 | **Batch Framework Telemetry Agent** | Explore batch-job telemetry, investigate failures, and diagnose performance issues in Dynamics 365 Finance and Supply Chain Management. | [Read the guide](Batch-Framework-Telemetry-Agent/readme.md) |
+| **Commerce Assistant** | Explore a Store Commerce POS assistant with Azure deployment resources, product recommendations, cart suggestions, and customer-order workflows. | [Read the guide](Commerce%20Assistant/README.md) |
 | **ERP Compliance Advisor Agent** | Support security and IT audit reviews through read-only analysis of Dynamics 365 finance and operations data. | [Read the guide](ERP%20Compliance%20Advisor%20Agent/readme.md) |
 | **Inventory Fulfillment Agent** | Explore inventory availability and fulfillment actions using Inventory Visibility, product search, and Dynamics 365 ERP integration. | [Read the guide](Inventory%20Fulfillment%20Agent/README.md) |
 | **Inventory Stock Availability Agent** | Check on-hand, reserved, and available inventory by item, warehouse, and legal entity through read-only Dynamics 365 ERP MCP tools. | [Read the guide](Inventory%20Stock%20Availability%20Agent/README.md) |

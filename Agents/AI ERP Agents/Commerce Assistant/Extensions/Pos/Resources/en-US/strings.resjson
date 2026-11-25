@@ -1,0 +1,161 @@
+//======================================================================================================
+//======================================= Sample comment. ==============================================
+//======================================================================================================
+{
+    //======================== Sample View extensions strings. ========================
+    "string_0"                                      : "Quick compare products",
+    "_string_0.comment"                             : "Product search page app bar command label.",
+
+    "string_1"                                      : "View customer summary",
+    "_string_1.comment"                             : "Customer search page app bar command label.",
+
+    //======================== Column names.  ========================
+    "string_2"                                      : "ACCOUNT NUMBER_CUSTOMIZED",
+    "_string_2.comment"                             : "Customer search column name.",
+
+    "string_3"                                      : "NAME",
+    "_string_3.comment"                             : "Customer search column name.",
+
+    "string_4"                                      : "ADDRESS",
+    "_string_4.comment"                             : "Customer search column name.",
+
+    "string_5"                                      : "CONTACT EMAIL",
+    "_string_5.comment"                             : "Customer search column name.",
+
+    "string_7"                                      : "PHONE NUMBER",
+    "_string_7.comment"                             : "Customer search column name.",
+
+    //======================== Simple Next View Resources.  ========================
+
+    "string_8"                                      : "Message",
+    "_string_8.comment"                             : "The label for the first tab.",
+
+    "string_9"                                      : "Requests",
+    "_string_9.comment"                             : "The label for the second tab.",
+
+    "string_10"                                     : "Simple Next View",
+    "_string_10.comment"                            : "The title for the simple next view.",
+
+    "string_11"                                     : "Update message",
+    "_string_11.comment"                            : "The label for the update message appbar button.",
+
+    "string_12"                                     : "Request Date Time",
+    "_string_12.comment"                            : "The request date time column label.",
+
+    "string_13"                                     : "Requested Worker Name",
+    "_string_13.comment"                            : "The requested worker name column label.",
+
+    "string_14"                                     : "Request Type",
+    "_string_14.comment"                            : "The request type column label.",
+
+    "string_15"                                     : "Request Status",
+    "_string_15.comment"                            : "The request status column label.",
+
+    "string_16"                                     : "Leave request",
+    "_string_16.comment"                            : "The leave request type.",
+
+    "string_17"                                     : "Shift Swap",
+    "_string_17.comment"                            : "The shift swap request type.",
+
+    "string_18"                                     : "Shift Offer",
+    "_string_18.comment"                            : "The shift offer request type.",
+
+    "string_19"                                     : "Approved",
+    "_string_19.comment"                            : "The approved shift status.",
+
+    "string_20"                                     : "Pending",
+    "_string_20.comment"                            : "The pending shift status.",
+
+    "string_21"                                     : "Rejected",
+    "_string_21.comment"                            : "The rejected shift status.",
+
+    "string_22"                                     : "Button clicked",
+    "_string_22.comment"                            : "The button clicked message.",
+
+    "string_23"                                     : "Load from Simple Next View",
+    "_string_23.comment"                            : "The page load message.",
+
+    //======================== Simple Extension View Resources.  ========================
+
+    "string_50"                                     : "Simple Extension View",
+    "_string_50.comment"                            : "The simple extension view title.",
+
+    "string_51"                                     : "Simple extension view is loaded",
+    "_string_51.comment"                            : "The default message after the page is loaded.",
+
+    "string_52"                                     : "Update message button clicked",
+    "_string_52.comment"                            : "The update message button message.",
+
+    "string_53"                                     : "Enter your name",
+    "_string_53.comment"                            : "The templated dialog prompt.",
+
+    "string_54"                                     : "Dialog result: {0}",
+    "_string_54.comment"                            : "The dialog result format string.",
+
+    "string_55"                                     : "Hello world",
+    "_string_55.comment"                            : "The message dialog message.",
+
+    "string_56"                                     : "Overridden message value",
+    "_string_56.comment"                            : "The message provided to simple next view.",
+
+    "string_57"                                     : "Toggle changed: {0}",
+    "_string_57.comment"                            : "The toggle changed format string.",
+
+    "string_58"                                     : "Navigate to next page",
+    "_string_58.comment"                            : "The label for the navigate to next page app bar command.",
+
+    "string_59"                                     : "Switch is on",
+    "_string_59.comment"                            : "The toggle switch label when the switch is 'on'.",
+
+    "string_60"                                     : "Switch is off",
+    "_string_60.comment"                            : "The toggle switch label when the switch is 'off'.",
+
+    "string_61"                                     : "Menu command 1",
+    "_string_61.comment"                            : "The first menu command label.",
+
+    "string_62"                                     : "Menu command 2",
+    "_string_62.comment"                            : "The second menu command label.",
+
+    "string_63"                                     : "Account holder",
+    "_string_63.comment"                            : "Account holder label text.",
+
+    "string_64"                                     : "Account number",
+    "_string_64.comment"                            : "Account number label text.",
+
+    "string_65"                                     : "Phone",
+    "_string_65.comment"                            : "Phone label text.",
+
+    "string_66"                                     : "Email",
+    "_string_66.comment"                            : "Email label text.",
+
+    //======================== Custom grid column names.  ========================
+    "string_70"                                     : "Line number",
+    "_string_70.comment"                            : "Line number column name.",
+
+    "string_71"                                     : "Item ID",
+    "_string_71.comment"                            : "Item ID column name.",
+
+    "string_72"                                     : "Product ID",
+    "_string_72.comment"                            : "Product ID column name.",
+
+    "string_73"                                     : "Voided",
+    "_string_73.comment"                            : "Voided column name.",
+
+    "string_74"                                     : "Comment",
+    "_string_74.comment"                            : "Comment column name.",
+
+    "string_75"                                     : "HTML Element",
+    "_string_75.comment"                            : "The HTML element column name.",
+
+    "string_100"                                    : "Print operation",
+    "_string_100.comment"                           : "The localized operation name for the Print operation (operation ID 5000).",
+
+    "string_101"                                    : "End of day operation",
+    "_string_101.comment"                           : "The localized operation name for the End Of Day operation (operation ID 5001).",
+
+    "string_102"                                    : "Check gift card balance",
+    "_string_102.comment"                           : "The localized operation name for the Check Gift Card Balance operation (operation ID 5002).",
+
+    "string_103"                                    : "Save data to selected cart line",
+    "_string_103.comment"                           : "The localized operation name for the Save Data To Selected Cart Line operation (operation ID 5003)."
+}

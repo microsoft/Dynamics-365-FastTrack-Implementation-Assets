@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/devDependencies/
+Extensions/Pos/Libraries/
+Extensions/Pos/DataService/
+Extensions/Pos/**/*.js
+!Extensions/Pos/Create/SideChatPanel/webpack.config.js
+Extensions/Pos/**/*.g.xml
+artifacts/
+*.user
+*.suo
+.vs/

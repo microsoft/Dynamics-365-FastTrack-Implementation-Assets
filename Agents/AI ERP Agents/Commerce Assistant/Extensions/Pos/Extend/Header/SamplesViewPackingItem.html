@@ -1,0 +1,23 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Gas Pumps Status Item Templates</title>
+</head>
+<body>
+    <script id="UnpackedSimpleExtensionViewItem" type="text/html">
+        <button class="pad0 center row" data-bind="click: onItemClickedHandler">
+            <div class="iconTrackers buttonIcon width48 height20"></div>
+        </button>
+    </script>
+    <script id="PackedSimpleExtensionViewItem" type="text/html">
+        <button class="row pad0" data-bind="click: onItemClickedHandler">
+            <div class="iconTrackers buttonIcon height20 margin12"></div>
+            <div class="grow col marginLeft8 padTop12">
+                <div class="h4 row" data-bind="text: label"></div>
+            </div>
+        </button>
+    </script>
+</body>
+</html>

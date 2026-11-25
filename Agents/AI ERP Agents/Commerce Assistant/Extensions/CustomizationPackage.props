@@ -1,0 +1,14 @@
+<Project>
+    <Import Project="repo.props" />
+
+    <PropertyGroup>
+      <PackagePublisher Condition="'$(PackagePublisher)' == ''">$(Publisher)</PackagePublisher>
+      <PackagePublisherDisplayName Condition="'$(PackagePublisherDisplayName)' == ''">$(PublisherDisplayName)</PackagePublisherDisplayName>
+      <PackageVersion Condition="'$(PackageVersion)' == ''">$(Version)</PackageVersion>
+      <PackageName Condition="'$(PackageName)' == ''">Contoso.PosExtensions</PackageName>
+      <PackageDisplayName Condition="'$(PackageDisplayName)' == ''">Commerce Assistant</PackageDisplayName>
+      <PackageDescription Condition="'$(PackageDescription)' == ''">Commerce Assistant POS extension sample.</PackageDescription>
+      <!-- Supply your own APIM base URL at build time; see README.md. -->
+      <ContosoApimEndpoint Condition="'$(ContosoApimEndpoint)' == ''" />
+    </PropertyGroup>
+  </Project>
