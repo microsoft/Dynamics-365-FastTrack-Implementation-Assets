@@ -4,6 +4,8 @@ Use PowerShell with Azure CLI installed and an Azure account permitted to create
 
 Choose a model/version that supports text watermarking, and verify that watermarking is enabled after deployment.
 
+Open PowerShell in the `AzureResources` folder and run:
+
 ```powershell
 .\deploy.ps1 -Tenant "<tenant-id>"
 ```
