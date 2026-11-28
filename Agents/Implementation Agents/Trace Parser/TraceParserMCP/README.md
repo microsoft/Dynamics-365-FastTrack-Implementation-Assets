@@ -184,17 +184,20 @@ The server will be available at:
 
 ### DAB version contract
 
-The local tool manifest and Azure deployment image both pin DAB `1.7.83-rc`.
+The local tool manifest and Azure deployment image both pin DAB `2.0.12`.
 Use `dotnet tool run dab` to select the local manifest rather than a separately
 installed global `dab`. Do not replace the version with `latest` or install an
 unspecified prerelease.
 
-The configuration schema is pinned to source commit
-`c7927fa9885160ed35bcc9b25b13fd59b88f3133`, recorded in that NuGet package's
-repository metadata. The package's generated `v1.7.83` release-schema URL returns
-404; the commit-pinned schema has the same validation rules (only its `$id`
-differs). Keep the schema, tool manifest and container image aligned when
-reviewing a future upgrade.
+The configuration schema is pinned to the `v2.0.12` release asset
+(`dab.draft.schema.json`). Keep the schema, tool manifest and container image
+aligned when reviewing a future upgrade.
+
+DAB 2.0.8 and later omit disabled MCP tools from `tools/list`, so MCP clients see
+only `describe_entities`, `read_records` and `execute_entity`. DAB 2.0.12 also
+adds an `aggregate_records` tool. This sample disables it with the object form
+`"aggregate-records": { "enabled": false }`; in 2.0.12 the plain boolean `false`
+still lists the tool.
 
 Use lowercase `production` for `runtime.host.mode`. Restart DAB after changing
 entities in production mode; do not depend on development-mode hot reload.
@@ -238,7 +241,7 @@ The included `deploy-to-azure.ps1` script provisions all Azure resources and dep
 
 ### Architecture
 
-- Uses the official DAB Docker image: `mcr.microsoft.com/azure-databases/data-api-builder:1.7.83-rc`
+- Uses the official DAB Docker image: `mcr.microsoft.com/azure-databases/data-api-builder:2.0.12`
 - The `dab-config.json` is deployed via zip to `/home/site/wwwroot/`
 - DAB reads the config via startup command: `--ConfigFileName /home/site/wwwroot/dab-config.json`
 - Connection string is set via the `AZURE_SQL_CONNECTION_STRING` app setting
@@ -354,7 +357,7 @@ MCP clients can use the `read-records`, `describe-entities`, and `execute-entity
 
 ```
 TraceParserMCP/
-  .config/dotnet-tools.json                   # Data API Builder tool definition (v1.7.83-rc)
+  .config/dotnet-tools.json                   # Data API Builder tool definition (v2.0.12)
   .env                                        # Database connection string (AZURE_SQL_CONNECTION_STRING)
   dab-config.json                             # Data API Builder configuration (entities, permissions, endpoints)
   DAB_ParseEtl.ps1                             # Legacy headless ETL importer for isolated direct-import databases
